@@ -1,0 +1,30 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32" width="32" height="32">
+  <defs>
+    <linearGradient id="shardGradTop" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#bae6fd" />
+      <stop offset="100%" stop-color="#38bdf8" />
+    </linearGradient>
+    <linearGradient id="shardGradBotLeft" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0284c7" />
+      <stop offset="100%" stop-color="#0369a1" />
+    </linearGradient>
+    <linearGradient id="shardGradBotRight" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#0284c7" />
+    </linearGradient>
+    <filter id="shardGlow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="1" stdDeviation="1.5" flood-color="#0284c7" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+  <!-- Main Diamond Hexagon -->
+  <g filter="url(#shardGlow)">
+    <polygon points="16,3 27,11 23,26 16,30 9,26 5,11" fill="#0284c7" stroke="#38bdf8" stroke-width="1.2" stroke-linejoin="round"/>
+    <polygon points="16,3 27,11 16,14" fill="url(#shardGradTop)" opacity="0.95"/>
+    <polygon points="16,3 5,11 16,14" fill="#7dd3fc" opacity="0.85"/>
+    <polygon points="5,11 9,26 16,14" fill="url(#shardGradBotLeft)"/>
+    <polygon points="27,11 23,26 16,14" fill="url(#shardGradBotRight)"/>
+    <polygon points="9,26 16,30 16,14" fill="#075985"/>
+    <polygon points="23,26 16,30 16,14" fill="#0c4a6e"/>
+  </g>
+</svg>
+

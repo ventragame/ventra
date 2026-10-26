@@ -1,0 +1,19 @@
+{
+  "name": "ventra-root",
+  "version": "0.1.0",
+  "private": true,
+  "workspaces": [
+    "apps/*",
+    "packages/*"
+  ],
+  "scripts": {
+    "dev:web": "npm --workspace=apps/web run dev",
+    "build:web": "npm --workspace=apps/web run build",
+    "start:web": "npm --workspace=apps/web run start",
+    "export:mobile": "npm --workspace=apps/web run export && npm --workspace=apps/mobile run sync",
+    "sync:mobile": "npm --workspace=apps/mobile run sync",
+    "build:android": "npm run export:mobile && cd apps/mobile/android && .\\gradlew.bat assembleDebug",
+    "type-check": "npm --workspace=apps/web run type-check"
+  }
+}
+

@@ -1,0 +1,86 @@
+{
+  "version": "1.0.0",
+  "authority": "MEB",
+  "programVersion": "2018",
+  "grade": 4,
+  "subject": "Matematik",
+  "learningArea": "Sayılar ve İşlemler",
+  "subLearningArea": "Kesirler",
+  "curriculumStandards": [
+    {
+      "code": "M.4.1.6.1",
+      "authority": "MEB",
+      "programVersion": "2018",
+      "grade": 4,
+      "subject": "Matematik",
+      "learningArea": "Sayılar ve İşlemler",
+      "subLearningArea": "Kesirler",
+      "statement": "Basit, bileşik ve tam sayılı kesirleri tanır ve modellerle gösterir.",
+      "notes": "a) Birim kesirlerin payı 1 olan basit kesir olduğu belirtilir. b) Basit, bileşik ve tam sayılı kesir modellerle temsil edilir."
+    },
+    {
+      "code": "M.4.1.6.2",
+      "authority": "MEB",
+      "programVersion": "2018",
+      "grade": 4,
+      "subject": "Matematik",
+      "learningArea": "Sayılar ve İşlemler",
+      "subLearningArea": "Kesirler",
+      "statement": "Birim kesirleri karşılaştırır ve sıralar.",
+      "notes": "Paydası küçük olan birim kesrin daha büyük olduğu modellerle incelenir."
+    }
+  ],
+  "skills": [
+    {
+      "id": "ventra.math.g4.fraction.anatomy",
+      "code": "FRAC_ANATOMY",
+      "title": "Pay ve Payda Kavramı",
+      "description": "Bütünün eş parçalara bölünüşünü (payda) ve seçilen parça adedini (pay) kavrama.",
+      "domain": "math",
+      "curriculumCodes": ["M.4.1.6.1"],
+      "order": 1,
+      "targetWorkshopLevels": [1]
+    },
+    {
+      "id": "ventra.math.g4.fraction.proper",
+      "code": "FRAC_PROPER",
+      "title": "Basit Kesirleri Tanıma ve Modelleme",
+      "description": "Payı paydasından küçük olan ve bir bütünden azı temsil eden kesirleri kavrama.",
+      "domain": "math",
+      "curriculumCodes": ["M.4.1.6.1"],
+      "order": 2,
+      "targetWorkshopLevels": [2, 3]
+    },
+    {
+      "id": "ventra.math.g4.fraction.improper",
+      "code": "FRAC_IMPROPER",
+      "title": "Bileşik Kesirleri Tanıma ve Modelleme",
+      "description": "Payı paydasına eşit veya paydasından büyük olan kesirleri modellerle ifade etme.",
+      "domain": "math",
+      "curriculumCodes": ["M.4.1.6.1"],
+      "order": 3,
+      "targetWorkshopLevels": [5, 6, 7]
+    },
+    {
+      "id": "ventra.math.g4.fraction.mixed",
+      "code": "FRAC_MIXED",
+      "title": "Tam Sayılı Kesirleri Tanıma ve Modelleme",
+      "description": "Bir veya birden fazla bütün ile bir basit kesrin birleşimini ifade etme.",
+      "domain": "math",
+      "curriculumCodes": ["M.4.1.6.1"],
+      "order": 4,
+      "targetWorkshopLevels": [8, 9, 10]
+    },
+    {
+      "id": "ventra.math.g4.fraction.visual_reading",
+      "code": "FRAC_VISUAL",
+      "title": "Görsel Modellerden Kesir Değeri Çıkarımı",
+      "description": "Şerit, daire ve sayı doğrusu modellerinden doğru kesir değerini belirleme.",
+      "domain": "math",
+      "curriculumCodes": ["M.4.1.6.1"],
+      "order": 5,
+      "targetWorkshopLevels": [4]
+    }
+  ]
+}
+

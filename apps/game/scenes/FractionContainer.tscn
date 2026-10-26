@@ -1,0 +1,9 @@
+[gd_scene load_steps=2 format=3 uid="uid://fraction_container_01"]
+
+[ext_resource type="Script" path="res://scripts/FractionContainer.gd" id="1_container"]
+
+[node name="FractionContainer" type="PanelContainer"]
+custom_minimum_size = Vector2(280, 130)
+size_flags_horizontal = 3
+script = ExtResource("1_container")
+

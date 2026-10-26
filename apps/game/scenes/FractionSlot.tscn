@@ -1,0 +1,11 @@
+[gd_scene load_steps=2 format=3 uid="uid://fraction_slot_01"]
+
+[ext_resource type="Script" path="res://scripts/FractionSlot.gd" id="1_slot"]
+
+[node name="FractionSlot" type="PanelContainer"]
+custom_minimum_size = Vector2(56, 72)
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_default_cursor_shape = 2
+script = ExtResource("1_slot")
+
