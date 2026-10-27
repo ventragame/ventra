@@ -349,7 +349,7 @@ func _on_close_hint_pressed() -> void:
 	hint_modal.visible = false
 
 func _on_back_to_map_pressed() -> void:
-	get_tree().change_scene_to_file("res://scenes/WorldMap.tscn")
+	get_tree().change_scene_to_file("res://scenes/MathWorldSelection.tscn")
 
 func _update_responsive_layout() -> void:
 	var vp_size = get_viewport_rect().size

@@ -1,17 +1,19 @@
 'use client';
 
 import React, { useState, useEffect, useRef } from 'react';
-import { FRACTIONS_MODULE_DATA, ExerciseQuestion } from '../../data/learning/fractions';
+import { FRACTIONS_MODULE_DATA, ExerciseQuestion, LearningModuleData } from '../../data/learning/fractions';
 import type { ExerciseAttemptDetail, LearningSessionResult } from '@ventra/shared';
 import { VisualFractionDisplay } from './VisualFractionDisplay';
 
 interface ExerciseQuizViewProps {
   onComplete: (result: LearningSessionResult) => void;
   onExit: () => void;
+  moduleData?: LearningModuleData;
 }
 
-export const ExerciseQuizView: React.FC<ExerciseQuizViewProps> = ({ onComplete, onExit }) => {
-  const questions: ExerciseQuestion[] = FRACTIONS_MODULE_DATA.exercises;
+export const ExerciseQuizView: React.FC<ExerciseQuizViewProps> = ({ onComplete, onExit, moduleData }) => {
+  const activeModule = moduleData || FRACTIONS_MODULE_DATA;
+  const questions: ExerciseQuestion[] = activeModule.exercises;
   const [currentIndex, setCurrentIndex] = useState<number>(0);
   const [selectedOptionId, setSelectedOptionId] = useState<string | null>(null);
   const [isAnswerSubmitted, setIsAnswerSubmitted] = useState<boolean>(false);
@@ -19,8 +21,9 @@ export const ExerciseQuizView: React.FC<ExerciseQuizViewProps> = ({ onComplete, 
   const questionStartTimeRef = useRef<number>(Date.now());
   const sessionStartTimeRef = useRef<string>(new Date().toISOString());
 
-  const currentQuestion = questions[currentIndex];
-  const isLastQuestion = currentIndex === questions.length - 1;
+  const safeIndex = Math.min(currentIndex, questions.length - 1);
+  const currentQuestion = questions[safeIndex] || questions[0];
+  const isLastQuestion = safeIndex === questions.length - 1;
 
   useEffect(() => {
     questionStartTimeRef.current = Date.now();
@@ -72,8 +75,8 @@ export const ExerciseQuizView: React.FC<ExerciseQuizViewProps> = ({ onComplete, 
 
       const result: LearningSessionResult = {
         sessionId: 'sess-' + Math.random().toString(36).substring(2, 9),
-        moduleId: FRACTIONS_MODULE_DATA.id,
-        topicTitle: FRACTIONS_MODULE_DATA.title,
+        moduleId: activeModule.id,
+        topicTitle: activeModule.title,
         startedAt: sessionStartTimeRef.current,
         completedAt: new Date().toISOString(),
         totalQuestions: total,

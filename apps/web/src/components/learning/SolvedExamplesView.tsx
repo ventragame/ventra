@@ -1,19 +1,22 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FRACTIONS_MODULE_DATA, SolvedExample } from '../../data/learning/fractions';
+import { FRACTIONS_MODULE_DATA, SolvedExample, LearningModuleData } from '../../data/learning/fractions';
 import { VisualFractionDisplay } from './VisualFractionDisplay';
 
 interface SolvedExamplesViewProps {
   onStartExercises: () => void;
+  moduleData?: LearningModuleData;
 }
 
-export const SolvedExamplesView: React.FC<SolvedExamplesViewProps> = ({ onStartExercises }) => {
-  const examples: SolvedExample[] = FRACTIONS_MODULE_DATA.solvedExamples;
+export const SolvedExamplesView: React.FC<SolvedExamplesViewProps> = ({ onStartExercises, moduleData }) => {
+  const activeModule = moduleData || FRACTIONS_MODULE_DATA;
+  const examples: SolvedExample[] = activeModule.solvedExamples;
   const [activeExampleIndex, setActiveExampleIndex] = useState<number>(0);
   const [revealedSteps, setRevealedSteps] = useState<number>(3); // Tüm adımları varsayılan açık göster veya adım adım aç
 
-  const currentExample = examples[activeExampleIndex];
+  const safeIndex = Math.min(activeExampleIndex, examples.length - 1);
+  const currentExample = examples[safeIndex] || examples[0];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>

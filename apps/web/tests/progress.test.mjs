@@ -253,7 +253,8 @@ test('Catalog Single Source of Truth & Curriculum Codes Parity', async () => {
   const fs = await import('node:fs');
   const path = await import('node:path');
   
-  const catalogPath = path.resolve('../../packages/shared/src/catalog/skills.json');
+  const { fileURLToPath } = await import('node:url');
+  const catalogPath = fileURLToPath(new URL('../../../packages/shared/src/catalog/skills.json', import.meta.url));
   assert.ok(fs.existsSync(catalogPath), 'skills.json canonical katalog dosyası mevcut olmalı');
   
   const jsonContent = JSON.parse(fs.readFileSync(catalogPath, 'utf-8'));
@@ -262,7 +263,7 @@ test('Catalog Single Source of Truth & Curriculum Codes Parity', async () => {
   assert.equal(jsonContent.subject, 'Matematik');
   assert.equal(jsonContent.subLearningArea, 'Kesirler');
   assert.ok(Array.isArray(jsonContent.skills));
-  assert.equal(jsonContent.skills.length, 5, '5 adet iç beceri tanımlanmış olmalı');
+  assert.ok(jsonContent.skills.length >= 6, 'En az 6 adet iç beceri tanımlanmış olmalı (M.4.1.6.1 ve M.4.1.6.2)');
 
   for (const sk of jsonContent.skills) {
     const tsSkill = VENTRA_FRACTION_SKILLS[sk.id];
@@ -270,7 +271,11 @@ test('Catalog Single Source of Truth & Curriculum Codes Parity', async () => {
     assert.equal(tsSkill.title, sk.title);
     assert.equal(tsSkill.description, sk.description);
     assert.deepEqual(tsSkill.curriculumCodes, sk.curriculumCodes);
-    assert.ok(sk.targetWorkshopLevels.length > 0, `${sk.id} için atölye seviyesi haritalanmış olmalı`);
+    assert.ok(
+      (sk.targetWorkshopLevels && sk.targetWorkshopLevels.length > 0) ||
+      (sk.targetBridgeLevels && sk.targetBridgeLevels.length > 0),
+      `${sk.id} için atölye veya köprü seviyesi haritalanmış olmalı`
+    );
   }
 });
 

@@ -52,7 +52,7 @@ export interface IProgressRepository {
   getAllLevelProgress(gameId?: string, targetProfileId?: string): Promise<Record<number, LevelProgressRecord>>;
   getActivityLog(limit?: number, targetProfileId?: string): Promise<ActivityLogEntry[]>;
   getRecommendedReview(targetProfileId?: string): Promise<RecommendedReview | null>;
-  getTotalStars(targetProfileId?: string): Promise<number>;
+  getTotalStars(targetProfileId?: string, gameId?: string): Promise<number>;
   
   // --- Bulut Eşitleme Desteği (Cloud Sync) ---
   getPendingEvents(profileId: string): Promise<any[]>;

@@ -30,6 +30,7 @@ export interface VentraInternalSkill {
   curriculumCodes: string[];        // ['M.4.1.6.1']
   order?: number;
   targetWorkshopLevels?: number[];
+  targetBridgeLevels?: number[];
 }
 
 export interface ExerciseAttemptDetail {
@@ -140,6 +141,15 @@ export const VENTRA_FRACTION_SKILLS: Record<string, VentraInternalSkill> = {
     curriculumCodes: ['M.4.1.6.1'],
     order: 5,
     targetWorkshopLevels: [4]
+  },
+  'ventra.math.g4.fraction.unit_comparison': {
+    id: 'ventra.math.g4.fraction.unit_comparison',
+    title: 'Birim Kesirleri Karşılaştırma ve Sıralama',
+    description: 'Payı 1 olan birim kesirlerin modellerini karşılaştırarak payda büyüdükçe parçanın küçüldüğünü kavrama ve sıralama.',
+    domain: 'math',
+    curriculumCodes: ['M.4.1.6.2'],
+    order: 6,
+    targetBridgeLevels: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
   }
 };
 

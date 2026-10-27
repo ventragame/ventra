@@ -7,7 +7,7 @@ import {
   MVP_LEARNING_OUTCOMES 
 } from '../../../packages/shared/src/index.ts';
 
-import { FRACTIONS_MODULE_DATA } from '../src/data/learning/fractions.ts';
+import { FRACTIONS_MODULE_DATA, UNIT_FRACTIONS_MODULE_DATA, ALL_LEARNING_MODULES } from '../src/data/learning/fractions.ts';
 
 test('Curriculum Standard Verification: M.4.1.6.1', () => {
   const standard = MEB_G4_MATH_CURRICULUM['M.4.1.6.1'];
@@ -32,7 +32,10 @@ test('Ventra Internal Skills Contract', () => {
     assert.ok(skill.id.startsWith('ventra.math.g4.fraction.'), `Beceri ID formatı doğru olmalı: ${skill.id}`);
     assert.ok(skill.title.length > 0, 'Beceri başlığı boş olamaz');
     assert.ok(skill.description.length > 0, 'Beceri açıklaması boş olamaz');
-    assert.ok(skill.curriculumCodes.includes('M.4.1.6.1'), 'M.4.1.6.1 ile haritalanmış olmalı');
+    assert.ok(
+      skill.curriculumCodes.includes('M.4.1.6.1') || skill.curriculumCodes.includes('M.4.1.6.2'),
+      'MEB kazanımları (M.4.1.6.1 veya M.4.1.6.2) ile haritalanmış olmalı'
+    );
   }
 });
 
@@ -100,4 +103,82 @@ test('Mathematical Answer Correctness Verification', () => {
   assert.equal(q8?.correctOptionId, 'opt-a');
   assert.match(q8?.options.find(o => o.id === 'opt-a')?.label || '', /3\/5/);
 });
+
+test('Curriculum Standard Verification: M.4.1.6.2 (Unit Fractions)', () => {
+  const standard = MEB_G4_MATH_CURRICULUM['M.4.1.6.2'];
+  assert.ok(standard, 'M.4.1.6.2 kazanım tanımı mevcut olmalı');
+  assert.equal(standard.code, 'M.4.1.6.2');
+  assert.equal(standard.authority, 'MEB');
+  assert.equal(standard.grade, 4);
+  assert.equal(standard.subject, 'Matematik');
+  assert.equal(standard.subLearningArea, 'Kesirler');
+  assert.match(standard.statement, /Birim kesirleri karşılaştırır ve sıralar/i);
+
+  // M.4.1.6.2 skill contract
+  const unitSkill = VENTRA_FRACTION_SKILLS['ventra.math.g4.fraction.unit_comparison'];
+  assert.ok(unitSkill, 'Birim kesir becerisi tanımlı olmalı');
+  assert.equal(unitSkill.id, 'ventra.math.g4.fraction.unit_comparison');
+  assert.ok(unitSkill.curriculumCodes.includes('M.4.1.6.2'));
+  assert.equal(unitSkill.targetBridgeLevels?.length, 10, '10 köprü bölümüne haritalanmış olmalı');
+});
+
+test('Unit Fractions Learning Module Content & Mathematical Correctness', () => {
+  const mod = UNIT_FRACTIONS_MODULE_DATA;
+  assert.equal(mod.curriculumStandard.code, 'M.4.1.6.2');
+  assert.equal(mod.sections.length, 4, '4 pedagojik ders bölümü olmalı');
+  assert.equal(mod.solvedExamples.length, 3, '3 çözümlü örnek bulunmalı');
+  assert.equal(mod.exercises.length, 8, '8 alıştırma sorusu bulunmalı');
+
+  // Her sorunun MEB kısıtlarına ve matematiksel doğruluğuna uygunluğu
+  mod.exercises.forEach((q, idx) => {
+    assert.ok(q.id, `Soru ${idx + 1} ID içermeli`);
+    assert.ok(q.question.length > 10, `Soru ${idx + 1} metni eksiksiz olmalı`);
+    assert.equal(q.options.length, 4, `Soru ${idx + 1} 4 seçenek içermeli`);
+    assert.ok(q.explanation.length > 15, `Soru ${idx + 1} detaylı açıklama içermeli`);
+    assert.equal(q.curriculumCode, 'M.4.1.6.2', `Soru ${idx + 1} M.4.1.6.2 kazanımına bağlı olmalı`);
+
+    const correctOpt = q.options.find(o => o.id === q.correctOptionId);
+    assert.ok(correctOpt, `Soru ${idx + 1} doğru seçeneği (${q.correctOptionId}) seçenekler arasında bulunmalı`);
+  });
+
+  // Matematiksel doğrulamalar:
+  // QU1: Birim kesir -> 1/7
+  const qu1 = mod.exercises.find(e => e.id === 'qu-1');
+  assert.equal(qu1?.correctOptionId, 'opt-a');
+  assert.equal(qu1?.options.find(o => o.id === 'opt-a')?.label, '1/7');
+
+  // QU2: 1/5 > 1/8
+  const qu2 = mod.exercises.find(e => e.id === 'qu-2');
+  assert.equal(qu2?.correctOptionId, 'opt-a');
+  assert.equal(qu2?.options.find(o => o.id === 'opt-a')?.label, '>');
+
+  // QU3: 6'ya bölünen dilim 12'ye bölünenden büyüktür (1/6 > 1/12)
+  const qu3 = mod.exercises.find(e => e.id === 'qu-3');
+  assert.equal(qu3?.correctOptionId, 'opt-a');
+
+  // QU4: Büyükten küçüğe: 1/3 > 1/9 > 1/15
+  const qu4 = mod.exercises.find(e => e.id === 'qu-4');
+  assert.equal(qu4?.correctOptionId, 'opt-a');
+  assert.equal(qu4?.options.find(o => o.id === 'opt-a')?.label, '1/3 > 1/9 > 1/15');
+
+  // QU5: Küçükten büyüğe: 1/18 < 1/10 < 1/4
+  const qu5 = mod.exercises.find(e => e.id === 'qu-5');
+  assert.equal(qu5?.correctOptionId, 'opt-a');
+  assert.equal(qu5?.options.find(o => o.id === 'opt-a')?.label, '1/18 < 1/10 < 1/4');
+
+  // QU6: En çok yiyen Selin (1/2)
+  const qu6 = mod.exercises.find(e => e.id === 'qu-6');
+  assert.equal(qu6?.correctOptionId, 'opt-a');
+  assert.match(qu6?.options.find(o => o.id === 'opt-a')?.label || '', /Selin/);
+
+  // QU7: 1/2 > 1/box > 1/8 => box = 5 (2 < 5 < 8)
+  const qu7 = mod.exercises.find(e => e.id === 'qu-7');
+  assert.equal(qu7?.correctOptionId, 'opt-a');
+  assert.equal(qu7?.options.find(o => o.id === 'opt-a')?.label, '5');
+
+  // QU8: MEB Sınırı (payda <= 20) -> 1/20 paydası 20'den küçük tüm birim kesirlerden daha küçüktür
+  const qu8 = mod.exercises.find(e => e.id === 'qu-8');
+  assert.equal(qu8?.correctOptionId, 'opt-a');
+});
+
 

@@ -10,13 +10,16 @@ import { ExerciseQuizView } from '../../components/learning/ExerciseQuizView';
 import { SessionSummaryView } from '../../components/learning/SessionSummaryView';
 import type { LearningSessionResult } from '@ventra/shared';
 import { getProgressRepository } from '../../lib/progress';
+import { ALL_LEARNING_MODULES, FRACTIONS_MODULE_DATA } from '../../data/learning/fractions';
 
 function LearningCenterContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
   const tabParam = searchParams.get('tab') as LearningCenterTab | null;
+  const moduleParam = searchParams.get('module') as string | null;
 
   const [activeTab, setActiveTab] = useState<LearningCenterTab>('lesson');
+  const [selectedModuleCode, setSelectedModuleCode] = useState<string>('M.4.1.6.1');
   const [sessionResult, setSessionResult] = useState<LearningSessionResult | null>(null);
 
   useEffect(() => {
@@ -24,6 +27,14 @@ function LearningCenterContent() {
       setActiveTab(tabParam);
     }
   }, [tabParam]);
+
+  useEffect(() => {
+    if (moduleParam && ALL_LEARNING_MODULES[moduleParam]) {
+      setSelectedModuleCode(moduleParam);
+    }
+  }, [moduleParam]);
+
+  const currentModuleData = ALL_LEARNING_MODULES[selectedModuleCode] || FRACTIONS_MODULE_DATA;
 
   const handleReturnToAdventure = () => {
     router.push('/');
@@ -69,8 +80,58 @@ function LearningCenterContent() {
         padding: '24px 20px 48px 20px',
         boxSizing: 'border-box'
       }}>
+        {/* Kazanım & Modül Seçici (M.4.1.6.1 vs M.4.1.6.2) */}
+        <div style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          gap: '10px',
+          background: 'rgba(15, 23, 42, 0.65)',
+          padding: '8px 12px',
+          borderRadius: '16px',
+          border: '1px solid rgba(56, 189, 248, 0.15)',
+          marginBottom: '20px',
+          alignItems: 'center'
+        }}>
+          <span style={{ fontSize: '12px', fontWeight: 800, color: '#94a3b8', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+            Konu Seçimi:
+          </span>
+          <button
+            onClick={() => setSelectedModuleCode('M.4.1.6.1')}
+            style={{
+              padding: '8px 14px',
+              borderRadius: '10px',
+              border: selectedModuleCode === 'M.4.1.6.1' ? '1px solid #38bdf8' : '1px solid rgba(255, 255, 255, 0.08)',
+              background: selectedModuleCode === 'M.4.1.6.1' ? 'linear-gradient(135deg, rgba(2, 132, 199, 0.3) 0%, rgba(37, 99, 235, 0.3) 100%)' : '#091224',
+              color: selectedModuleCode === 'M.4.1.6.1' ? '#38bdf8' : '#94a3b8',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            🎨 Kesir Atölyesi (M.4.1.6.1)
+          </button>
+          <button
+            onClick={() => setSelectedModuleCode('M.4.1.6.2')}
+            style={{
+              padding: '8px 14px',
+              borderRadius: '10px',
+              border: selectedModuleCode === 'M.4.1.6.2' ? '1px solid #10b981' : '1px solid rgba(255, 255, 255, 0.08)',
+              background: selectedModuleCode === 'M.4.1.6.2' ? 'linear-gradient(135deg, rgba(5, 150, 105, 0.3) 0%, rgba(16, 185, 129, 0.3) 100%)' : '#091224',
+              color: selectedModuleCode === 'M.4.1.6.2' ? '#10b981' : '#94a3b8',
+              fontSize: '13px',
+              fontWeight: 700,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease'
+            }}
+          >
+            🌉 Kesir Köprüsü & Birim Kesirler (M.4.1.6.2)
+          </button>
+        </div>
+
         {activeTab === 'lesson' && (
           <FractionLessonView
+            moduleData={currentModuleData}
             onStartExercises={() => setActiveTab('exercises')}
             onOpenExplorer={() => setActiveTab('explorer')}
           />
@@ -90,7 +151,7 @@ function LearningCenterContent() {
                   Kesirleri Modellerle Keşfet
                 </h2>
                 <p style={{ fontSize: '13px', color: '#94a3b8', margin: 0 }}>
-                  Daire ve şerit modellerini kullanarak pay ve paydanın kesir değerini nasıl değiştirdiğini dene.
+                  Daire, şerit ve birim kesir karşılaştırma modellerini kullanarak canlı matematik deneyleri yap.
                 </p>
               </div>
 
@@ -118,12 +179,14 @@ function LearningCenterContent() {
 
         {activeTab === 'examples' && (
           <SolvedExamplesView
+            moduleData={currentModuleData}
             onStartExercises={() => setActiveTab('exercises')}
           />
         )}
 
         {activeTab === 'exercises' && (
           <ExerciseQuizView
+            moduleData={currentModuleData}
             onComplete={handleExerciseComplete}
             onExit={() => setActiveTab('lesson')}
           />

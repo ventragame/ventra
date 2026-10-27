@@ -1,21 +1,25 @@
 'use client';
 
 import React, { useState } from 'react';
-import { FRACTIONS_MODULE_DATA, FractionLessonSection } from '../../data/learning/fractions';
+import { FRACTIONS_MODULE_DATA, FractionLessonSection, LearningModuleData } from '../../data/learning/fractions';
 import { VisualFractionDisplay } from './VisualFractionDisplay';
 
 interface FractionLessonViewProps {
   onStartExercises: () => void;
   onOpenExplorer: () => void;
+  moduleData?: LearningModuleData;
 }
 
 export const FractionLessonView: React.FC<FractionLessonViewProps> = ({
   onStartExercises,
-  onOpenExplorer
+  onOpenExplorer,
+  moduleData
 }) => {
-  const sections = FRACTIONS_MODULE_DATA.sections;
+  const activeModule = moduleData || FRACTIONS_MODULE_DATA;
+  const sections = activeModule.sections;
   const [activeSectionIndex, setActiveSectionIndex] = useState<number>(0);
-  const currentSection: FractionLessonSection = sections[activeSectionIndex];
+  const safeIndex = Math.min(activeSectionIndex, sections.length - 1);
+  const currentSection: FractionLessonSection = sections[safeIndex] || sections[0];
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>

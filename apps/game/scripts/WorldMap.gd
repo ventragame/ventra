@@ -179,9 +179,9 @@ func _on_island_selected(data: Dictionary) -> void:
 	detail_desc.text = data.description
 	
 	if data.id == "math_island":
-		detail_outcome.text = "MEB Kazanım: M.4.1.6.1 (Basit, Bileşik ve Tam Sayılı Kesirler)"
+		detail_outcome.text = "MEB Kazanım: M.4.1.6.1 & M.4.1.6.2 (Kesirler Dünyası)"
 		enter_button.visible = true
-		enter_button.text = "Kesir Atölyesi'ne Başla"
+		enter_button.text = "Matematik Dünyası'na Gir"
 		enter_button.disabled = false
 	else:
 		detail_outcome.text = "Geliştirme Aşamasında • Görevler & Avatarlar"
@@ -279,7 +279,7 @@ func _on_enter_world_pressed() -> void:
 	print("[WorldMap] Dünyaya giriş yapılıyor: ", island_id)
 	
 	if island_id == "math_island":
-		get_tree().change_scene_to_file("res://scenes/FractionWorkshop.tscn")
+		get_tree().change_scene_to_file("res://scenes/MathWorldSelection.tscn")
 
 func _on_external_game_started(_student_name: String, _level_id: int) -> void:
 	get_tree().change_scene_to_file("res://scenes/FractionWorkshop.tscn")

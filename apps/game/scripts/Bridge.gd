@@ -146,3 +146,24 @@ func send_fraction_workshop_completed(level_id: int, outcome_id: String, skill_i
 		"completedAt": Time.get_datetime_string_from_system(true)
 	})
 
+func send_fraction_bridge_completed(level_id: int, outcome_id: String, skill_id: String, score: int, success: bool, stars: int, duration: int, attempts: int, wrong_attempts: int, hints: int) -> void:
+	var accuracy = 1.0 if wrong_attempts == 0 else max(0.2, 1.0 - (wrong_attempts * 0.15))
+	send_event("VENTRA_GAME_COMPLETED", {
+		"sessionId": "sess_bridge_%d_%d" % [level_id, int(Time.get_unix_time_from_system())],
+		"gameId": "kesir_koprusu",
+		"levelId": level_id,
+		"outcomeId": outcome_id,
+		"skillId": skill_id,
+		"score": score,
+		"success": success,
+		"starsEarned": stars,
+		"metrics": {
+			"durationSeconds": duration,
+			"attemptsCount": attempts,
+			"accuracyRate": snappedf(accuracy, 0.01),
+			"wrongAttempts": wrong_attempts,
+			"hintsUsed": hints
+		},
+		"completedAt": Time.get_datetime_string_from_system(true)
+	})
+

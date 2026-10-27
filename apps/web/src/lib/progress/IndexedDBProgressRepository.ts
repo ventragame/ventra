@@ -497,11 +497,12 @@ export class IndexedDBProgressRepository implements IProgressRepository {
       });
     }
 
+    const gameTitle = payload.gameId === 'kesir_koprusu' ? 'Kesir Köprüsü' : 'Kesir Atölyesi';
     const logEntry: ActivityLogEntry & { profileId: string } = {
       id: `act_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       profileId,
       type: 'game',
-      title: `Kesir Atölyesi — Bölüm ${payload.levelId}`,
+      title: `${gameTitle} — Bölüm ${payload.levelId}`,
       subtitle: `${payload.starsEarned} Yıldız • Skor: ${payload.score} (%${Math.round(payload.metrics.accuracyRate * 100)})`,
       timestamp: completedAt,
       score: payload.score,
@@ -539,9 +540,13 @@ export class IndexedDBProgressRepository implements IProgressRepository {
       skillMasteries[skillKey] = await this.getSkillMastery(skillKey, profileId);
     }
 
-    const levelProgress = await this.getAllLevelProgress('kesir_atolyesi', profileId);
-    const totalStars = calculateTotalStars(levelProgress);
-    const completedLevelsCount = Object.values(levelProgress).filter(l => l.bestStars > 0).length;
+    const atolyeLevels = await this.getAllLevelProgress('kesir_atolyesi', profileId);
+    const kopruLevels = await this.getAllLevelProgress('kesir_koprusu', profileId);
+    const atolyeStars = calculateTotalStars(atolyeLevels);
+    const kopruStars = calculateTotalStars(kopruLevels);
+    const totalStars = atolyeStars + kopruStars;
+    const completedLevelsCount = Object.values(atolyeLevels).filter(l => l.bestStars > 0).length +
+      Object.values(kopruLevels).filter(l => l.bestStars > 0).length;
 
     const learningAttempts = await this.getRecordsByIndex<{ isCorrect: boolean }>(db, 'learning_attempts', 'profileId', profileId);
     const learningAttemptsCount = learningAttempts.length;
@@ -569,14 +574,34 @@ export class IndexedDBProgressRepository implements IProgressRepository {
       totalGameSessions: gameSessionsCount,
       totalActivitiesCompleted: sessions.length,
       totalStarsEarned: totalStars,
-      maxPossibleStars: 30,
+      maxPossibleStars: 60,
       overallLearningAccuracy: Math.round(overallLearningAccuracy * 100) / 100,
       completedLevelsCount,
-      totalLevelsCount: 10,
+      totalLevelsCount: 20,
       lastActivityAt,
-      lastTopicStudied: hasData ? '4. Sınıf Kesirler (M.4.1.6.1)' : null,
+      lastTopicStudied: hasData ? '4. Sınıf Kesirler (M.4.1.6.1 & M.4.1.6.2)' : null,
       skillMasteries,
-      levelProgress,
+      levelProgress: atolyeLevels,
+      gamesProgress: {
+        'kesir_atolyesi': {
+          gameId: 'kesir_atolyesi',
+          gameTitle: 'Kesir Atölyesi',
+          totalStars: atolyeStars,
+          maxStars: 30,
+          completedLevels: Object.values(atolyeLevels).filter(l => l.bestStars > 0).length,
+          totalLevels: 10,
+          levels: atolyeLevels
+        },
+        'kesir_koprusu': {
+          gameId: 'kesir_koprusu',
+          gameTitle: 'Kesir Köprüsü',
+          totalStars: kopruStars,
+          maxStars: 30,
+          completedLevels: Object.values(kopruLevels).filter(l => l.bestStars > 0).length,
+          totalLevels: 10,
+          levels: kopruLevels
+        }
+      },
       recentActivities: activities,
       recommendedReview
     };
@@ -661,9 +686,14 @@ export class IndexedDBProgressRepository implements IProgressRepository {
     return summary.recommendedReview;
   }
 
-  public async getTotalStars(targetProfileId?: string): Promise<number> {
-    const levels = await this.getAllLevelProgress('kesir_atolyesi', targetProfileId);
-    return calculateTotalStars(levels);
+  public async getTotalStars(targetProfileId?: string, gameId?: string): Promise<number> {
+    if (gameId) {
+      const levels = await this.getAllLevelProgress(gameId, targetProfileId);
+      return calculateTotalStars(levels);
+    }
+    const atolye = await this.getAllLevelProgress('kesir_atolyesi', targetProfileId);
+    const kopru = await this.getAllLevelProgress('kesir_koprusu', targetProfileId);
+    return calculateTotalStars(atolye) + calculateTotalStars(kopru);
   }
 
   // --- Bulut Eşitleme Desteği ---

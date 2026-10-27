@@ -1,0 +1,483 @@
+[gd_scene load_steps=10 format=3 uid="uid://fraction_bridge_01"]
+
+[ext_resource type="Script" path="res://scripts/FractionBridge.gd" id="1_bridge_game"]
+[ext_resource type="Texture2D" uid="uid://l4snkdiurix3" path="res://assets/map/ocean_background.png" id="2_ocean"]
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_back"]
+bg_color = Color(0.06, 0.1, 0.18, 0.9)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.22, 0.74, 0.97, 0.7)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_target"]
+bg_color = Color(0.04, 0.07, 0.14, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.18, 0.32, 0.54, 0.8)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+content_margin_left = 16.0
+content_margin_top = 10.0
+content_margin_right = 16.0
+content_margin_bottom = 12.0
+shadow_color = Color(0, 0, 0, 0.45)
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_cliff"]
+bg_color = Color(0.12, 0.18, 0.3, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.3, 0.45, 0.7, 0.8)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+content_margin_left = 14.0
+content_margin_top = 14.0
+content_margin_right = 14.0
+content_margin_bottom = 14.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_feedback"]
+bg_color = Color(0.05, 0.09, 0.18, 0.92)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.22, 0.74, 0.97, 0.8)
+corner_radius_top_left = 10
+corner_radius_top_right = 10
+corner_radius_bottom_right = 10
+corner_radius_bottom_left = 10
+content_margin_left = 14.0
+content_margin_top = 8.0
+content_margin_right = 14.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_tray"]
+bg_color = Color(0.03, 0.06, 0.12, 0.88)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.15, 0.25, 0.45, 0.75)
+corner_radius_top_left = 14
+corner_radius_top_right = 14
+corner_radius_bottom_right = 14
+corner_radius_bottom_left = 14
+content_margin_left = 12.0
+content_margin_top = 8.0
+content_margin_right = 12.0
+content_margin_bottom = 8.0
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_btn_test"]
+bg_color = Color(0.08, 0.58, 0.42, 0.95)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.2, 0.85, 0.6, 1)
+corner_radius_top_left = 12
+corner_radius_top_right = 12
+corner_radius_bottom_right = 12
+corner_radius_bottom_left = 12
+content_margin_left = 18.0
+content_margin_top = 10.0
+content_margin_right = 18.0
+content_margin_bottom = 10.0
+shadow_color = Color(0.08, 0.58, 0.42, 0.4)
+shadow_size = 8
+
+[sub_resource type="StyleBoxFlat" id="StyleBoxFlat_modal"]
+bg_color = Color(0.05, 0.08, 0.16, 0.98)
+border_width_left = 2
+border_width_top = 2
+border_width_right = 2
+border_width_bottom = 2
+border_color = Color(0.22, 0.74, 0.97, 0.9)
+corner_radius_top_left = 20
+corner_radius_top_right = 20
+corner_radius_bottom_right = 20
+corner_radius_bottom_left = 20
+content_margin_left = 28.0
+content_margin_top = 24.0
+content_margin_right = 28.0
+content_margin_bottom = 24.0
+shadow_color = Color(0, 0, 0, 0.7)
+shadow_size = 20
+
+[node name="FractionBridge" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_bridge_game")
+
+[node name="Background" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+texture = ExtResource("2_ocean")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="UI" type="CanvasLayer" parent="."]
+
+[node name="SafeMargin" type="MarginContainer" parent="UI"]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
+
+[node name="MainLayout" type="VBoxContainer" parent="UI/SafeMargin"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TopBar" type="HBoxContainer" parent="UI/SafeMargin/MainLayout"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="BackButton" type="Button" parent="UI/SafeMargin/MainLayout/TopBar"]
+custom_minimum_size = Vector2(130, 42)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_back")
+text = "← Haritaya Dön"
+
+[node name="LevelInfo" type="VBoxContainer" parent="UI/SafeMargin/MainLayout/TopBar"]
+layout_mode = 2
+size_flags_horizontal = 3
+alignment = 1
+
+[node name="LevelLabel" type="Label" parent="UI/SafeMargin/MainLayout/TopBar/LevelInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 16
+text = "Kesir Köprüsü • Bölüm 1 / 10"
+
+[node name="StarsLabel" type="Label" parent="UI/SafeMargin/MainLayout/TopBar/LevelInfo"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.75, 0.14, 1)
+theme_override_font_sizes/font_size = 14
+text = "★ 0"
+
+[node name="HintButton" type="Button" parent="UI/SafeMargin/MainLayout/TopBar"]
+custom_minimum_size = Vector2(90, 42)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.98, 0.8, 0.1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_back")
+text = "💡 İpucu"
+
+[node name="TargetCard" type="PanelContainer" parent="UI/SafeMargin/MainLayout"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_target")
+
+[node name="VBox" type="VBoxContainer" parent="UI/SafeMargin/MainLayout/TargetCard"]
+layout_mode = 2
+theme_override_constants/separation = 4
+
+[node name="Badge" type="Label" parent="UI/SafeMargin/MainLayout/TargetCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.75, 0.14, 1)
+theme_override_font_sizes/font_size = 13
+text = "BÜYÜKTEN KÜÇÜĞE ( > )"
+
+[node name="TitleLabel" type="Label" parent="UI/SafeMargin/MainLayout/TargetCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 18
+text = "İlk Kemer: Yarım ve Çeyrek"
+
+[node name="DescLabel" type="Label" parent="UI/SafeMargin/MainLayout/TargetCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.8, 0.88, 0.98, 1)
+theme_override_font_sizes/font_size = 13
+text = "Tahtaları BÜYÜKTEN KÜÇÜĞE ( > ) doğru dizerek köprüyü tamamla."
+autowrap_mode = 2
+
+[node name="StatusLabel" type="Label" parent="UI/SafeMargin/MainLayout/TargetCard/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.58, 0.64, 0.72, 1)
+theme_override_font_sizes/font_size = 12
+text = "Köprü Durumu: 0 / 2 Parça Yerleşti"
+
+[node name="BridgeScroll" type="ScrollContainer" parent="UI/SafeMargin/MainLayout"]
+custom_minimum_size = Vector2(0, 160)
+layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 1
+vertical_scroll_mode = 0
+
+[node name="BridgeContainer" type="HBoxContainer" parent="UI/SafeMargin/MainLayout/BridgeScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="LeftCliff" type="PanelContainer" parent="UI/SafeMargin/MainLayout/BridgeScroll/BridgeContainer"]
+custom_minimum_size = Vector2(80, 120)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_cliff")
+
+[node name="AvatarLabel" type="Label" parent="UI/SafeMargin/MainLayout/BridgeScroll/BridgeContainer/LeftCliff"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "🧭"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="SlotsBox" type="HBoxContainer" parent="UI/SafeMargin/MainLayout/BridgeScroll/BridgeContainer"]
+layout_mode = 2
+size_flags_vertical = 4
+theme_override_constants/separation = 10
+alignment = 1
+
+[node name="RightCliff" type="PanelContainer" parent="UI/SafeMargin/MainLayout/BridgeScroll/BridgeContainer"]
+custom_minimum_size = Vector2(80, 120)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_cliff")
+
+[node name="GoalLabel" type="Label" parent="UI/SafeMargin/MainLayout/BridgeScroll/BridgeContainer/RightCliff"]
+layout_mode = 2
+theme_override_font_sizes/font_size = 32
+text = "⭐"
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="FeedbackPanel" type="PanelContainer" parent="UI/SafeMargin/MainLayout"]
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_feedback")
+
+[node name="FeedbackLabel" type="Label" parent="UI/SafeMargin/MainLayout/FeedbackPanel"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.22, 0.74, 0.97, 1)
+theme_override_font_sizes/font_size = 13
+text = "Tahtaları seçip köprü yuvalarına yerleştir, ardından 'Köprüyü Test Et'e bas!"
+autowrap_mode = 2
+
+[node name="BottomBar" type="VBoxContainer" parent="UI/SafeMargin/MainLayout"]
+layout_mode = 2
+theme_override_constants/separation = 10
+
+[node name="TrayPanel" type="PanelContainer" parent="UI/SafeMargin/MainLayout/BottomBar"]
+custom_minimum_size = Vector2(0, 96)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_tray")
+
+[node name="TrayScroll" type="ScrollContainer" parent="UI/SafeMargin/MainLayout/BottomBar/TrayPanel"]
+layout_mode = 2
+horizontal_scroll_mode = 1
+vertical_scroll_mode = 0
+
+[node name="TrayBox" type="HBoxContainer" parent="UI/SafeMargin/MainLayout/BottomBar/TrayPanel/TrayScroll"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="Actions" type="HBoxContainer" parent="UI/SafeMargin/MainLayout/BottomBar"]
+layout_mode = 2
+theme_override_constants/separation = 10
+alignment = 2
+
+[node name="UndoButton" type="Button" parent="UI/SafeMargin/MainLayout/BottomBar/Actions"]
+custom_minimum_size = Vector2(100, 44)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_back")
+text = "↩ Geri Al"
+
+[node name="ResetButton" type="Button" parent="UI/SafeMargin/MainLayout/BottomBar/Actions"]
+custom_minimum_size = Vector2(100, 44)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_back")
+text = "↺ Sıfırla"
+
+[node name="TestButton" type="Button" parent="UI/SafeMargin/MainLayout/BottomBar/Actions"]
+custom_minimum_size = Vector2(170, 44)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_test")
+text = "🚀 Köprüyü Test Et"
+
+[node name="SuccessModal" type="Control" parent="UI"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Dimmer" type="ColorRect" parent="UI/SuccessModal"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.04, 0.08, 0.75)
+
+[node name="Center" type="CenterContainer" parent="UI/SuccessModal"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="UI/SuccessModal/Center"]
+custom_minimum_size = Vector2(360, 280)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
+
+[node name="VBox" type="VBoxContainer" parent="UI/SuccessModal/Center/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="Title" type="Label" parent="UI/SuccessModal/Center/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.2, 0.85, 0.6, 1)
+theme_override_font_sizes/font_size = 22
+text = "Köprü Başarıyla İnşa Edildi!"
+horizontal_alignment = 1
+
+[node name="Stars" type="Label" parent="UI/SuccessModal/Center/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.8, 0.1, 1)
+theme_override_font_sizes/font_size = 32
+text = "★ ★ ★"
+horizontal_alignment = 1
+
+[node name="Score" type="Label" parent="UI/SuccessModal/Center/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.95, 1, 1)
+theme_override_font_sizes/font_size = 14
+text = "Skor: 100 • Süre: 15 sn"
+horizontal_alignment = 1
+
+[node name="Message" type="Label" parent="UI/SuccessModal/Center/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.8, 0.9, 1)
+theme_override_font_sizes/font_size = 13
+text = "Birim kesirler doğru sıralandı!"
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="NextButton" type="Button" parent="UI/SuccessModal/Center/Panel/VBox"]
+custom_minimum_size = Vector2(0, 44)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_test")
+text = "Sonraki Bölüm →"
+
+[node name="ExitButton" type="Button" parent="UI/SuccessModal/Center/Panel/VBox"]
+custom_minimum_size = Vector2(0, 38)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(0.8, 0.9, 1, 1)
+theme_override_font_sizes/font_size = 13
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_back")
+text = "Haritaya Dön"
+
+[node name="HintModal" type="Control" parent="UI"]
+visible = false
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Dimmer" type="ColorRect" parent="UI/HintModal"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.02, 0.04, 0.08, 0.75)
+
+[node name="Center" type="CenterContainer" parent="UI/HintModal"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="Panel" type="PanelContainer" parent="UI/HintModal/Center"]
+custom_minimum_size = Vector2(340, 220)
+layout_mode = 2
+theme_override_styles/panel = SubResource("StyleBoxFlat_modal")
+
+[node name="VBox" type="VBoxContainer" parent="UI/HintModal/Center/Panel"]
+layout_mode = 2
+theme_override_constants/separation = 12
+alignment = 1
+
+[node name="Title" type="Label" parent="UI/HintModal/Center/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.98, 0.8, 0.1, 1)
+theme_override_font_sizes/font_size = 18
+text = "💡 Birim Kesir İpucu"
+horizontal_alignment = 1
+
+[node name="HintText" type="Label" parent="UI/HintModal/Center/Panel/VBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.88, 0.94, 1, 1)
+theme_override_font_sizes/font_size = 13
+text = "Paydası küçük olan birim kesir daha büyüktür."
+horizontal_alignment = 1
+autowrap_mode = 2
+
+[node name="CloseButton" type="Button" parent="UI/HintModal/Center/Panel/VBox"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+mouse_default_cursor_shape = 2
+theme_override_colors/font_color = Color(1, 1, 1, 1)
+theme_override_font_sizes/font_size = 14
+theme_override_styles/normal = SubResource("StyleBoxFlat_btn_back")
+text = "Anladım"
+

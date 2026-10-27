@@ -82,6 +82,15 @@ export interface UnifiedProgressSummary {
   lastTopicStudied: string | null;
   skillMasteries: Record<string, SkillMasteryRecord>;
   levelProgress: Record<number, LevelProgressRecord>;
+  gamesProgress?: Record<string, {
+    gameId: string;
+    gameTitle: string;
+    totalStars: number;
+    maxStars: number;
+    completedLevels: number;
+    totalLevels: number;
+    levels: Record<number, LevelProgressRecord>;
+  }>;
   recentActivities: ActivityLogEntry[];
   recommendedReview: RecommendedReview | null;
 }

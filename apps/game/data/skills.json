@@ -80,6 +80,16 @@
       "curriculumCodes": ["M.4.1.6.1"],
       "order": 5,
       "targetWorkshopLevels": [4]
+    },
+    {
+      "id": "ventra.math.g4.fraction.unit_comparison",
+      "code": "FRAC_UNIT_COMPARE",
+      "title": "Birim Kesirleri Karşılaştırma ve Sıralama",
+      "description": "Payı 1 olan birim kesirlerin modellerini karşılaştırarak payda büyüdükçe parçanın küçüldüğünü kavrama ve sıralama.",
+      "domain": "math",
+      "curriculumCodes": ["M.4.1.6.2"],
+      "order": 6,
+      "targetBridgeLevels": [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
     }
   ]
 }

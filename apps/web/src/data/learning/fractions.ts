@@ -405,3 +405,334 @@ export const FRACTIONS_MODULE_DATA: LearningModuleData = {
     }
   ]
 };
+
+export const UNIT_FRACTIONS_MODULE_DATA: LearningModuleData = {
+  id: 'g4-math-unit-fractions',
+  title: 'Birim Kesirler ve Karşılaştırma: Kesir Köprüsü Macerası',
+  grade: 4,
+  subject: 'Matematik',
+  unit: 'Kesirler',
+  curriculumStandard: MEB_G4_MATH_CURRICULUM['M.4.1.6.2'],
+  targetSkills: [
+    VENTRA_FRACTION_SKILLS['ventra.math.g4.fraction.unit_comparison']
+  ],
+  sections: [
+    {
+      id: 'unit-concept',
+      title: 'Birim Kesir Nedir?',
+      subtitle: 'Bir bütünün eş parçalarından bir tanesi',
+      skillId: 'ventra.math.g4.fraction.unit_comparison',
+      badge: 'Temel Kavram',
+      content: {
+        explanation: 'Payı daima "1" olan ve bir bütünün eş parçalarından sadece bir tanesini gösteren basit kesirlere BİRİM KESİR denir. Örneğin 1/2, 1/3, 1/4, 1/8, 1/12, 1/20 birer birim kesirdir.',
+        keyRule: 'Birim kesrin payı mutlaka 1\'dir. Paydası ise bütünün kaç eş parçaya bölündüğünü belirtir.',
+        visualType: 'proper',
+        visualData: {
+          numerator: 1,
+          denominator: 4,
+          label: '1/4 Birim Kesir'
+        },
+        realLifeExample: {
+          title: 'Doğum Günü Pastası',
+          story: 'Bir doğum günü pastasını 4 arkadaş eşit olarak dilimlediğinde, sana düşen tek bir dilim pastanın 1/4\'üdür.',
+          fraction: '1/4'
+        },
+        funFact: 'Her kesir aslında birim kesirlerin yan yana gelmesiyle oluşur! Örneğin 3/5 kesri, 3 adet 1/5 birim kesrinin toplamıdır.'
+      }
+    },
+    {
+      id: 'denominator-effect',
+      title: 'Payda Büyüdükçe Parça Neden Küçülür?',
+      subtitle: 'Daha çok parça, daha küçük dilimler demektir',
+      skillId: 'ventra.math.g4.fraction.unit_comparison',
+      badge: 'Kritik Kural',
+      content: {
+        explanation: 'Aynı büyüklükteki bir çikolatayı 2 arkadaş paylaşırsanız kocaman bir parça (1/2) alırsınız. Ancak aynı çikolatayı 8 arkadaş paylaşırsanız her birinize düşen parça (1/8) çok daha küçük olur! Bütün ne kadar çok parçaya bölünürse, her bir dilim o kadar ufak olur.',
+        keyRule: 'Birim kesirlerde payda BÜYÜDÜKÇE kesrin değeri KÜÇÜLÜR! Payda KÜÇÜLDÜKÇE kesrin değeri BÜYÜR!',
+        visualType: 'proper',
+        visualData: {
+          numerator: 1,
+          denominator: 8,
+          label: '1/8 Dilimi (1/2\'den çok daha küçüktür)'
+        },
+        realLifeExample: {
+          title: 'Karpuz Paylaşımı',
+          story: 'Kocaman bir karpuzu 2 parçaya bölerseniz yarım karpuz (1/2) yersiniz. 20 parçaya bölerseniz incecik küçük bir dilim (1/20) alırsınız.',
+          fraction: '1/2 > 1/20'
+        },
+        funFact: 'Doğal sayıların aksine, kesirlerde paydadaki sayının büyük olması dilimin büyük olduğu anlamına gelmez, tam aksine parçanın daha ufak olduğunu gösterir!'
+      }
+    },
+    {
+      id: 'compare-units',
+      title: 'Birim Kesirleri Karşılaştırma',
+      subtitle: 'Büyüktür (>) ve Küçüktür (<) Sembolleri',
+      skillId: 'ventra.math.g4.fraction.unit_comparison',
+      badge: 'Karşılaştırma',
+      content: {
+        explanation: 'İki birim kesri karşılaştırırken yalnızca paydalarına bakarız. Paydası küçük olan bütün daha az parçalandığı için dilimi daha büyüktür. Örneğin 1/3 ile 1/6 karşılaştırılırken: 3 < 6 olduğu için parça boyutu olarak 1/3 > 1/6 olur.',
+        keyRule: 'Paydası küçük olan birim kesir daima DAHA BÜYÜKTÜR: 1/3 > 1/7, 1/5 > 1/15, 1/2 > 1/20.',
+        visualType: 'proper',
+        visualData: {
+          numerator: 1,
+          denominator: 3,
+          label: '1/3 > 1/6'
+        },
+        realLifeExample: {
+          title: 'Koşu Parkuru',
+          story: 'Parkurun 1/2\'sini koşan bir sporcu, parkurun 1/5\'ini koşan sporcudan çok daha fazla mesafe katetmiştir.',
+          fraction: '1/2 > 1/5'
+        },
+        funFact: 'Sayı doğrusunda 0 ile 1 arasında, 1/2 noktası tam ortadadır; 1/10 ise 0\'a çok daha yakındır!'
+      }
+    },
+    {
+      id: 'ordering-bridge',
+      title: 'Birim Kesirleri Sıralama: Köprü Kuralı',
+      subtitle: 'Büyükten küçüğe ve küçükten büyüğe kusursuz dizilim',
+      skillId: 'ventra.math.g4.fraction.unit_comparison',
+      badge: 'Sıralama Stratejisi',
+      content: {
+        explanation: 'Birim kesirleri büyükten küçüğe sıralarken paydası en küçük olandan en büyük olana doğru yazarız (Köprüde en geniş kalastan en dar kalasa geçiş gibi). Küçükten büyüğe sıralarken ise tam tersi yapılır: paydası en büyük olan en küçük parçadır.',
+        keyRule: 'Büyükten küçüğe: 1/2 > 1/5 > 1/9 > 1/16. Küçükten büyüğe: 1/20 < 1/12 < 1/6 < 1/3.',
+        visualType: 'proper',
+        visualData: {
+          numerator: 1,
+          denominator: 2,
+          label: '1/2 > 1/4 > 1/8'
+        },
+        realLifeExample: {
+          title: 'Kesir Köprüsü Mimarı',
+          story: 'Köprü ustası en sağlam geçişi yapmak için kalasları boyut sırasına göre yan yana dizer. 1/2 en geniş kalas, 1/20 ise en dar kalastır.',
+          fraction: '1/2 > 1/4 > 1/10'
+        },
+        funFact: 'Kesir Köprüsü mini oyunumuzda kalasların boyu paydalarıyla ters orantılıdır: 1/2 dev gibi bir kalasken, 1/20 ince bir çıtadır!'
+      }
+    }
+  ],
+  solvedExamples: [
+    {
+      id: 'ex-u1',
+      title: 'Örnek 1: İki Birim Kesri Karşılaştırma',
+      problem: '1/4 ile 1/9 birim kesirlerini karşılaştırarak araya ">" veya "<" sembollerinden uygun olanını koyunuz.',
+      skillId: 'ventra.math.g4.fraction.unit_comparison',
+      model: {
+        numerator: 1,
+        denominator: 4,
+        type: 'strip'
+      },
+      steps: [
+        {
+          stepNumber: 1,
+          title: 'Payları İncele',
+          description: 'Her iki kesrin de payı 1\'dir. Yani iki kesir de birer birim kesirdir.'
+        },
+        {
+          stepNumber: 2,
+          title: 'Paydaları Karşılaştır',
+          description: 'Paydalar 4 ve 9\'dur. Bir bütün 4 eş parçaya bölündüğünde elde edilen dilim, 9 parçaya bölündüğündeki dilimden çok daha büyüktür (4 < 9).'
+        },
+        {
+          stepNumber: 3,
+          title: 'Sonucu Belirle',
+          description: 'Paydası küçük olan birim kesir daha büyük olduğu için 1/4 > 1/9 olur.'
+        }
+      ],
+      finalConclusion: '1/4 > 1/9 (1/4 büyüktür 1/9\'dan)'
+    },
+    {
+      id: 'ex-u2',
+      title: 'Örnek 2: Üç Birim Kesri Büyükten Küçüğe Sıralama',
+      problem: '1/6, 1/2 ve 1/10 birim kesirlerini BÜYÜKTEN KÜÇÜĞE doğru sıralayınız.',
+      skillId: 'ventra.math.g4.fraction.unit_comparison',
+      model: {
+        numerator: 1,
+        denominator: 2,
+        type: 'strip'
+      },
+      steps: [
+        {
+          stepNumber: 1,
+          title: 'Bütünlerin Parçalanma Sayısını Belirle',
+          description: 'Paydalarımız: 6, 2 ve 10. En az bölünen bütün en büyük parçayı verir.'
+        },
+        {
+          stepNumber: 2,
+          title: 'En Büyük ve En Küçük Kesri Bul',
+          description: 'Paydası en küçük olan 2\'dir, yani 1/2 en büyük birim kesirdir. Paydası en büyük olan 10\'dur, yani 1/10 en küçük birim kesirdir.'
+        },
+        {
+          stepNumber: 3,
+          title: 'Sıralamayı Yaz',
+          description: 'Büyükten küçüğe doğru paydaları küçükten büyüğe dizeriz: 1/2 > 1/6 > 1/10.'
+        }
+      ],
+      finalConclusion: '1/2 > 1/6 > 1/10'
+    },
+    {
+      id: 'ex-u3',
+      title: 'Örnek 3: Küçükten Büyüğe Sıralama (MEB Üst Sınırı: Payda 20)',
+      problem: '1/20, 1/15, 1/5 birim kesirlerini KÜÇÜKTEN BÜYÜĞE doğru sıralayınız.',
+      skillId: 'ventra.math.g4.fraction.unit_comparison',
+      model: {
+        numerator: 1,
+        denominator: 20,
+        type: 'strip'
+      },
+      steps: [
+        {
+          stepNumber: 1,
+          title: 'En Küçük Parçayı Tespit Et',
+          description: 'Bir bütün ne kadar çok parçaya ayrılırsa parça o kadar küçülür. 20 parçaya bölünen bütünün tek parçası (1/20) en küçük parçadır.'
+        },
+        {
+          stepNumber: 2,
+          title: 'Ortanca ve En Büyük Parçayı Bul',
+          description: '15 parçaya bölünen (1/15) ortancadır. 5 parçaya bölünen (1/5) ise içlerindeki en büyük parçadır.'
+        },
+        {
+          stepNumber: 3,
+          title: 'Küçükten Büyüğe Sembolle Göster',
+          description: 'Küçükten büyüğe sıralama için "<" işareti kullanılır: 1/20 < 1/15 < 1/5.'
+        }
+      ],
+      finalConclusion: '1/20 < 1/15 < 1/5'
+    }
+  ],
+  exercises: [
+    {
+      id: 'qu-1',
+      skillId: 'ventra.math.g4.fraction.unit_comparison',
+      curriculumCode: 'M.4.1.6.2',
+      question: 'Aşağıdaki kesirlerden hangisi bir "BİRİM KESİR"dir?',
+      prompt: 'Birim kesir tanımını hatırla ve doğru seçeneği işaretle.',
+      options: [
+        { id: 'opt-a', label: '1/7', sublabel: 'Payı 1 olan basit kesir' },
+        { id: 'opt-b', label: '3/7', sublabel: 'Payı 1\'den büyük' },
+        { id: 'opt-c', label: '7/1', sublabel: 'Payı 7, paydası 1 olan bileşik kesir' },
+        { id: 'opt-d', label: '2/7', sublabel: '2 adet birim kesir' }
+      ],
+      correctOptionId: 'opt-a',
+      explanation: 'Payı "1" olan tüm basit kesirler birim kesirdir. 1/7 bir birim kesirdir.',
+      misconceptionAlert: 'Paydası 1 olan kesirler (7/1 gibi) tam sayıdır, birim kesir değildir. Birim kesrin payı 1 olmalıdır.'
+    },
+    {
+      id: 'qu-2',
+      skillId: 'ventra.math.g4.fraction.unit_comparison',
+      curriculumCode: 'M.4.1.6.2',
+      question: '1/5 ... 1/8 karşılaştırmasında noktalı yere hangi sembol gelmelidir?',
+      prompt: 'Paydaları karşılaştırarak doğru ilişkiyi seç.',
+      options: [
+        { id: 'opt-a', label: '>', sublabel: '1/5 büyüktür 1/8\'den' },
+        { id: 'opt-b', label: '<', sublabel: '1/5 küçüktür 1/8\'den' },
+        { id: 'opt-c', label: '=', sublabel: 'Eşit' },
+        { id: 'opt-d', label: 'Belirlenemez', sublabel: 'Bütünler farklı' }
+      ],
+      correctOptionId: 'opt-a',
+      explanation: '5 < 8 olduğu için aynı bütün 5 parçaya bölündüğünde elde edilen dilim, 8 parçaya bölündüğündekinden daha büyüktür. Dolayısıyla 1/5 > 1/8.',
+      misconceptionAlert: '8 > 5 olduğu için 1/8\'i daha büyük zannetmek en yaygın yanılgıdır! Kesirlerde payda büyüdükçe parçanın boyutu küçülür.'
+    },
+    {
+      id: 'qu-3',
+      skillId: 'ventra.math.g4.fraction.unit_comparison',
+      curriculumCode: 'M.4.1.6.2',
+      question: 'Özdeş iki doğum günü pizzasından birincisi 6 eşit dilime, ikincisi 12 eşit dilime ayrılmıştır.',
+      prompt: 'Bu pizzalardan birer dilim alan Ece ve Mert için hangisi DOĞRUDUR?',
+      options: [
+        { id: 'opt-a', label: 'Ece\'nin aldığı 1/6 dilimi, Mert\'in aldığı 1/12 diliminden daha büyüktür.', sublabel: '1/6 > 1/12' },
+        { id: 'opt-b', label: 'Mert\'in aldığı dilim daha büyüktür çünkü 12 daha büyüktür.', sublabel: 'Ters kavram yanılgısı' },
+        { id: 'opt-c', label: 'İkisinin de dilimleri birbirine eşittir.', sublabel: 'Dilim sayıları farklı' },
+        { id: 'opt-d', label: 'Karşılaştırma yapılamaz.', sublabel: 'Pizzalar özdeştir' }
+      ],
+      correctOptionId: 'opt-a',
+      explanation: 'Aynı pizza 6\'ya bölündüğünde dilimler daha geniş kalır (1/6). 12\'ye bölündüğünde dilimler yarı yarıya incelir (1/12). 1/6 > 1/12 doğrudur.',
+      misconceptionAlert: 'Bütün ne kadar çok parçaya bölünürse her dilim o kadar küçülür.'
+    },
+    {
+      id: 'qu-4',
+      skillId: 'ventra.math.g4.fraction.unit_comparison',
+      curriculumCode: 'M.4.1.6.2',
+      question: '1/3, 1/9, 1/15 birim kesirlerinin BÜYÜKTEN KÜÇÜĞE doğru sıralanışı hangisidir?',
+      prompt: 'Paydaları küçükten büyüğe sıralayarak en büyük kesri başa al.',
+      options: [
+        { id: 'opt-a', label: '1/3 > 1/9 > 1/15', sublabel: 'Doğru sıralama' },
+        { id: 'opt-b', label: '1/15 > 1/9 > 1/3', sublabel: 'Küçükten büyüğe ters dizilim' },
+        { id: 'opt-c', label: '1/9 > 1/3 > 1/15', sublabel: 'Karışık dizilim' },
+        { id: 'opt-d', label: '1/3 > 1/15 > 1/9', sublabel: 'Yanlış son iki sıra' }
+      ],
+      correctOptionId: 'opt-a',
+      explanation: 'Birim kesirlerde en küçük payda (3) en büyük kesri verir: 1/3. Ardından 1/9 ve en küçük olarak 1/15 gelir. 1/3 > 1/9 > 1/15.',
+      misconceptionAlert: 'Büyükten küçüğe sıralarken paydalar küçükten büyüğe doğru olmalıdır.'
+    },
+    {
+      id: 'qu-5',
+      skillId: 'ventra.math.g4.fraction.unit_comparison',
+      curriculumCode: 'M.4.1.6.2',
+      question: '1/18, 1/10, 1/4 birim kesirlerinin KÜÇÜKTEN BÜYÜĞE doğru sıralanışı hangisidir?',
+      prompt: 'En çok parçaya bölünen en küçük kesri en başa yerleştir.',
+      options: [
+        { id: 'opt-a', label: '1/18 < 1/10 < 1/4', sublabel: 'Doğru küçükten büyüğe sıralama' },
+        { id: 'opt-b', label: '1/4 < 1/10 < 1/18', sublabel: 'Büyükten küçüğe yanlış sembol' },
+        { id: 'opt-c', label: '1/10 < 1/18 < 1/4', sublabel: 'Hatalı sıra' },
+        { id: 'opt-d', label: '1/18 < 1/4 < 1/10', sublabel: 'Hatalı sıra' }
+      ],
+      correctOptionId: 'opt-a',
+      explanation: 'Paydası en büyük olan 1/18 en küçük parçadır. Paydası en küçük olan 1/4 en büyük parçadır. Küçükten büyüğe: 1/18 < 1/10 < 1/4.',
+      misconceptionAlert: 'Küçükten büyüğe sıralarken paydalar büyükten küçüğe doğru sıralanır.'
+    },
+    {
+      id: 'qu-6',
+      skillId: 'ventra.math.g4.fraction.unit_comparison',
+      curriculumCode: 'M.4.1.6.2',
+      question: 'Üç arkadaş aynı boyuttaki çikolataların birim kesir kadarını yemiştir: Canan 1/4, Kerem 1/6, Selin 1/2.',
+      prompt: 'En çok çikolatayı kim yemiştir?',
+      options: [
+        { id: 'opt-a', label: 'Selin (1/2)', sublabel: 'Yarım çikolata en büyük parçadır' },
+        { id: 'opt-b', label: 'Kerem (1/6)', sublabel: '6 en büyük sayı yanılgısı' },
+        { id: 'opt-c', label: 'Canan (1/4)', sublabel: 'Ortanca parça' },
+        { id: 'opt-d', label: 'Hepsi eşit yemiştir', sublabel: 'Paydalar farklı' }
+      ],
+      correctOptionId: 'opt-a',
+      explanation: '1/2, 1/4 ve 1/6 birim kesirleri karşılaştırıldığında en küçük payda 2 olduğu için en büyük parça 1/2\'dir. Dolayısıyla en çok çikolatayı Selin yemiştir.',
+      misconceptionAlert: '1/2 bir bütünün yarısıdır ve 1/6 diliminden tam 3 kat daha büyüktür!'
+    },
+    {
+      id: 'qu-7',
+      skillId: 'ventra.math.g4.fraction.unit_comparison',
+      curriculumCode: 'M.4.1.6.2',
+      question: '1/2 > 1/□ > 1/8 sıralamasında "□" kutusu yerine aşağıdaki sayılardan hangisi yazılabilir?',
+      prompt: 'Kutunun değerinin hangi aralıkta olması gerektiğini düşün.',
+      options: [
+        { id: 'opt-a', label: '5', sublabel: '2 < 5 < 8 aralığındadır' },
+        { id: 'opt-b', label: '1', sublabel: '1/1 = 1 tam, 1/2\'den büyüktür' },
+        { id: 'opt-c', label: '10', sublabel: '1/10, 1/8\'den küçüktür' },
+        { id: 'opt-d', label: '2', sublabel: 'Eşitlik olamaz' }
+      ],
+      correctOptionId: 'opt-a',
+      explanation: '1/2 > 1/□ > 1/8 olması için paydanın 2 ile 8 arasında olması gerekir (2 < □ < 8). Seçeneklerdeki 5 sayısı bu aralıktadır (1/2 > 1/5 > 1/8).',
+      misconceptionAlert: 'Paydalar sıralanırken eşitsizlik yönünün tersine döndüğüne dikkat edin: 1/2 > 1/□ > 1/8 ise 2 < □ < 8 olmalıdır.'
+    },
+    {
+      id: 'qu-8',
+      skillId: 'ventra.math.g4.fraction.unit_comparison',
+      curriculumCode: 'M.4.1.6.2',
+      question: 'MEB 4. Sınıf müfredat sınırında (payda en çok 20): 1/20 birim kesri ile ilgili hangisi KESİNLİKLE DOĞRUDUR?',
+      prompt: '1/20 kesrinin parça büyüklüğünü değerlendir.',
+      options: [
+        { id: 'opt-a', label: '1/20, paydası 20\'den küçük olan tüm birim kesirlerden daha küçüktür.', sublabel: 'Örn: 1/20 < 1/19 < ... < 1/2' },
+        { id: 'opt-b', label: '1/20 en büyük birim kesirdir çünkü 20 sayısı büyüktür.', sublabel: 'Büyük payda yanılgısı' },
+        { id: 'opt-c', label: '1/20 kesri 1/10 kesrinden daha büyüktür.', sublabel: '20 parçaya bölünüş daha ufaktır' },
+        { id: 'opt-d', label: '1/20 birim kesir değildir.', sublabel: 'Payı 1 olduğu için birim kesirdir' }
+      ],
+      correctOptionId: 'opt-a',
+      explanation: 'Paydası 20 olan 1/20 kesri, bütünün 20 eş parçaya ayrıldığını gösterir. Bütün daha çok parçalandığı için 1/20, paydası 20\'den küçük tüm birim kesirlerden (1/2, 1/3, ..., 1/19) daha küçüktür.',
+      misconceptionAlert: 'Payda 20 MEB 4. sınıf için en üst sınırdır ve bu seviyedeki en küçük birim kesir dilimidir.'
+    }
+  ]
+};
+
+export const ALL_LEARNING_MODULES: Record<string, LearningModuleData> = {
+  'M.4.1.6.1': FRACTIONS_MODULE_DATA,
+  'M.4.1.6.2': UNIT_FRACTIONS_MODULE_DATA
+};
+

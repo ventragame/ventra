@@ -50,11 +50,24 @@ export async function verifyAdultOtp(email: string, token: string): Promise<Auth
   const cleanEmail = email.trim().toLowerCase();
   const cleanToken = token.trim();
 
-  const { data, error } = await client.auth.verifyOtp({
+  // 1. Önce type: 'email' ile doğrulamayı dene
+  let { data, error } = await client.auth.verifyOtp({
     email: cleanEmail,
     token: cleanToken,
     type: 'email'
   });
+
+  // 2. Yeni kullanıcı ilk kayıt token'ı olarak üretildiyse type: 'signup' ile tekrar dene
+  if (error) {
+    const signupAttempt = await client.auth.verifyOtp({
+      email: cleanEmail,
+      token: cleanToken,
+      type: 'signup'
+    });
+    if (!signupAttempt.error) {
+      return { success: true, user: signupAttempt.data.user };
+    }
+  }
 
   if (error) {
     return { success: false, error: error.message };
