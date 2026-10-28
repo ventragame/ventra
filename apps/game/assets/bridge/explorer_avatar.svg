@@ -1,0 +1,50 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 200" width="180" height="200">
+  <defs>
+    <linearGradient id="hatGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#b45309"/>
+      <stop offset="100%" stop-color="#78350f"/>
+    </linearGradient>
+    <linearGradient id="jacketGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#0284c7"/>
+      <stop offset="100%" stop-color="#0369a1"/>
+    </linearGradient>
+    <filter id="charShadow" x="-15%" y="-15%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="8" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.5"/>
+    </filter>
+  </defs>
+
+  <!-- Backpack -->
+  <rect x="42" y="90" width="96" height="75" rx="16" fill="#78350f" stroke="#451a03" stroke-width="2.5"/>
+  <rect x="52" y="80" width="76" height="20" rx="6" fill="#92400e"/>
+
+  <!-- Legs -->
+  <rect x="62" y="150" width="22" height="38" rx="8" fill="#1e293b"/>
+  <rect x="96" y="150" width="22" height="38" rx="8" fill="#1e293b"/>
+  <!-- Boots -->
+  <rect x="58" y="176" width="28" height="16" rx="6" fill="#78350f"/>
+  <rect x="94" y="176" width="28" height="16" rx="6" fill="#78350f"/>
+
+  <!-- Torso / Expedition Jacket -->
+  <rect x="52" y="94" width="76" height="64" rx="18" fill="url(#jacketGrad)" filter="url(#charShadow)" stroke="#075985" stroke-width="2.5"/>
+  <!-- Jacket Collar -->
+  <path d="M 70,94 L 90,116 L 110,94" stroke="#e0f2fe" stroke-width="4" fill="none"/>
+
+  <!-- Compass Badge on Chest -->
+  <circle cx="74" cy="122" r="10" fill="#facc15" stroke="#a16207" stroke-width="2"/>
+  <polygon points="74,115 77,122 74,129 71,122" fill="#ef4444"/>
+
+  <!-- Head / Face -->
+  <ellipse cx="90" cy="62" rx="36" ry="34" fill="#fed7aa" stroke="#fb923c" stroke-width="1.5"/>
+
+  <!-- Eyes & Smile -->
+  <circle cx="76" cy="62" r="4.5" fill="#1e293b"/>
+  <circle cx="78" cy="60" r="1.5" fill="#ffffff"/>
+  <circle cx="104" cy="62" r="4.5" fill="#1e293b"/>
+  <circle cx="106" cy="60" r="1.5" fill="#ffffff"/>
+  <path d="M 83,73 Q 90,80 97,73" stroke="#ea580c" stroke-width="3" stroke-linecap="round" fill="none"/>
+
+  <!-- Explorer Safari Hat -->
+  <path d="M 46,44 Q 90,32 134,44 Q 142,50 134,54 Q 90,44 46,54 Q 38,48 46,44 Z" fill="#92400e" stroke="#451a03" stroke-width="2"/>
+  <path d="M 60,42 Q 62,18 90,18 Q 118,18 120,42 Z" fill="url(#hatGrad)" stroke="#451a03" stroke-width="2.5"/>
+  <rect x="62" y="38" width="56" height="6" fill="#facc15"/>
+</svg>

@@ -17,24 +17,26 @@ static func get_level(level_id: int) -> Dictionary:
 
 static func get_all_levels() -> Array:
 	return [
-		# --- BÖLÜM 1: Temel Karşılaştırma — Yarım ve Çeyrek ---
+		# --- BÖLÜM 1: Temel Karşılaştırma — Yarım, Üçte Bir, Çeyrek (1/2 > 1/3 > 1/4) ---
 		{
 			"id": 1,
-			"title": "İlk Kemer: Yarım ve Çeyrek",
+			"title": "Yarım, Üçte Bir, Çeyrek",
 			"order_type": "desc", # Büyükten Küçüğe (>)
 			"comparison_operator": ">",
 			"required_fractions": [
 				{"num": 1, "den": 2},
+				{"num": 1, "den": 3},
 				{"num": 1, "den": 4}
 			],
 			"tray_pieces": [
 				{"num": 1, "den": 4},
-				{"num": 1, "den": 2}
+				{"num": 1, "den": 2},
+				{"num": 1, "den": 3}
 			],
 			"outcome_id": "M.4.1.6.2",
 			"skill_id": "ventra.math.g4.fraction.unit_comparison",
-			"description": "Tahtaları BÜYÜKTEN KÜÇÜĞE ( > ) doğru dizerek köprüyü tamamla.",
-			"hint_text": "Bir bütün 2'ye bölündüğünde parça (1/2), 4'e bölündüğünden (1/4) daha uzundur! 1/2 > 1/4."
+			"description": "Tahtaları büyükten küçüğe dizerek köprüyü tamamla!",
+			"hint_text": "Bir bütün daha çok parçaya bölündükçe her parça küçülür! 1/2 (yarım), 1/4'ten (çeyrek) daha büyüktür: 1/2 > 1/3 > 1/4."
 		},
 		
 		# --- BÖLÜM 2: Üçte Bir ve Altıda Bir ---

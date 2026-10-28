@@ -1,0 +1,48 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 400 300" width="400" height="300">
+  <defs>
+    <linearGradient id="grassGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#4ade80"/>
+      <stop offset="60%" stop-color="#22c55e"/>
+      <stop offset="100%" stop-color="#16a34a"/>
+    </linearGradient>
+    <linearGradient id="rockGrad" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="#475569"/>
+      <stop offset="40%" stop-color="#334155"/>
+      <stop offset="100%" stop-color="#1e293b"/>
+    </linearGradient>
+    <linearGradient id="woodPost" x1="0" y1="0" x2="1" y2="0">
+      <stop offset="0%" stop-color="#78350f"/>
+      <stop offset="50%" stop-color="#b45309"/>
+      <stop offset="100%" stop-color="#451a03"/>
+    </linearGradient>
+    <filter id="cliffShadow" x="-10%" y="-10%" width="130%" height="130%">
+      <feDropShadow dx="0" dy="12" stdDeviation="10" flood-color="#050814" flood-opacity="0.6"/>
+    </filter>
+  </defs>
+  
+  <!-- Rock Base -->
+  <path d="M 10,70 L 370,70 Q 380,70 380,85 L 350,260 Q 345,280 320,285 L 30,280 Q 5,275 8,250 Z" 
+        fill="url(#rockGrad)" filter="url(#cliffShadow)" stroke="#64748b" stroke-width="3"/>
+  
+  <!-- Rock Crags & Facets -->
+  <path d="M 60,95 L 120,160 L 90,220 L 50,180 Z" fill="#334155" opacity="0.6"/>
+  <path d="M 220,105 L 290,170 L 260,250 L 200,210 Z" fill="#1e293b" opacity="0.7"/>
+  <path d="M 140,110 L 210,120 L 190,190 L 130,170 Z" fill="#64748b" opacity="0.4"/>
+  <path d="M 290,170 L 350,150 L 330,220 L 270,240 Z" fill="#0f172a" opacity="0.5"/>
+
+  <!-- Top Grass Surface -->
+  <path d="M 5,60 Q 90,45 200,50 Q 310,45 385,60 Q 395,72 380,85 Q 360,92 330,85 Q 300,95 260,86 Q 220,96 170,85 Q 120,95 80,85 Q 30,95 5,82 Z" 
+        fill="url(#grassGrad)" stroke="#86efac" stroke-width="2"/>
+        
+  <!-- Grass Blades / Foliage Tuft Accents -->
+  <path d="M 50,55 L 55,42 L 62,56" stroke="#86efac" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <path d="M 160,48 L 165,36 L 172,50" stroke="#86efac" stroke-width="3" stroke-linecap="round" fill="none"/>
+  <path d="M 280,50 L 286,38 L 294,52" stroke="#86efac" stroke-width="3" stroke-linecap="round" fill="none"/>
+
+  <!-- Wooden Bridge Anchor Post -->
+  <rect x="330" y="25" width="28" height="75" rx="6" fill="url(#woodPost)" stroke="#451a03" stroke-width="2"/>
+  <rect x="326" y="22" width="36" height="12" rx="4" fill="#92400e" stroke="#451a03" stroke-width="2"/>
+  <!-- Coiled Rope around Post -->
+  <ellipse cx="344" cy="50" rx="16" ry="6" fill="none" stroke="#d97706" stroke-width="5"/>
+  <ellipse cx="344" cy="62" rx="16" ry="6" fill="none" stroke="#b45309" stroke-width="5"/>
+</svg>

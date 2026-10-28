@@ -2,7 +2,7 @@ class_name FractionBridgeSlot
 extends Control
 
 ## VENTRA — Kesir Köprüsü Yuvası (Fraction Bridge Slot)
-## Köprü üzerindeki birim kesir tahtası yerleştirme istasyonu ve karşılaştırma sembolü.
+## Köprü halatları üzerindeki ahşap kalas yerleştirme istasyonu ve karşılaştırma sembolü.
 
 signal slot_clicked(slot: Control)
 signal plank_removed_from_slot(slot: Control, plank: Control)
@@ -21,7 +21,7 @@ var is_error: bool = false
 @onready var plank_anchor: Control = $HBox/SlotPanel/Margin/PlankAnchor
 
 func _ready() -> void:
-	custom_minimum_size = Vector2(130, 84)
+	custom_minimum_size = Vector2(175, 84)
 	mouse_filter = Control.MOUSE_FILTER_PASS
 	_update_slot_visuals()
 
@@ -44,32 +44,33 @@ func _update_slot_visuals() -> void:
 		else:
 			symbol_container.visible = true
 			symbol_label.text = comparison_symbol
-			# Sembol rengi: Altın sarısı neon
+			# Sembol rengi: Altın sarısı parlak neon
 			symbol_label.add_theme_color_override("font_color", Color("#fbbf24"))
 
 	if slot_panel:
 		var style = StyleBoxFlat.new()
-		style.set_corner_radius_all(10)
+		style.set_corner_radius_all(12)
 		
 		if is_error:
-			style.bg_color = Color("#450a0a")
+			style.bg_color = Color(0.35, 0.08, 0.08, 0.9)
 			style.border_color = Color("#ef4444")
 			style.set_border_width_all(3)
 		elif is_highlighted:
-			style.bg_color = Color("#064e3b")
-			style.border_color = Color("#10b981")
+			style.bg_color = Color(0.06, 0.32, 0.22, 0.85)
+			style.border_color = Color("#34d399")
 			style.set_border_width_all(3)
 		elif current_plank != null:
-			style.bg_color = Color("#0c1527")
-			style.border_color = Color("#38bdf8")
+			style.bg_color = Color(0.12, 0.08, 0.04, 0.4)
+			style.border_color = Color(0.85, 0.55, 0.15, 0.8)
 			style.set_border_width_all(2)
 		else:
-			style.bg_color = Color("#080f1d")
-			style.border_color = Color("#334155")
+			# Boş köprü yuvası: Asma köprü halatları üzerinde şeffaf ahşap çerçeve
+			style.bg_color = Color(0.12, 0.08, 0.05, 0.75)
+			style.border_color = Color(0.8, 0.5, 0.2, 0.6)
 			style.set_border_width_all(2)
 			
-		style.shadow_size = 4
-		style.shadow_color = Color(0, 0, 0, 0.4)
+		style.shadow_size = 6
+		style.shadow_color = Color(0, 0, 0, 0.45)
 		slot_panel.add_theme_stylebox_override("panel", style)
 
 func place_plank(plank: Control) -> void:
@@ -87,14 +88,13 @@ func place_plank(plank: Control) -> void:
 	plank.position = Vector2.ZERO
 	plank.set_selected(false)
 	
-	# Parçanın genişliğine göre yuva boyutunu yumuşakça ayarla
-	custom_minimum_size.x = max(110.0, plank.size.x + 24.0)
+	custom_minimum_size.x = max(175.0, plank.size.x + 20.0)
 	is_error = false
 	_update_slot_visuals()
 	
-	# Yerleşme animasyonu
+	# Yumuşak snap animasyonu (<300ms)
 	var tween = create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
-	plank.scale = Vector2(0.85, 0.85)
+	plank.scale = Vector2(0.88, 0.88)
 	tween.tween_property(plank, "scale", Vector2.ONE, 0.18)
 
 func remove_plank() -> Control:
@@ -110,7 +110,7 @@ func remove_plank() -> Control:
 		plank_anchor.remove_child(p)
 		
 	is_error = false
-	custom_minimum_size = Vector2(130, 84)
+	custom_minimum_size = Vector2(175, 84)
 	_update_slot_visuals()
 	plank_removed_from_slot.emit(self, p)
 	return p

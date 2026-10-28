@@ -1,61 +1,62 @@
 class_name FractionBridge
 extends Control
 
-## VENTRA — Kesir Köprüsü (Fraction Bridge) Mini Oyunu
-## MEB M.4.1.6.2 müfredatı: Birim kesirleri karşılaştırır ve sıralar.
+## VENTRA — Kesir Köprüsü (Fraction Bridge) Mini Oyunu — v2 Vertical Slice
+## MEB M.4.1.6.2 standardı: Birim kesirleri karşılaştırır ve sıralar (1/2 > 1/3 > 1/4).
 
 const FractionBridgeLevelCatalog = preload("res://scripts/FractionBridgeLevelCatalog.gd")
 const FractionBridgePlankScene = preload("res://scenes/FractionBridgePlank.tscn")
 const FractionBridgeSlotScene = preload("res://scenes/FractionBridgeSlot.tscn")
 
-# UI Düğümleri
+# 2D Sahne Düğümleri
 @onready var background: TextureRect = $Background
-@onready var safe_margin: MarginContainer = $UI/SafeMargin
+@onready var game_world: Control = $GameWorld
+
+@onready var left_cliff: TextureRect = $GameWorld/LeftCliff
+@onready var explorer_avatar: TextureRect = $GameWorld/LeftCliff/ExplorerAvatar
+@onready var nickname_badge: Label = $GameWorld/LeftCliff/ExplorerAvatar/NicknameBadge
+@onready var companion_robot: TextureRect = $GameWorld/LeftCliff/CompanionRobot
+@onready var speech_bubble: PanelContainer = $GameWorld/LeftCliff/CompanionRobot/SpeechBubble
+@onready var bubble_label: Label = $GameWorld/LeftCliff/CompanionRobot/SpeechBubble/BubbleLabel
+
+@onready var bridge_ropes: TextureRect = $GameWorld/BridgeRopes
+@onready var slots_container: HBoxContainer = $GameWorld/SlotsContainer
+
+@onready var right_cliff: TextureRect = $GameWorld/RightCliff
+@onready var target_flag: TextureRect = $GameWorld/RightCliff/TargetFlag
+@onready var target_star: Label = $GameWorld/RightCliff/TargetStar
+
+# UI Düğümleri
 @onready var back_button: Button = $UI/SafeMargin/MainLayout/TopBar/BackButton
-@onready var level_label: Label = $UI/SafeMargin/MainLayout/TopBar/LevelInfo/LevelLabel
-@onready var stars_label: Label = $UI/SafeMargin/MainLayout/TopBar/LevelInfo/StarsLabel
+@onready var level_title: Label = $UI/SafeMargin/MainLayout/TopBar/HeaderPill/HBox/LevelTitle
+@onready var order_badge: Label = $UI/SafeMargin/MainLayout/TopBar/HeaderPill/HBox/OrderBadge
+@onready var stars_label: Label = $UI/SafeMargin/MainLayout/TopBar/StarsLabel
 @onready var hint_button: Button = $UI/SafeMargin/MainLayout/TopBar/HintButton
 
-@onready var target_order_badge: Label = $UI/SafeMargin/MainLayout/TargetCard/VBox/Badge
-@onready var target_title_label: Label = $UI/SafeMargin/MainLayout/TargetCard/VBox/TitleLabel
-@onready var target_desc_label: Label = $UI/SafeMargin/MainLayout/TargetCard/VBox/DescLabel
-@onready var bridge_status_label: Label = $UI/SafeMargin/MainLayout/TargetCard/VBox/StatusLabel
-
-# Köprü Alanı (Kanyon & Yuvalar)
-@onready var bridge_scroll: ScrollContainer = $UI/SafeMargin/MainLayout/BridgeScroll
-@onready var bridge_slots_box: HBoxContainer = $UI/SafeMargin/MainLayout/BridgeScroll/BridgeContainer/SlotsBox
-@onready var left_cliff_panel: PanelContainer = $UI/SafeMargin/MainLayout/BridgeScroll/BridgeContainer/LeftCliff
-@onready var right_cliff_panel: PanelContainer = $UI/SafeMargin/MainLayout/BridgeScroll/BridgeContainer/RightCliff
-@onready var explorer_avatar: Label = $UI/SafeMargin/MainLayout/BridgeScroll/BridgeContainer/LeftCliff/AvatarLabel
-
-@onready var feedback_panel: PanelContainer = $UI/SafeMargin/MainLayout/FeedbackPanel
-@onready var feedback_label: Label = $UI/SafeMargin/MainLayout/FeedbackPanel/FeedbackLabel
-
-# Alt Kereste Rafı & Aksiyon Butonları
-@onready var tray_box: HBoxContainer = $UI/SafeMargin/MainLayout/BottomBar/TrayPanel/TrayScroll/TrayBox
-@onready var undo_button: Button = $UI/SafeMargin/MainLayout/BottomBar/Actions/UndoButton
-@onready var reset_button: Button = $UI/SafeMargin/MainLayout/BottomBar/Actions/ResetButton
-@onready var test_button: Button = $UI/SafeMargin/MainLayout/BottomBar/Actions/TestButton
+@onready var tray_panel: PanelContainer = $UI/SafeMargin/MainLayout/BottomBar/TrayPanel
+@onready var tray_box: HBoxContainer = $UI/SafeMargin/MainLayout/BottomBar/TrayPanel/VBox/TrayScroll/TrayBox
+@onready var undo_button: Button = $UI/SafeMargin/MainLayout/BottomBar/TrayPanel/VBox/TrayHeaderBox/UndoButton
+@onready var reset_button: Button = $UI/SafeMargin/MainLayout/BottomBar/TrayPanel/VBox/TrayHeaderBox/ResetButton
 
 # Modallar
 @onready var success_modal: Control = $UI/SuccessModal
 @onready var modal_stars: Label = $UI/SuccessModal/Center/Panel/VBox/Stars
 @onready var modal_score: Label = $UI/SuccessModal/Center/Panel/VBox/Score
 @onready var modal_msg: Label = $UI/SuccessModal/Center/Panel/VBox/Message
-@onready var next_level_btn: Button = $UI/SuccessModal/Center/Panel/VBox/NextButton
-@onready var exit_map_btn: Button = $UI/SuccessModal/Center/Panel/VBox/ExitButton
+@onready var replay_button: Button = $UI/SuccessModal/Center/Panel/VBox/ButtonsHBox/ReplayButton
+@onready var exit_button: Button = $UI/SuccessModal/Center/Panel/VBox/ButtonsHBox/ExitButton
 
 @onready var hint_modal: Control = $UI/HintModal
 @onready var hint_modal_text: Label = $UI/HintModal/Center/Panel/VBox/HintText
 @onready var close_hint_btn: Button = $UI/HintModal/Center/Panel/VBox/CloseButton
 
-# Oyun Durumu
+# Oyun Değişkenleri
 var current_level_id: int = 1
 var current_level_data: Dictionary = {}
 var slots: Array = []
 var tray_planks: Array = []
 var selected_plank: Control = null
-var action_history: Array[Dictionary] = [] # Undo geçmişi: [{"plank": p, "from_slot": slot_idx}]
+var action_history: Array[Dictionary] = []
 
 var start_time_msec: int = 0
 var wrong_attempts: int = 0
@@ -63,24 +64,56 @@ var hints_used: int = 0
 var total_stars: int = 0
 var level_completed: bool = false
 var is_testing_bridge: bool = false
+var is_mobile_mode: bool = false
+
+var _robot_hover_tween: Tween = null
+var _avatar_idle_tween: Tween = null
+var _original_avatar_parent: Node = null
+var _original_avatar_pos: Vector2 = Vector2.ZERO
 
 func _ready() -> void:
+	_original_avatar_parent = explorer_avatar.get_parent()
+	_original_avatar_pos = explorer_avatar.position
+	
 	_connect_signals()
+	_setup_ambient_animations()
 	_update_responsive_layout()
 	get_viewport().size_changed.connect(_update_responsive_layout)
 	
-	start_level(current_level_id)
+	# Profil senkronizasyonunu dinle
+	if has_node("/root/Bridge"):
+		var bridge = get_node("/root/Bridge")
+		if bridge.has_signal("state_synced"):
+			bridge.state_synced.connect(_on_bridge_state_synced)
+			
+	start_level(1)
 
 func _connect_signals() -> void:
 	back_button.pressed.connect(_on_back_to_map_pressed)
 	hint_button.pressed.connect(_on_hint_pressed)
 	reset_button.pressed.connect(_on_reset_pressed)
 	undo_button.pressed.connect(_on_undo_pressed)
-	test_button.pressed.connect(_on_test_bridge_pressed)
 	
-	next_level_btn.pressed.connect(_on_next_level_pressed)
-	exit_map_btn.pressed.connect(_on_back_to_map_pressed)
+	replay_button.pressed.connect(_on_replay_pressed)
+	exit_button.pressed.connect(_on_back_to_map_pressed)
 	close_hint_btn.pressed.connect(_on_close_hint_pressed)
+
+func _setup_ambient_animations() -> void:
+	# 1. Robot companion süzülme animasyonu (nazik hover)
+	if _robot_hover_tween:
+		_robot_hover_tween.kill()
+	_robot_hover_tween = create_tween().set_loops()
+	_robot_hover_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_robot_hover_tween.tween_property(companion_robot, "position:y", companion_robot.position.y - 8.0, 1.4)
+	_robot_hover_tween.tween_property(companion_robot, "position:y", companion_robot.position.y + 4.0, 1.4)
+	
+	# 2. Kaşif nefes alma/idle animasyonu
+	if _avatar_idle_tween:
+		_avatar_idle_tween.kill()
+	_avatar_idle_tween = create_tween().set_loops()
+	_avatar_idle_tween.set_trans(Tween.TRANS_SINE).set_ease(Tween.EASE_IN_OUT)
+	_avatar_idle_tween.tween_property(explorer_avatar, "scale", Vector2(1.0, 1.03), 1.2)
+	_avatar_idle_tween.tween_property(explorer_avatar, "scale", Vector2(1.0, 0.98), 1.2)
 
 func start_level(level_id: int) -> void:
 	current_level_id = level_id
@@ -94,6 +127,14 @@ func start_level(level_id: int) -> void:
 	selected_plank = null
 	action_history.clear()
 	
+	# Kaşifi sol adadaki başlangıç konumuna sıfırla
+	if explorer_avatar.get_parent() != _original_avatar_parent:
+		explorer_avatar.get_parent().remove_child(explorer_avatar)
+		_original_avatar_parent.add_child(explorer_avatar)
+	explorer_avatar.position = _original_avatar_pos
+	explorer_avatar.rotation = 0.0
+	explorer_avatar.scale = Vector2.ONE
+	
 	success_modal.visible = false
 	hint_modal.visible = false
 	
@@ -102,31 +143,23 @@ func start_level(level_id: int) -> void:
 	_build_plank_tray()
 	_update_bridge_status()
 	
-	feedback_label.text = "Tahtaları seçip köprü yuvalarına yerleştir, ardından 'Köprüyü Test Et'e bas!"
-	_set_feedback_color(Color("#38bdf8")) # Canlı Cyan
+	# Robotun başlangıç konuşması
+	_set_robot_speech("Bu köprü karşı adaya ulaşmamızı sağlayacak. Tahtaları büyükten küçüğe doğru büyüklükteki kesirlerle yerleştirelim!")
 
 func _setup_level_ui() -> void:
-	level_label.text = "Bölüm %d / %d" % [current_level_id, FractionBridgeLevelCatalog.get_total_levels()]
+	level_title.text = "Bölüm %d • %s" % [current_level_id, current_level_data.get("title", "Yarım, Üçte Bir, Çeyrek")]
 	stars_label.text = "★ %d" % total_stars
 	
 	var is_desc = current_level_data.get("order_type", "desc") == "desc"
-	target_order_badge.text = "BÜYÜKTEN KÜÇÜĞE ( > )" if is_desc else "KÜÇÜKTEN BÜYÜĞE ( < )"
-	target_order_badge.add_theme_color_override("font_color", Color("#fbbf24") if is_desc else Color("#34d399"))
+	order_badge.text = "BÜYÜKTEN KÜÇÜĞE ( > )" if is_desc else "KÜÇÜKTEN BÜYÜĞE ( < )"
+	order_badge.add_theme_color_override("font_color", Color("#fbbf24") if is_desc else Color("#34d399"))
 	
-	target_title_label.text = current_level_data.get("title", "Kesir Köprüsü")
-	target_desc_label.text = current_level_data.get("description", "")
-	
-	test_button.disabled = true
 	undo_button.disabled = true
-	
-	# Kaşif başlangıçta sol uçurumda durur
-	if explorer_avatar:
-		explorer_avatar.text = "🧭"
-		explorer_avatar.position = Vector2(10, 10)
+	reset_button.disabled = true
 
 func _build_bridge_slots() -> void:
-	for child in bridge_slots_box.get_children():
-		bridge_slots_box.remove_child(child)
+	for child in slots_container.get_children():
+		slots_container.remove_child(child)
 		child.queue_free()
 	slots.clear()
 	
@@ -135,7 +168,7 @@ func _build_bridge_slots() -> void:
 	
 	for i in range(required.size()):
 		var slot_inst = FractionBridgeSlotScene.instantiate()
-		bridge_slots_box.add_child(slot_inst)
+		slots_container.add_child(slot_inst)
 		
 		# Son yuvanın yanında karşılaştırma sembolü olmaz
 		var symbol_to_show = op if i < (required.size() - 1) else ""
@@ -164,16 +197,28 @@ func _build_plank_tray() -> void:
 		plank.plank_drag_ended.connect(_on_plank_drag_ended)
 		tray_planks.append(plank)
 
+func _set_robot_speech(text: String, is_warn: bool = false) -> void:
+	bubble_label.text = text
+	speech_bubble.visible = true
+	
+	var style = speech_bubble.get_theme_stylebox("panel") as StyleBoxFlat
+	if style:
+		style.border_color = Color("#ef4444") if is_warn else Color("#38bdf8")
+		
+	# Sevimli konuşma titreşimi
+	var tween = create_tween().set_trans(Tween.TRANS_BACK).set_ease(Tween.EASE_OUT)
+	speech_bubble.scale = Vector2(0.9, 0.9)
+	tween.tween_property(speech_bubble, "scale", Vector2.ONE, 0.2)
+
 func _on_plank_clicked(plank: Control) -> void:
 	if is_testing_bridge or level_completed:
 		return
 		
-	# Eğer tahta zaten bir yuvadayısa tıklandığında geri alınır
+	# Yuvadaysa geri al
 	if plank.is_placed:
 		_return_plank_to_tray(plank)
 		return
 		
-	# Tahta raftaysa seçim durumunu değiştir
 	if selected_plank == plank:
 		plank.set_selected(false)
 		selected_plank = null
@@ -183,7 +228,6 @@ func _on_plank_clicked(plank: Control) -> void:
 		selected_plank = plank
 		plank.set_selected(true)
 		
-	# Boş ilk yuvayı vurgula
 	var first_empty = _get_first_empty_slot()
 	for s in slots:
 		s.set_highlight(selected_plank != null and s == first_empty)
@@ -192,12 +236,10 @@ func _on_slot_clicked(slot: Control) -> void:
 	if is_testing_bridge or level_completed:
 		return
 		
-	# Eğer yuvada zaten tahta varsa çıkar
 	if slot.current_plank != null:
 		_return_plank_to_tray(slot.current_plank)
 		return
 		
-	# Eğer seçili bir tahta varsa bu yuvaya yerleştir
 	if selected_plank != null:
 		_place_plank_in_slot(selected_plank, slot)
 
@@ -205,7 +247,6 @@ func _on_plank_drag_ended(plank: Control, screen_pos: Vector2) -> void:
 	if is_testing_bridge or level_completed:
 		return
 		
-	# Bırakılan konumda bir yuva var mı kontrol et
 	var target_slot: Control = null
 	for s in slots:
 		var slot_rect = s.get_global_rect()
@@ -216,7 +257,6 @@ func _on_plank_drag_ended(plank: Control, screen_pos: Vector2) -> void:
 	if target_slot != null:
 		_place_plank_in_slot(plank, target_slot)
 	else:
-		# Boşluğa bırakıldıysa ve henüz yerleşmemişse rafta tut
 		if not plank.is_placed:
 			plank.set_selected(false)
 			if selected_plank == plank:
@@ -281,17 +321,19 @@ func _update_bridge_status() -> void:
 			filled_count += 1
 			
 	var total_slots = slots.size()
-	test_button.disabled = (filled_count < total_slots) or is_testing_bridge
 	undo_button.disabled = action_history.is_empty() or is_testing_bridge
+	reset_button.disabled = (filled_count == 0) or is_testing_bridge
 	
-	bridge_status_label.text = "Köprü Durumu: %d / %d Parça Yerleşti" % [filled_count, total_slots]
-	if filled_count == total_slots:
-		bridge_status_label.add_theme_color_override("font_color", Color("#34d399"))
-	else:
-		bridge_status_label.add_theme_color_override("font_color", Color("#94a3b8"))
+	# 3 yuva dolunca OTOMATİK KONTROL tetiklenir (GDD v2 kuralı)
+	if filled_count == total_slots and not is_testing_bridge and not level_completed:
+		call_deferred("_trigger_auto_bridge_test")
+
+func _trigger_auto_bridge_test() -> void:
+	if not is_testing_bridge and not level_completed:
+		_run_bridge_crossing_test()
 
 func _on_undo_pressed() -> void:
-	if action_history.is_empty() or is_testing_bridge:
+	if action_history.is_empty() or is_testing_bridge or level_completed:
 		return
 		
 	var last_action = action_history.pop_back()
@@ -319,26 +361,20 @@ func _on_reset_pressed() -> void:
 	for s in slots:
 		s.set_error_state(false)
 		s.set_highlight(false)
+		
 	_update_bridge_status()
-	feedback_label.text = "Köprü sıfırlandı. Tahtaları dikkatlice sıraya göre yerleştir."
-	_set_feedback_color(Color("#38bdf8"))
+	_set_robot_speech("Köprü sıfırlandı. Tahtaları büyükten küçüğe dikkatlice yerleştir!")
 
 func _on_test_bridge_pressed() -> void:
 	if is_testing_bridge or level_completed:
 		return
-		
-	is_testing_bridge = true
-	test_button.disabled = true
-	undo_button.disabled = true
-	reset_button.disabled = true
-	
-	feedback_label.text = "Köprü sağlamlığı test ediliyor... Kaşif karşıya geçiyor!"
-	_set_feedback_color(Color("#facc15"))
-	
-	# Matematiksel Doğrulama ve Animasyon Adımları
 	_run_bridge_crossing_test()
 
 func _run_bridge_crossing_test() -> void:
+	is_testing_bridge = true
+	undo_button.disabled = true
+	reset_button.disabled = true
+	
 	var is_desc = current_level_data.get("order_type", "desc") == "desc"
 	var error_slot_index = -1
 	var error_msg = ""
@@ -353,71 +389,96 @@ func _run_bridge_crossing_test() -> void:
 			error_msg = "Köprüde boşluk var! Tüm yuvaları doldurmalısın."
 			break
 			
-		# Birim kesir karşılaştırması:
-		# 1/den1 > 1/den2  <=>  den1 < den2
+		# Birim kesir karşılaştırması: 1/den1 > 1/den2  <=>  den1 < den2
 		if is_desc:
 			if p1.denominator >= p2.denominator:
 				error_slot_index = i + 1
-				error_msg = "Sıralama Hatası: 1/%d parçası 1/%d parçasından daha küçük veya eşittir! Büyükten küçüğe sıralamalısın." % [p2.denominator, p1.denominator]
+				error_msg = "Yarım (1/%d) mı daha büyük, çeyrek (1/%d) mü? Parçaların uzunluklarına bak!" % [min(p1.denominator, p2.denominator), max(p1.denominator, p2.denominator)]
 				break
-		else: # asc (Küçükten Büyüğe)
+		else: # asc
 			if p1.denominator <= p2.denominator:
 				error_slot_index = i + 1
-				error_msg = "Sıralama Hatası: 1/%d parçası 1/%d parçasından daha büyük veya eşittir! Küçükten büyüğe sıralamalısın." % [p2.denominator, p1.denominator]
+				error_msg = "Küçükten büyüğe sıralamalısın! 1/%d daha küçüktür." % min(p1.denominator, p2.denominator)
 				break
 
-	# Animasyon: Kaşif adım adım ilerler
-	var tween = create_tween()
-	var step_duration = 0.35
-	
-	for i in range(slots.size()):
-		var target_x = slots[i].global_position.x - left_cliff_panel.global_position.x + 30.0
-		tween.tween_property(explorer_avatar, "position:x", target_x, step_duration)
-		
-		if error_slot_index >= 0 and i == error_slot_index:
-			# Hatalı adımda dur
-			break
-			
-	tween.tween_callback(func(): _finish_bridge_test(error_slot_index, error_msg))
-
-func _finish_bridge_test(error_slot_index: int, error_msg: String) -> void:
-	is_testing_bridge = false
-	reset_button.disabled = false
-	undo_button.disabled = action_history.is_empty()
-	test_button.disabled = false
-	
 	if error_slot_index >= 0:
+		# Hata Durumu (Nazik ve öğretici geri bildirim)
+		is_testing_bridge = false
 		wrong_attempts += 1
 		slots[error_slot_index].set_error_state(true)
-		feedback_label.text = error_msg
-		_set_feedback_color(Color("#ef4444")) # Kırmızı uyarı
-		
-		# Kaşifi sol uçuruma geri döndür
-		var return_tween = create_tween().set_trans(Tween.TRANS_QUAD).set_ease(Tween.EASE_OUT)
-		return_tween.tween_property(explorer_avatar, "position:x", 10.0, 0.4)
+		_set_robot_speech(error_msg, true)
+		undo_button.disabled = false
+		reset_button.disabled = false
 	else:
-		# Kusursuz başarı! Karşıya ulaşıldı!
-		level_completed = true
-		feedback_label.text = "Harika! Köprü son derece sağlam ve sıralama kusursuz!"
-		_set_feedback_color(Color("#34d399"))
+		# Başarı Durumu — Köprü tamamlandı! Kaşif karşıya yürür!
+		_set_robot_speech("Harika! Köprü tamamlandı ve son derece sağlam!")
+		_animate_avatar_crossing()
+
+func _animate_avatar_crossing() -> void:
+	# Kaşifi game_world koordinat sistemine alarak serbest hareket ettir
+	var start_global = explorer_avatar.global_position
+	if explorer_avatar.get_parent() != game_world:
+		explorer_avatar.get_parent().remove_child(explorer_avatar)
+		game_world.add_child(explorer_avatar)
+	explorer_avatar.global_position = start_global
+	
+	var walk_tween = create_tween()
+	var step_time = 0.45
+	
+	# Her kalasın üstüne sırayla adım at
+	for i in range(slots.size()):
+		var target_x = slots[i].global_position.x + (slots[i].size.x / 2.0) - (explorer_avatar.size.x / 2.0)
+		var target_y = slots[i].global_position.y - explorer_avatar.size.y + 25.0
 		
-		# Kaşif sağ uçuruma zaferle ulaşır
-		var win_tween = create_tween()
-		win_tween.tween_property(explorer_avatar, "position:x", right_cliff_panel.global_position.x - left_cliff_panel.global_position.x + 20.0, 0.3)
-		win_tween.tween_callback(func(): _on_level_success())
+		# Yürüyüş adımı (x düz, y hafif zıplama)
+		walk_tween.tween_property(explorer_avatar, "global_position:x", target_x, step_time).set_trans(Tween.TRANS_SINE)
+		var mid_y = target_y - 14.0
+		walk_tween.parallel().tween_property(explorer_avatar, "global_position:y", mid_y, step_time * 0.5)
+		walk_tween.chain().tween_property(explorer_avatar, "global_position:y", target_y, step_time * 0.5)
+		
+		# Kalas üzerinde esneme efekti
+		var current_slot = slots[i]
+		walk_tween.tween_callback(func():
+			if current_slot and current_slot.current_plank:
+				var wobble = create_tween().set_trans(Tween.TRANS_ELASTIC).set_ease(Tween.EASE_OUT)
+				wobble.tween_property(current_slot.current_plank, "scale:y", 0.92, 0.1)
+				wobble.tween_property(current_slot.current_plank, "scale:y", 1.0, 0.2)
+		)
+
+	# Sağ adadaki hedefe ulaşma
+	var finish_x = right_cliff.global_position.x + 80.0
+	var finish_y = right_cliff.global_position.y - 15.0
+	walk_tween.tween_property(explorer_avatar, "global_position:x", finish_x, 0.5).set_trans(Tween.TRANS_CUBIC)
+	walk_tween.parallel().tween_property(explorer_avatar, "global_position:y", finish_y, 0.5)
+	
+	# Zafer Zıplaması ve Robotun Eşlik Etmesi
+	walk_tween.tween_callback(func():
+		var victory_tween = create_tween()
+		victory_tween.tween_property(explorer_avatar, "scale", Vector2(1.2, 1.2), 0.18)
+		victory_tween.tween_property(explorer_avatar, "scale", Vector2.ONE, 0.18)
+		
+		# Robot da sağ adaya süzülür
+		var robot_fly = create_tween().set_trans(Tween.TRANS_CUBIC).set_ease(Tween.EASE_OUT)
+		robot_fly.tween_property(companion_robot, "global_position:x", finish_x - 70.0, 0.6)
+		
+		_on_level_success()
+	)
 
 func _on_level_success() -> void:
+	level_completed = true
+	is_testing_bridge = false
+	
 	var duration_sec = int((Time.get_ticks_msec() - start_time_msec) / 1000.0)
 	
-	# Yıldız Hesabı:
-	# 0 yanlış = 3 yıldız
-	# 1-2 yanlış = 2 yıldız
-	# 3+ yanlış = 1 yıldız
+	# Yıldız Hesabı (GDD v2 kuralı):
+	# İlk doğrulamada ipucusuz = 3 yıldız
+	# Düzeltme veya ipucu ile = 2 yıldız
+	# Tamamlanan diğer = 1 yıldız
 	var stars = 3
-	if wrong_attempts >= 3:
-		stars = 1
-	elif wrong_attempts >= 1:
+	if hints_used > 0 or wrong_attempts == 1:
 		stars = 2
+	elif wrong_attempts >= 2:
+		stars = 1
 		
 	var base_score = 100
 	var penalty = (wrong_attempts * 15) + (hints_used * 10)
@@ -445,49 +506,67 @@ func _on_level_success() -> void:
 			
 	# Başarı Modalı
 	modal_stars.text = "★ ".repeat(stars).strip_edges()
-	modal_score.text = "Skor: %d • Süre: %d sn" % [final_score, duration_sec]
-	modal_msg.text = current_level_data.get("hint_text", "Birim kesirler başarıyla sıralandı!")
+	modal_score.text = "Skor: %d • Süre: %d sn • Doğruluk: %%%d" % [final_score, duration_sec, 100 if wrong_attempts == 0 else int(100.0 / (wrong_attempts + 1))]
+	modal_msg.text = "Harika! Birim kesirleri (1/2 > 1/3 > 1/4) doğru karşılaştırdın ve köprüyü kurdun!"
 	
-	next_level_btn.visible = (current_level_id < FractionBridgeLevelCatalog.get_total_levels())
 	success_modal.visible = true
 
-func _on_next_level_pressed() -> void:
-	if current_level_id < FractionBridgeLevelCatalog.get_total_levels():
-		start_level(current_level_id + 1)
-	else:
-		_on_back_to_map_pressed()
+func _on_replay_pressed() -> void:
+	start_level(current_level_id)
 
 func _on_back_to_map_pressed() -> void:
 	get_tree().change_scene_to_file("res://scenes/MathWorldSelection.tscn")
 
 func _on_hint_pressed() -> void:
 	hints_used += 1
-	hint_modal_text.text = current_level_data.get("hint_text", "Payda büyüdükçe birim kesir küçülür!")
+	var hint_text = current_level_data.get("hint_text", "Payda büyüdükçe birim kesir küçülür! 1/2 > 1/3 > 1/4.")
+	_set_robot_speech(hint_text)
+	hint_modal_text.text = hint_text
 	hint_modal.visible = true
 
 func _on_close_hint_pressed() -> void:
 	hint_modal.visible = false
 
-func _set_feedback_color(col: Color) -> void:
-	if feedback_panel:
-		var style = StyleBoxFlat.new()
-		style.set_corner_radius_all(10)
-		style.bg_color = col.darkened(0.75)
-		style.border_color = col
-		style.set_border_width_all(2)
-		feedback_panel.add_theme_stylebox_override("panel", style)
-	if feedback_label:
-		feedback_label.add_theme_color_override("font_color", col.lightened(0.25))
+func _on_bridge_state_synced(_stars: int, prof_name: String, _av_id: String) -> void:
+	if nickname_badge and not prof_name.is_empty():
+		nickname_badge.text = prof_name
 
 func _update_responsive_layout() -> void:
 	var vp_size = get_viewport_rect().size
 	if vp_size.x <= 0 or vp_size.y <= 0:
 		return
+		
 	var aspect = vp_size.x / vp_size.y
-	var is_mobile = aspect < 0.85
+	is_mobile_mode = aspect < 0.85
 	
-	if safe_margin:
-		safe_margin.add_theme_constant_override("margin_left", 14 if is_mobile else 28)
-		safe_margin.add_theme_constant_override("margin_right", 14 if is_mobile else 28)
-		safe_margin.add_theme_constant_override("margin_top", 12 if is_mobile else 20)
-		safe_margin.add_theme_constant_override("margin_bottom", 14 if is_mobile else 20)
+	if is_mobile_mode:
+		# Mobil Dikey Mod (Portrait): Sahne çapraz/yukarı doğru yükselir
+		left_cliff.position = Vector2(10, vp_size.y - 360)
+		left_cliff.size = Vector2(240, 180)
+		
+		right_cliff.position = Vector2(vp_size.x - 250, 110)
+		right_cliff.size = Vector2(240, 180)
+		
+		bridge_ropes.position = Vector2(80, 160)
+		bridge_ropes.size = Vector2(vp_size.x - 120, 260)
+		bridge_ropes.rotation_degrees = -14.0
+		
+		slots_container.position = Vector2(40, 220)
+		slots_container.size = Vector2(vp_size.x - 80, 100)
+		slots_container.alignment = BoxContainer.ALIGNMENT_CENTER
+	else:
+		# Masaüstü / Yatay Mod: Ferah, dengeli yatay asma köprü
+		left_cliff.position = Vector2(40, 280)
+		left_cliff.size = Vector2(300, 225)
+		
+		right_cliff.position = Vector2(vp_size.x - 340, 280)
+		right_cliff.size = Vector2(300, 225)
+		
+		var bridge_width = max(400.0, vp_size.x - 680.0)
+		bridge_ropes.position = Vector2(300, 310)
+		bridge_ropes.size = Vector2(bridge_width + 80.0, 160)
+		bridge_ropes.rotation_degrees = 0.0
+		
+		slots_container.position = Vector2(340, 340)
+		slots_container.size = Vector2(bridge_width, 100)
+		slots_container.alignment = BoxContainer.ALIGNMENT_CENTER
