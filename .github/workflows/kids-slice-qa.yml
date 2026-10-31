@@ -54,3 +54,31 @@ jobs:
         run: |
           chmod +x ./gradlew
           ./gradlew --no-daemon assembleDebug
+
+  ios-simulator:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Build static mobile web bundle
+        run: npm --workspace=apps/web run export
+      - name: Sync iOS Capacitor assets and CocoaPods
+        run: npm --workspace=apps/mobile run sync:ios
+      - name: Compile iOS Simulator app (no signing or App Store publishing)
+        run: |
+          xcodebuild \
+            -workspace apps/mobile/ios/App/App.xcworkspace \
+            -scheme App \
+            -configuration Debug \
+            -sdk iphonesimulator \
+            -destination 'generic/platform=iOS Simulator' \
+            CODE_SIGNING_ALLOWED=NO \
+            build
