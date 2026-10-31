@@ -34,7 +34,7 @@
 | Faz | Durum | Teslimat | Geçiş/çıkış kriteri |
 |---|---|---|---|
 | **P0 — Baseline ve riskler** | **AKTİF / ön koşul** | Mevcut akış envanteri, veri kaybı riskleri, bağımlılık güvenlik raporu | Önceki kullanıcı bildiriminde 32/32 test, TS ve build başarılı; buna ek olarak 7 npm audit bulgusu şiddet/yol bakımından incelenmeli. Ön koşul riskleri yazılı hale gelmeden kimlik modeli değiştirilmez. |
-| **P1 — Onboarding ve çocuk profili** | PLANLI — ilk ürün sprinti | Üç seçenekli net giriş UI; sorunsuz bireysel akış; avatar/takma ad; bağımsız sınıf+İngilizce tercihi; profil değiştirme/silme; ebeveyn yönlendirmesi; mevcut kullanıcı migration | Yeni ve mevcut kullanıcı, sayfa yenileme, mobil, offline, profil değişimi; hiçbir ilerleme ve yıldız kaybı yok; henüz kullanılamayan okul/aile işlemleri açıkça belirtilir. |
+| **P1 — Onboarding ve çocuk profili** | **UYGULANIYOR — P1.1/P1.2 kodlandı; yerel kabul bekliyor** | Üç seçenekli net giriş UI; sorunsuz bireysel akış; avatar/takma ad; bağımsız sınıf+İngilizce tercihi; profil değiştirme/silme; ebeveyn yönlendirmesi; mevcut kullanıcı migration | Yeni ve mevcut kullanıcı, sayfa yenileme, mobil, offline, profil değişimi; hiçbir ilerleme ve yıldız kaybı yok; henüz kullanılamayan okul/aile işlemleri açıkça belirtilir. |
 | **P2 — Aile, güvenli bulut ve çoklu cihaz** | PLANLI | Ebeveyn giriş/çıkış; çocuk profilini bağlama; çoklu çocuk; eşitleme/çakışma kuralları; hesap değiştirme; veri kurtarma | Aynı çocuk için cihaz A→B ve B→A, eşzamanlı/offline kayıt, tekrar/aynı event, iki farklı aile hesabı izolasyonu, unlink/silme senaryoları **gerçek testle** geçer. Supabase RLS açık doğrulanır. |
 | **P3 — Learning Engine v2** | PLANLI | Ölçülmüş seviye başlangıcı, içerik önkoşulları, kelime bazlı ustalık, aralıklı tekrar, görev çeşitliliği, öğrenme analitiği | Pre-A1/A1 içerik uygunsuzluğu yok; replay varyantları testte farklı; zayıf kelime geri gelir; kullanıcı yanlış anlamadığı komutla sınanmaz; metrikler ölçülür. |
 | **P4 — Premium oyun / world loop** | PLANLI | Gezilebilir Kelime Bahçesi, etkileşimli sahneler, karakter ve çevre tepkisi, tekrar oynanabilir mekanikler, ses/görsel set | Mobil dokunmatik, düşük cihaz FPS/bellek, tamamlanma/tekrar oynama, 5–10 yaşa uygun kullanıcı testi; 'premium' ilanından önce somut sahne ve kalite kriterleri. |
@@ -87,4 +87,14 @@ Kaynaklar:
 - https://support.google.com/googleplay/android-developer/answer/9893335
 
 ---
-**Son güncelleme:** 31.10.2026 · **Aktif sonraki iş:** P0 risk envanteri ve P1.1 giriş/kimlik akış haritası.  
+**Son güncelleme:** 31.10.2026 · **Aktif sonraki iş:** P1.1–P1.3 onboarding doğrulaması (yeni profil, eski profil, yenileme, offline); ardından P1.4 veri kayıpsızlık ve P1.5 mobil kabul.
+
+### P1 uygulama notu (31.10.2026)
+
+- İlk kez Kids açıldığında otomatik varsayılan profil üretme kaldırıldı; kullanıcı açıkça giriş yolu ve çocuk profilini seçiyor.
+- Mevcut profil bulunduğunda onboarding atlanıyor; profil verileri ve oyun kayıtları korunuyor.
+- Bireysel başlangıçta takma ad + ücretsiz avatar + isteğe bağlı sınıf + başlangıç İngilizce tercihi yerel profile kaydediliyor.
+- Aile seçimi, mevcut yetişkin kapısı/hesabına yönlendiriliyor. Gerçek otomatik profil bağlama ve cihazlar arası garanti **P2 aşamasına ait**, bu ekranda eksiksizmiş gibi sunulmuyor.
+- Okul seçimi yalnızca bilgilendirme; okul kodu/kurum hesabı **P6** aşamasında.
+- P0 **açık risk:** önceki yerel npm audit sonucunda 7 bulgu (1 kritik, 2 yüksek, 4 orta); etkilenen paket zincirleri incelenmeden kapatılmış sayılmayacak.
+- Kod push/CI sonucu, gerçek mobil E2E ve ebeveyn akışı kabul testi yerine geçmez.  

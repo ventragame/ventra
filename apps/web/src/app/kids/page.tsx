@@ -10,7 +10,8 @@ import {
   ARCHIPELAGO_ISLANDS_ORDERED,
   type IslandId
 } from '@ventra/shared';
-import { getProgressRepository } from '../../lib/progress';
+import { getProgressRepository, type CreateProfileInput } from '../../lib/progress';
+import { KidsWelcomeGate } from '../../components/onboarding/KidsWelcomeGate';
 import { getWordGardenProgress, saveWordGardenLevelCompletion } from '../../lib/progress/wordGardenProgress';
 import { ProfileSelectorModal } from '../../components/profile/ProfileSelectorModal';
 import { ParentalGateModal } from '../../components/profile/ParentalGateModal';
@@ -40,6 +41,8 @@ const DynamicPhaserGame = dynamic(
 export default function VentraKidsWorldPage() {
   // Profil ve Ebeveyn Durumları
   const [activeProfile, setActiveProfile] = useState<PlayerProfile | null>(null);
+  const [bootState, setBootState] = useState<'loading' | 'new' | 'ready' | 'error'>('loading');
+  const [bootRetry, setBootRetry] = useState(0);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
   const [isParentGateOpen, setIsParentGateOpen] = useState<boolean>(false);
   const [isAdultAccountModalOpen, setIsAdultAccountModalOpen] = useState<boolean>(false);
@@ -112,16 +115,22 @@ export default function VentraKidsWorldPage() {
     let isMounted = true;
     async function init() {
       try {
+        // Never create a synthetic child profile before the visitor chooses a path.
+        // Existing profiles (including migrated legacy players) retain their IDs and progress.
+        if (!window.indexedDB) throw new Error('IndexedDB is unavailable');
         const repo = getProgressRepository();
-        let prof = await repo.getActiveProfile();
-        if (!prof) {
-          prof = await repo.createProfile({ nickname: 'Kaşif Can', avatarId: 'avatar_explorer' });
-        }
+        const prof = await repo.getActiveProfile();
         if (!isMounted) return;
+        if (!prof) {
+          setBootState('new');
+          return;
+        }
         setActiveProfile(prof);
         await loadProfileAndProgress(prof);
+        if (isMounted) setBootState('ready');
       } catch (err) {
-        console.warn('Profil başlatma hatası:', err);
+        console.error('Ventra Kids profil başlangıcı başarısız:', err);
+        if (isMounted) setBootState('error');
       }
     }
     init();
@@ -147,7 +156,20 @@ export default function VentraKidsWorldPage() {
       isMounted = false;
       EventBus.off('SELECT_ISLAND', handleSelectFromPhaser);
     };
+  }, [loadProfileAndProgress, bootRetry]);
+
+  const handleFirstProfile = useCallback(async (input: CreateProfileInput) => {
+    const repo = getProgressRepository();
+    const created = await repo.createProfile(input);
+    setActiveProfile(created);
+    await loadProfileAndProgress(created);
+    setBootState('ready');
   }, [loadProfileAndProgress]);
+
+  const handleRetryBoot = useCallback(() => {
+    setBootState('loading');
+    setBootRetry((value) => value + 1);
+  }, []);
 
   const handleProfileSwitched = useCallback(
     async (newProf: PlayerProfile) => {
@@ -218,6 +240,49 @@ export default function VentraKidsWorldPage() {
     EventBus.emit('ZOOM_WORLD_OVERVIEW');
     showToast('🗺️ Takımada Genel Harita Görünümü');
   }, [showToast]);
+
+  // Render the entrance before mounting Phaser. First-time users must explicitly
+  // create a profile, while existing players skip onboarding entirely.
+  if (bootState === 'loading' || bootState === 'error') {
+    return (
+      <div className="flex min-h-screen items-center justify-center bg-[#050914] p-6 text-center text-white">
+        <div className="max-w-sm space-y-4">
+          <div className="text-5xl" aria-hidden="true">🏝️</div>
+          <h1 className="text-2xl font-black">Ventra Kids</h1>
+          {bootState === 'loading' ? (
+            <p role="status" className="text-sm text-slate-300">Oyuncu bilgileri kontrol ediliyor…</p>
+          ) : (
+            <>
+              <p role="alert" className="text-sm text-rose-200">
+                Cihazdaki oyuncu kayıtlarına erişilemedi. Güvenliğin için yeni profil oluşturmuyoruz.
+                Tarayıcının yerel depolama izinlerini kontrol et.
+              </p>
+              <button onClick={handleRetryBoot} className="rounded-2xl bg-sky-500 px-6 py-3 font-bold text-white">
+                Yeniden Dene
+              </button>
+            </>
+          )}
+        </div>
+      </div>
+    );
+  }
+
+  if (bootState === 'new') {
+    return (
+      <>
+        <KidsWelcomeGate onCreateProfile={handleFirstProfile} onOpenParent={() => setIsParentGateOpen(true)} />
+        {isParentGateOpen && (
+          <ParentalGateModal isOpen onClose={() => setIsParentGateOpen(false)} onSuccess={() => {
+            setIsParentGateOpen(false);
+            setIsAdultAccountModalOpen(true);
+          }} />
+        )}
+        {isAdultAccountModalOpen && (
+          <AdultAccountModal isOpen onClose={() => setIsAdultAccountModalOpen(false)} />
+        )}
+      </>
+    );
+  }
 
   const currentAvatar = getAvatarById(activeProfile?.avatarId || 'avatar_explorer');
   const wordGardenProgressPercent = Math.round((wordGardenCompletedLevels / 5) * 100);

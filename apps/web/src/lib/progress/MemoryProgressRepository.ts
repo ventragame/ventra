@@ -99,6 +99,8 @@ export class MemoryProgressRepository implements IProgressRepository {
       userId: null,
       nickname: input.nickname.trim() || 'Yeni Kaşif',
       avatarId: input.avatarId || 'avatar_explorer',
+      gradeLevel: input.gradeLevel ?? null,
+      englishLevel: input.englishLevel ?? 'Pre-A1',
       createdAt: now,
       updatedAt: now,
       lastPlayedAt: null,

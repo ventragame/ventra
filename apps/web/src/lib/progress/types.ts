@@ -29,6 +29,8 @@ export interface CreateProfileInput {
   id?: string;
   nickname: string;
   avatarId: string;
+  gradeLevel?: number | null;
+  englishLevel?: 'Pre-A1' | 'A1' | 'A2';
 }
 
 export interface IProgressRepository {
