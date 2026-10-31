@@ -23,6 +23,7 @@ export const ProfileSelectorModal: React.FC<ProfileSelectorModalProps> = ({
   onOpenParentGate
 }) => {
   const [profiles, setProfiles] = useState<PlayerProfile[]>([]);
+  const [pendingByProfile, setPendingByProfile] = useState<Record<string, number>>({});
   const [activeProfile, setActiveProfile] = useState<PlayerProfile | null>(null);
   const [isCreating, setIsCreating] = useState<boolean>(false);
   const [nickname, setNickname] = useState<string>('');
@@ -35,6 +36,13 @@ export const ProfileSelectorModal: React.FC<ProfileSelectorModalProps> = ({
       const repo = getProgressRepository();
       const all = await repo.getAllProfiles();
       const active = await repo.getActiveProfile();
+      // An older cloud profile flag is not proof that the latest lessons
+      // have been uploaded. Calculate pending work before showing a cloud icon.
+      const pending = await Promise.all(all.map(async p => {
+        try { return [p.id, (await repo.getPendingEvents(p.id)).length] as const; }
+        catch { return [p.id, -1] as const; }
+      }));
+      setPendingByProfile(Object.fromEntries(pending));
       setProfiles(all);
       setActiveProfile(active);
     } catch (e) {
@@ -272,9 +280,12 @@ export const ProfileSelectorModal: React.FC<ProfileSelectorModalProps> = ({
                               Aktif
                             </span>
                           )}
-                          {p.isCloudSynced && (
-                            <span title="Buluta Yedekli" style={{ fontSize: '12px' }}>
-                              ☁️
+                          {p.userId && (
+                            <span title={p.isCloudSynced && pendingByProfile[p.id] === 0
+                              ? 'Bu cihazda bekleyen oyun kaydı yok'
+                              : 'Bulut eşitlemesi bekleyen veya doğrulanmamış kayıt var'}
+                              style={{ fontSize: '12px' }}>
+                              {p.isCloudSynced && pendingByProfile[p.id] === 0 ? '☁️' : '⛅'}
                             </span>
                           )}
                         </div>
