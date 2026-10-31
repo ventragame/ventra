@@ -120,6 +120,9 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
   const startedAt = useRef(Date.now());
   const sessionId = useRef(`am_${profileId}_${Date.now()}_${Math.random().toString(36).slice(2)}`);
   const busy = useRef(false);
+  // React state commits after the event handler returns. A rapid double tap
+  // must not count the same answer twice before awaiting becomes true.
+  const answerLocked = useRef(false);
   const panelRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const key = `${profileId}:${englishLevel}:${stage}:${nonce}`;
@@ -169,6 +172,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
   }
   function reset(next:Stage){
     if(busy.current)return;
+    answerLocked.current=false;
     setStage(next);setNonce(x=>x+1);setPlan(null);setPlanKey(null);setLoadError(false);
     setDiscovered([]);setAnswered([]);setQuestionIndex(0);setWrongCount(0);setQuestionWrong(0);
     setCorrectCount(0);setFeedback(null);setAwaiting(false);setAssisted(false);setWrongChoice(null);
@@ -184,7 +188,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
     setAnswered(old=>[...old,{wordId:word.id,kind:'discovery',mistakes:0,firstTryCorrect:false,timestamp:new Date().toISOString()}]);
   }
   function choose(id:AnimalId) {
-    if(saving||completed||awaiting||busy.current||!currentQuestion||!target)return;
+    if(saving||completed||awaiting||busy.current||answerLocked.current||!currentQuestion||!target)return;
     if(id!==target.id) {
       setWrongCount(x=>x+1);setQuestionWrong(x=>x+1);setWrongChoice(id);
       setFeedback({text:'Henüz değil. Başka bir hayvana dokun; tekrar deneyebilirsin.',good:false});
@@ -198,6 +202,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
       soundService.playSfx('correct');
       return;
     }
+    answerLocked.current=true;
     soundService.playSfx('correct');
     const kind=stage===2?'recognition':stage===3?'listening':stage===4?'command':'habitat';
     const hintUsed=assisted || (stage===3 && noAudioMode);
@@ -219,6 +224,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
     if(questionIndex+1>=activePlan.questions.length) {void finish();return;}
     setQuestionIndex(x=>x+1);setQuestionWrong(0);setAwaiting(false);setAssisted(false);
     setFeedback(null);setWrongChoice(null);setRescueSelected(false);
+    answerLocked.current=false;
     panelRef.current?.scrollTo({top:0,behavior:'smooth'});
   }
   async function finish() {
@@ -257,7 +263,11 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
           <button className="am-tap rounded-xl border border-white/30 bg-slate-950/45 px-4 py-3 text-sm font-extrabold disabled:opacity-50" disabled={saving} onClick={onBack}>← Bölgeler</button>
           <div className="flex items-center gap-2">
             <span className="rounded-xl border border-amber-300/40 bg-emerald-950/65 px-3 py-3 text-xs font-black text-amber-100">⭐ {stars}/15</span>
-            <button onClick={toggleMute} className="am-tap rounded-xl border border-white/30 bg-slate-950/45 px-4 py-3" aria-label={muted?'Sesi aç':'Sesi kapat'} aria-pressed={muted}>{muted?'🔇':'🔊'}</button>
+            <button onClick={()=>setShowAlbum(value=>!value)} aria-expanded={showAlbum}
+              className="am-tap min-h-11 rounded-xl border border-white/30 bg-slate-950/45 px-3 py-2.5 text-xs font-bold" aria-label="Keşif albümünü aç veya kapat">
+              📖 Albüm {new Set([...seenAnimals,...discovered]).size}/12
+            </button>
+            <button onClick={toggleMute} className="am-tap min-h-11 rounded-xl border border-white/30 bg-slate-950/45 px-4 py-3" aria-label={muted?'Sesi aç':'Sesi kapat'} aria-pressed={muted}>{muted?'🔇':'🔊'}</button>
           </div>
         </header>
         <div className="py-5 text-center">
@@ -271,6 +281,26 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
              'Her hayvanın yaşadığı yeri ve İngilizce adını eşleştir.'}
           </p>
         </div>
+        {showAlbum && <section aria-label="Keşif albümü" className="am-album mb-4 rounded-3xl border border-lime-200/40 bg-[#0b3649]/90 p-3 shadow-2xl sm:p-5">
+          <div className="mb-3 flex items-center justify-between gap-3">
+            <div><h2 className="text-lg font-black text-lime-100">📖 Hayvan Dostları Albümü</h2>
+            <p className="text-xs text-sky-100">Çayırı tekrar keşfederek 12 dostun hepsini tanı.</p></div>
+            <button onClick={()=>setShowAlbum(false)} aria-label="Albümü kapat"
+              className="am-tap min-h-11 rounded-xl border border-white/25 bg-white/10 px-3 font-black">✕</button>
+          </div>
+          <div className="grid grid-cols-3 gap-2 sm:grid-cols-4 lg:grid-cols-6">
+            {ANIMAL_MEADOW_WORDS.map(word=>{
+              const unlocked=seenAnimals.includes(word.id)||discovered.includes(word.id);
+              return <button key={word.id} disabled={!unlocked} onClick={()=>speak(word)}
+                aria-label={unlocked?`${word.tr}, İngilizce ${word.id}, telaffuzu dinle`:'Henüz keşfedilmemiş hayvan'}
+                className={`am-tap flex min-h-36 flex-col items-center justify-center rounded-2xl border p-2 text-center ${unlocked?'border-lime-200/50 bg-white/10':'border-white/10 bg-black/20 opacity-65'}`}>
+                {unlocked?<AnimalPicture word={word}/>:<div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/10 text-4xl font-black text-white/40">?</div>}
+                <span className="mt-1 text-xs font-black uppercase">{unlocked?word.id:'???'}</span>
+                <span className="mt-1 text-[11px] text-sky-100">{unlocked?word.tr:'Keşfedilmedi'}</span>
+              </button>;
+            })}
+          </div>
+        </section>}
         <nav aria-label="Hayvan Çayırı görevleri" className="mb-4 grid grid-cols-5 gap-1.5 sm:gap-2">
           {STAGES.map((item,i)=>{
             const order=(i+1) as Stage,locked=order>localProgress.completedLevels+1;
