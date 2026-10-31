@@ -53,3 +53,10 @@ Use two non-production test devices A and B with the same authenticated test adu
 - `npm ci` reported **7 total vulnerabilities** (4 moderate, 2 high, 1 critical). Runtime dependency audit (`npm audit --omit=dev --audit-level=high`) reported **2**: a high and a moderate finding in the Next.js/PostCSS dependency chain. Safe remediation needs a planned Next.js 16 upgrade or verified equivalent patched dependencies; `npm audit fix --force` would perform a breaking major upgrade and was not run.
 - The audit step is intentionally advisory and can fail without failing the compilation pipeline: **CI success is not a security sign-off**.
 - Latest parent UI indicator / timestamp patches must pass a subsequent CI run before source head is marked fully verified.
+
+## New required SQL migration (must be run by project owner)
+- File: `supabase/migrations/20261101000001_delete_child_profile_atomically.sql`
+- Run this SQL in the existing Supabase project **after** the already-applied metadata migration `20261101000000_kids_learning_metadata.sql`. It is not run by GitHub push or the CI workflow.
+- The authenticated RPC `delete_child_profile(p_profile_id uuid)` first records an anonymised tombstone, then permanently deletes that child's learning-event rows in the **same transaction**. It checks the current Supabase parent identity and revokes anonymous/public execution.
+- Keep the anonymised tombstone row (UUID and adult user ID) until other devices observe deletion; deleting the entire parent account cascades remaining profile tombstones.
+- Without the migration, the Parent Area delete button **fails safely** and preserves local child data. Do not claim live child-data erasure until SQL execution and a real test on two devices.

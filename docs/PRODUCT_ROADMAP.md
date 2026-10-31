@@ -140,3 +140,7 @@ Kaynaklar:
 - **P1 AÇIK:** ilk/geri dönen kullanıcı, eski profil ve gerçek mobil/offline kabul doğrulamaları.
 - **P2 KISMİ:** 2 fiziksel cihaz ile A→B/B→A, offline çakışma, profil silme ve ayrı yetişkin hesabı izolasyonu gerçek Supabase oturumlarıyla kullanıcı kabulü olmadan DONE sayılmaz. `docs/P0_P2_ACCEPTANCE_2026-11-01.md` izle.
 - Production deploy / App Store / Play Store yayını yapılmadı; Vercel Git auto-deployment kapalı.
+
+### P2 privacy migration — requires Supabase SQL editor (2026-11-01)
+- New `20261101000001_delete_child_profile_atomically.sql`: parent-scoped, transactional event purge + anonymised profile tombstone for cross-device deletion propagation.
+- The migration is committed, **not executed** against the actual Supabase environment. Until the owner runs it, parent-initiated permanent child deletion will show a safe error; P2 must remain open.
