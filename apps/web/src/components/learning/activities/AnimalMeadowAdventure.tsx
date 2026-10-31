@@ -90,6 +90,9 @@ function MeadowScene({stage, word, blooms}:{stage:Stage;word:AnimalWord|null;blo
 
 export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSave, onBack, onAllCompleted }:Props) {
   const [localProgress,setLocalProgress] = useState(progress);
+  // The parent reads IndexedDB asynchronously. If the child enters the meadow
+  // before hydration finishes, the real progress must replace placeholders.
+  useEffect(() => { setLocalProgress(progress); }, [progress]);
   const [stage,setStage] = useState<Stage>(() => Math.min(5,progress.completedLevels+1) as Stage);
   const [nonce,setNonce] = useState(0);
   const [plan,setPlan] = useState<PlannedAnimalMission|null>(null);

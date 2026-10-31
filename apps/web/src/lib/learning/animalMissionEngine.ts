@@ -52,7 +52,10 @@ function shuffleWeighted<T>(items: T[], weight: (item: T) => number, rnd: () => 
 }
 export function getWeakAnimalIds(history: AnimalAnswerEvidence[]): AnimalId[] {
   const valid = history.filter(event =>
-    event.kind !== 'discovery' && Boolean(findAnimal(event.wordId))
+    event.kind !== 'discovery' && Boolean(findAnimal(event.wordId)) &&
+    // Audio unavailable / optional hints are neutral exposure, not proof of
+    // independent recall and not a failure when the child made no mistake.
+    (event.mistakes > 0 || !event.hintUsed)
   ).map((event, index) => ({ event, index }))
     .sort((a,b) => (Date.parse(a.event.timestamp) || 0) - (Date.parse(b.event.timestamp) || 0) || a.index - b.index);
   const map = new Map<string, AnimalAnswerEvidence[]>();

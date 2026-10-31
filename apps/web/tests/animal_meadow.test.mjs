@@ -103,3 +103,10 @@ test('Animal Meadow full five-stage save, profile isolation, accurate stars and 
   assert.equal((await getWordGardenProgress(repo,first.id)).completedLevels,5);
   await assert.rejects(saveWordGardenLevelCompletion(repo,second.id,3,3),/Önceki görev/);
 });
+
+test('Muted listening fallback and optional hints are neutral, not permanent weakness', () => {
+  const assisted={wordId:'cow',kind:'listening',mistakes:0,firstTryCorrect:false,hintUsed:true,timestamp:'2026-11-01T10:00:00.000Z'};
+  assert.deepEqual(getWeakAnimalIds([assisted]),[]);
+  const missed={...assisted,kind:'recognition',mistakes:2,timestamp:'2026-11-01T11:00:00.000Z'};
+  assert.deepEqual(getWeakAnimalIds([assisted,missed]),['cow']);
+});
