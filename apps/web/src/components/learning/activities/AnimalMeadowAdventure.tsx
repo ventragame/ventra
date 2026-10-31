@@ -119,9 +119,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
   const activePlan = planKey===key && plan?.mission===stage ? plan : null;
   const currentQuestion = stage===1?null:activePlan?.questions[questionIndex]??null;
   const target = currentQuestion?findAnimal(currentQuestion.target):null;
-  const speechSupported = voiceAvailable && !muted;
-  const fallbackReading = stage===3 && muted===false && !voiceAvailable;
-  const noAudioMode = stage===3 && (muted || !voiceAvailable);
+  const noAudioMode = stage===3 && (muted || (!voiceAvailable && !target?.audio));
 
   useEffect(()=>{
     setVoiceAvailable(typeof window!=='undefined' && 'speechSynthesis' in window && typeof SpeechSynthesisUtterance!=='undefined');
@@ -146,7 +144,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
   function speak(word:AnimalWord, sentence=false) {
     if(muted)return;
     soundService.unlockAudio();
-    if(!sentence && word.audio){soundService.playSpeech(word.audio);return;}
+    if((!sentence || !voiceAvailable) && word.audio){soundService.playSpeech(word.audio);return;}
     if(!voiceAvailable || typeof window==='undefined')return;
     try {
       window.speechSynthesis.cancel();

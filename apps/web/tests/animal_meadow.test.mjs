@@ -68,7 +68,7 @@ test('Animal Meadow full five-stage save, profile isolation, accurate stars and 
   const repo=new MemoryProgressRepository();
   const first=await repo.createProfile({nickname:'Mina',avatarId:'avatar_explorer'});
   const second=await repo.createProfile({nickname:'Asya',avatarId:'avatar_owl'});
-  let history=starters;
+  let history=[];
   for(let mission=1;mission<=5;mission++){
     const plan=planAnimalMission({mission,history,seed:mission*31});
     const answers=mission===1
