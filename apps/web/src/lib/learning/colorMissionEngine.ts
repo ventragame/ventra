@@ -57,9 +57,14 @@ export function getWeakColorIds(history: ColorAnswerEvidence[]): ColorId[] {
   }
   return COLOR_GROVE_WORDS.filter(word => {
     const attempts = byWord.get(word.id) ?? [];
-    const lastMistake = attempts.findLastIndex(attempt =>
-      attempt.mistakes > 0 || !attempt.firstTryCorrect
-    );
+    // Array.findLastIndex is unavailable in older iOS WebViews.
+    let lastMistake = -1;
+    for (let i = attempts.length - 1; i >= 0; i--) {
+      if (attempts[i].mistakes > 0 || !attempts[i].firstTryCorrect) {
+        lastMistake = i;
+        break;
+      }
+    }
     if (lastMistake < 0) return false;
     const recovered = attempts.slice(lastMistake + 1).filter(attempt =>
       attempt.firstTryCorrect && attempt.mistakes === 0

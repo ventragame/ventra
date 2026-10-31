@@ -51,6 +51,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
   const [answerHighlight, setAnswerHighlight] = useState<string | null>(null);
   const [wrongAnswerId, setWrongAnswerId] = useState<string | null>(null);
   const [hintShown, setHintShown] = useState(false);
+  const [hintUsed, setHintUsed] = useState(false);
   const [speechAvailable, setSpeechAvailable] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
@@ -145,6 +146,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
     setAnswerHighlight(null);
     setWrongAnswerId(null);
     setHintShown(false);
+    setHintUsed(false);
     setPaintedIds([]);
     setStep(next);
     setDiscovered([]);
@@ -191,8 +193,8 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
     setCorrect(nextCorrect);
     const answer: ColorAnswerEvidence = {
       wordId: target, mistakes: questionMistakes,
-      firstTryCorrect: questionMistakes === 0 && !hintShown,
-      hintUsed: hintShown,
+      firstTryCorrect: questionMistakes === 0 && !hintUsed,
+      hintUsed,
       kind: 'recall', timestamp: new Date().toISOString()
     };
     const nextEvidence = [...evidence, answer];
@@ -216,6 +218,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
       setAnswerHighlight(null);
       setWrongAnswerId(null);
       setHintShown(false);
+      setHintUsed(false);
       setAwaitingAdvance(false);
     }
   };
@@ -377,7 +380,10 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
               </button>
               {step === 2 && (
                 <div className="mt-3">
-                  <button type="button" disabled={awaitingAdvance} onClick={() => setHintShown(value => !value)}
+                  <button type="button" disabled={awaitingAdvance} onClick={() => {
+                    setHintShown(value => !value);
+                    setHintUsed(true);
+                  }}
                     aria-expanded={hintShown} className="vg-answer-card min-h-11 rounded-xl border border-white/20 bg-white/10 px-4 text-xs font-bold disabled:opacity-50">
                     {hintShown ? 'Türkçe İpucunu Gizle' : 'Renkleri Ayırt Etmek İçin Türkçe İpucu'}
                   </button>
