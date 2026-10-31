@@ -28,6 +28,9 @@ jobs:
           cache: npm
       - name: Install locked dependencies
         run: npm ci
+      - name: Advisory dependency audit (do not silently auto-upgrade)
+        run: npm audit --omit=dev --audit-level=high
+        continue-on-error: true
       - name: Check TypeScript
         run: npm run type-check
       - name: Test learning, isolation, progress and RLS
