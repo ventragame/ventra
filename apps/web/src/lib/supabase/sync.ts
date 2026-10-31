@@ -15,7 +15,7 @@ export class CloudSyncService {
   /**
    * Belirtilen çocuk profilini ve bekleyen etkinliklerini Supabase bulut veritabanıyla eşitler.
    */
-  public async syncProfile(profileId: string): Promise<SyncResult> {
+  public async syncProfile(profileId: string, options: { allowLink?: boolean } = {}): Promise<SyncResult> {
     const now = new Date().toISOString();
 
     if (!isSupabaseConfigured()) {
@@ -85,6 +85,17 @@ export class CloudSyncService {
         downloadedEventsCount: 0,
         lastSyncedAt: now,
         errorMessage: 'Eşitlenecek yerel profil bulunamadı.'
+      };
+    }
+
+    if (!profile.userId && !options.allowLink) {
+      return {
+        success: false,
+        syncedProfilesCount: 0,
+        uploadedEventsCount: 0,
+        downloadedEventsCount: 0,
+        lastSyncedAt: now,
+        errorMessage: 'Önce bu çocuk profilini yetişkin hesabına açıkça bağlamalısınız.'
       };
     }
 
@@ -186,11 +197,11 @@ export class CloudSyncService {
    * ve aktif olanları yerel veritabanıyla çift yönlü eşitler.
    */
   public async pullAllCloudProfiles(): Promise<PlayerProfile[]> {
-    if (!isSupabaseConfigured()) return [];
+    if (!isSupabaseConfigured()) throw new Error('Bulut hizmeti yapılandırılmamış.');
 
     const client = getSupabaseClient()!;
     const { data: { session } } = await client.auth.getSession();
-    if (!session?.user) return [];
+    if (!session?.user) throw new Error('Önce yetişkin hesabına giriş yapmalısınız.');
 
     const userId = session.user.id;
     const { data: remoteProfiles, error } = await client
@@ -198,7 +209,8 @@ export class CloudSyncService {
       .select('*')
       .eq('user_id', userId);
 
-    if (error || !remoteProfiles) return [];
+    if (error) throw new Error('Bulut profilleri okunamadı: ' + error.message);
+    if (!remoteProfiles) throw new Error('Bulut profilleri getirilemedi.');
 
     const repo = getProgressRepository();
     const localProfiles = await repo.getAllProfiles();
@@ -209,9 +221,8 @@ export class CloudSyncService {
       // 1. Bulutta silinmiş olarak işaretli ise (Tombstone) yerelde de sil
       if (rp.deleted_at) {
         const local = localProfiles.find(p => p.id === rp.id);
-        if (local) {
-          await repo.deleteProfile(rp.id);
-        }
+        // Never delete a local profile belonging to a different account.
+        if (local && local.userId === userId) await repo.deleteProfile(rp.id);
         continue;
       }
 
@@ -227,6 +238,9 @@ export class CloudSyncService {
 
       // 3. Yerelde henüz yoksa buluttaki kimliği (rp.id) kesin olarak koruyarak oluştur
       let local = localProfiles.find(p => p.id === rp.id);
+      if (local?.userId && local.userId !== userId) {
+        throw new Error('Yerel ve bulut profili farklı yetişkin hesaplarına bağlı. Güvenli birleştirme mümkün değil.');
+      }
       if (!local) {
         local = await repo.createProfile({
           id: rp.id, // Kritik: Bulut UUID'si yerelde aynen korunmalıdır!
@@ -240,8 +254,14 @@ export class CloudSyncService {
         });
       }
 
-      // Olayları indir ve birleştir
-      await this.syncProfile(local.id);
+      // Remote identity explicitly belongs to the authenticated adult.
+      // Only then repair an older local guest record with the same UUID.
+      if (!local.userId) {
+        local = await repo.updateProfile(local.id, { userId, isCloudSynced: true });
+      }
+      // Olayları indir ve birleştir, sessiz başarısızlığı başarı gibi bildirme.
+      const syncResult = await this.syncProfile(local.id);
+      if (!syncResult.success) throw new Error(syncResult.errorMessage || 'Profil eşitlenemedi.');
       syncedList.push(local);
     }
 

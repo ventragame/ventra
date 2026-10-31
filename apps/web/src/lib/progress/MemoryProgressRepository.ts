@@ -588,9 +588,10 @@ export class MemoryProgressRepository implements IProgressRepository {
             success: (ev.stars_earned || ev.starsEarned || 0) > 0,
             starsEarned: ev.stars_earned || ev.starsEarned || 0,
             metrics: {
-              durationSeconds: ev.metrics?.durationSeconds || 30,
-              attemptsCount: ev.metrics?.attemptsCount || 1,
-              accuracyRate: Number(ev.accuracy_rate ?? ev.accuracyRate ?? 1.0)
+              ...(ev.metrics && typeof ev.metrics === 'object' ? ev.metrics : {}),
+              durationSeconds: Number(ev.metrics?.durationSeconds ?? 0),
+              attemptsCount: Number(ev.metrics?.attemptsCount ?? 1),
+              accuracyRate: Number(ev.accuracy_rate ?? ev.accuracyRate ?? ev.metrics?.accuracyRate ?? 0)
             },
             completedAt: ev.client_timestamp || ev.clientTimestamp
           }, profileId);
