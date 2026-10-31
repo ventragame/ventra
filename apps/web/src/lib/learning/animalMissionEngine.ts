@@ -1,18 +1,18 @@
 import type { AnimalAnswerEvidence } from '@ventra/shared';
 
 export const ANIMAL_MEADOW_WORDS = [
-  { id: 'cat', tr: 'Kedi', emoji: '🐱', habitat: 'Yumuşak minder', place: 'Ev', audio: '/audio/en/animals/cat.wav', image: '/assets/animals/cat.svg' },
-  { id: 'dog', tr: 'Köpek', emoji: '🐶', habitat: 'Köpek kulübesi', place: 'Bahçe', audio: '/audio/en/animals/dog.wav', image: '/assets/animals/dog.svg' },
-  { id: 'bird', tr: 'Kuş', emoji: '🐦', habitat: 'Ağaç dalı', place: 'Ağaç', audio: '/audio/en/animals/bird.wav', image: '/assets/animals/bird.svg' },
-  { id: 'rabbit', tr: 'Tavşan', emoji: '🐰', habitat: 'Havuçlu yuva', place: 'Çayır', audio: '/audio/en/animals/rabbit.wav', image: '/assets/animals/rabbit.svg' },
-  { id: 'cow', tr: 'İnek', emoji: '🐮', habitat: 'Çiftlik ahırı', place: 'Çiftlik', audio: null, image: null },
-  { id: 'fish', tr: 'Balık', emoji: '🐟', habitat: 'Su altı', place: 'Gölet', audio: null, image: null },
-  { id: 'horse', tr: 'At', emoji: '🐴', habitat: 'At ahırı', place: 'Çiftlik', audio: null, image: null },
-  { id: 'duck', tr: 'Ördek', emoji: '🦆', habitat: 'Sazlıklı gölet', place: 'Gölet', audio: null, image: null },
-  { id: 'sheep', tr: 'Koyun', emoji: '🐑', habitat: 'Otlayan sürü', place: 'Çayır', audio: null, image: null },
-  { id: 'frog', tr: 'Kurbağa', emoji: '🐸', habitat: 'Nilüfer yaprağı', place: 'Gölet', audio: null, image: null },
-  { id: 'bee', tr: 'Arı', emoji: '🐝', habitat: 'Bal peteği', place: 'Çiçeklik', audio: null, image: null },
-  { id: 'butterfly', tr: 'Kelebek', emoji: '🦋', habitat: 'Çiçek bahçesi', place: 'Çiçeklik', audio: null, image: null }
+  { id: 'cat', tr: 'Kedi', emoji: '🐱', habitat: 'Yumuşak minder', place: 'Ev', audio: '/audio/en/animals/cat.wav', image: '/assets/animals/premium/cat.svg' },
+  { id: 'dog', tr: 'Köpek', emoji: '🐶', habitat: 'Köpek kulübesi', place: 'Bahçe', audio: '/audio/en/animals/dog.wav', image: '/assets/animals/premium/dog.svg' },
+  { id: 'bird', tr: 'Kuş', emoji: '🐦', habitat: 'Ağaç dalı', place: 'Ağaç', audio: '/audio/en/animals/bird.wav', image: '/assets/animals/premium/bird.svg' },
+  { id: 'rabbit', tr: 'Tavşan', emoji: '🐰', habitat: 'Havuçlu yuva', place: 'Çayır', audio: '/audio/en/animals/rabbit.wav', image: '/assets/animals/premium/rabbit.svg' },
+  { id: 'cow', tr: 'İnek', emoji: '🐮', habitat: 'Çiftlik ahırı', place: 'Çiftlik', audio: null, image: '/assets/animals/premium/cow.svg' },
+  { id: 'fish', tr: 'Balık', emoji: '🐟', habitat: 'Su altı', place: 'Gölet', audio: null, image: '/assets/animals/premium/fish.svg' },
+  { id: 'horse', tr: 'At', emoji: '🐴', habitat: 'At ahırı', place: 'Çiftlik', audio: null, image: '/assets/animals/premium/horse.svg' },
+  { id: 'duck', tr: 'Ördek', emoji: '🦆', habitat: 'Sazlıklı gölet', place: 'Gölet', audio: null, image: '/assets/animals/premium/duck.svg' },
+  { id: 'sheep', tr: 'Koyun', emoji: '🐑', habitat: 'Otlayan sürü', place: 'Çayır', audio: null, image: '/assets/animals/premium/sheep.svg' },
+  { id: 'frog', tr: 'Kurbağa', emoji: '🐸', habitat: 'Nilüfer yaprağı', place: 'Gölet', audio: null, image: '/assets/animals/premium/frog.svg' },
+  { id: 'bee', tr: 'Arı', emoji: '🐝', habitat: 'Bal peteği', place: 'Çiçeklik', audio: null, image: '/assets/animals/premium/bee.svg' },
+  { id: 'butterfly', tr: 'Kelebek', emoji: '🦋', habitat: 'Çiçek bahçesi', place: 'Çiçeklik', audio: null, image: '/assets/animals/premium/butterfly.svg' }
 ] as const;
 export type AnimalId = (typeof ANIMAL_MEADOW_WORDS)[number]['id'];
 export type AnimalMission = 1 | 2 | 3 | 4 | 5;

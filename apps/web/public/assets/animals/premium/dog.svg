@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-label="dog">
+<defs><linearGradient id="coat" x1=".15" y1=".1" x2=".88" y2="1"><stop offset="0" stop-color="#e8c58d"/><stop offset=".58" stop-color="#c98d65"/><stop offset="1" stop-color="#9e6056"/></linearGradient>
+<radialGradient id="shine"><stop offset="0" stop-color="#fff" stop-opacity=".48"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient>
+<filter id="shadow" x="-35%" y="-50%" width="170%" height="210%"><feDropShadow dx="0" dy="8" stdDeviation="5" flood-color="#174f56" flood-opacity=".2"/></filter></defs>
+<ellipse cx="158" cy="286" rx="96" ry="17" fill="#144f63" opacity=".15"/>
+<g stroke-linecap="round" stroke-linejoin="round" filter="url(#shadow)">
+<ellipse cx="160" cy="232" rx="86" ry="60" fill="url(#coat)" stroke="#805f57" stroke-width="5"/>
+<path d="M91 126 Q44 82 42 145 Q47 194 96 177 M227 127 Q272 76 281 133 Q288 187 229 178" fill="#a76b56" stroke="#805f57" stroke-width="6"/>
+<ellipse cx="160" cy="154" rx="78" ry="81" fill="url(#coat)" stroke="#805f57" stroke-width="6"/>
+<path d="M109 119 Q142 95 160 124 Q182 98 210 120" fill="#fff0cf" opacity=".7"/>
+<ellipse cx="132" cy="151" rx="7" ry="10" fill="#283847"/><circle cx="130" cy="148" r="2.5" fill="#fff"/><ellipse cx="188" cy="151" rx="7" ry="10" fill="#283847"/><circle cx="186" cy="148" r="2.5" fill="#fff"/>
+<ellipse cx="160" cy="189" rx="38" ry="33" fill="#fff0da"/>
+<ellipse cx="160" cy="178" rx="14" ry="10" fill="#554747"/><path d="M160 189v8 M160 197q-17 13-27 0M160 197q18 13 28 0" fill="none" stroke="#554747" stroke-width="4"/><ellipse cx="111" cy="183" rx="17" ry="10" fill="#fba6a8" opacity=".6"/><ellipse cx="208" cy="183" rx="17" ry="10" fill="#fba6a8" opacity=".6"/>
+<path d="M129 231 Q160 260 192 231" fill="#f4dbc2"/>
+<ellipse cx="112" cy="275" rx="27" ry="15" fill="#e3b582" stroke="#805f57" stroke-width="4"/><ellipse cx="208" cy="275" rx="27" ry="15" fill="#e3b582" stroke="#805f57" stroke-width="4"/>
+<path d="M229 235 Q281 224 278 197" fill="none" stroke="#b88061" stroke-width="19"/></g>
+<g opacity=".64" fill="#fff"><circle cx="46" cy="111" r="4"/><circle cx="273" cy="83" r="6"/><circle cx="261" cy="244" r="3"/></g></svg>
