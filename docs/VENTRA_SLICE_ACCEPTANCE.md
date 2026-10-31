@@ -38,3 +38,17 @@ Not: Gerçek Supabase veri bütünlüğü testleri ve native cihaz QA yapılmada
 - Live Supabase credentials/integration are excluded from public GitHub CI. Run local full `npm --workspace=apps/web test` with configured local environment.
 - Neither native build was uploaded to a store nor deployed to production.
 - Manual acceptance pending: browser runtime mission 1→2→3→replay; cold restart; sound/mute; offline operation; real-device Android/iOS layout and TTS; actual two-device cloud reconciliation; child usability observation.
+
+## 2026-11-01 — Three-stage final hardening and acceptance
+
+The code contains the following (not a claim that physical-device QA passed):
+
+- **Discovery:** six individually labeled colors, visual progress and optional speech, all six required before progressing.
+- **English matching:** visible colored flower, three English answer options, immediate retry after a mistake without an extra dismissal tap, optional Turkish color-label hint for color-vision accessibility.
+- **Painting:** six distinct trees change color on the six base correct answers; optional two extra spaced review questions add visual lights. Progress advances only after explicit correct answer confirmation and successful persistence.
+- **Pedagogy:** weak words are guaranteed to appear on replays and are repeated non-adjacently; two subsequent independent first-try successes remove the weak-word flag. Previously earned stars remain best-level awards, not a repeatable balance. Opening/closing a hint records it as assisted recall, not independent mastery.
+- **Mobile:** large touch targets, viewport safe areas, focus returns to activity heading on mission transitions, scrolling resets, mute reacts to global state, visible content works when TTS is unsupported, reduced-motion hover/animation fallback.
+- **Tests:** unit tests cover 150 randomized plans, weak-word recovery, all six painted trees, profile separation, duplicate sessions and full three-stage save/replay integration.
+- **Manual before accepting release:** first profile and returning profile, all stages, wrong answer and hints, mute persistence on refresh, replay stars, browser refresh, 320px mobile width, Android WebView TTS and scrolling, iOS WebView TTS and scrolling, airplane mode followed by reopening. Live two-device Supabase sync stays a P2 acceptance item.
+
+A passing CI build is a build-quality gate, not evidence that all child-facing mobile interactions are flawless.

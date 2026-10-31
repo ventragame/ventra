@@ -117,3 +117,9 @@ Kaynaklar:
 - Kanıtın kapsamı: derleme ve testler. **Gerçek Android/iPhone cihazında oynanış, tarayıcı E2E, farklı ekran boyutları, TTS ve çocuk kullanıcı testi henüz yapılmadı**; bunlar geçmeden P4 son kullanıcı release için DONE sayılamaz.
 - P2 ayrıca devam ediyor: gerçek iki cihazlı canlı Supabase A↔B, profil silme/eşitlenme ve offline conflict kabul testleri bu Renk Korusu UI değişikliğiyle tamamlanmış sayılmaz.
 - Vercel Git auto deployment config devre dışı; istemeden production deploy yok. Herhangi bir release için kullanıcıdan ayrıca onay alınır.
+
+### 2026-11-01 — Renk Korusu final hardening
+
+- Six painted trees (formerly only four), responsive stage transitions and touch targets, in-game mute and unsupported-TTS fallback, optional color-label accessibility hint.
+- Guaranteed but recoverable weak-word practice, non-adjacent repeats, stage-level star integrity, full three-stage/save/replay regression suite.
+- Release gate: browser manual end-to-end + physical Android/iPhone interaction checks required in addition to automated web/Android/iOS CI. P4 remains partial until those checks pass.
