@@ -265,13 +265,18 @@ export class CloudSyncService {
     if (identityError || !user) throw new Error('Önce yetişkin hesabına giriş yapmalısınız.');
 
     const userId = user.id;
-    const { data: remoteProfiles, error } = await client
-      .from('player_profiles')
-      .select('*')
-      .eq('user_id', userId);
-
-    if (error) throw new Error('Bulut profilleri okunamadı: ' + error.message);
-    if (!remoteProfiles) throw new Error('Bulut profilleri getirilemedi.');
+    // Supabase applies row caps to profile queries too; restoration should
+    // never silently omit a child profile beyond the first page.
+    const remoteProfiles: Array<Record<string, any>> = [];
+    for (let offset = 0; ; offset += 500) {
+      const { data, error } = await client.from('player_profiles')
+        .select('*').eq('user_id', userId)
+        .order('id', { ascending: true }).range(offset, offset + 499);
+      if (error) throw new Error('Bulut profilleri okunamadı: ' + error.message);
+      if (!data) throw new Error('Bulut profilleri getirilemedi.');
+      remoteProfiles.push(...data);
+      if (data.length < 500) break;
+    }
 
     const repo = getProgressRepository();
     const localProfiles = await repo.getAllProfiles();
@@ -311,9 +316,9 @@ export class CloudSyncService {
           gradeLevel: cloudMetadataV2 ? (rp.grade_level ?? null) : null,
           englishLevel: cloudMetadataV2 ? (rp.english_level ?? 'Pre-A1') : 'Pre-A1'
         });
-        await repo.updateProfile(local.id, {
+        local = await repo.updateProfile(local.id, {
           userId: rp.user_id,
-          isCloudSynced: false,
+          isCloudSynced: cloudMetadataV2,
           lastPlayedAt: rp.last_played_at
         });
       }
@@ -330,7 +335,8 @@ export class CloudSyncService {
       // Olayları indir ve birleştir, sessiz başarısızlığı başarı gibi bildirme.
       const syncResult = await this.syncProfile(local.id);
       if (!syncResult.success) throw new Error(syncResult.errorMessage || 'Profil eşitlenemedi.');
-      syncedList.push(local);
+      const current = (await repo.getAllProfiles()).find(p => p.id === local.id);
+      if (current) syncedList.push(current);
     }
 
     return syncedList;
