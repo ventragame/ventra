@@ -544,6 +544,7 @@ export default function VentraKidsWorldPage() {
         <LearningPathModal
           regionId={activeRegion}
           profileId={activeProfile?.id || ''}
+          englishLevel={activeProfile?.englishLevel || 'Pre-A1'}
           onClose={handleCloseLearningPath}
           onRegionCompleted={handleRegionCompleted}
           initialCompletedLevels={wordGardenCompletedLevels}
