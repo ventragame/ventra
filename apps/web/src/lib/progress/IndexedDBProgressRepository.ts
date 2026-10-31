@@ -693,7 +693,8 @@ export class IndexedDBProgressRepository implements IProgressRepository {
     }
     const atolye = await this.getAllLevelProgress('kesir_atolyesi', targetProfileId);
     const kopru = await this.getAllLevelProgress('kesir_koprusu', targetProfileId);
-    return calculateTotalStars(atolye) + calculateTotalStars(kopru);
+    const exploration = await this.getAllLevelProgress('phaser_exploration_island', targetProfileId);
+    return calculateTotalStars(atolye) + calculateTotalStars(kopru) + calculateTotalStars(exploration);
   }
 
   // --- Bulut Eşitleme Desteği ---

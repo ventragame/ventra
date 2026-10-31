@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <radialGradient id="bottleGrad" cx="40%" cy="40%" r="60%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#e0f2fe" />
+    </radialGradient>
+    <filter id="shadowM" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.25" />
+    </filter>
+  </defs>
+  <ellipse cx="128" cy="226" rx="44" ry="12" fill="#0f172a" opacity="0.2" />
+  <g filter="url(#shadowM)">
+    <!-- Cap -->
+    <rect x="108" y="45" width="40" height="15" rx="5" fill="#38bdf8" />
+    <!-- Neck -->
+    <path d="M 114 60 L 114 85 L 90 115 L 90 205 Q 90 220 128 220 Q 166 220 166 205 L 166 115 L 142 85 L 142 60 Z" fill="url(#bottleGrad)" stroke="#bae6fd" stroke-width="4" />
+    <!-- Milk Fill -->
+    <path d="M 94 130 Q 128 135 162 130 L 162 205 Q 162 216 128 216 Q 94 216 94 205 Z" fill="#ffffff" />
+    <!-- Label -->
+    <rect x="100" y="145" width="56" height="40" rx="6" fill="#38bdf8" />
+    <text x="128" y="170" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#ffffff" text-anchor="middle">MILK</text>
+    <!-- Cute Cow Face on Label -->
+    <circle cx="128" cy="155" r="4" fill="#ffffff" />
+  </g>
+</svg>

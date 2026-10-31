@@ -1,0 +1,51 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 160" width="160" height="160" fill="none">
+  <defs>
+    <filter id="globeShadow" x="-20%" y="-20%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="14" stdDeviation="14" flood-color="#0284C7" flood-opacity="0.3" />
+    </filter>
+    <radialGradient id="oceanGrad" cx="35%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="40%" stop-color="#0284C7" />
+      <stop offset="85%" stop-color="#0369A1" />
+      <stop offset="100%" stop-color="#0C4A6E" />
+    </radialGradient>
+    <linearGradient id="landGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#86EFAC" />
+      <stop offset="60%" stop-color="#22C55E" />
+      <stop offset="100%" stop-color="#15803D" />
+    </linearGradient>
+    <linearGradient id="cloudGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FFFFFF" stop-opacity="0.9" />
+      <stop offset="100%" stop-color="#E0F2FE" stop-opacity="0.4" />
+    </linearGradient>
+    <clipPath id="globeClip">
+      <circle cx="80" cy="80" r="60" />
+    </clipPath>
+  </defs>
+
+  <g filter="url(#globeShadow)">
+    <!-- Base Ocean Sphere -->
+    <circle cx="80" cy="80" r="60" fill="url(#oceanGrad)" />
+
+    <!-- Continents & Landmasses clipped inside sphere -->
+    <g clip-path="url(#globeClip)">
+      <!-- Eurasia / Africa shape -->
+      <path d="M60 40 C 75 35, 105 45, 115 65 C 110 80, 95 95, 80 105 C 70 95, 60 75, 55 60 Z" fill="url(#landGrad)" />
+      <!-- Americas hint -->
+      <path d="M25 50 C 40 45, 45 60, 40 85 C 35 110, 48 125, 42 135 C 30 120, 20 90, 25 50 Z" fill="url(#landGrad)" />
+      <!-- Australia hint -->
+      <ellipse cx="120" cy="115" rx="14" ry="10" fill="url(#landGrad)" />
+
+      <!-- Cloud Swirls -->
+      <path d="M30 65 Q 60 50 100 68 Q 130 80 145 75" stroke="url(#cloudGrad)" stroke-width="8" stroke-linecap="round" fill="none" opacity="0.6" />
+      <path d="M45 95 Q 85 85 125 100" stroke="url(#cloudGrad)" stroke-width="6" stroke-linecap="round" fill="none" opacity="0.5" />
+
+      <!-- Specular Highlight / 3D Spherical Sheen -->
+      <ellipse cx="60" cy="55" rx="35" ry="22" fill="#FFFFFF" opacity="0.25" transform="rotate(-30 60 55)" />
+    </g>
+
+    <!-- Outer Rim Glow -->
+    <circle cx="80" cy="80" r="60" stroke="#BAE6FD" stroke-width="2" stroke-opacity="0.4" />
+  </g>
+</svg>
+

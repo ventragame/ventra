@@ -46,7 +46,12 @@ supabase/.temp/
 
 # Scratch & Temporary Testing Artifacts
 scratch/
+/scripts/
 docs/screenshots/
+**/screenshots/
+**/test_cutouts/
+docs/kids-islands-art/*.png
+scripts/*.png
 *.log
 npm-debug.log*
 yarn-debug.log*

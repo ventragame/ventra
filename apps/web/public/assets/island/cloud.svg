@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 256" width="512" height="256">
+  <defs>
+    <radialGradient id="cloudGlow" cx="50%" cy="30%" r="70%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#e0f2fe" />
+    </radialGradient>
+    <filter id="cShadow" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="10" stdDeviation="12" flood-color="#0284c7" flood-opacity="0.25" />
+    </filter>
+  </defs>
+  <g filter="url(#cShadow)" fill="url(#cloudGlow)">
+    <circle cx="160" cy="150" r="70" />
+    <circle cx="256" cy="120" r="95" />
+    <circle cx="360" cy="155" r="65" />
+    <rect x="130" y="160" width="260" height="60" rx="30" />
+  </g>
+</svg>

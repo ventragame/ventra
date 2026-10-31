@@ -1,0 +1,129 @@
+{
+  "title": "Ventra Kids Archipelago Art Pack v1",
+  "version": "1.0.0",
+  "created": "2026-10-31",
+  "status": "ART_SOURCE_AND_REFERENCE_NOT_FINAL_RUNTIME_SPRITES",
+  "world_model": "six distinct thematic floating islands; each island opens its own game level map; a level launches an interactive English activity; island bar counts published required levels in a versioned course set",
+  "asset_warning": "All individual island PNGs are opaque RGB with blue sky/clouds painted into them, NOT transparent cutouts. WebP variants are also opaque. Do not layer them directly as seamless floating sprites; final transparent WebP alpha masks or consistent artist-created cutouts are required.",
+  "assets": [
+    {
+      "id": "reference_map",
+      "label": "Bölge dağılımı ve sanat yönü referansı; runtime texture olarak KULLANMA.",
+      "role": "visual_only",
+      "source_png": "references/concept-map.png",
+      "desktop_webp": "references/concept-map.webp",
+      "mobile_webp": null,
+      "dimensions_px": [
+        1672,
+        941
+      ],
+      "alpha": false,
+      "bytes_png": 2893293,
+      "bytes_webp_desktop": 364722,
+      "sha256_png": "e414b05eba3a69b521728ea32097b58ffdab51274efc9e77275d060623f5dfcf"
+    },
+    {
+      "id": "word_garden",
+      "label": "Kelime/Başlangıç kelimeleri — önerilen ilk ada.",
+      "role": "island",
+      "source_png": "source_png/word-garden.png",
+      "desktop_webp": "webp/desktop/word_garden.webp",
+      "mobile_webp": "webp/mobile/word_garden.webp",
+      "dimensions_px": [
+        1254,
+        1254
+      ],
+      "alpha": false,
+      "bytes_png": 2755762,
+      "bytes_webp_desktop": 338428,
+      "sha256_png": "fbf9fac6a81c66729941d350027eec51e1bab5be9d2e6c6783a13e272c1ace0b"
+    },
+    {
+      "id": "listening_forest",
+      "label": "Dinleme ve duyduğunu anlama.",
+      "role": "island",
+      "source_png": "source_png/listening-forest.png",
+      "desktop_webp": "webp/desktop/listening_forest.webp",
+      "mobile_webp": "webp/mobile/listening_forest.webp",
+      "dimensions_px": [
+        1254,
+        1254
+      ],
+      "alpha": false,
+      "bytes_png": 2795701,
+      "bytes_webp_desktop": 332096,
+      "sha256_png": "2be2099453c9d1e137173b574d6b04ac33bc8721cad1a914ffe614e48a554238"
+    },
+    {
+      "id": "speaking_harbor",
+      "label": "Konuşma ve diyalog; mikrofon işlevi V1 kapsamı dışı.",
+      "role": "island",
+      "source_png": "source_png/speaking-harbor.png",
+      "desktop_webp": "webp/desktop/speaking_harbor.webp",
+      "mobile_webp": "webp/mobile/speaking_harbor.webp",
+      "dimensions_px": [
+        1254,
+        1254
+      ],
+      "alpha": false,
+      "bytes_png": 2678877,
+      "bytes_webp_desktop": 315208,
+      "sha256_png": "e4a48f089dc4b6688aa22417e7ce1f3d48f4ae00d58e01f5e9821800c2cd4a86"
+    },
+    {
+      "id": "sentence_workshop",
+      "label": "Cümle kurma ve yazma.",
+      "role": "island",
+      "source_png": "source_png/sentence-workshop.png",
+      "desktop_webp": "webp/desktop/sentence_workshop.webp",
+      "mobile_webp": "webp/mobile/sentence_workshop.webp",
+      "dimensions_px": [
+        1254,
+        1254
+      ],
+      "alpha": false,
+      "bytes_png": 2568830,
+      "bytes_webp_desktop": 285520,
+      "sha256_png": "8eee6fbc6b7da31fd87e9c22838d19f70b0ed9eabad4b02fe9a9ed0dea1c0c8c"
+    },
+    {
+      "id": "story_castle",
+      "label": "Okuma ve hikâyeler.",
+      "role": "island",
+      "source_png": "source_png/story-castle.png",
+      "desktop_webp": "webp/desktop/story_castle.webp",
+      "mobile_webp": "webp/mobile/story_castle.webp",
+      "dimensions_px": [
+        1254,
+        1254
+      ],
+      "alpha": false,
+      "bytes_png": 2529946,
+      "bytes_webp_desktop": 276766,
+      "sha256_png": "ebd61c929f0c8c36e17460b93bca26c05399320bbac82729602669625b8aa83d"
+    },
+    {
+      "id": "language_academy",
+      "label": "Dil bilgisi/tekrar; müfredat kapsamı PROPOSED.",
+      "role": "island",
+      "source_png": "source_png/language-academy.png",
+      "desktop_webp": "webp/desktop/language_academy.webp",
+      "mobile_webp": "webp/mobile/language_academy.webp",
+      "dimensions_px": [
+        1254,
+        1254
+      ],
+      "alpha": false,
+      "bytes_png": 2605242,
+      "bytes_webp_desktop": 309150,
+      "sha256_png": "13fc1354f36b5f0b3e511fd49214a368f01ad791186e28ad69983f4c1a319856"
+    }
+  ],
+  "summary": {
+    "island_count": 6,
+    "source_island_png_megabytes": 15.2,
+    "island_desktop_webp_megabytes": 1.77,
+    "island_mobile_webp_megabytes": 0.72,
+    "relative_desktop_savings_vs_png_percent": 88.3
+  }
+}

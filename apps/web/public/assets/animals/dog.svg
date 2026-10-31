@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <radialGradient id="dogFur" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#f59e0b" />
+      <stop offset="100%" stop-color="#d97706" />
+    </radialGradient>
+    <radialGradient id="dogMuzzle" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#fef3c7" />
+      <stop offset="100%" stop-color="#fde68a" />
+    </radialGradient>
+    <filter id="shadowD" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.25" />
+    </filter>
+  </defs>
+  <ellipse cx="128" cy="226" rx="64" ry="14" fill="#0f172a" opacity="0.2" />
+  <g filter="url(#shadowD)">
+    <!-- Wagging Tail -->
+    <path d="M 180 180 Q 215 150 210 120 Q 200 135 170 170 Z" fill="url(#dogFur)" />
+    <!-- Floppy Ears -->
+    <path d="M 75 90 C 40 100 35 155 60 165 C 75 170 85 130 85 100 Z" fill="#b45309" />
+    <path d="M 181 90 C 216 100 221 155 196 165 C 181 170 171 130 171 100 Z" fill="#b45309" />
+    <!-- Body -->
+    <ellipse cx="128" cy="165" rx="55" ry="50" fill="url(#dogFur)" />
+    <!-- Head -->
+    <circle cx="128" cy="115" r="54" fill="url(#dogFur)" />
+    <!-- Eyes -->
+    <circle cx="104" cy="110" r="14" fill="#3f2e18" />
+    <circle cx="152" cy="110" r="14" fill="#3f2e18" />
+    <circle cx="100" cy="105" r="5" fill="#ffffff" />
+    <circle cx="106" cy="114" r="2" fill="#ffffff" />
+    <circle cx="148" cy="105" r="5" fill="#ffffff" />
+    <circle cx="154" cy="114" r="2" fill="#ffffff" />
+    <!-- Snout & Nose -->
+    <ellipse cx="128" cy="132" rx="26" ry="18" fill="url(#dogMuzzle)" />
+    <ellipse cx="128" cy="124" rx="11" ry="8" fill="#1e1b18" />
+    <ellipse cx="125" cy="122" rx="3" ry="2" fill="#ffffff" opacity="0.7" />
+    <path d="M 128 132 L 128 139 M 121 138 Q 128 143 135 138" stroke="#1e1b18" stroke-width="2.5" fill="none" stroke-linecap="round" />
+    <!-- Cute pink tongue -->
+    <path d="M 124 140 Q 128 152 132 140 Z" fill="#fb7185" />
+    <!-- Blush -->
+    <circle cx="82" cy="126" r="8" fill="#f43f5e" opacity="0.35" />
+    <circle cx="174" cy="126" r="8" fill="#f43f5e" opacity="0.35" />
+    <!-- Paws -->
+    <ellipse cx="108" cy="206" rx="14" ry="11" fill="url(#dogMuzzle)" />
+    <ellipse cx="148" cy="206" rx="14" ry="11" fill="url(#dogMuzzle)" />
+  </g>
+</svg>

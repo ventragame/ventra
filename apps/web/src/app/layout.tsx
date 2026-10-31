@@ -3,11 +3,7 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'Ventra — Macera Evreni',
-  description: 'Çocuklar için eğitici oyun ve öğrenme platformu',
-  icons: {
-    icon: '/favicon.ico',
-    apple: '/icon.png',
-  },
+  description: 'Çocuklar için eğitici oyun ve dil öğrenme platformu',
 };
 
 export const viewport: Viewport = {
@@ -26,7 +22,20 @@ export default function RootLayout({
   return (
     <html lang="tr">
       <head>
-        <link rel="icon" href="/favicon.ico" sizes="any" />
+        {/* Eski veya kalıntı Service Worker kayıtlarını temizleme betiği */}
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `
+              if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
+                navigator.serviceWorker.getRegistrations().then(function(regs) {
+                  for (var i = 0; i < regs.length; i++) {
+                    regs[i].unregister();
+                  }
+                }).catch(function() {});
+              }
+            `,
+          }}
+        />
       </head>
       <body>{children}</body>
     </html>

@@ -4,6 +4,7 @@ const isExport = process.env.OUTPUT_EXPORT === 'true' || process.env.CAPACITOR_B
 const nextConfig = {
   reactStrictMode: true,
   transpilePackages: ['@ventra/shared'],
+  serverExternalPackages: ['@supabase/supabase-js'],
   ...(isExport ? { output: 'export', trailingSlash: true } : {}),
   async headers() {
     if (isExport) return [];

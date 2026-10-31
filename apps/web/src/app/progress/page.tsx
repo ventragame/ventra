@@ -211,7 +211,7 @@ export default function ProgressDashboardPage() {
           </Link>
 
           <Link
-            href="/"
+            href="/kids"
             style={{
               background: 'linear-gradient(135deg, rgba(168, 85, 247, 0.25) 0%, rgba(37, 99, 235, 0.25) 100%)',
               border: '1px solid rgba(168, 85, 247, 0.45)',
@@ -288,7 +288,7 @@ export default function ProgressDashboardPage() {
                 📖 Öğrenme Merkezi'ne Başla
               </Link>
               <Link
-                href="/"
+                href="/kids"
                 style={{
                   background: 'rgba(15, 23, 42, 0.8)',
                   border: '1px solid rgba(56, 189, 248, 0.3)',

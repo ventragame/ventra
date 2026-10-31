@@ -1,50 +1,86 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 :root {
   --sat: env(safe-area-inset-top, 0px);
   --sab: env(safe-area-inset-bottom, 0px);
   --sal: env(safe-area-inset-left, 0px);
   --sar: env(safe-area-inset-right, 0px);
-  --bg-primary: #0a0e17;
-  --bg-secondary: #121826;
-  --bg-card: #182234;
-  --border-color: #27354a;
-  --text-main: #f1f5f9;
+  --bg-primary: #050914;
+  --bg-secondary: #0b1220;
+  --bg-card: #0f172a;
+  --border-color: #334155;
+  --text-main: #f8fafc;
   --text-muted: #94a3b8;
-  --accent-blue: #38bdf8;
-  --accent-green: #10b981;
+  --accent-sky: #38bdf8;
+  --accent-emerald: #10b981;
   --accent-amber: #f59e0b;
-  --accent-red: #ef4444;
+  --accent-indigo: #6366f1;
 }
 
 * {
   box-sizing: border-box;
-  margin: 0;
-  padding: 0;
   -webkit-tap-highlight-color: transparent;
 }
 
-html, body {
-  width: 100%;
+html {
+  scroll-behavior: smooth;
+}
+
+html,
+body {
   height: 100%;
   margin: 0;
   padding: 0;
-  overflow: hidden;
   background-color: var(--bg-primary);
   color: var(--text-main);
-  font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  line-height: 1.5;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
 }
 
-a {
-  color: inherit;
-  text-decoration: none;
+/* Subtle floating animations for homepage 3D elements */
+@keyframes floatSlow {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(1.5deg);
+  }
 }
 
-.no-scrollbar::-webkit-scrollbar {
-  display: none;
-}
-.no-scrollbar {
-  -ms-overflow-style: none;
-  scrollbar-width: none;
+@keyframes floatDelayed {
+  0%, 100% {
+    transform: translateY(0px) rotate(0deg);
+  }
+  50% {
+    transform: translateY(-10px) rotate(-1.5deg);
+  }
 }
 
+.animate-float-slow {
+  animation: floatSlow 4s ease-in-out infinite;
+}
 
+.animate-float-delayed {
+  animation: floatDelayed 4.8s ease-in-out 0.8s infinite;
+}
+
+/* Custom scrollbars for modals */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(15, 23, 42, 0.6);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(56, 189, 248, 0.3);
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(56, 189, 248, 0.5);
+}

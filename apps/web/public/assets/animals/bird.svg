@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <radialGradient id="birdBlue" cx="45%" cy="35%" r="55%">
+      <stop offset="0%" stop-color="#38bdf8" />
+      <stop offset="100%" stop-color="#0284c7" />
+    </radialGradient>
+    <radialGradient id="birdBelly" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" stop-color="#fef08a" />
+      <stop offset="100%" stop-color="#facc15" />
+    </radialGradient>
+    <filter id="shadowB" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.25" />
+    </filter>
+  </defs>
+  <ellipse cx="128" cy="226" rx="50" ry="12" fill="#0f172a" opacity="0.2" />
+  <g filter="url(#shadowB)">
+    <!-- Tail feathers -->
+    <path d="M 60 155 Q 30 145 25 160 Q 35 175 65 170 Z" fill="#0369a1" />
+    <path d="M 65 165 Q 35 170 30 185 Q 45 195 72 180 Z" fill="#0284c7" />
+    <!-- Body -->
+    <ellipse cx="128" cy="145" rx="55" ry="50" fill="url(#birdBlue)" />
+    <ellipse cx="142" cy="155" rx="34" ry="32" fill="url(#birdBelly)" />
+    <!-- Wing -->
+    <path d="M 95 130 Q 75 165 98 185 Q 128 175 120 140 Z" fill="#0369a1" />
+    <!-- Head Crest -->
+    <path d="M 125 95 Q 120 70 135 65 Q 140 85 135 95 Z" fill="#38bdf8" />
+    <path d="M 135 95 Q 135 60 150 60 Q 150 85 142 95 Z" fill="#0284c7" />
+    <!-- Eye -->
+    <circle cx="155" cy="120" r="12" fill="#0f172a" />
+    <circle cx="152" cy="116" r="4.5" fill="#ffffff" />
+    <circle cx="157" cy="123" r="2" fill="#ffffff" />
+    <!-- Beak -->
+    <polygon points="175,124 205,133 175,142" fill="#f97316" />
+    <!-- Blush -->
+    <circle cx="138" cy="135" r="7" fill="#f43f5e" opacity="0.4" />
+    <!-- Feet -->
+    <path d="M 115 195 L 115 218 M 110 220 L 122 220" stroke="#f97316" stroke-width="4" stroke-linecap="round" />
+    <path d="M 145 195 L 145 218 M 140 220 L 152 220" stroke="#f97316" stroke-width="4" stroke-linecap="round" />
+  </g>
+</svg>

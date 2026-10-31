@@ -37,7 +37,7 @@ function LearningCenterContent() {
   const currentModuleData = ALL_LEARNING_MODULES[selectedModuleCode] || FRACTIONS_MODULE_DATA;
 
   const handleReturnToAdventure = () => {
-    router.push('/');
+    router.push('/kids');
   };
 
   const handleExerciseComplete = async (result: LearningSessionResult) => {

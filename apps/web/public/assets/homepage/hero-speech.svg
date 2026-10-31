@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 160 140" width="160" height="140" fill="none">
+  <defs>
+    <filter id="speechShadow" x="-20%" y="-20%" width="150%" height="150%">
+      <feDropShadow dx="0" dy="10" stdDeviation="10" flood-color="#7C3AED" flood-opacity="0.3" />
+    </filter>
+    <linearGradient id="bubbleGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#C084FC" />
+      <stop offset="50%" stop-color="#A855F7" />
+      <stop offset="100%" stop-color="#7C3AED" />
+    </linearGradient>
+    <linearGradient id="bubbleBevel" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#6B21A8" />
+      <stop offset="100%" stop-color="#581C87" />
+    </linearGradient>
+  </defs>
+
+  <g filter="url(#speechShadow)" transform="rotate(-6 80 65)">
+    <!-- 3D Depth back -->
+    <path d="M30 30 C 30 16, 130 16, 130 30 L 130 80 C 130 92, 105 92, 95 92 L 80 108 L 76 92 C 40 92, 30 92, 30 80 Z" fill="url(#bubbleBevel)" transform="translate(0, 6)" />
+
+    <!-- Main Speech Bubble -->
+    <path d="M30 26 C 30 12, 130 12, 130 26 L 130 76 C 130 88, 105 88, 95 88 L 80 104 L 76 88 C 40 88, 30 88, 30 76 Z" fill="url(#bubbleGrad)" />
+
+    <!-- Gloss highlight top -->
+    <path d="M40 22 C 40 18, 120 18, 120 22 C 120 28, 40 28, 40 22 Z" fill="#FFFFFF" opacity="0.35" />
+
+    <!-- Text "Hello!" -->
+    <text x="80" y="60" text-anchor="middle" fill="#FFFFFF" font-family="system-ui, -apple-system, sans-serif" font-size="22" font-weight="900" letter-spacing="0.5">
+      Hello!
+    </text>
+  </g>
+</svg>
+

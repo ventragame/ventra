@@ -1,0 +1,47 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 256" width="256" height="256">
+  <defs>
+    <radialGradient id="bunnyFur" cx="50%" cy="40%" r="50%">
+      <stop offset="0%" stop-color="#ffffff" />
+      <stop offset="100%" stop-color="#e2e8f0" />
+    </radialGradient>
+    <filter id="shadowR" x="-10%" y="-10%" width="120%" height="120%">
+      <feDropShadow dx="0" dy="6" stdDeviation="6" flood-color="#0f172a" flood-opacity="0.25" />
+    </filter>
+  </defs>
+  <ellipse cx="128" cy="226" rx="60" ry="14" fill="#0f172a" opacity="0.2" />
+  <g filter="url(#shadowR)">
+    <!-- Ears -->
+    <ellipse cx="100" cy="65" rx="14" ry="48" transform="rotate(-12 100 65)" fill="url(#bunnyFur)" />
+    <ellipse cx="100" cy="65" rx="8" ry="38" transform="rotate(-12 100 65)" fill="#fbcfe8" />
+    <ellipse cx="156" cy="65" rx="14" ry="48" transform="rotate(12 156 65)" fill="url(#bunnyFur)" />
+    <ellipse cx="156" cy="65" rx="8" ry="38" transform="rotate(12 156 65)" fill="#fbcfe8" />
+    <!-- Body -->
+    <ellipse cx="128" cy="170" rx="54" ry="46" fill="url(#bunnyFur)" />
+    <ellipse cx="128" cy="174" rx="34" ry="30" fill="#f8fafc" />
+    <!-- Head -->
+    <circle cx="128" cy="125" r="48" fill="url(#bunnyFur)" />
+    <!-- Eyes -->
+    <ellipse cx="106" cy="120" rx="9" ry="12" fill="#701a75" />
+    <ellipse cx="150" cy="120" rx="9" ry="12" fill="#701a75" />
+    <circle cx="104" cy="116" r="3.5" fill="#ffffff" />
+    <circle cx="148" cy="116" r="3.5" fill="#ffffff" />
+    <!-- Nose & Mouth -->
+    <polygon points="124,133 132,133 128,138" fill="#f43f5e" />
+    <path d="M 124 140 Q 128 144 132 140" stroke="#64748b" stroke-width="2" fill="none" stroke-linecap="round" />
+    <!-- Blush -->
+    <circle cx="88" cy="135" r="8" fill="#f43f5e" opacity="0.35" />
+    <circle cx="168" cy="135" r="8" fill="#f43f5e" opacity="0.35" />
+    <!-- Whiskers -->
+    <path d="M 90 135 L 55 133 M 90 140 L 52 143" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" />
+    <path d="M 166 135 L 201 133 M 166 140 L 204 143" stroke="#cbd5e1" stroke-width="2" stroke-linecap="round" />
+    <!-- Front Paws holding carrot -->
+    <ellipse cx="112" cy="178" rx="10" ry="8" fill="#f8fafc" />
+    <ellipse cx="144" cy="178" rx="10" ry="8" fill="#f8fafc" />
+    <!-- Carrot -->
+    <polygon points="128,168 122,195 134,195" fill="#ea580c" />
+    <polygon points="128,168 125,160 131,160" fill="#16a34a" />
+    <!-- Feet -->
+    <ellipse cx="98" cy="210" rx="16" ry="10" fill="url(#bunnyFur)" />
+    <ellipse cx="158" cy="210" rx="16" ry="10" fill="url(#bunnyFur)" />
+  </g>
+</svg>
