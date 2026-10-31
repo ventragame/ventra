@@ -1,6 +1,7 @@
 import { getSupabaseClient, isSupabaseConfigured } from './client.ts';
 import { getProgressRepository } from '../progress/index.ts';
 import type { SyncResult, PlayerProfile } from '@ventra/shared';
+import { uploadInBatches, mergeRemotePages } from './cloudTransfer.ts';
 
 const cloudMetadataV2 = process.env.NEXT_PUBLIC_VENTRA_CLOUD_METADATA_V2 === 'true';
 
@@ -197,10 +198,7 @@ export class CloudSyncService {
       const pendingEvents = await repo.getPendingEvents(profile.id);
       let uploadedCount = 0;
 
-      // Offline queues can be large: upload bounded batches and acknowledge
-      // only the batches actually accepted by the server.
-      for (let i = 0; i < pendingEvents.length; i += 100) {
-        const batch = pendingEvents.slice(i, i + 100);
+      uploadedCount = await uploadInBatches(pendingEvents, async batch => {
         const rows = batch.map(e => ({
           event_id: e.eventId, profile_id: profile.id, user_id: userId,
           event_type: e.eventType, schema_version: 1,
@@ -212,25 +210,21 @@ export class CloudSyncService {
         const { error } = await client.from('progress_events')
           .upsert(rows, { onConflict: 'event_id' });
         if (error) throw new Error('Etkinlik yüklenemedi: ' + error.message);
+      }, async batch => {
         await repo.markEventsSynced(batch.map(e => e.eventId));
-        uploadedCount += batch.length;
-      }
+      });
 
       // 3. Buluttaki Diğer Cihazlardan Gelen Olayları İndir (Download & Merge)
-      // The Supabase REST API has a default row cap. Without paging, a second
-      // device silently misses older/extra learning events after 1000 rows.
-      let downloadedCount = 0;
-      for (let offset = 0; ; offset += 500) {
+      const downloadedCount = await mergeRemotePages(async (offset, end) => {
         const { data, error } = await client.from('progress_events')
           .select('*').eq('profile_id', profile.id).eq('user_id', userId)
           .order('server_received_at', { ascending: true })
           .order('event_id', { ascending: true })
-          .range(offset, offset + 499);
+          .range(offset, end);
         if (error) throw new Error('Bulut etkinlikleri çekilemedi: ' + error.message);
         if (!data) throw new Error('Bulut etkinlik yanıtı alınamadı.');
-        if (data.length) downloadedCount += await repo.mergeRemoteEvents(data, profile.id);
-        if (data.length < 500) break;
-      }
+        return data;
+      }, remote => repo.mergeRemoteEvents(remote, profile.id));
 
       // Only report a cloud-backed local profile after both directions finish.
       await repo.updateProfile(profile.id, { isCloudSynced: cloudMetadataV2 });
