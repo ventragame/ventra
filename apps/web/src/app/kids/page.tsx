@@ -632,6 +632,7 @@ export default function VentraKidsWorldPage() {
           englishLevel={activeProfile?.englishLevel || 'Pre-A1'}
           onClose={handleCloseLearningPath}
           onRegionCompleted={handleRegionCompleted}
+          onColorProgressSaved={() => { if (activeProfile) void loadProfileAndProgress(activeProfile); }}
           initialCompletedLevels={wordGardenCompletedLevels}
           initialStarsByLevel={wordGardenStarsByLevel}
           onProgressUpdate={async (_completed, _total, levelOrder, starsEarned) => {

@@ -2,6 +2,8 @@ import { getSupabaseClient, isSupabaseConfigured } from './client.ts';
 import { getProgressRepository } from '../progress/index.ts';
 import type { SyncResult, PlayerProfile } from '@ventra/shared';
 
+const cloudMetadataV2 = process.env.NEXT_PUBLIC_VENTRA_CLOUD_METADATA_V2 === 'true';
+
 export class CloudSyncService {
   private static instance: CloudSyncService | null = null;
 
@@ -111,6 +113,7 @@ export class CloudSyncService {
             user_id: userId,
             nickname: profile.nickname,
             avatar_id: profile.avatarId,
+            ...(cloudMetadataV2 ? { grade_level: profile.gradeLevel ?? null, english_level: profile.englishLevel ?? 'Pre-A1' } : {}),
             last_played_at: profile.lastPlayedAt,
             deleted_at: null,
             updated_at: now
@@ -118,15 +121,60 @@ export class CloudSyncService {
         if (profError) throw new Error(`Profil bulut bağlantısı kurulamadı: ${profError.message}`);
         await repo.updateProfile(profile.id, { userId, isCloudSynced: false });
       } else {
-        const { data: remoteOwner, error: ownerError } = await client
-          .from('player_profiles')
-          .select('id')
-          .eq('id', profile.id)
-          .eq('user_id', userId)
-          .is('deleted_at', null)
-          .maybeSingle();
-        if (ownerError) throw new Error(`Profil sahipliği doğrulanamadı: ${ownerError.message}`);
-        if (!remoteOwner) throw new Error('Bulut profili bulunamadı veya silinmiş. Yeni profil oluşturmadan işlem durduruldu.');
+        // Keep both select statements statically typed. Conditional select()
+        // expressions produce Supabase ParserError unions at TypeScript build time.
+        let remoteExists = false;
+        let remoteMetadata: {
+          nickname: string;
+          avatar_id: string;
+          grade_level: number | null;
+          english_level: 'Pre-A1' | 'A1' | 'A2' | null;
+        } | null = null;
+        if (cloudMetadataV2) {
+          const { data, error } = await client.from('player_profiles')
+            .select('id,nickname,avatar_id,grade_level,english_level,updated_at')
+            .eq('id', profile.id).eq('user_id', userId).is('deleted_at', null)
+            .maybeSingle();
+          if (error) throw new Error('Profil sahipliği doğrulanamadı: ' + error.message);
+          remoteExists = Boolean(data);
+          if (data) {
+            remoteMetadata = {
+              nickname: data.nickname,
+              avatar_id: data.avatar_id,
+              grade_level: data.grade_level,
+              english_level: data.english_level
+            };
+          }
+        } else {
+          const { data, error } = await client.from('player_profiles')
+            .select('id')
+            .eq('id', profile.id).eq('user_id', userId).is('deleted_at', null)
+            .maybeSingle();
+          if (error) throw new Error('Profil sahipliği doğrulanamadı: ' + error.message);
+          remoteExists = Boolean(data);
+        }
+        if (!remoteExists) throw new Error('Bulut profili bulunamadı veya silinmiş. Yeni profil oluşturmadan işlem durduruldu.');
+        if (cloudMetadataV2) {
+          if (!profile.isCloudSynced) {
+            const { error: metadataError } = await client.from('player_profiles')
+              .update({
+                nickname: profile.nickname, avatar_id: profile.avatarId,
+                grade_level: profile.gradeLevel ?? null,
+                english_level: profile.englishLevel ?? 'Pre-A1',
+                last_played_at: profile.lastPlayedAt
+              })
+              .eq('id', profile.id).eq('user_id', userId).is('deleted_at', null);
+            if (metadataError) throw new Error('Profil tercihleri gönderilemedi: ' + metadataError.message);
+          } else if (remoteMetadata) {
+            await repo.updateProfile(profile.id, {
+              nickname: remoteMetadata.nickname,
+              avatarId: remoteMetadata.avatar_id,
+              gradeLevel: remoteMetadata.grade_level ?? profile.gradeLevel ?? null,
+              englishLevel: remoteMetadata.english_level ?? profile.englishLevel ?? 'Pre-A1',
+              isCloudSynced: true
+            });
+          }
+        }
       }
 
       // 2. Bekleyen Yerel Olayları (Pending Events) Buluta Gönder (Upload)
@@ -180,7 +228,7 @@ export class CloudSyncService {
       }
 
       // Only report a cloud-backed local profile after both directions finish.
-      await repo.updateProfile(profile.id, { isCloudSynced: true });
+      await repo.updateProfile(profile.id, { isCloudSynced: cloudMetadataV2 });
       return {
         success: true,
         syncedProfilesCount: 1,
@@ -236,11 +284,12 @@ export class CloudSyncService {
 
       // 2. Bu cihazda daha önce silinmişse buluta silme tombstone'u ilet
       if (deletedIds.includes(rp.id)) {
-        await client
+        const { error: tombstoneError } = await client
           .from('player_profiles')
           .update({ deleted_at: new Date().toISOString() })
           .eq('id', rp.id)
           .eq('user_id', userId);
+        if (tombstoneError) throw new Error('Silinen profil buluta bildirilemedi: ' + tombstoneError.message);
         continue;
       }
 
@@ -253,7 +302,9 @@ export class CloudSyncService {
         local = await repo.createProfile({
           id: rp.id, // Kritik: Bulut UUID'si yerelde aynen korunmalıdır!
           nickname: rp.nickname,
-          avatarId: rp.avatar_id
+          avatarId: rp.avatar_id,
+          gradeLevel: cloudMetadataV2 ? (rp.grade_level ?? null) : null,
+          englishLevel: cloudMetadataV2 ? (rp.english_level ?? 'Pre-A1') : 'Pre-A1'
         });
         await repo.updateProfile(local.id, {
           userId: rp.user_id,
@@ -265,7 +316,11 @@ export class CloudSyncService {
       // Remote identity explicitly belongs to the authenticated adult.
       // Only then repair an older local guest record with the same UUID.
       if (!local.userId) {
-        local = await repo.updateProfile(local.id, { userId, isCloudSynced: false });
+        local = await repo.updateProfile(local.id, {
+          userId, isCloudSynced: cloudMetadataV2,
+          nickname: rp.nickname, avatarId: rp.avatar_id,
+          ...(cloudMetadataV2 ? { gradeLevel: rp.grade_level ?? null, englishLevel: rp.english_level ?? 'Pre-A1' } : {})
+        });
       }
       // Olayları indir ve birleştir, sessiz başarısızlığı başarı gibi bildirme.
       const syncResult = await this.syncProfile(local.id);

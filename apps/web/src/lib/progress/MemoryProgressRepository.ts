@@ -126,6 +126,9 @@ export class MemoryProgressRepository implements IProgressRepository {
     const updated: PlayerProfile = {
       ...existing,
       ...updates,
+      isCloudSynced: updates.isCloudSynced !== undefined ? updates.isCloudSynced :
+        ((updates.nickname !== undefined || updates.avatarId !== undefined ||
+          updates.gradeLevel !== undefined || updates.englishLevel !== undefined) ? false : existing.isCloudSynced),
       updatedAt: new Date().toISOString()
     };
     this.profiles.set(id, updated);

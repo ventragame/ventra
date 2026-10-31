@@ -27,7 +27,7 @@ const names = ['Renkleri Keşfet', 'Kelimeyi Eşleştir', 'Ormanı Renklendir'] 
 interface Props {
   progress: ColorGroveProgress;
   onBack: () => void;
-  onSave: (mission: number, mistakes: number, correct: number, duration: number, answers: ColorAnswerEvidence[]) => Promise<void>;
+  onSave: (mission: number, mistakes: number, correct: number, duration: number, answers: ColorAnswerEvidence[], sessionId: string) => Promise<void>;
   profileId: string;
   englishLevel: EnglishPlacement;
 }
@@ -35,6 +35,11 @@ interface Props {
 export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave, profileId, englishLevel }) => {
   const [step, setStep] = useState<Step>(() => Math.min(3, progress.completedLevels + 1) as Step);
   const [plan, setPlan] = useState<PlannedColorMission | null>(null);
+  const [replayNonce, setReplayNonce] = useState(0);
+  const [awaitingAdvance, setAwaitingAdvance] = useState(false);
+  const [finishedAnswers, setFinishedAnswers] = useState<ColorAnswerEvidence[] | null>(null);
+  const [answerHighlight, setAnswerHighlight] = useState<string | null>(null);
+  const runId = useRef(`cg_${profileId}_${Date.now()}_${Math.random().toString(36).slice(2)}`);
   const [loadError, setLoadError] = useState(false);
   const [evidence, setEvidence] = useState<ColorAnswerEvidence[]>([]);
   const [questionMistakes, setQuestionMistakes] = useState(0);
@@ -62,7 +67,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
       if (alive) setLoadError(true);
     });
     return () => { alive = false; };
-  }, [step, profileId, englishLevel, complete]);
+  }, [step, profileId, englishLevel, replayNonce]);
 
   useEffect(() => () => {
     if (typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel();
@@ -71,6 +76,11 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
   const reset = (next: Step) => {
     locked.current = false;
     startTime.current = Date.now();
+    runId.current = `cg_${profileId}_${next}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
+    setReplayNonce(value => value + 1);
+    setAwaitingAdvance(false);
+    setFinishedAnswers(null);
+    setAnswerHighlight(null);
     setStep(next);
     setDiscovered([]);
     setEvidence([]);
@@ -88,7 +98,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
     setSaving(true);
     setSaveError(null);
     try {
-      await onSave(step, mistakes, nextCorrect, (Date.now() - startTime.current) / 1000, answers);
+      await onSave(step, mistakes, nextCorrect, (Date.now() - startTime.current) / 1000, answers, runId.current);
       soundService.playSfx('fanfare');
       setComplete(true);
     } catch (error) {
@@ -100,7 +110,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
     }
   };
   const choose = (id: string) => {
-    if (saving || complete || locked.current || feedback || !plan) return;
+    if (saving || complete || locked.current || feedback || !plan || awaitingAdvance) return;
     const target = plan.questions[question].target;
     if (id !== target) {
       setMistakes((value) => value + 1);
@@ -116,15 +126,27 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
     const nextEvidence = [...evidence, answer];
     setEvidence(nextEvidence);
     setQuestionMistakes(0);
+    setAnswerHighlight(target);
     setFeedback('Doğru! ' + getWord(target).tr + ' = ' + target.toUpperCase());
+    setAwaitingAdvance(true);
     if (question + 1 >= plan.questions.length) {
-      void finish(nextCorrect, nextEvidence);
+      setFinishedAnswers(nextEvidence);
+    }
+  };
+  const advance = () => {
+    if (!awaitingAdvance || saving) return;
+    if (finishedAnswers) {
+      void finish(correct, finishedAnswers);
     } else {
-      setQuestion((value) => value + 1);
+      setQuestion(value => value + 1);
+      setFeedback(null);
+      setAnswerHighlight(null);
+      setAwaitingAdvance(false);
     }
   };
   const explore = (id: string) => {
-    pronounce(id);
+    if (saving || complete) return;
+    if (!soundService.getMuted()) pronounce(id);
     soundService.playSfx('tap');
     if (!discovered.includes(id)) {
       setDiscovered((old) => [...old, id]);
@@ -166,7 +188,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
         {!loadError && !plan && !complete && <div role="status" className="p-6 text-center">Yeni macera hazırlanıyor…</div>}
         {!loadError && (complete ? (
           <section className="mx-auto max-w-lg rounded-3xl border border-lime-300/50 bg-emerald-900/70 p-7 text-center shadow-xl">
-            <div className="text-6xl">🌟</div>
+            <div className="text-6xl" aria-hidden="true">🌟</div>
             <h2 className="mt-3 text-2xl font-black">Görev Tamamlandı!</h2>
             <p className="mt-2 text-sm">Doğru: {correct} · Hatalı deneme: {mistakes}</p>
             <button onClick={() => {
@@ -174,6 +196,9 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
               else reset((step + 1) as Step);
             }} className="mt-6 w-full rounded-2xl bg-lime-300 px-5 py-4 font-black text-emerald-950">
               {step === 3 ? 'Bahçeye Dön →' : 'Sonraki Görev →'}
+            </button>
+            <button onClick={() => reset(step)} className="mt-3 w-full rounded-2xl border border-white/30 bg-white/10 px-5 py-3 text-sm font-bold text-white hover:bg-white/20">
+              ↻ Bu Görevi Farklı Sorularla Tekrar Oyna
             </button>
           </section>
         ) : !plan ? null : step === 1 ? (
@@ -199,15 +224,18 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
             <div className="mb-4 text-center text-sm font-bold text-lime-200">
               Görev {question + 1} / {plan.questions.length}
             </div>
+            <div aria-hidden="true" className="mb-5 h-2 overflow-hidden rounded-full bg-white/15">
+              <div className="h-full rounded-full bg-gradient-to-r from-lime-300 to-sky-300 transition-all" style={{ width: `${Math.round(((question + Number(awaitingAdvance)) / plan.questions.length) * 100)}%` }} />
+            </div>
             <div className="mx-auto mb-5 flex h-32 w-32 items-center justify-center rounded-full border-8 border-white/30 shadow-2xl sm:h-40 sm:w-40"
               style={{ background: step === 2 ? getWord(plan.questions[question].target).hex : 'rgba(255,255,255,0.12)' }}>
-              {step === 3 && <span className="text-5xl">🌳</span>}
+              {step === 3 && <span className="text-6xl" aria-hidden="true">{plan.questions[question].scene === 'butterfly' ? '🦋' : plan.questions[question].scene === 'garden' ? '🌸' : '🌳'}</span>}
             </div>
             <h2 className="mb-5 text-center text-xl font-black">
               {getColorInstruction(plan.questions[question].target, step, englishLevel).title}
             </h2>
             {step === 3 && <p className="mb-3 text-center text-sm text-sky-100">{getColorInstruction(plan.questions[question].target, step, englishLevel).guide}</p>}
-            {step === 3 && <button onClick={() => pronounce(getColorInstruction(plan.questions[question].target, step, englishLevel).speech)}
+            {step === 3 && !soundService.getMuted() && <button onClick={() => pronounce(getColorInstruction(plan.questions[question].target, step, englishLevel).speech)}
               className="mx-auto mb-5 block rounded-full border border-white/25 bg-white/10 px-4 py-2 text-sm font-bold">
               🔊 Yönergeyi Dinle
             </button>}
@@ -215,8 +243,9 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
               {plan.questions[question].choices.map((id) => {
                 const word = getWord(id);
                 return (
-                  <button key={id} onClick={() => choose(id)}
-                    className="rounded-2xl border border-white/25 bg-white/10 p-3 text-center hover:border-yellow-200 sm:p-5">
+                  <button key={id} onClick={() => choose(id)} disabled={saving || awaitingAdvance}
+                    aria-label={step === 2 ? `${word.id} rengini seç` : `${word.tr} rengini seç`}
+                    className={`min-h-24 rounded-2xl border bg-white/10 p-3 text-center transition hover:border-yellow-200 hover:scale-[1.02] disabled:opacity-60 sm:p-5 ${answerHighlight === id ? 'border-lime-300 ring-2 ring-lime-300/60' : 'border-white/25'}`}>
                     {step === 3 && <div className="mx-auto mb-3 h-14 w-14 rounded-full border-4 border-white/40" style={{ background: word.hex }} />}
                     <div className="text-sm font-black sm:text-xl">{step === 2 ? word.id.toUpperCase() : word.tr}</div>
                   </button>
@@ -225,8 +254,10 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
             </div>
             <div aria-live="polite" className="mt-5 min-h-12 text-center text-sm font-semibold text-yellow-100">
               {feedback && (
-                <button className="rounded-xl bg-white/10 px-5 py-3" onClick={() => setFeedback(null)}>
-                  {feedback} · Devam etmek için dokun
+                <button className={`min-h-12 rounded-xl px-5 py-3 ${awaitingAdvance ? 'bg-lime-500/20 text-lime-100' : 'bg-amber-400/15 text-amber-100'}`} onClick={() => {
+                  if (awaitingAdvance) advance(); else setFeedback(null);
+                }}>
+                  {feedback} · {awaitingAdvance ? 'Devam Et →' : 'Tekrar Dene ↻'}
                 </button>
               )}
             </div>

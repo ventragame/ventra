@@ -54,7 +54,8 @@ export async function saveColorGroveMission(
   wrongAttempts: number,
   correctAnswers: number,
   durationSeconds: number,
-  colorAnswers: ColorAnswerEvidence[] = []
+  colorAnswers: ColorAnswerEvidence[] = [],
+  sessionId?: string
 ): Promise<ColorGroveProgress> {
   if (!Number.isInteger(mission) || mission < 1 || mission > COLOR_GROVE_MISSIONS) {
     throw new Error('Geçersiz Renk Korusu görevi.');
@@ -70,7 +71,7 @@ export async function saveColorGroveMission(
   const stars = wrongAttempts === 0 ? 3 : wrongAttempts <= 2 ? 2 : 1;
   const attemptsCount = correctAnswers + wrongAttempts;
   const payload: GameCompletedPayload = {
-    sessionId: `cg_${profileId}_${mission}_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+    sessionId: sessionId || `cg_${profileId}_${mission}_${Date.now()}_${Math.random().toString(36).slice(2)}`,
     profileId,
     gameId: COLOR_GROVE_GAME_ID,
     levelId: mission,

@@ -24,6 +24,7 @@ interface LearningPathModalProps {
   regionId: string;
   onClose: () => void;
   onRegionCompleted: () => void;
+  onColorProgressSaved?: () => void;
   profileId: string;
   englishLevel?: 'Pre-A1' | 'A1' | 'A2';
   initialCompletedLevels?: number;
@@ -52,6 +53,7 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
   englishLevel = 'Pre-A1',
   onClose,
   onRegionCompleted,
+  onColorProgressSaved,
   initialCompletedLevels = 0,
   initialStarsByLevel = {},
   onProgressUpdate
@@ -320,9 +322,10 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
 
   if (showColorGrove) {
     return <ColorGroveAdventure profileId={profileId} englishLevel={englishLevel} progress={colorProgress} onBack={() => setShowColorGrove(false)}
-      onSave={async (mission, mistakes, correct, duration, answers) => {
-        const updated = await saveColorGroveMission(getProgressRepository(), profileId, mission, mistakes, correct, duration, answers);
+      onSave={async (mission, mistakes, correct, duration, answers, sessionId) => {
+        const updated = await saveColorGroveMission(getProgressRepository(), profileId, mission, mistakes, correct, duration, answers, sessionId);
         setColorProgress(updated);
+        onColorProgressSaved?.();
       }} />;
   }
 
