@@ -268,3 +268,95 @@ test('Audio & SoundService: Global Mute Synchronization Contract', () => {
   mockCallback(false);
   assert.equal(receivedMuteState, false, 'Global ses açma (unmute) aktif olmalıdır');
 });
+
+test('Game Level Map Progression: Activity 1 Complete -> 20% Progress -> Island Bar Sync', () => {
+  // 1. Başlangıç Durumu (1. Seviye açık, diğerleri kilitli)
+  const initialLevels = WORD_GARDEN_DEFAULT_NODES.map((node, index) => ({
+    id: `wg_level_${node.id}`,
+    order: node.id,
+    type: node.type,
+    status: index === 0 ? 'available' : 'locked',
+    starsEarned: 0
+  }));
+
+  assert.equal(initialLevels[0].status, 'available', '1. Keşfet adımı başlangıçta erişilebilir olmalıdır');
+  assert.equal(initialLevels[1].status, 'locked', '2. Eşleştir adımı başlangıçta kilitli olmalıdır');
+  const initialCompleted = initialLevels.filter(l => l.status === 'completed').length;
+  assert.equal(initialCompleted, 0);
+  const initialPercent = Math.round((initialCompleted / initialLevels.length) * 100);
+  assert.equal(initialPercent, 0, 'Başlangıçta ilerleme %0 olmalıdır');
+
+  // 2. İlk Etkinlik (Explore / Keşfet) 3 Yıldızla Tamamlanır
+  const stepType = 'explore';
+  const starsEarned = 3;
+  const updatedLevels = initialLevels.map(lvl => {
+    if (lvl.type === stepType) {
+      return { ...lvl, status: 'completed', starsEarned };
+    }
+    return lvl;
+  });
+
+  // Sıradaki ilk kilitli düğümün kilidini aç (Explore -> Match)
+  const currentIndex = updatedLevels.findIndex(l => l.type === stepType);
+  if (currentIndex >= 0 && currentIndex + 1 < updatedLevels.length) {
+    if (updatedLevels[currentIndex + 1].status === 'locked') {
+      updatedLevels[currentIndex + 1] = {
+        ...updatedLevels[currentIndex + 1],
+        status: 'available'
+      };
+    }
+  }
+
+  // 3. Seviye ve Durum Doğrulaması
+  assert.equal(updatedLevels[0].status, 'completed', '1. Adım tamamlandı olarak işaretlenmelidir');
+  assert.equal(updatedLevels[0].starsEarned, 3, '1. Adım 3 yıldız kazanmalıdır');
+  assert.equal(updatedLevels[1].status, 'available', '1. Adım tamamlanınca 2. Adım (Match) açılmalıdır');
+  assert.equal(updatedLevels[2].status, 'locked', '3. Adım kilitli kalmalıdır');
+
+  // 4. %20 İlerleme Oranı Doğrulaması (1/5)
+  const completedCount = updatedLevels.filter(l => l.status === 'completed').length;
+  assert.equal(completedCount, 1, 'Tamamlanan seviye sayısı tam olarak 1 olmalıdır');
+  const progressPercent = Math.round((completedCount / updatedLevels.length) * 100);
+  assert.equal(progressPercent, 20, '1/5 seviye tam olarak %20 ilerleme üretmelidir');
+
+  // 5. 5 Seviyenin Tamamı Tamamlandığında %100 Çiçek Açma (Blooming) Durumu
+  const allCompletedLevels = initialLevels.map(lvl => ({
+    ...lvl,
+    status: 'completed',
+    starsEarned: 3
+  }));
+  const fullCompletedCount = allCompletedLevels.filter(l => l.status === 'completed').length;
+  const fullProgressPercent = Math.round((fullCompletedCount / allCompletedLevels.length) * 100);
+  assert.equal(fullCompletedCount, 5, '5 seviyenin tamamı bitmelidir');
+  assert.equal(fullProgressPercent, 100, 'Tamamlandığında ada ilerlemesi %100 olmalıdır');
+});
+
+test('Archipelago Progress Bar: Active vs Unpublished Island Level Display Invariants', () => {
+  // 1. Kelime Bahçesi (Aktif Yayımlanmış Ada)
+  const wg = ARCHIPELAGO_ISLANDS_CATALOG.word_garden;
+  assert.equal(wg.contentPublished, true, 'Kelime Bahçesi içerik yayımlanmış tek ada olmalıdır');
+  assert.equal(wg.totalPublishedRequiredLevels, 5, 'Kelime Bahçesi toplam 5 seviyeye sahip olmalıdır');
+
+  const formatWordGardenProgress = (completed) => {
+    const total = wg.totalPublishedRequiredLevels;
+    const pct = Math.round((completed / total) * 100);
+    return `${completed}/${total} Tamamlandı (%${pct})`;
+  };
+
+  assert.equal(formatWordGardenProgress(0), '0/5 Tamamlandı (%0)');
+  assert.equal(formatWordGardenProgress(1), '1/5 Tamamlandı (%20)');
+  assert.equal(formatWordGardenProgress(5), '5/5 Tamamlandı (%100)');
+
+  // 2. Diğer 5 Ada için Sahte 0/5 Barının Bastırılması (Suppression) Kuralı
+  const otherIslands = ARCHIPELAGO_ISLANDS_ORDERED.filter(i => i.id !== 'word_garden');
+  assert.equal(otherIslands.length, 5, 'Geriye kalan 5 ada bulunmalıdır');
+
+  for (const island of otherIslands) {
+    assert.equal(island.contentPublished, false, `${island.id} adası henüz yayımlanmamış olmalıdır`);
+    // UI sözleşmesi: contentPublished false ise sayısal "0/5" progress bar çizilmez, "Pek Yakında" / "Kilitli" rozeti çizilir
+    const shouldShowNumericLevelBar = island.contentPublished;
+    assert.equal(shouldShowNumericLevelBar, false, `${island.id} için yanıltıcı 0/5 barı kesinlikle gösterilmemelidir`);
+    assert.ok(island.unlockRequirementNotice, `${island.id} adası kilit açılma koşulu açıklaması içermelidir`);
+  }
+});
+
