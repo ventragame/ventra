@@ -22,7 +22,7 @@ const DISTRICTS = [
     id: 'animal_meadow',
     name: 'Hayvan Çayırı',
     subtitle: 'Animals • İlk keşif',
-    description: 'Dört hayvan dostunu tanı, dinle ve yaşam alanlarını canlandır.',
+    description: '12 hayvan dostunu keşfet, seslerini öğren, yuvalarını kurtar ve albümünü tamamla.',
     icon: '🐾',
     status: 'playable',
     regionClass: 'from-emerald-800/90 via-green-700/80 to-lime-600/70',

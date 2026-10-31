@@ -10,6 +10,7 @@ import {
   ANIMAL_MEADOW_WORDS, findAnimal, planAnimalMission, getAnimalPrompt,
   type AnimalMission, type AnimalWord, type AnimalId, type PlannedAnimalMission
 } from '@/lib/learning/animalMissionEngine';
+import { resolveRescueChoice } from '@/lib/learning/animalRescueEngine';
 import './animal-meadow.css';
 
 const STAGES = [
@@ -189,13 +190,18 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
   }
   function choose(id:AnimalId) {
     if(saving||completed||awaiting||busy.current||answerLocked.current||!currentQuestion||!target)return;
-    if(id!==target.id) {
+    const rescue = stage===5 ? resolveRescueChoice({
+      phase: rescueSelected ? 'home' : 'find',
+      selected: id,
+      target: target.id
+    }) : null;
+    if(id!==target.id || rescue?.outcome==='wrong') {
       setWrongCount(x=>x+1);setQuestionWrong(x=>x+1);setWrongChoice(id);
-      setFeedback({text:'Henüz değil. Başka bir hayvana dokun; tekrar deneyebilirsin.',good:false});
+      setFeedback({text:stage===5 && rescueSelected?'Bu yuva değil; başka bir yer dene.':'Henüz değil. Başka bir hayvana dokun; tekrar deneyebilirsin.',good:false});
       soundService.playSfx('gentle_retry');
       return;
     }
-    if(stage===5 && !rescueSelected) {
+    if(rescue?.outcome==='found') {
       setRescueSelected(true);
       setWrongChoice(null);
       setFeedback({text:`Harika! ${target.tr} bulundu. Şimdi doğru yuvayı seç.`,good:true});
@@ -297,6 +303,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
                 {unlocked?<AnimalPicture word={word}/>:<div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/10 text-4xl font-black text-white/40">?</div>}
                 <span className="mt-1 text-xs font-black uppercase">{unlocked?word.id:'???'}</span>
                 <span className="mt-1 text-[11px] text-sky-100">{unlocked?word.tr:'Keşfedilmedi'}</span>
+                {unlocked && <span className="mt-1 text-[10px] text-lime-100/80">{word.habitat}</span>}
               </button>;
             })}
           </div>
@@ -349,6 +356,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
                   <AnimalPicture word={word}/>
                   <span className="mt-2 text-base font-black uppercase">{word.id}</span>
                   <span className="mt-1 text-sm text-sky-100">{word.tr}</span>
+                  <span className="mt-1 text-[11px] font-semibold text-sky-100/85">🏡 {word.habitat}</span>
                   <span className="mt-1 text-xs font-bold text-lime-200">{discovered.includes(id)?'✓ Keşfedildi':canSpeak(word)?'🔊 Dokun, dinle':'👆 Keşfet'}</span>
                 </button>;
               })}

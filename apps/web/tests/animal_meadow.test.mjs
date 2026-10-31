@@ -2,6 +2,9 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { ANIMAL_MEADOW_WORDS, findAnimal, planAnimalMission, getWeakAnimalIds, getAnimalPrompt } from '../src/lib/learning/animalMissionEngine.ts';
 import { MemoryProgressRepository } from '../src/lib/progress/MemoryProgressRepository.ts';
+import { resolveRescueChoice } from '../src/lib/learning/animalRescueEngine.ts';
+import fs from 'node:fs';
+import path from 'node:path';
 import { getWordGardenProgress, saveWordGardenLevelCompletion } from '../src/lib/progress/wordGardenProgress.ts';
 
 function evidence(wordId,kind='discovery',mistakes=0,time='2026-11-01T09:00:00.000Z') {
@@ -109,4 +112,32 @@ test('Muted listening fallback and optional hints are neutral, not permanent wea
   assert.deepEqual(getWeakAnimalIds([assisted]),[]);
   const missed={...assisted,kind:'recognition',mistakes:2,timestamp:'2026-11-01T11:00:00.000Z'};
   assert.deepEqual(getWeakAnimalIds([assisted,missed]),['cow']);
+});
+
+test('All twelve illustrated characters exist and are self-contained safe SVGs',()=>{
+  for(const word of ANIMAL_MEADOW_WORDS){
+    assert.equal(typeof word.image,'string');
+    const file=path.join(process.cwd(),'public',word.image.replace(/^\//,''));
+    assert.ok(fs.existsSync(file),'missing art for '+word.id);
+    const svg=fs.readFileSync(file,'utf8');
+    assert.match(svg,/<svg[^>]+viewBox="0 0 320 320"/);
+    assert.match(svg,/<\/svg>\s*$/);
+    assert.doesNotMatch(svg,/<script\b|<foreignObject\b|https?:\/\//i,'no external code/resources');
+    assert.ok(svg.length>1400,'distinct illustrated detail');
+  }
+});
+test('Two-step animal rescue cannot award a star after only identifying the animal',()=>{
+  for(const target of ANIMAL_MEADOW_WORDS.map(x=>x.id)){
+    const wrong=ANIMAL_MEADOW_WORDS.find(x=>x.id!==target).id;
+    assert.deepEqual(resolveRescueChoice({phase:'find',selected:wrong,target}),
+      {phase:'find',outcome:'wrong',complete:false});
+    assert.deepEqual(resolveRescueChoice({phase:'find',selected:target,target}),
+      {phase:'home',outcome:'found',complete:false});
+    assert.deepEqual(resolveRescueChoice({phase:'home',selected:wrong,target}),
+      {phase:'home',outcome:'wrong',complete:false});
+    assert.deepEqual(resolveRescueChoice({phase:'home',selected:target,target}),
+      {phase:'done',outcome:'rescued',complete:true});
+    assert.deepEqual(resolveRescueChoice({phase:'done',selected:target,target}),
+      {phase:'done',outcome:'ignore',complete:true});
+  }
 });
