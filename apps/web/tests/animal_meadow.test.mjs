@@ -122,7 +122,7 @@ test('All twelve illustrated characters exist and are self-contained safe SVGs',
     const svg=fs.readFileSync(file,'utf8');
     assert.match(svg,/<svg[^>]+viewBox="0 0 320 320"/);
     assert.match(svg,/<\/svg>\s*$/);
-    assert.doesNotMatch(svg,/<script\b|<foreignObject\b|https?:\/\//i,'no external code/resources');
+    assert.doesNotMatch(svg,/<script\b|<foreignObject\b|<image\b|(?:href|xlink:href)=["']https?:\/\//i,'no external scripts or image links');
     assert.ok(svg.length>1400,'distinct illustrated detail');
   }
 });
