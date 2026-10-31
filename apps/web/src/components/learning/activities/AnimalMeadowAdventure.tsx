@@ -110,6 +110,10 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
   const [awaiting,setAwaiting] = useState(false);
   const [assisted,setAssisted] = useState(false);
   const [wrongChoice,setWrongChoice] = useState<AnimalId|null>(null);
+  const [rescueSelected,setRescueSelected] = useState(false);
+  const [textMode,setTextMode] = useState(false);
+  const [showAlbum,setShowAlbum] = useState(false);
+  const [seenAnimals,setSeenAnimals] = useState<AnimalId[]>([]);
   const [completed,setCompleted] = useState(false);
   const [saving,setSaving] = useState(false);
   const [saveError,setSaveError] = useState<string|null>(null);
@@ -122,7 +126,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
   const activePlan = planKey===key && plan?.mission===stage ? plan : null;
   const currentQuestion = stage===1?null:activePlan?.questions[questionIndex]??null;
   const target = currentQuestion?findAnimal(currentQuestion.target):null;
-  const noAudioMode = stage===3 && (muted || (!voiceAvailable && !target?.audio));
+  const noAudioMode = stage===3 && (textMode || muted || (!voiceAvailable && !target?.audio));
 
   useEffect(()=>{
     setVoiceAvailable(typeof window!=='undefined' && 'speechSynthesis' in window && typeof SpeechSynthesisUtterance!=='undefined');
@@ -135,6 +139,8 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
     setPlan(null);setPlanKey(null);setLoadError(false);
     getProgressRepository().getAnimalAnswerHistory(profileId).then(history=>{
       if(!live)return;
+      setSeenAnimals(Array.from(new Set(history.filter(row=>row.kind==='discovery').map(row=>row.wordId)))
+        .filter((id): id is AnimalId => Boolean(findAnimal(id))));
       setPlan(planAnimalMission({mission:stage,history,seed:Math.floor(Math.random()*4294967295)}));
       setPlanKey(key);
     }).catch(error=>{ console.error('Hayvan Çayırı planı yüklenemedi',error);if(live)setLoadError(true); });
@@ -166,6 +172,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
     setStage(next);setNonce(x=>x+1);setPlan(null);setPlanKey(null);setLoadError(false);
     setDiscovered([]);setAnswered([]);setQuestionIndex(0);setWrongCount(0);setQuestionWrong(0);
     setCorrectCount(0);setFeedback(null);setAwaiting(false);setAssisted(false);setWrongChoice(null);
+    setRescueSelected(false);setTextMode(false);setShowAlbum(false);
     setCompleted(false);setSaving(false);setSaveError(null);startedAt.current=Date.now();
     sessionId.current=`am_${profileId}_${next}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
   }
@@ -184,6 +191,13 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
       soundService.playSfx('gentle_retry');
       return;
     }
+    if(stage===5 && !rescueSelected) {
+      setRescueSelected(true);
+      setWrongChoice(null);
+      setFeedback({text:`Harika! ${target.tr} bulundu. Şimdi doğru yuvayı seç.`,good:true});
+      soundService.playSfx('correct');
+      return;
+    }
     soundService.playSfx('correct');
     const kind=stage===2?'recognition':stage===3?'listening':stage===4?'command':'habitat';
     const hintUsed=assisted || (stage===3 && noAudioMode);
@@ -195,12 +209,16 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
     setWrongChoice(null);setAwaiting(true);
     setFeedback({text:`Doğru! ${target.id.toUpperCase()} = ${target.tr}.`,good:true});
   }
+  function chooseHabitat(id:AnimalId) {
+    if(stage!==5 || !rescueSelected || !target || saving || completed || awaiting || busy.current)return;
+    choose(id);
+  }
   function advance(){
     if(!awaiting||busy.current)return;
     if(!activePlan)return;
     if(questionIndex+1>=activePlan.questions.length) {void finish();return;}
     setQuestionIndex(x=>x+1);setQuestionWrong(0);setAwaiting(false);setAssisted(false);
-    setFeedback(null);setWrongChoice(null);
+    setFeedback(null);setWrongChoice(null);setRescueSelected(false);
     panelRef.current?.scrollTo({top:0,behavior:'smooth'});
   }
   async function finish() {
@@ -223,7 +241,6 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
       setSaveError('İlerleme kaydedilemedi. Yerel kayıtlarını silmeden yeniden dene.');
     }finally{busy.current=false;setSaving(false);}
   }
-  const levelNames=STAGES.map(item=>item.name);
   const stars=Object.values(localProgress.starsByLevel).reduce((s,n)=>s+n,0);
   const valid = activePlan && (stage===1?activePlan.animals.length>0:Boolean(currentQuestion && target));
   const completedCount=stage===1?discovered.length:correctCount;
@@ -318,35 +335,52 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
             <div className="mb-4 h-2 overflow-hidden rounded-full bg-white/20" aria-hidden="true">
               <div className="h-full rounded-full bg-gradient-to-r from-emerald-300 to-sky-300 transition-all" style={{width:`${Math.round(((questionIndex+Number(awaiting))/activePlan.questions.length)*100)}%`}}/>
             </div>
-            <MeadowScene stage={stage} word={target} blooms={correctCount}/>
+            <MeadowScene stage={stage} word={stage===5 && rescueSelected?null:target} blooms={correctCount}/>
+            {stage===5 && rescueSelected && <div className="am-rescue mt-2 flex items-center justify-center gap-3 rounded-xl bg-emerald-900/75 p-3">
+              <AnimalPicture word={target}/>
+              <span className="text-sm font-black text-lime-100">→ YUVASINI BUL!</span>
+            </div>}
+            {stage===4 && awaiting && <div className="am-rescue mt-2 rounded-2xl border border-lime-200/50 bg-lime-400/15 p-3 text-center text-sm font-extrabold text-lime-100">
+              🐾 {target.tr} güvenli yuvasına doğru koşuyor!
+            </div>}
             {activePlan.reviewIds.length>0 && <p className="mt-3 rounded-xl bg-sky-950/65 p-2 text-center text-xs text-sky-100">🔁 Pekiştirme turu: zorlandığın kelimeler yeniden karşına çıkıyor.</p>}
             <div className="my-4 rounded-2xl border border-white/25 bg-emerald-950/80 p-4 text-center">
               <h2 className="text-xl font-black sm:text-2xl">
-                {stage===3 ? (noAudioMode? `Yazılı alternatif: ${target.id.toUpperCase()}` : '🔊 Sesi Dinle') : getAnimalPrompt(stage,target,englishLevel).title}
+                {stage===3 ? (noAudioMode? `Yazılı alternatif: ${target.id.toUpperCase()}` : '🔊 Sesi Dinle') :
+                  stage===5 && rescueSelected ? '🏡 Doğru yuvaya yerleştir' : getAnimalPrompt(stage,target,englishLevel).title}
               </h2>
               <p className="mt-1 text-sm text-white/85">
-                {stage===3 && noAudioMode ? 'Ses kapalı veya desteklenmiyor; İngilizce kelimeyi okuyarak devam et.' : getAnimalPrompt(stage,target,englishLevel).guide}
+                {stage===3 && noAudioMode ? 'Ses kullanılamıyor veya yazılı modu seçtin. Kelimeyi okuyarak devam et.' :
+                  stage===5 && rescueSelected ? `${target.tr} için uygun yaşam alanını bul.` :
+                  getAnimalPrompt(stage,target,englishLevel).guide}
               </p>
               {(stage===3||stage===4)&&<button onClick={()=>speak(target,stage===4)} disabled={!canSpeak(target)}
                 className="am-tap mt-3 min-h-11 rounded-xl border border-sky-200/40 bg-sky-400/15 px-5 font-bold disabled:opacity-50" aria-label="İngilizce yönergeyi dinle">
                 {canSpeak(target)?'🔊 Tekrar Dinle':'🔇 Yazılı Mod'}
+              </button>}
+              {stage===3 && !noAudioMode && <button onClick={()=>{setTextMode(true);setAssisted(true)}} disabled={awaiting}
+                className="am-tap ml-2 mt-3 min-h-11 rounded-xl border border-white/25 bg-white/10 px-4 text-xs font-bold disabled:opacity-50">
+                Ses Gelmiyor mu? Yazılı Oyna
               </button>}
               {stage===2 && <button onClick={()=>setAssisted(true)} disabled={awaiting}
                 className="am-tap mt-3 min-h-11 rounded-xl border border-white/20 bg-white/10 px-4 text-xs font-bold disabled:opacity-50">
                 {assisted ? `İpucu: ${target.tr}` : 'Türkçe İpucu Göster'}
               </button>}
             </div>
-            <div className="grid grid-cols-3 gap-2 sm:gap-3">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3" role="group"
+              aria-label={stage===5&&rescueSelected?'Hayvan için doğru yuva':'Hayvan cevabı'}>
               {currentQuestion.choices.map(id=>{
                 const word=findAnimal(id)!;
-                const textOnly=stage===2;
-                return <button key={id} onClick={()=>choose(id)} disabled={saving||awaiting}
+                const habitatChoice=stage===5 && rescueSelected;
+                const textOnly=stage===2 || habitatChoice;
+                return <button key={id} onClick={()=>habitatChoice?chooseHabitat(id):choose(id)} disabled={saving||awaiting}
                   aria-pressed={awaiting && id===target.id}
-                  aria-label={textOnly?`${word.id} İngilizce kelimesi`:`${word.tr} hayvanını seç`}
+                  aria-label={habitatChoice?`Yaşam alanı: ${word.habitat}`:textOnly?`${word.id} İngilizce kelimesi`:`${word.tr} hayvanını seç`}
                   className={`am-tap flex min-h-28 flex-col items-center justify-center rounded-2xl border bg-slate-950/45 p-2 text-center shadow-lg disabled:opacity-65 sm:min-h-36 sm:p-4
                     ${awaiting && id===target.id?'border-lime-300 bg-lime-400/20 ring-2 ring-lime-300/50':wrongChoice===id?'border-rose-300 bg-rose-400/20':'border-white/25 hover:border-sky-200'}`}>
+                  {habitatChoice && <span aria-hidden="true" className="mb-2 text-3xl">{word.place==='Gölet'?'💧':word.place==='Çiftlik'?'🚜':word.place==='Ağaç'?'🌳':word.place==='Çayır'?'🌿':word.place==='Çiçeklik'?'🌸':'🏡'}</span>}
                   {!textOnly && <AnimalPicture word={word}/>}
-                  <span className="mt-2 text-sm font-black uppercase sm:text-lg">{textOnly?word.id:stage===5?word.id:word.tr}</span>
+                  <span className="mt-2 text-xs font-black sm:text-lg">{habitatChoice?word.habitat:textOnly?word.id.toUpperCase():word.tr}</span>
                 </button>;
               })}
             </div>
