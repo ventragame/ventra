@@ -333,6 +333,15 @@ export class CloudSyncService {
       if (current) syncedList.push(current);
     }
 
+    // A locally-linked child missing from the authenticated parent's cloud
+    // response must not be reported as successfully backed up.
+    const cloudIds = new Set(remoteProfiles.map(profile => profile.id));
+    const orphan = localProfiles.find(p =>
+      p.userId === userId && !cloudIds.has(p.id) && !deletedIds.includes(p.id)
+    );
+    if (orphan) throw new Error(
+      `"${orphan.nickname}" bulut hesabında bulunamadı. Yerel ilerlemesi korunuyor; eşitleme tamamlanmadı.`
+    );
     return syncedList;
   }
 }
