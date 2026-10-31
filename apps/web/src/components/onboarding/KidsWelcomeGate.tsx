@@ -3,7 +3,7 @@
 import React, { useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight, BookOpen, CloudOff, GraduationCap, ShieldCheck, Sparkles, UserRound, UsersRound } from 'lucide-react';
-import { VENTRA_AVATARS } from '@ventra/shared';
+import { VENTRA_AVATARS, type PlayerProfile } from '@ventra/shared';
 import type { CreateProfileInput } from '@/lib/progress';
 
 type Screen = 'choose' | 'individual' | 'family' | 'school';
@@ -11,9 +11,11 @@ type Screen = 'choose' | 'individual' | 'family' | 'school';
 interface KidsWelcomeGateProps {
   onCreateProfile: (input: CreateProfileInput) => Promise<void>;
   onOpenParent: () => void;
+  existingProfile?: PlayerProfile | null;
+  onContinue?: () => void;
 }
 
-export function KidsWelcomeGate({ onCreateProfile, onOpenParent }: KidsWelcomeGateProps) {
+export function KidsWelcomeGate({ onCreateProfile, onOpenParent, existingProfile, onContinue }: KidsWelcomeGateProps) {
   const [screen, setScreen] = useState<Screen>('choose');
   const [nickname, setNickname] = useState('');
   const [avatar, setAvatar] = useState(VENTRA_AVATARS[0].id);
@@ -51,7 +53,7 @@ export function KidsWelcomeGate({ onCreateProfile, onOpenParent }: KidsWelcomeGa
     }
   }
 
-  const section = screen === 'choose' ? 'Macera yolunu seç' :
+  const section = screen === 'choose' ? (existingProfile ? 'Nasıl devam edeceksin?' : 'Macera yolunu seç') :
     screen === 'individual' ? 'Kendi kaşifini oluştur' :
     screen === 'family' ? 'Aile hesabıyla devam et' : 'Okul macerası';
 
@@ -78,19 +80,28 @@ export function KidsWelcomeGate({ onCreateProfile, onOpenParent }: KidsWelcomeGa
           <p className="mt-5 text-xs font-black uppercase tracking-[0.25em] text-sky-200">Bir dünya, sonsuz keşif</p>
           <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-5xl">{section}</h1>
           <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-sky-100/85 sm:text-base">
-            {screen === 'choose' ? 'İngilizce öğrenirken adalarını canlandır, yeni görevler keşfet. Başlamak için bir yol seç.' :
+            {screen === 'choose' ? (existingProfile ? `${existingProfile.nickname}, yıldızların, avatarın ve görevlerin korunacak. Dilediğin zaman oyun yolunu değiştirebilirsin.` : 'İngilizce öğrenirken adalarını canlandır, yeni görevler keşfet. Başlamak için bir yol seç.') :
              screen === 'individual' ? 'Gerçek adını yazmana gerek yok. Takma ad ve ücretsiz bir avatar yeterli.' :
              screen === 'family' ? 'Ebeveyn hesabıyla bulut yedekleme ayarlarına eriş. Ailece aynı anda oyun modu henüz yok.' :
              'Öğretmeninle aynı macera evreninde öğrenebilmen için okul erişimi hazırlanıyor.'}
           </p>
         </div>
 
+        {existingProfile && onContinue && (
+          <div className="mx-auto mb-5 flex max-w-4xl items-center justify-between gap-3 rounded-2xl border border-white/20 bg-white/10 p-3 sm:p-4">
+            <div className="flex items-center gap-3">
+              <span className="text-3xl" aria-hidden="true">{VENTRA_AVATARS.find((item) => item.id === existingProfile.avatarId)?.emoji || '🧭'}</span>
+              <div><p className="text-sm font-extrabold">{existingProfile.nickname}</p><p className="text-xs text-sky-100/80">Aynı çocuk profiliyle devam ediyorsun</p></div>
+            </div>
+            <button onClick={onContinue} className="rounded-xl border border-white/25 bg-slate-900/70 px-3 py-3 text-xs font-bold hover:bg-white/20">Oyuna Dön</button>
+          </div>
+        )}
         {screen === 'choose' && (
           <div className="mx-auto grid max-w-4xl gap-4 md:grid-cols-3">
-            <button onClick={() => { setScreen('individual'); setError(null); }} className="group flex min-h-[270px] flex-col rounded-[2rem] border-2 border-emerald-300/60 bg-gradient-to-br from-emerald-700/80 via-teal-800/80 to-sky-900/90 p-6 text-left shadow-xl shadow-emerald-950/30 transition hover:-translate-y-1 hover:border-lime-300 focus-visible:outline focus-visible:outline-4 focus-visible:outline-lime-300">
+            <button onClick={() => { if (existingProfile && onContinue) onContinue(); else { setScreen('individual'); setError(null); } }} className="group flex min-h-[270px] flex-col rounded-[2rem] border-2 border-emerald-300/60 bg-gradient-to-br from-emerald-700/80 via-teal-800/80 to-sky-900/90 p-6 text-left shadow-xl shadow-emerald-950/30 transition hover:-translate-y-1 hover:border-lime-300 focus-visible:outline focus-visible:outline-4 focus-visible:outline-lime-300">
               <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/15"><UserRound size={34} /></span>
               <strong className="mt-6 text-xl font-black">Bireysel Oyna</strong>
-              <span className="mt-2 text-sm leading-relaxed text-white/85">Hesap açmadan kaşifini oluştur ve hemen oynamaya başla.</span>
+              <span className="mt-2 text-sm leading-relaxed text-white/85">{existingProfile ? 'Mevcut profilinle, kayıtlarını koruyarak bireysel oynamaya devam et.' : 'Hesap açmadan kaşifini oluştur ve hemen oynamaya başla.'}</span>
               <span className="mt-auto flex items-center gap-2 pt-5 text-sm font-extrabold text-lime-200">Hemen Başla <ArrowRight size={18} /></span>
             </button>
 
@@ -167,8 +178,8 @@ export function KidsWelcomeGate({ onCreateProfile, onOpenParent }: KidsWelcomeGa
                   <ShieldCheck size={18} /> Ebeveyn Alanını Aç
                 </button>
               )}
-              <button onClick={() => { setScreen('individual'); setError(null); }} className="min-h-12 rounded-xl border border-white/20 bg-white/10 px-5 text-sm font-bold hover:bg-white/20">
-                Bireysel Profil Oluştur
+              <button onClick={() => { if (existingProfile && onContinue) onContinue(); else { setScreen('individual'); setError(null); } }} className="min-h-12 rounded-xl border border-white/20 bg-white/10 px-5 text-sm font-bold hover:bg-white/20">
+                {existingProfile ? 'Bireysel Oynamaya Dön' : 'Bireysel Profil Oluştur'}
               </button>
               <button onClick={() => setScreen('choose')} className="min-h-10 text-sm font-semibold text-sky-200">← Geri Dön</button>
             </div>

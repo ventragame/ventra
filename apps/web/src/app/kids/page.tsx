@@ -44,6 +44,7 @@ export default function VentraKidsWorldPage() {
   const [bootState, setBootState] = useState<'loading' | 'new' | 'ready' | 'error'>('loading');
   const [bootRetry, setBootRetry] = useState(0);
   const [isProfileModalOpen, setIsProfileModalOpen] = useState<boolean>(false);
+  const [isModeGateOpen, setIsModeGateOpen] = useState<boolean>(false);
   const [isParentGateOpen, setIsParentGateOpen] = useState<boolean>(false);
   const [isAdultAccountModalOpen, setIsAdultAccountModalOpen] = useState<boolean>(false);
 
@@ -65,6 +66,7 @@ export default function VentraKidsWorldPage() {
   // Ortak Oyun Durumu & Etkileşim Kilidi: Herhangi bir modal veya aktivite açıkken arka plan kilitlenir
   const isWorldLocked = Boolean(
     activeRegion ||
+    isModeGateOpen ||
     isProfileModalOpen ||
     isParentGateOpen ||
     isAdultAccountModalOpen ||
@@ -170,6 +172,16 @@ export default function VentraKidsWorldPage() {
     setBootState('loading');
     setBootRetry((value) => value + 1);
   }, []);
+
+  const handleCloudProfilesChanged = useCallback(async () => {
+    const repo = getProgressRepository();
+    const current = await repo.getActiveProfile();
+    if (!current) return;
+    setActiveProfile(current);
+    await loadProfileAndProgress(current);
+    setBootState('ready');
+    showToast('Çocuk profilleri güncellendi. Oyuncu seçimi menüsünden geçiş yapabilirsin.');
+  }, [loadProfileAndProgress, showToast]);
 
   const handleProfileSwitched = useCallback(
     async (newProf: PlayerProfile) => {
@@ -278,7 +290,7 @@ export default function VentraKidsWorldPage() {
           }} />
         )}
         {isAdultAccountModalOpen && (
-          <AdultAccountModal isOpen onClose={() => setIsAdultAccountModalOpen(false)} />
+          <AdultAccountModal isOpen onClose={() => setIsAdultAccountModalOpen(false)} onSyncCompleted={() => { void handleCloudProfilesChanged(); }} />
         )}
       </>
     );
@@ -405,6 +417,14 @@ export default function VentraKidsWorldPage() {
             title={isMuted ? 'Sesi Aç' : 'Sesi Kapat'}
           >
             {isMuted ? '🔇' : '🔊'}
+          </button>
+
+          <button
+            onClick={() => { soundService.unlockAudio(); setIsModeGateOpen(true); }}
+            className="flex items-center gap-1.5 rounded-xl border border-emerald-400/40 bg-emerald-950/85 px-2.5 py-2 text-xs font-bold text-emerald-100 hover:bg-emerald-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-300"
+            title="Oyun yolunu değiştir"
+            aria-label="Oyun yolunu değiştir">
+            <span>🧭</span><span className="hidden md:inline">Oyun Yolum</span>
           </button>
 
           {/* Ebeveyn Alanı & Bulut */}
@@ -634,6 +654,17 @@ export default function VentraKidsWorldPage() {
         </div>
       )}
 
+      {isModeGateOpen && (
+        <div className="fixed inset-0 z-50 overflow-y-auto" role="dialog" aria-modal="true" aria-label="Oyun yolunu seç">
+          <KidsWelcomeGate
+            existingProfile={activeProfile}
+            onContinue={() => setIsModeGateOpen(false)}
+            onCreateProfile={handleFirstProfile}
+            onOpenParent={() => setIsParentGateOpen(true)}
+          />
+        </div>
+      )}
+
       {/* 8. MODALLAR (Profil, Ebeveyn Kapısı, Yetişkin Bulut Hesabı) */}
       {isProfileModalOpen && (
         <ProfileSelectorModal
@@ -662,9 +693,7 @@ export default function VentraKidsWorldPage() {
         <AdultAccountModal
           isOpen={isAdultAccountModalOpen}
           onClose={() => setIsAdultAccountModalOpen(false)}
-          onSyncCompleted={() => {
-            if (activeProfile) loadProfileAndProgress(activeProfile);
-          }}
+          onSyncCompleted={() => { void handleCloudProfilesChanged(); }}
         />
       )}
     </div>
