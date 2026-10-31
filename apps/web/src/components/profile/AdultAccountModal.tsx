@@ -86,35 +86,77 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
   };
 
   const handleSyncNow = async () => {
-    setMessage(null);
-    setSyncStatus('Senkronizasyon yapılıyor...');
+    if (!account || isLoading) return;
     setIsLoading(true);
-
+    setSyncStatus('Bağlı profiller eşitleniyor...');
+    setMessage(null);
     try {
-      const syncService = CloudSyncService.getInstance();
-      let totalUploaded = 0;
-      let totalDownloaded = 0;
-
-      for (const p of profiles) {
-        const res = await syncService.syncProfile(p.id);
-        if (res.success) {
-          totalUploaded += res.uploadedEventsCount;
-          totalDownloaded += res.downloadedEventsCount;
-        }
+      const linked = profiles.filter(p => p.userId === account.userId);
+      if (linked.length === 0) {
+        setMessage({ type: 'error', text: 'Önce bir profil bağlayın veya buluttan geri getirin.' });
+        return;
       }
-
-      setSyncStatus(null);
-      setMessage({
-        type: 'success',
-        text: `Bulut eşitlemesi tamamlandı! (${totalUploaded} yeni etkinlik yedeklendi, ${totalDownloaded} etkinlik indirildi).`
-      });
+      let uploaded = 0;
+      let downloaded = 0;
+      const failures: string[] = [];
+      for (const profile of linked) {
+        const result = await CloudSyncService.getInstance().syncProfile(profile.id);
+        if (!result.success) failures.push(`${profile.nickname}: ${result.errorMessage || 'Eşitleme başarısız'}`);
+        else { uploaded += result.uploadedEventsCount; downloaded += result.downloadedEventsCount; }
+      }
       await loadData();
-      if (onSyncCompleted) onSyncCompleted();
-    } catch (err: any) {
-      setSyncStatus(null);
-      setMessage({ type: 'error', text: err.message || 'Senkronizasyon başarısız oldu.' });
+      if (failures.length > 0) setMessage({ type: 'error', text: `Eşitlenemeyen profiller: ${failures.join(' | ')}. Başarılı aktarım: ${uploaded} gönderildi, ${downloaded} indirildi.` });
+      else {
+        setMessage({ type: 'success', text: `Eşitleme tamamlandı. ${uploaded} kayıt gönderildi, ${downloaded} kayıt indirildi.` });
+        onSyncCompleted?.();
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Eşitleme başarısız oldu.' });
     } finally {
       setIsLoading(false);
+      setSyncStatus(null);
+    }
+  };
+
+  const handleLinkProfile = async (profile: PlayerProfile) => {
+    if (!account || profile.userId || isLoading) return;
+    if (!window.confirm(`"${profile.nickname}" profilini ${account.email} aile hesabına bağlamak istediğine emin misin? Bu sürümde bağlantıyı kaldırmak henüz desteklenmiyor.`)) return;
+    setIsLoading(true);
+    setSyncStatus('Profil bağlanıyor...');
+    setMessage(null);
+    try {
+      const result = await CloudSyncService.getInstance().syncProfile(profile.id, { allowLink: true });
+      if (!result.success) throw new Error(result.errorMessage || 'Bağlantı başarısız.');
+      await loadData();
+      setMessage({ type: 'success', text: `${profile.nickname} profili bağlandı. ${result.uploadedEventsCount} kayıt gönderildi, ${result.downloadedEventsCount} kayıt indirildi.` });
+      onSyncCompleted?.();
+    } catch (error) {
+      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Profil bağlanamadı. Yerel ilerleme korunuyor.' });
+    } finally {
+      setIsLoading(false);
+      setSyncStatus(null);
+    }
+  };
+
+  const handleRestoreFromCloud = async () => {
+    if (!account || isLoading) return;
+    setIsLoading(true);
+    setSyncStatus('Bulut profilleri getiriliyor...');
+    setMessage(null);
+    try {
+      const restored = await CloudSyncService.getInstance().pullAllCloudProfiles();
+      await loadData();
+      if (restored.length > 0) {
+        onSyncCompleted?.();
+        setMessage({ type: 'success', text: `${restored.length} profil kontrol edildi. İlerlemeler birleştirildi; oyuncu seçicisinden istediğiniz profile geçebilirsiniz.` });
+      } else {
+        setMessage({ type: 'success', text: 'Bu aile hesabında geri getirilecek profil yok. Önce bireysel profil oluşturup aile hesabına bağlayın.' });
+      }
+    } catch (error) {
+      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Bulut profilleri getirilemedi. Yerel kayıtlar korunuyor.' });
+    } finally {
+      setIsLoading(false);
+      setSyncStatus(null);
     }
   };
 
@@ -175,7 +217,7 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
               Ebeveyn Alanı & Bulut Yedekleme
             </h2>
             <p style={{ fontSize: '12px', color: '#94a3b8', margin: '4px 0 0 0' }}>
-              İlerleme verilerini cihazlar arasında güvenle yedekleyin ve eşitleyin.
+              Her çocuk profilini açık onayla bağlayın; başka cihazdan geri getirin ve eşitleyin.
             </p>
           </div>
 
@@ -246,9 +288,36 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
                 {account.email}
               </div>
               <div style={{ fontSize: '12px', color: '#94a3b8' }}>
-                Bu cihaza bağlı {profiles.length} çocuk profili bulunmaktadır.
+                Bu cihazda {profiles.length} profil var; {profiles.filter(p => p.userId === account.userId).length} tanesi aile hesabına bağlı.
               </div>
             </div>
+
+            <section aria-label="Çocuk profillerini aileye bağlama" style={{ display: 'flex', flexDirection: 'column', gap: '10px', border: '1px solid #334155', padding: '12px', borderRadius: '12px' }}>
+              <strong style={{ fontSize: '13px', color: '#f8fafc' }}>Çocuk Profilleri</strong>
+              {profiles.length === 0 && <p style={{ fontSize: '12px', color: '#cbd5e1' }}>Bu cihazda profil yok. Buluttan getirin veya bir profil oluşturun.</p>}
+              {profiles.map(profile => {
+                const linked = profile.userId === account.userId;
+                const foreign = Boolean(profile.userId && !linked);
+                return (
+                  <div key={profile.id} style={{ padding: '10px', background: '#0f172a', borderRadius: '10px', display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
+                    <div>
+                      <div style={{ color: '#f8fafc', fontWeight: 800, fontSize: '13px' }}>{profile.nickname}</div>
+                      <div style={{ color: linked ? '#86efac' : foreign ? '#fca5a5' : '#cbd5e1', fontSize: '11px' }}>
+                        {linked ? 'Bu aileye bağlı' : foreign ? 'Başka yetişkin hesabına bağlı' : 'Yalnızca bu cihazda'}
+                      </div>
+                    </div>
+                    {!linked && !foreign && <button disabled={isLoading} onClick={() => void handleLinkProfile(profile)}
+                      style={{ borderRadius: '10px', padding: '10px', border: '1px solid #4ade80', background: '#14532d', color: '#fff', fontWeight: 800, fontSize: '12px', cursor: 'pointer' }}>Aileye Bağla</button>}
+                    {linked && <span style={{ color: '#86efac', fontSize: '12px', fontWeight: 700 }}>✓ Bağlı</span>}
+                  </div>
+                );
+              })}
+              <p style={{ color: '#cbd5e1', fontSize: '11px', lineHeight: 1.6, margin: 0 }}>Bağlamak yıldızları sıfırlamaz. Bir çocuğu başka aile hesabına aktarma henüz desteklenmez.</p>
+            </section>
+            <button onClick={() => void handleRestoreFromCloud()} disabled={isLoading}
+              style={{ padding: '14px', borderRadius: '12px', border: '1px solid #60a5fa', background: '#1e40af', color: '#fff', fontWeight: 800, fontSize: '13px', cursor: 'pointer', opacity: isLoading ? 0.5 : 1 }}>
+              ⬇️ Başka Cihazdaki Profilleri Buluttan Getir
+            </button>
 
             {/* Eşitleme Butonu */}
             <button
@@ -271,7 +340,7 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
               }}
             >
               <span>☁️</span>
-              <span>{isLoading ? (syncStatus || 'İşleniyor...') : 'Şimdi Buluta Yedekle ve Eşitle'}</span>
+              <span>{isLoading ? (syncStatus || 'İşleniyor...') : 'Bağlı Profilleri Eşitle'}</span>
             </button>
 
             {/* Oturum ve Hesap İşlemleri */}
