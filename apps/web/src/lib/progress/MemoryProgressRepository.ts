@@ -494,6 +494,18 @@ export class MemoryProgressRepository implements IProgressRepository {
     return summary.recommendedReview;
   }
 
+  public async getAnimalAnswerHistory(profileId: string): Promise<import('@ventra/shared').AnimalAnswerEvidence[]> {
+    return Array.from(this.sessions.values())
+      .filter(session => session.profileId === profileId && session.data?.gameId === 'island_word_garden_steps')
+      .flatMap(session => {
+        const answers = session.data?.metrics?.animalAnswers;
+        return Array.isArray(answers) ? answers.filter(
+          (item: any) => typeof item.wordId === 'string' &&
+            ['discovery', 'recognition', 'listening', 'command', 'habitat'].includes(item.kind)
+        ) : [];
+      });
+  }
+
   public async getColorAnswerHistory(profileId: string): Promise<import('@ventra/shared').ColorAnswerEvidence[]> {
     const events = Array.from(this.sessions.values()).filter(
       session => session.profileId === profileId && session.data?.gameId === 'island_word_garden_colors'

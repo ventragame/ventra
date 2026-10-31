@@ -686,6 +686,20 @@ export class IndexedDBProgressRepository implements IProgressRepository {
     return summary.recommendedReview;
   }
 
+  public async getAnimalAnswerHistory(profileId: string): Promise<import('@ventra/shared').AnimalAnswerEvidence[]> {
+    const db = await this.getDB();
+    const sessions = await this.getRecordsByIndex<any>(db, 'sessions', 'profileId', profileId);
+    return sessions
+      .filter(session => session.data?.gameId === 'island_word_garden_steps')
+      .flatMap(session => {
+        const answers = session.data?.metrics?.animalAnswers;
+        return Array.isArray(answers) ? answers.filter(
+          (item: any) => typeof item.wordId === 'string' &&
+            ['discovery', 'recognition', 'listening', 'command', 'habitat'].includes(item.kind)
+        ) : [];
+      });
+  }
+
   public async getColorAnswerHistory(profileId: string): Promise<import('@ventra/shared').ColorAnswerEvidence[]> {
     const db = await this.getDB();
     const sessions = await this.getRecordsByIndex<any>(db, 'sessions', 'profileId', profileId);

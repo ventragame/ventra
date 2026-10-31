@@ -1,4 +1,4 @@
-import type { GameCompletedPayload } from '@ventra/shared';
+import type { GameCompletedPayload, AnimalAnswerEvidence } from '@ventra/shared';
 import type { IProgressRepository } from './types.ts';
 
 /**
@@ -71,7 +71,14 @@ export async function saveWordGardenLevelCompletion(
   repo: IProgressRepository,
   profileId: string,
   levelOrder: number,
-  starsEarned: number
+  starsEarned: number,
+  telemetry?: {
+    wrongAttempts: number;
+    correctAnswers: number;
+    durationSeconds: number;
+    animalAnswers: AnimalAnswerEvidence[];
+    sessionId: string;
+  }
 ): Promise<WordGardenProgressSnapshot> {
   if (!Number.isInteger(levelOrder) || levelOrder < 1 || levelOrder > WORD_GARDEN_LEVEL_COUNT) {
     throw new Error('Geçersiz Kelime Bahçesi seviyesi.');
@@ -83,7 +90,7 @@ export async function saveWordGardenLevelCompletion(
 
   const stars = Math.max(0, Math.min(3, Math.trunc(starsEarned) || 0));
   const payload: GameCompletedPayload = {
-    sessionId: `wg_${profileId}_${levelOrder}_${Date.now()}_${Math.random().toString(36).slice(2)}`,
+    sessionId: telemetry?.sessionId || `wg_${profileId}_${levelOrder}_${Date.now()}_${Math.random().toString(36).slice(2)}`,
     profileId,
     gameId: WORD_GARDEN_STEPS_GAME_ID,
     levelId: levelOrder,
@@ -92,9 +99,16 @@ export async function saveWordGardenLevelCompletion(
     score: Math.round((stars / 3) * 100),
     success: true,
     starsEarned: stars,
-    // Existing activities do not yet expose real timing/accuracy telemetry.
-    // Keep unknown measurements neutral rather than fabricating data.
-    metrics: { durationSeconds: 0, attemptsCount: 1, accuracyRate: 0 },
+    // Legacy saves remain accepted; new Animal Meadow sessions persist
+    // per-word evidence for offline adaptive review and cloud event replay.
+    metrics: telemetry ? {
+      durationSeconds: Math.max(0, Math.round(telemetry.durationSeconds)),
+      attemptsCount: Math.max(1, telemetry.correctAnswers + telemetry.wrongAttempts),
+      accuracyRate: telemetry.correctAnswers + telemetry.wrongAttempts > 0
+        ? telemetry.correctAnswers / (telemetry.correctAnswers + telemetry.wrongAttempts) : 0,
+      wrongAttempts: telemetry.wrongAttempts,
+      animalAnswers: telemetry.animalAnswers
+    } : { durationSeconds: 0, attemptsCount: 1, accuracyRate: 0 },
     completedAt: new Date().toISOString()
   };
 
