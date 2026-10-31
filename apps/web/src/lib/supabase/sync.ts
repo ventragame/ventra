@@ -205,19 +205,19 @@ export class CloudSyncService {
       }
 
       // 3. Buluttaki Diğer Cihazlardan Gelen Olayları İndir (Download & Merge)
-      const { data: remoteEvents, error: fetchError } = await client
-        .from('progress_events')
-        .select('*')
-        .eq('profile_id', profile.id)
-        .eq('user_id', userId);
-
-      if (fetchError) {
-        throw new Error(`Bulut etkinlikleri çekme hatası: ${fetchError.message}`);
-      }
-
+      // The Supabase REST API has a default row cap. Without paging, a second
+      // device silently misses older/extra learning events after 1000 rows.
       let downloadedCount = 0;
-      if (remoteEvents && remoteEvents.length > 0) {
-        downloadedCount = await repo.mergeRemoteEvents(remoteEvents, profile.id);
+      for (let offset = 0; ; offset += 500) {
+        const { data, error } = await client.from('progress_events')
+          .select('*').eq('profile_id', profile.id).eq('user_id', userId)
+          .order('server_received_at', { ascending: true })
+          .order('event_id', { ascending: true })
+          .range(offset, offset + 499);
+        if (error) throw new Error('Bulut etkinlikleri çekilemedi: ' + error.message);
+        if (!data) throw new Error('Bulut etkinlik yanıtı alınamadı.');
+        if (data.length) downloadedCount += await repo.mergeRemoteEvents(data, profile.id);
+        if (data.length < 500) break;
       }
 
       // Only report a cloud-backed local profile after both directions finish.
