@@ -573,6 +573,12 @@ export class MemoryProgressRepository implements IProgressRepository {
   public async mergeRemoteEvents(remoteEvents: any[], profileId: string): Promise<number> {
     let mergedCount = 0;
     for (const ev of remoteEvents) {
+      // The authenticated cloud query is scoped to the same child, but the
+      // repository enforces isolation too, including imported/mock events.
+      const eventProfileId = ev.profile_id ?? ev.profileId;
+      if (eventProfileId && eventProfileId !== profileId) {
+        throw new Error('Etkinlik başka bir çocuk profiline ait; birleştirme reddedildi.');
+      }
       const sessionId = ev.event_id || ev.eventId;
       if (!this.sessions.has(sessionId)) {
         if (ev.event_type === 'learning_session' || ev.eventType === 'learning_session') {
