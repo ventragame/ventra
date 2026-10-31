@@ -489,8 +489,9 @@ export class IndexedDBProgressRepository implements IProgressRepository {
       });
     }
 
-    const gameTitle = payload.gameId === 'phaser_exploration_island'
-      ? 'Kelime Bahçesi'
+    const gameTitle = payload.gameId === 'island_word_garden_colors' ? 'Renk Korusu'
+      : payload.gameId === 'island_word_garden_steps' || payload.gameId === 'phaser_exploration_island'
+      ? 'Hayvan Çayırı'
       : payload.gameId === 'kesir_koprusu' ? 'Kesir Köprüsü' : 'Kesir Atölyesi';
     const logEntry: ActivityLogEntry & { profileId: string } = {
       id: `act_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
@@ -685,10 +686,23 @@ export class IndexedDBProgressRepository implements IProgressRepository {
       const levels = await this.getAllLevelProgress(gameId, targetProfileId);
       return calculateTotalStars(levels);
     }
-    const atolye = await this.getAllLevelProgress('kesir_atolyesi', targetProfileId);
-    const kopru = await this.getAllLevelProgress('kesir_koprusu', targetProfileId);
-    const exploration = await this.getAllLevelProgress('phaser_exploration_island', targetProfileId);
-    return calculateTotalStars(atolye) + calculateTotalStars(kopru) + calculateTotalStars(exploration);
+    const [atolye, kopru, exploration, legacyIsland, wordSteps, colors] = await Promise.all([
+      this.getAllLevelProgress('kesir_atolyesi', targetProfileId),
+      this.getAllLevelProgress('kesir_koprusu', targetProfileId),
+      this.getAllLevelProgress('phaser_exploration_island', targetProfileId),
+      this.getAllLevelProgress('island_word_garden', targetProfileId),
+      this.getAllLevelProgress('island_word_garden_steps', targetProfileId),
+      this.getAllLevelProgress('island_word_garden_colors', targetProfileId)
+    ]);
+    // Legacy island completion and the five modern steps represent the same
+    // achievement: never count both awards for the same area.
+    const animalStars = Math.max(
+      calculateTotalStars(exploration),
+      calculateTotalStars(legacyIsland),
+      calculateTotalStars(wordSteps)
+    );
+    return calculateTotalStars(atolye) + calculateTotalStars(kopru) +
+      animalStars + calculateTotalStars(colors);
   }
 
   // --- Bulut Eşitleme Desteği ---

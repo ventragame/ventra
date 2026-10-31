@@ -100,7 +100,7 @@ export default function VentraKidsWorldPage() {
       const progress = await getWordGardenProgress(getProgressRepository(), profile.id);
       setWordGardenCompletedLevels(progress.completedLevels);
       setWordGardenStarsByLevel(progress.starsByLevel);
-      setTotalStars(progress.totalStars);
+      setTotalStars(await getProgressRepository().getTotalStars(profile.id));
       setWordGardenStatus(progress.completedLevels === progress.totalLevels ? 'blooming' : 'dormant');
     } catch (error) {
       console.error('Kelime Bahçesi ilerlemesi yüklenemedi:', error);
@@ -554,7 +554,7 @@ export default function VentraKidsWorldPage() {
             );
             setWordGardenCompletedLevels(result.completedLevels);
             setWordGardenStarsByLevel(result.starsByLevel);
-            setTotalStars(result.totalStars);
+            setTotalStars(await getProgressRepository().getTotalStars(activeProfile.id));
             setWordGardenStatus(result.completedLevels === result.totalLevels ? 'blooming' : 'dormant');
           }}
         />
