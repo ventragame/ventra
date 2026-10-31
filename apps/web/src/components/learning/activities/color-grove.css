@@ -1,0 +1,13 @@
+.vg-scene { background: linear-gradient(140deg, #a3eeeb, #187a69); }
+.vg-tree-crown { transform-box: fill-box; transform-origin: center bottom; animation: vg-sway 5.2s ease-in-out infinite; }
+.vg-butterfly { transform-box: fill-box; transform-origin: center; animation: vg-flutter 2.8s ease-in-out infinite; }
+.vg-correct-pop { transform-box: fill-box; transform-origin: center; animation: vg-pop .45s ease-out both; }
+.vg-answer-card { touch-action: manipulation; -webkit-tap-highlight-color: transparent; }
+.vg-answer-card:focus-visible { outline: 3px solid #fef08a; outline-offset: 3px; }
+@keyframes vg-sway { 0%, 100% { transform: rotate(-2deg); } 50% { transform: rotate(2deg); } }
+@keyframes vg-flutter { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-8px) rotate(4deg); } }
+@keyframes vg-pop { 0% { transform: scale(.87); opacity: .75; } 75% { transform: scale(1.06); } 100% { transform: scale(1); opacity: 1; } }
+@media (prefers-reduced-motion: reduce) {
+  .vg-tree-crown, .vg-butterfly, .vg-correct-pop { animation: none !important; }
+  .vg-answer-card { transition: none !important; }
+}
