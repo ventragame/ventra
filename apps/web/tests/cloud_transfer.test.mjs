@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { uploadInBatches, mergeRemotePages } from '../src/lib/supabase/cloudTransfer.ts';
+import { MemoryProgressRepository } from '../src/lib/progress/MemoryProgressRepository.ts';
 
 test('1,203 cloud events are downloaded without the Supabase 1,000-row truncation', async () => {
   const remote = Array.from({ length: 1203 }, (_, i) => ({ event_id: 'offline-' + i }));
@@ -70,4 +71,29 @@ test('Cloud sync has ownership checks, explicit link and checked deletion respon
   assert.match(source, /\.is\('deleted_at', null\)\.select\('id'\)/);
   assert.match(source, /mergeRemotePages\(/);
   assert.match(source, /uploadInBatches\(/);
+});
+
+test('Wrong child cloud events cannot enter another child progress history', async () => {
+  const repo = new MemoryProgressRepository();
+  const alice = await repo.createProfile({nickname:'Ada',avatarId:'avatar_explorer'});
+  const bob = await repo.createProfile({nickname:'Can',avatarId:'avatar_owl'});
+  await assert.rejects(repo.mergeRemoteEvents([{
+    event_id: 'foreign-event',
+    profile_id: bob.id,
+    event_type: 'game_level',
+    game_id: 'island_word_garden_steps',
+    level_id: 1, stars_earned: 3,
+    client_timestamp: '2026-11-01T12:00:00Z'
+  }], alice.id), /başka bir çocuk/);
+  assert.equal(await repo.getTotalStars(alice.id), 0);
+  assert.equal(await repo.getTotalStars(bob.id), 0);
+});
+
+test('Family-linked child removal requires the parent area and cloud confirmation', () => {
+  const modal = fs.readFileSync('src/components/profile/ProfileSelectorModal.tsx','utf8');
+  const adult = fs.readFileSync('src/components/profile/AdultAccountModal.tsx','utf8');
+  assert.match(modal, /if \(p\.userId\)/);
+  assert.match(adult, /handleDeleteLinkedChild/);
+  assert.match(adult, /\.is\('deleted_at', null\)\.select\('id'\)/);
+  assert.match(adult, /await getProgressRepository\(\)\.deleteProfile\(profile\.id\)/);
 });
