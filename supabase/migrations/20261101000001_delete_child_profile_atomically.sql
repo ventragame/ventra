@@ -1,5 +1,6 @@
 -- Ventra P2: permanently purge a child's learning events, but retain a
--- non-identifying tombstone row until all authorised devices observe deletion.
+-- minimal anonymised tombstone row until authorised devices observe deletion.
+-- The parent user_id and UUID remain solely to propagate the deletion.
 -- Apply once in the Supabase SQL Editor before enabling the parent delete UI.
 CREATE OR REPLACE FUNCTION public.delete_child_profile(p_profile_id uuid)
 RETURNS uuid
@@ -17,7 +18,14 @@ BEGIN
   END IF;
 
   UPDATE public.player_profiles
-  SET deleted_at = now()
+  SET deleted_at = now(),
+      nickname = 'Silinmiş Profil',
+      avatar_id = 'avatar_explorer',
+      grade_level = NULL,
+      english_level = NULL,
+      last_played_at = NULL,
+      school_id = NULL,
+      classroom_id = NULL
   WHERE id = p_profile_id
     AND user_id = parent_id
     AND deleted_at IS NULL
