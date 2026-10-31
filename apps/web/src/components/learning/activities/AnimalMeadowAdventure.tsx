@@ -38,12 +38,9 @@ interface Props {
   onAllCompleted:()=>void;
 }
 function AnimalPicture({word, size='normal'}:{word:AnimalWord;size?:'normal'|'large'}) {
-  // Four original illustrations remain available offline. Other animals use
-  // colorful pictograms until dedicated art assets are commissioned.
-  return word.image
-    ? <img src={word.image} alt="" loading="eager" draggable={false}
-        className={size==='large'?'h-28 w-28 object-contain drop-shadow-xl sm:h-36 sm:w-36':'h-16 w-16 object-contain drop-shadow-lg sm:h-20 sm:w-20'} />
-    : <span aria-hidden="true" className={size==='large'?'text-8xl drop-shadow-xl sm:text-9xl':'text-5xl drop-shadow-lg sm:text-6xl'}>{word.emoji}</span>;
+  // Every catalog animal has its own offline SVG illustration.
+  return <img src={word.image} alt="" loading="eager" draggable={false}
+    className={size==='large'?'h-28 w-28 object-contain drop-shadow-xl sm:h-36 sm:w-36':'h-16 w-16 object-contain drop-shadow-lg sm:h-20 sm:w-20'} />;
 }
 function MeadowScene({stage, word, blooms, choices, onChoose, wrongChoice, awaiting}:{
   stage:Stage;word:AnimalWord|null;blooms:number;
