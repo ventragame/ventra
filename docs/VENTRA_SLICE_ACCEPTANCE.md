@@ -52,3 +52,13 @@ The code contains the following (not a claim that physical-device QA passed):
 - **Manual before accepting release:** first profile and returning profile, all stages, wrong answer and hints, mute persistence on refresh, replay stars, browser refresh, 320px mobile width, Android WebView TTS and scrolling, iOS WebView TTS and scrolling, airplane mode followed by reopening. Live two-device Supabase sync stays a P2 acceptance item.
 
 A passing CI build is a build-quality gate, not evidence that all child-facing mobile interactions are flawless.
+
+## 2026-11-01 — Animal Meadow vertical slice v2
+
+- Replaces the older four-word static cards with a twelve-word content pool and eight-animal first discovery. Discovering again introduces additional previously unseen animals.
+- All five missions remain profile-bound under the original `island_word_garden_steps` and 1..5 level IDs: Discover → Match English word → Listen/choose image → Follow a short English command → Habitat/word mini-quest.
+- First four existing SVG illustrations and offline WAV pronunciation recordings are reused. Other eight animals currently use local pictogram representations and device TTS. **These are not yet commissioned premium character art or a custom recorded voice pack.**
+- Wrong answers affect star scoring and yield per-word evidence in saved game-session metrics; two subsequent independent first-try successes recover a weak word. Replay uses seeded varied options and adds nonadjacent spaced review of previously weak vocabulary.
+- Progress saves only on successful completion, retains best stars without farming, protects legacy progress, supports per-profile history and eventual cloud event replay. Soundless reading mode is marked assisted for the listening stage.
+- Responsive scenery, minimum touch-size controls, reduced-motion setting, safe-area layout, screen-reader labels, visible feedback and retry after storage errors.
+- Required manual acceptance: all five stages in web browser, 320px width overflow, recorded audio vs device TTS on Android/iOS, replay after refresh/offline, profile separation, live two-device cloud event-history reconciliation. CI compilation is not equivalent to device or child usability acceptance.

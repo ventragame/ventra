@@ -123,3 +123,8 @@ Kaynaklar:
 - Six painted trees (formerly only four), responsive stage transitions and touch targets, in-game mute and unsupported-TTS fallback, optional color-label accessibility hint.
 - Guaranteed but recoverable weak-word practice, non-adjacent repeats, stage-level star integrity, full three-stage/save/replay regression suite.
 - Release gate: browser manual end-to-end + physical Android/iPhone interaction checks required in addition to automated web/Android/iOS CI. P4 remains partial until those checks pass.
+
+### 2026-11-01 — Hayvan Çayırı v2 ürün dilimi
+- Onaylı sıra: Renk Korusu'ndan sonra Hayvan Çayırı. Beş aktivite tek macerada birleştirildi, 12 hayvan kataloğu, kayıt temelli adaptif tekrar, 1–3 gerçek yıldız puanı ve offline duyarlı görev ilerlemesi geliştirildi.
+- Eski dört hayvanın görsel/ses varlıkları aynen korunuyor; yeni sekiz hayvanın profesyonel sanat ve kayıtlı ses paketleri henüz yerlerini almadı.
+- **Release durumu:** CI TypeScript + test + web/Android/iOS build ve gerçek cihaz/oyun kabul testleri tamamlanana kadar kısmi. Canlı Supabase cihaz senkronizasyonu P2'de ayrıca ele alınır.
