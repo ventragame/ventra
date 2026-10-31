@@ -5,6 +5,8 @@ import { COLOR_GROVE_WORDS, type ColorGroveProgress } from '@/lib/progress/color
 import { planColorMission, getColorInstruction, getActiveColorQuestion, type PlannedColorMission, type EnglishPlacement } from '@/lib/learning/colorMissionEngine';
 import type { ColorAnswerEvidence } from '@ventra/shared';
 import { soundService } from '@/lib/audio/SoundService';
+import { EventBus } from '@/lib/game/EventBus';
+import { ColorGroveScene } from './ColorGroveScene';
 
 type Word = (typeof COLOR_GROVE_WORDS)[number];
 type Step = 1 | 2 | 3;
@@ -39,6 +41,8 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
   const [awaitingAdvance, setAwaitingAdvance] = useState(false);
   const [finishedAnswers, setFinishedAnswers] = useState<ColorAnswerEvidence[] | null>(null);
   const [answerHighlight, setAnswerHighlight] = useState<string | null>(null);
+  const [paintedIds, setPaintedIds] = useState<string[]>([]);
+  const [muted, setMuted] = useState<boolean>(() => soundService.getMuted());
   const runId = useRef(`cg_${profileId}_${Date.now()}_${Math.random().toString(36).slice(2)}`);
   const [loadError, setLoadError] = useState(false);
   const [evidence, setEvidence] = useState<ColorAnswerEvidence[]>([]);
@@ -77,9 +81,25 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
     return () => { alive = false; };
   }, [step, profileId, englishLevel, replayNonce]);
 
-  useEffect(() => () => {
-    if (typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+  useEffect(() => {
+    const onMute = (next: boolean) => {
+      setMuted(next);
+      if (next && typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+    };
+    setMuted(soundService.getMuted());
+    EventBus.on('MUTE_STATE_CHANGED', onMute);
+    return () => {
+      EventBus.off('MUTE_STATE_CHANGED', onMute);
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+    };
   }, []);
+
+  const toggleSound = () => {
+    const next = soundService.toggleMute();
+    setMuted(next);
+    if (next && typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+    if (!next) soundService.playSfx('tap');
+  };
 
   const reset = (next: Step) => {
     if (saving) return;
@@ -92,6 +112,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
     setAwaitingAdvance(false);
     setFinishedAnswers(null);
     setAnswerHighlight(null);
+    setPaintedIds([]);
     setStep(next);
     setDiscovered([]);
     setEvidence([]);
@@ -138,6 +159,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
     setEvidence(nextEvidence);
     setQuestionMistakes(0);
     setAnswerHighlight(target);
+    if (step === 3) setPaintedIds(list => [...list, target]);
     setFeedback('Doğru! ' + getWord(target).tr + ' = ' + target.toUpperCase());
     setAwaitingAdvance(true);
     if (question + 1 >= activePlan.questions.length) {
@@ -157,7 +179,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
   };
   const explore = (id: string) => {
     if (saving || complete) return;
-    if (!soundService.getMuted()) pronounce(id);
+    if (!muted) pronounce(id);
     soundService.playSfx('tap');
     if (!discovered.includes(id)) {
       setDiscovered((old) => [...old, id]);
@@ -166,36 +188,57 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
   };
   return (
     <div role="dialog" aria-modal="true" aria-label="Renk Korusu macerası"
-      className="fixed inset-0 z-50 overflow-y-auto bg-gradient-to-b from-violet-950 via-fuchsia-950 to-emerald-950 text-white">
-      <div className="mx-auto max-w-5xl px-4 py-5 sm:px-8">
-        <header className="flex flex-wrap items-center justify-between gap-3">
-          <button onClick={onBack} className="rounded-2xl border border-white/25 bg-white/10 px-4 py-3 text-sm font-bold hover:bg-white/20">
+      onPointerDown={(event) => event.stopPropagation()}
+      onPointerMove={(event) => event.stopPropagation()}
+      onPointerUp={(event) => event.stopPropagation()}
+      onWheel={(event) => event.stopPropagation()}
+      className="fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-gradient-to-b from-[#10294a] via-[#234b65] to-[#123b37] text-white">
+      <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden="true">
+        <div className="absolute -left-40 top-0 h-96 w-96 rounded-full bg-cyan-300/10 blur-3xl" />
+        <div className="absolute -right-28 bottom-0 h-96 w-96 rounded-full bg-lime-300/10 blur-3xl" />
+      </div>
+      <div className="relative mx-auto max-w-5xl px-3 py-4 sm:px-7 sm:py-6" style={{ paddingBottom: 'max(28px, env(safe-area-inset-bottom))' }}>
+        <header className="flex flex-wrap items-center justify-between gap-2">
+          <button onClick={onBack} disabled={saving}
+            className="vg-answer-card min-h-11 rounded-2xl border border-white/25 bg-white/10 px-3 py-2.5 text-sm font-bold hover:bg-white/20 disabled:opacity-50 sm:px-4">
             ← Bahçeye Dön
           </button>
-          <div className="rounded-xl bg-black/30 px-4 py-2 text-sm font-bold">🎨 Renk Korusu · {step}/3</div>
+          <div className="flex items-center gap-2">
+            <span className="rounded-xl border border-lime-300/40 bg-lime-950/60 px-3 py-2.5 text-xs font-black text-lime-100">
+              ⭐ {Object.values(progress.starsByLevel).reduce((sum, value) => sum + value, 0)} / 9
+            </span>
+            <button onClick={toggleSound} className="vg-answer-card min-h-11 rounded-xl border border-white/25 bg-white/10 px-3 text-sm font-bold hover:bg-white/20"
+              aria-label={muted ? 'Sesi aç' : 'Sesi kapat'} aria-pressed={muted}>
+              {muted ? '🔇' : '🔊'}
+            </button>
+          </div>
         </header>
-        <div className="py-6 text-center">
-          <div className="text-5xl" aria-hidden="true">🌈</div>
-          <h1 className="mt-3 text-3xl font-black sm:text-4xl">{names[step - 1]}</h1>
-          <p className="mt-2 text-sm text-white/80">
-            {step === 1 ? 'Altı rengi keşfet; dokun ve İngilizce telaffuzlarını dinle.' :
-            step === 2 ? 'Gösterilen rengin İngilizce karşılığını bul.' :
-            'Doğru renkleri seçerek korunun renklerini geri getir.'}
+        <div className="py-4 text-center sm:py-6">
+          <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-lime-200">Büyülü Renkler Hikâyesi · Bölüm {step}/3</p>
+          <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-5xl">{names[step - 1]}</h1>
+          <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-sky-100 sm:text-base">
+            {step === 1 ? 'Lumi’nin korusunu keşfet. Altı renk taşına dokun ve İngilizce adlarını dinle.' :
+            step === 2 ? 'Rengini kaybeden çiçeği kurtar! Gördüğün rengin İngilizce adını seç.' :
+            'Koruya renkleri geri getir! İngilizce söylenen rengi boya paletinden bul.'}
           </p>
         </div>
 
-        <div className="mb-7 grid grid-cols-3 gap-2">
+        <div className="mb-4 grid grid-cols-3 gap-2 sm:mb-5">
           {names.map((name, i) => (
             <button key={name}
               onClick={() => { if (i + 1 <= progress.completedLevels + 1) reset((i + 1) as Step); }}
               disabled={i + 1 > progress.completedLevels + 1 || saving}
-              className={`rounded-xl border px-2 py-3 text-xs font-bold sm:text-sm ${step === i + 1 ? 'border-yellow-200 bg-fuchsia-500/40' : 'border-white/20 bg-white/10'} disabled:opacity-40`}>
+              aria-current={step === i + 1 ? 'step' : undefined}
+              className={`vg-answer-card min-h-14 rounded-xl border px-2 py-3 text-[11px] font-bold sm:text-sm ${step === i + 1 ? 'border-lime-200 bg-emerald-600/55' : 'border-white/20 bg-white/10'} disabled:opacity-40`}>
               {i + 1 <= progress.completedLevels ? '✓ ' : ''}{i + 1}. {name}
             </button>
           ))}
         </div>
 
-        {loadError && <div role="alert" className="rounded-xl bg-rose-950 p-5 text-center">Görev yüklenemedi. Bahçeye dönüp tekrar dene.</div>}
+        {loadError && <div role="alert" className="mx-auto max-w-md space-y-3 rounded-2xl border border-rose-300/40 bg-rose-950 p-5 text-center">
+          <p>Görev planı yüklenemedi. İlerlemen silinmedi.</p>
+          <button onClick={() => reset(step)} className="vg-answer-card rounded-xl bg-lime-300 px-5 py-3 font-black text-emerald-950">Yeniden Dene</button>
+        </div>
         {!loadError && !activePlan && !complete && <div role="status" className="p-6 text-center">Yeni macera hazırlanıyor…</div>}
         {!loadError && invalidPlan && (
           <div role="alert" className="mx-auto max-w-md rounded-2xl border border-amber-300/50 bg-slate-950/70 p-5 text-center">
@@ -208,8 +251,12 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
         {!loadError && !invalidPlan && (complete ? (
           <section className="mx-auto max-w-lg rounded-3xl border border-lime-300/50 bg-emerald-900/70 p-7 text-center shadow-xl">
             <div className="text-6xl" aria-hidden="true">🌟</div>
-            <h2 className="mt-3 text-2xl font-black">Görev Tamamlandı!</h2>
+            <h2 className="mt-3 text-2xl font-black">Koru Canlandı!</h2>
+            <p className="mt-2 text-sm text-emerald-100">Görev başarıyla kaydedildi.</p>
             <p className="mt-2 text-sm">Doğru: {correct} · Hatalı deneme: {mistakes}</p>
+            <p className="mt-3 rounded-xl bg-lime-300/15 px-4 py-3 text-sm font-bold text-lime-100">
+              ⭐ Bu görevdeki en iyi yıldızın: {progress.starsByLevel[step] ?? (mistakes === 0 ? 3 : mistakes <= 2 ? 2 : 1)} / 3
+            </p>
             <button onClick={() => {
               if (step === 3) onBack();
               else reset((step + 1) as Step);
@@ -221,52 +268,71 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
             </button>
           </section>
         ) : !activePlan ? null : step === 1 ? (
-          <section className="mx-auto max-w-3xl">
-            <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+          <section className="mx-auto max-w-4xl">
+            <ColorGroveScene mode="discovery" />
+            <div className="my-4 flex items-center justify-between rounded-xl border border-white/20 bg-black/20 px-4 py-3 text-sm font-bold">
+              <span>🧭 Keşfedilen renkler</span>
+              <span className="text-lime-200">{discovered.length} / {activePlan.colors.length}</span>
+            </div>
+            <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
               {activePlan.colors.map((id) => getWord(id)).map((word) => (
-                <button key={word.id} onClick={() => explore(word.id)}
-                  className="rounded-3xl border border-white/20 bg-white/10 p-4 text-center transition-transform hover:-translate-y-1">
-                  <div className="mx-auto h-20 w-20 rounded-full border-4 border-white/40 shadow-2xl sm:h-28 sm:w-28" style={{ backgroundColor: word.hex }} />
-                  <div className="mt-3 text-lg font-black">{word.id.toUpperCase()} 🔊</div>
-                  <div className="text-sm text-white/70">{word.tr}</div>
-                  {discovered.includes(word.id) && <div className="mt-2 text-xs text-lime-300">✓ Keşfedildi</div>}
+                <button key={word.id} onClick={() => explore(word.id)} disabled={saving}
+                  aria-label={`${word.tr}, İngilizce ${word.id}, telaffuzu dinlemek için dokun`}
+                  aria-pressed={discovered.includes(word.id)}
+                  className={`vg-answer-card group min-h-40 rounded-3xl border bg-slate-950/35 p-3 text-center shadow-lg transition-transform hover:-translate-y-0.5 disabled:opacity-60 sm:p-4 ${discovered.includes(word.id) ? 'border-lime-300/80 bg-emerald-500/20' : 'border-white/25 hover:border-sky-200'}`}>
+                  <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl border-4 border-white/40 text-2xl shadow-2xl sm:h-24 sm:w-24" style={{ backgroundColor: word.hex }}>
+                    {discovered.includes(word.id) && <span className="rounded-full bg-emerald-950/80 px-2 py-1 text-sm text-lime-100">✓</span>}
+                  </div>
+                  <div className="mt-3 text-base font-black tracking-wide">{word.id.toUpperCase()} <span aria-hidden="true">🔊</span></div>
+                  <div className="text-sm text-white/80">{word.tr}</div>
                 </button>
               ))}
             </div>
-            <button onClick={() => void finish(discovered.length)} disabled={saving || discovered.length !== activePlan.colors.length}
-              className="mt-5 w-full rounded-2xl bg-lime-300 px-5 py-4 font-black text-emerald-950 disabled:cursor-not-allowed disabled:opacity-40">
+            <button onClick={() => void finish(discovered.length)} disabled={saving || complete || discovered.length !== activePlan.colors.length}
+              className="vg-answer-card mt-5 min-h-14 w-full rounded-2xl bg-lime-300 px-5 py-4 font-black text-emerald-950 shadow-[0_8px_30px_rgba(190,242,100,0.2)] disabled:cursor-not-allowed disabled:opacity-40">
               {saving ? 'Kaydediliyor…' : `Renkleri Tamamla (${discovered.length}/${activePlan.colors.length})`}
             </button>
           </section>
         ) : currentQuestion ? (
-          <section className="mx-auto max-w-3xl rounded-3xl border border-white/20 bg-black/20 p-5 sm:p-8">
-            <div className="mb-4 text-center text-sm font-bold text-lime-200">
-              Görev {question + 1} / {activePlan.questions.length}
+          <section className="mx-auto max-w-4xl rounded-3xl border border-white/20 bg-slate-950/20 p-3 sm:p-6">
+            <div className="mb-3 flex items-center justify-between gap-2 text-sm font-bold text-lime-100">
+              <span>🪄 Lumi’nin Görevi</span>
+              <span aria-label={`Soru ${question + 1} / ${activePlan.questions.length}`}>{question + 1} / {activePlan.questions.length}</span>
             </div>
             <div aria-hidden="true" className="mb-5 h-2 overflow-hidden rounded-full bg-white/15">
               <div className="h-full rounded-full bg-gradient-to-r from-lime-300 to-sky-300 transition-all" style={{ width: `${Math.round(((question + Number(awaitingAdvance)) / activePlan.questions.length) * 100)}%` }} />
             </div>
-            <div className="mx-auto mb-5 flex h-32 w-32 items-center justify-center rounded-full border-8 border-white/30 shadow-2xl sm:h-40 sm:w-40"
-              style={{ background: step === 2 ? getWord(currentQuestion.target).hex : 'rgba(255,255,255,0.12)' }}>
-              {step === 3 && <span className="text-6xl" aria-hidden="true">{currentQuestion.scene === 'butterfly' ? '🦋' : currentQuestion.scene === 'garden' ? '🌸' : '🌳'}</span>}
+            <ColorGroveScene
+              mode={step === 2 ? 'matching' : 'painting'}
+              targetHex={getWord(currentQuestion.target).hex}
+              paintedIds={paintedIds}
+              highlight={awaitingAdvance}
+              variant={currentQuestion.scene}
+            />
+            <div className="my-4 rounded-2xl border border-white/20 bg-[#103b47]/90 p-3 text-center sm:p-4">
+              <h2 className="text-xl font-black tracking-wide sm:text-2xl">
+                {getColorInstruction(currentQuestion.target, step, englishLevel).title}
+              </h2>
+              <p className="mt-1 text-sm text-slate-100">
+                {getColorInstruction(currentQuestion.target, step, englishLevel).guide}
+              </p>
+              <button disabled={muted} onClick={() => pronounce(getColorInstruction(currentQuestion.target, step, englishLevel).speech)}
+                aria-label="İngilizce yönergeyi dinle"
+                className="vg-answer-card mt-3 min-h-11 rounded-full border border-sky-200/40 bg-sky-300/15 px-5 text-sm font-black disabled:opacity-45">
+                {muted ? '🔇 Ses Kapalı' : '🔊 Dinle'}
+              </button>
             </div>
-            <h2 className="mb-5 text-center text-xl font-black">
-              {getColorInstruction(currentQuestion.target, step, englishLevel).title}
-            </h2>
-            {step === 3 && <p className="mb-3 text-center text-sm text-sky-100">{getColorInstruction(currentQuestion.target, step, englishLevel).guide}</p>}
-            {step === 3 && !soundService.getMuted() && <button onClick={() => pronounce(getColorInstruction(currentQuestion.target, step, englishLevel).speech)}
-              className="mx-auto mb-5 block rounded-full border border-white/25 bg-white/10 px-4 py-2 text-sm font-bold">
-              🔊 Yönergeyi Dinle
-            </button>}
-            <div className="grid grid-cols-3 gap-3">
+            <div className="grid grid-cols-3 gap-2 sm:gap-3">
               {currentQuestion.choices.map((id) => {
                 const word = getWord(id);
                 return (
                   <button key={id} onClick={() => choose(id)} disabled={saving || awaitingAdvance}
                     aria-label={step === 2 ? `${word.id} rengini seç` : `${word.tr} rengini seç`}
-                    className={`min-h-24 rounded-2xl border bg-white/10 p-3 text-center transition hover:border-yellow-200 hover:scale-[1.02] disabled:opacity-60 sm:p-5 ${answerHighlight === id ? 'border-lime-300 ring-2 ring-lime-300/60' : 'border-white/25'}`}>
-                    {step === 3 && <div className="mx-auto mb-3 h-14 w-14 rounded-full border-4 border-white/40" style={{ background: word.hex }} />}
-                    <div className="text-sm font-black sm:text-xl">{step === 2 ? word.id.toUpperCase() : word.tr}</div>
+                    className={`vg-answer-card min-h-24 rounded-2xl border bg-slate-950/45 p-2 text-center transition hover:scale-[1.02] disabled:opacity-60 sm:min-h-28 sm:p-4 ${answerHighlight === id ? 'border-lime-300 bg-lime-300/20 ring-2 ring-lime-300/60' : 'border-white/25 hover:border-yellow-200'}`}>
+                    {step === 3 && <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full border-4 border-white/40 shadow-lg" style={{ background: word.hex }}>
+                      <span className="text-xl drop-shadow-lg" aria-hidden="true">🖌️</span>
+                    </div>}
+                    <div className="text-xs font-black sm:text-lg">{step === 2 ? word.id.toUpperCase() : word.tr}</div>
                   </button>
                 );
               })}
@@ -283,9 +349,9 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
           </section>
         ) : null)}
         {saveError && <div role="alert" className="mx-auto mt-4 max-w-lg rounded-xl border border-red-300 bg-red-950/80 p-4 text-center text-sm">
-          {saveError} <button className="ml-3 font-black underline" onClick={() => void finish(correct)}>Tekrar Kaydet</button>
+          {saveError} <button disabled={saving} className="ml-3 min-h-11 font-black underline disabled:opacity-50" onClick={() => void finish(correct, finishedAnswers ?? evidence)}>Tekrar Kaydet</button>
         </div>}
-        <p className="py-7 text-center text-xs text-white/55">Sesli telaffuz cihazın tarayıcı ses motorunu kullanır. Ses desteği yoksa yazılı seçenekler kullanılabilir.</p>
+        <p className="py-5 text-center text-xs text-sky-100/70">Sesli telaffuz cihazın konuşma motorunu kullanır. Ses açılmasa da bütün görevler yazılı olarak oynanabilir. Kayıt tamamlanmadan yıldız verilmez.</p>
       </div>
     </div>
   );
