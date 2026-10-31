@@ -185,34 +185,23 @@ export class CloudSyncService {
       const pendingEvents = await repo.getPendingEvents(profile.id);
       let uploadedCount = 0;
 
-      if (pendingEvents.length > 0) {
-        const rowsToInsert = pendingEvents.map(e => ({
-          event_id: e.eventId,
-          profile_id: profile.id,
-          user_id: userId,
-          event_type: e.eventType,
-          schema_version: 1,
-          game_id: e.gameId,
-          level_id: e.levelId,
-          skill_id: e.skillId,
-          score: e.score,
-          stars_earned: e.starsEarned,
-          accuracy_rate: e.accuracyRate,
-          metrics: e.metrics,
+      // Offline queues can be large: upload bounded batches and acknowledge
+      // only the batches actually accepted by the server.
+      for (let i = 0; i < pendingEvents.length; i += 100) {
+        const batch = pendingEvents.slice(i, i + 100);
+        const rows = batch.map(e => ({
+          event_id: e.eventId, profile_id: profile.id, user_id: userId,
+          event_type: e.eventType, schema_version: 1,
+          game_id: e.gameId, level_id: e.levelId, skill_id: e.skillId,
+          score: e.score, stars_earned: e.starsEarned,
+          accuracy_rate: e.accuracyRate, metrics: e.metrics,
           client_timestamp: e.clientTimestamp
         }));
-
-        const { error: evError } = await client
-          .from('progress_events')
-          .upsert(rowsToInsert, { onConflict: 'event_id' });
-
-        if (evError) {
-          throw new Error(`Etkinlik bulut yükleme hatası: ${evError.message}`);
-        }
-
-        // Başarıyla yüklenenleri yerelde işaretle
-        await repo.markEventsSynced(pendingEvents.map(e => e.eventId));
-        uploadedCount = pendingEvents.length;
+        const { error } = await client.from('progress_events')
+          .upsert(rows, { onConflict: 'event_id' });
+        if (error) throw new Error('Etkinlik yüklenemedi: ' + error.message);
+        await repo.markEventsSynced(batch.map(e => e.eventId));
+        uploadedCount += batch.length;
       }
 
       // 3. Buluttaki Diğer Cihazlardan Gelen Olayları İndir (Download & Merge)
