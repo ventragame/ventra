@@ -5,6 +5,7 @@ import path from 'node:path';
 import { A1_ANIMALS_VOCABULARY, WORD_GARDEN_DEFAULT_NODES } from '../../../packages/shared/src/language.ts';
 import { ARCHIPELAGO_ISLANDS_CATALOG, ARCHIPELAGO_ISLANDS_ORDERED } from '../../../packages/shared/src/archipelago.ts';
 import { MemoryProgressRepository } from '../src/lib/progress/MemoryProgressRepository.ts';
+import { getWordGardenProgress, saveWordGardenLevelCompletion } from '../src/lib/progress/wordGardenProgress.ts';
 
 test('Language Learning: A1 Animals Vocabulary Catalog Integrity', () => {
   assert.equal(A1_ANIMALS_VOCABULARY.length, 4, 'Tam olarak 4 hayvan bulunmalıdır');
@@ -360,3 +361,61 @@ test('Archipelago Progress Bar: Active vs Unpublished Island Level Display Invar
   }
 });
 
+
+test('Word Garden: saved five-step progression survives reload and stays isolated per profile', async () => {
+  const repo = new MemoryProgressRepository();
+  const learner = await repo.createProfile({ nickname: 'Learner', avatarId: 'avatar_explorer' });
+  const other = await repo.createProfile({ nickname: 'Other', avatarId: 'avatar_explorer' });
+
+  const before = await getWordGardenProgress(repo, learner.id);
+  assert.equal(before.completedLevels, 0);
+  assert.equal(before.progressPercent, 0);
+
+  const afterFirst = await saveWordGardenLevelCompletion(repo, learner.id, 1, 3);
+  assert.equal(afterFirst.completedLevels, 1);
+  assert.equal(afterFirst.progressPercent, 20);
+  assert.equal(afterFirst.totalStars, 3);
+
+  const persisted = await repo.getLevelProgress('island_word_garden_steps', 1, learner.id);
+  assert.equal(persisted?.completedCount, 1);
+
+  // This calls the repository again, like a browser reload; it does not rely on React state.
+  assert.equal((await getWordGardenProgress(repo, learner.id)).progressPercent, 20);
+  assert.equal((await getWordGardenProgress(repo, other.id)).completedLevels, 0);
+  await assert.rejects(saveWordGardenLevelCompletion(repo, learner.id, 4, 3), /Önceki görev/);
+
+  const afterSecond = await saveWordGardenLevelCompletion(repo, learner.id, 2, 2);
+  assert.equal(afterSecond.completedLevels, 2);
+  assert.equal(afterSecond.progressPercent, 40);
+  assert.equal(afterSecond.starsByLevel[2], 2);
+
+  for (const order of [3, 4, 5]) await saveWordGardenLevelCompletion(repo, learner.id, order, 3);
+  const complete = await getWordGardenProgress(repo, learner.id);
+  assert.equal(complete.completedLevels, 5);
+  assert.equal(complete.progressPercent, 100);
+  assert.equal(complete.totalStars, 14);
+  assert.equal((await getWordGardenProgress(repo, other.id)).progressPercent, 0);
+});
+
+test('Word Garden: a legacy whole-island completion remains completed after migration', async () => {
+  const repo = new MemoryProgressRepository();
+  const learner = await repo.createProfile({ nickname: 'Legacy', avatarId: 'avatar_explorer' });
+  await repo.recordGameCompleted({
+    profileId: learner.id,
+    gameId: 'island_word_garden',
+    levelId: 1,
+    outcomeId: 'en.a1.vocab.animals',
+    skillId: 'en.a1.vocab.animals',
+    score: 100,
+    success: true,
+    starsEarned: 3,
+    metrics: { durationSeconds: 0, attemptsCount: 1, accuracyRate: 0 },
+    completedAt: new Date().toISOString()
+  }, learner.id);
+
+  const snapshot = await getWordGardenProgress(repo, learner.id);
+  assert.equal(snapshot.legacyCompleted, true);
+  assert.equal(snapshot.completedLevels, 5);
+  assert.equal(snapshot.progressPercent, 100);
+  assert.equal(snapshot.totalStars, 3);
+});

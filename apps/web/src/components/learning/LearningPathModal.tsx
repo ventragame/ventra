@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import {
   GameLevelNode,
   LearningStepType,
@@ -21,16 +21,17 @@ interface LearningPathModalProps {
   onClose: () => void;
   onRegionCompleted: () => void;
   initialCompletedLevels?: number;
-  onProgressUpdate?: (completed: number, total: number) => void;
+  initialStarsByLevel?: Record<number, number>;
+  onProgressUpdate: (completed: number, total: number, levelOrder: number, starsEarned: number) => Promise<void>;
 }
 
 /**
  * Başlangıç seviyelerini profile/IndexedDB durumuna göre yapılandırır
  */
-function initializeLevels(initialCompleted: number): GameLevelNode[] {
+function initializeLevels(initialCompleted: number, starsByLevel: Record<number, number>): GameLevelNode[] {
   return WORD_GARDEN_LEVELS.map((lvl, index) => {
     if (index < initialCompleted) {
-      return { ...lvl, status: 'completed' as const, starsEarned: 3 };
+      return { ...lvl, status: 'completed' as const, starsEarned: starsByLevel[index + 1] || 0 };
     } else if (index === initialCompleted) {
       return { ...lvl, status: 'available' as const, starsEarned: 0 };
     } else {
@@ -44,14 +45,23 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
   onClose,
   onRegionCompleted,
   initialCompletedLevels = 0,
+  initialStarsByLevel = {},
   onProgressUpdate
 }) => {
   const [levels, setLevels] = useState<GameLevelNode[]>(() =>
-    initializeLevels(initialCompletedLevels)
+    initializeLevels(initialCompletedLevels, initialStarsByLevel)
   );
+  const [saveError, setSaveError] = useState<string | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const savingRef = useRef(false);
   const [activeStep, setActiveStep] = useState<LearningStepType | null>(null);
   const [showReward, setShowReward] = useState<boolean>(false);
   const [isMuted, setIsMuted] = useState<boolean>(() => soundService.getMuted());
+
+  // Rehydrate when the active profile finishes loading or is changed.
+  useEffect(() => {
+    setLevels(initializeLevels(initialCompletedLevels, initialStarsByLevel));
+  }, [initialCompletedLevels, initialStarsByLevel]);
 
   // Global Mute durumunu dinle ve senkronize et
   useEffect(() => {
@@ -95,52 +105,54 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
       return;
     }
     soundService.playSfx('tap');
+    setSaveError(null);
     setActiveStep(node.type);
   };
 
-  const handleActivityComplete = (stepType: LearningStepType, stars: number) => {
-    soundService.playSfx('correct');
+  const handleActivityComplete = async (stepType: LearningStepType, stars: number) => {
+    if (savingRef.current) return;
+    const current = levels.find((level) => level.type === stepType);
+    if (!current || current.status === 'locked') return;
 
-    const updatedLevels = levels.map((lvl) => {
-      if (lvl.type === stepType) {
-        return {
-          ...lvl,
-          status: 'completed' as const,
-          starsEarned: Math.max(lvl.starsEarned || 0, stars)
-        };
-      }
-      return lvl;
+    savingRef.current = true;
+    setIsSaving(true);
+    setSaveError(null);
+    const updatedLevels = levels.map((level) => {
+      if (level.type !== stepType) return level;
+      return {
+        ...level,
+        status: 'completed' as const,
+        starsEarned: Math.max(level.starsEarned || 0, stars)
+      };
     });
 
-    // Sıradaki ilk kilitli düğümün kilidini aç
-    const currentIndex = updatedLevels.findIndex((l) => l.type === stepType);
-    if (currentIndex >= 0 && currentIndex + 1 < updatedLevels.length) {
-      if (updatedLevels[currentIndex + 1].status === 'locked') {
-        updatedLevels[currentIndex + 1] = {
-          ...updatedLevels[currentIndex + 1],
-          status: 'available' as const
-        };
-      }
+    const currentIndex = updatedLevels.findIndex((level) => level.type === stepType);
+    if (currentIndex + 1 < updatedLevels.length && updatedLevels[currentIndex + 1].status === 'locked') {
+      updatedLevels[currentIndex + 1] = {
+        ...updatedLevels[currentIndex + 1],
+        status: 'available' as const
+      };
     }
+    const completed = updatedLevels.filter((level) => level.status === 'completed').length;
 
-    setLevels(updatedLevels);
-    setActiveStep(null);
-
-    const completedCount = updatedLevels.filter((l) => l.status === 'completed').length;
-    if (onProgressUpdate) {
-      onProgressUpdate(completedCount, updatedLevels.length);
-    }
-
-    // Phaser ve React HUD senkronizasyonu
-    EventBus.emit('UPDATE_ISLAND_PROGRESS', {
-      islandId: 'word_garden',
-      completed: completedCount,
-      total: updatedLevels.length
-    });
-
-    // Eğer 5. adım tamamlandıysa veya tüm seviyeler bittiyse ödül modalını aç
-    if (stepType === 'mini_quest' || completedCount === updatedLevels.length) {
-      setShowReward(true);
+    try {
+      // Persist before confirming progression. A failed write must never look completed.
+      await onProgressUpdate(completed, updatedLevels.length, current.order, stars);
+      setLevels(updatedLevels);
+      setActiveStep(null);
+      soundService.playSfx('correct');
+      EventBus.emit('UPDATE_ISLAND_PROGRESS', {
+        islandId: 'word_garden',
+        completed,
+        total: updatedLevels.length
+      });
+      if (completed === updatedLevels.length) setShowReward(true);
+    } catch (error) {
+      console.error('Kelime Bahçesi seviye kaydı başarısız:', error);
+      setSaveError('İlerleme kaydedilemedi. Bağlantınızı kontrol edip tekrar deneyin.');
+    } finally {
+      savingRef.current = false;
+      setIsSaving(false);
     }
   };
 
@@ -230,6 +242,16 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
           </div>
         </header>
 
+        {isSaving && (
+          <div role="status" className="absolute bottom-5 left-1/2 -translate-x-1/2 z-50 rounded-xl bg-slate-900 border border-sky-500 px-4 py-2 text-sky-200 text-sm">
+            İlerleme kaydediliyor...
+          </div>
+        )}
+        {saveError && (
+          <div role="alert" className="absolute bottom-5 left-1/2 -translate-x-1/2 z-50 max-w-[90vw] rounded-xl bg-rose-950 border border-rose-400 px-4 py-2 text-white text-sm">
+            {saveError}
+          </div>
+        )}
         {/* Ana Aktivite Gövdesi */}
         <main className="flex-1 overflow-y-auto relative flex flex-col justify-center">
           {activeStep === 'explore' && (
