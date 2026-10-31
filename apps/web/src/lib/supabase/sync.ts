@@ -5,6 +5,7 @@ import type { SyncResult, PlayerProfile } from '@ventra/shared';
 const cloudMetadataV2 = process.env.NEXT_PUBLIC_VENTRA_CLOUD_METADATA_V2 === 'true';
 
 export class CloudSyncService {
+  private inFlight = new Map<string, Promise<SyncResult>>();
   private static instance: CloudSyncService | null = null;
 
   public static getInstance(): CloudSyncService {
@@ -17,7 +18,18 @@ export class CloudSyncService {
   /**
    * Belirtilen çocuk profilini ve bekleyen etkinliklerini Supabase bulut veritabanıyla eşitler.
    */
-  public async syncProfile(profileId: string, options: { allowLink?: boolean } = {}): Promise<SyncResult> {
+  public syncProfile(profileId: string, options: { allowLink?: boolean } = {}): Promise<SyncResult> {
+    const ongoing = this.inFlight.get(profileId);
+    if (ongoing) return ongoing;
+    const job = this.syncProfileInternal(profileId, options);
+    this.inFlight.set(profileId, job);
+    void job.finally(() => {
+      if (this.inFlight.get(profileId) === job) this.inFlight.delete(profileId);
+    }).catch(() => {});
+    return job;
+  }
+
+  private async syncProfileInternal(profileId: string, options: { allowLink?: boolean } = {}): Promise<SyncResult> {
     const now = new Date().toISOString();
 
     if (!isSupabaseConfigured()) {
@@ -32,8 +44,8 @@ export class CloudSyncService {
     }
 
     const client = getSupabaseClient()!;
-    const { data: { session } } = await client.auth.getSession();
-    if (!session?.user) {
+    const { data: { user }, error: identityError } = await client.auth.getUser();
+    if (identityError || !user) {
       return {
         success: false,
         syncedProfilesCount: 0,
@@ -44,7 +56,7 @@ export class CloudSyncService {
       };
     }
 
-    const userId = session.user.id;
+    const userId = user.id;
     const repo = getProgressRepository();
     const allProfiles = await repo.getAllProfiles();
     const profile = allProfiles.find(p => p.id === profileId);
@@ -249,10 +261,10 @@ export class CloudSyncService {
     if (!isSupabaseConfigured()) throw new Error('Bulut hizmeti yapılandırılmamış.');
 
     const client = getSupabaseClient()!;
-    const { data: { session } } = await client.auth.getSession();
-    if (!session?.user) throw new Error('Önce yetişkin hesabına giriş yapmalısınız.');
+    const { data: { user }, error: identityError } = await client.auth.getUser();
+    if (identityError || !user) throw new Error('Önce yetişkin hesabına giriş yapmalısınız.');
 
-    const userId = session.user.id;
+    const userId = user.id;
     const { data: remoteProfiles, error } = await client
       .from('player_profiles')
       .select('*')
