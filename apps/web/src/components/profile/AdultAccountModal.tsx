@@ -169,12 +169,13 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
     try {
       const client = getSupabaseClient();
       if (!client) throw new Error('Bulut bağlantısı yok.');
-      const { data, error } = await client.from('player_profiles')
-        .update({ deleted_at: new Date().toISOString() })
-        .eq('id', profile.id).eq('user_id', account.userId)
-        .is('deleted_at', null).select('id');
-      if (error) throw error;
-      if (!data?.length) throw new Error('Bulut kaydı doğrulanamadı.');
+      // One server transaction deletes all progress events and leaves a
+      // profile tombstone, allowing the other family device to remove its copy.
+      const { data, error } = await client.rpc('delete_child_profile', {
+        p_profile_id: profile.id
+      });
+      if (error) throw new Error('Güvenli profil silme başarısız. SQL migration gerekli olabilir: ' + error.message);
+      if (data !== profile.id) throw new Error('Sunucu çocuk profilinin silindiğini doğrulamadı.');
       await getProgressRepository().deleteProfile(profile.id);
       await loadData();
       onSyncCompleted?.();
