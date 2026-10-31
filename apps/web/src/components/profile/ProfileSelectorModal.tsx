@@ -50,6 +50,23 @@ export const ProfileSelectorModal: React.FC<ProfileSelectorModalProps> = ({
     }
   }, [isOpen]);
 
+  const updatePlacement = async (updates: Partial<Pick<PlayerProfile, 'gradeLevel' | 'englishLevel'>>) => {
+    if (!activeProfile || isSubmitting) return;
+    setIsSubmitting(true);
+    setErrorMessage(null);
+    try {
+      const updated = await getProgressRepository().updateProfile(activeProfile.id, updates);
+      setActiveProfile(updated);
+      setProfiles((profiles) => profiles.map((p) => p.id === updated.id ? updated : p));
+      onProfileSwitched(updated);
+    } catch (error) {
+      console.error(error);
+      setErrorMessage('Öğrenme seviyesi güncellenemedi.');
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
+
   if (!isOpen) return null;
 
   const handleSelectProfile = async (p: PlayerProfile) => {
@@ -282,6 +299,35 @@ export const ProfileSelectorModal: React.FC<ProfileSelectorModalProps> = ({
                 );
               })}
             </div>
+
+            {activeProfile && (
+              <div className="rounded-2xl border border-sky-400/25 bg-sky-950/40 p-4">
+                <h3 className="text-sm font-extrabold text-white">Öğrenme Ayarları · {activeProfile.nickname}</h3>
+                <p className="mt-1 text-xs text-slate-300">Sınıf ve İngilizce seviyesi farklı şeylerdir. Bu seviye bir sınav sonucu değil, başlangıç tercihidir.</p>
+                <div className="mt-4 grid grid-cols-2 gap-3">
+                  <label className="text-xs font-bold text-sky-200">
+                    Sınıf
+                    <select value={activeProfile.gradeLevel ?? ''} disabled={isSubmitting}
+                      onChange={(e) => void updatePlacement({ gradeLevel: e.target.value ? Number(e.target.value) : null })}
+                      className="mt-2 w-full rounded-xl border border-slate-500 bg-slate-900 p-3 text-sm text-white">
+                      <option value="">Belirtilmedi</option>
+                      {[1,2,3,4,5,6,7,8].map((grade) => <option key={grade} value={grade}>{grade}. sınıf</option>)}
+                    </select>
+                  </label>
+                  <label className="text-xs font-bold text-sky-200">
+                    İngilizce seviyesi
+                    <select value={activeProfile.englishLevel ?? 'Pre-A1'} disabled={isSubmitting}
+                      onChange={(e) => void updatePlacement({ englishLevel: e.target.value as 'Pre-A1' | 'A1' | 'A2' })}
+                      className="mt-2 w-full rounded-xl border border-slate-500 bg-slate-900 p-3 text-sm text-white">
+                      <option value="Pre-A1">Pre-A1 · Yeni başlayan</option>
+                      <option value="A1">A1 · Başlangıç</option>
+                      <option value="A2">A2 · Temel</option>
+                    </select>
+                  </label>
+                </div>
+                <p className="mt-2 text-[11px] text-slate-400">Sınıf mevcut oyunda içerik filtresi değildir. A1 ve A2 tercihleri ilerideki içerik çeşitliliğini hazırlamak içindir.</p>
+              </div>
+            )}
 
             {/* Yeni Profil Butonu */}
             <button
