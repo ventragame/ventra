@@ -88,28 +88,17 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
   const handleSyncNow = async () => {
     if (!account || isLoading) return;
     setIsLoading(true);
-    setSyncStatus('Bağlı profiller eşitleniyor...');
+    setSyncStatus('Bulut ve bu cihaz çift yönlü eşitleniyor...');
     setMessage(null);
     try {
-      const linked = profiles.filter(p => p.userId === account.userId);
-      if (linked.length === 0) {
-        setMessage({ type: 'error', text: 'Önce bir profil bağlayın veya buluttan geri getirin.' });
-        return;
-      }
-      let uploaded = 0;
-      let downloaded = 0;
-      const failures: string[] = [];
-      for (const profile of linked) {
-        const result = await CloudSyncService.getInstance().syncProfile(profile.id);
-        if (!result.success) failures.push(`${profile.nickname}: ${result.errorMessage || 'Eşitleme başarısız'}`);
-        else { uploaded += result.uploadedEventsCount; downloaded += result.downloadedEventsCount; }
-      }
+      // Includes existing cloud children and local deletion tombstones.
+      // Syncing only the current local profile list would miss deleted ones.
+      const updated = await CloudSyncService.getInstance().pullAllCloudProfiles();
       await loadData();
-      if (failures.length > 0) setMessage({ type: 'error', text: `Eşitlenemeyen profiller: ${failures.join(' | ')}. Başarılı aktarım: ${uploaded} gönderildi, ${downloaded} indirildi.` });
-      else {
-        setMessage({ type: 'success', text: `Eşitleme tamamlandı. ${uploaded} kayıt gönderildi, ${downloaded} kayıt indirildi.` });
-        onSyncCompleted?.();
-      }
+      onSyncCompleted?.();
+      setMessage({ type: 'success', text:
+        `Eşitleme tamamlandı. ${updated.length} çocuk profili kontrol edildi; yerel ve bulut öğrenme kayıtları birleştirildi.`
+      });
     } catch (error) {
       setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Eşitleme başarısız oldu.' });
     } finally {
