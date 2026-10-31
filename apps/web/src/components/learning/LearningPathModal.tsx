@@ -8,6 +8,9 @@ import {
 } from '@ventra/shared';
 import { GameLevelMap } from './GameLevelMap';
 import { WordGardenDistrictMap } from './WordGardenDistrictMap';
+import { ColorGroveAdventure } from './activities/ColorGroveAdventure';
+import { getColorGroveProgress, saveColorGroveMission, type ColorGroveProgress } from '@/lib/progress/colorGroveProgress';
+import { getProgressRepository } from '@/lib/progress';
 import { ExploreActivity } from './activities/ExploreActivity';
 import { MatchActivity } from './activities/MatchActivity';
 import { ListenActivity } from './activities/ListenActivity';
@@ -21,6 +24,7 @@ interface LearningPathModalProps {
   regionId: string;
   onClose: () => void;
   onRegionCompleted: () => void;
+  profileId: string;
   initialCompletedLevels?: number;
   initialStarsByLevel?: Record<number, number>;
   onProgressUpdate: (completed: number, total: number, levelOrder: number, starsEarned: number) => Promise<void>;
@@ -43,6 +47,7 @@ function initializeLevels(initialCompleted: number, starsByLevel: Record<number,
 
 export const LearningPathModal: React.FC<LearningPathModalProps> = ({
   regionId,
+  profileId,
   onClose,
   onRegionCompleted,
   initialCompletedLevels = 0,
@@ -53,6 +58,9 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
     initializeLevels(initialCompletedLevels, initialStarsByLevel)
   );
   const [showDistrictOverview, setShowDistrictOverview] = useState(true);
+  const [showColorGrove, setShowColorGrove] = useState(false);
+  const [colorProgress, setColorProgress] = useState<ColorGroveProgress>({ completedLevels: 0, totalLevels: 3, starsByLevel: {} });
+  const [colorProgressError, setColorProgressError] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const savingRef = useRef(false);
@@ -64,6 +72,15 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
   useEffect(() => {
     setLevels(initializeLevels(initialCompletedLevels, initialStarsByLevel));
   }, [initialCompletedLevels, initialStarsByLevel]);
+
+  useEffect(() => {
+    let active = true;
+    setColorProgressError(false);
+    getColorGroveProgress(getProgressRepository(), profileId)
+      .then((result) => { if (active) setColorProgress(result); })
+      .catch((error) => { console.error(error); if (active) setColorProgressError(true); });
+    return () => { active = false; };
+  }, [profileId]);
 
   // Global Mute durumunu dinle ve senkronize et
   useEffect(() => {
@@ -88,6 +105,8 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
         } else if (activeStep) {
           soundService.playSfx('tap');
           setActiveStep(null);
+        } else if (showColorGrove) {
+          setShowColorGrove(false);
         } else if (!showDistrictOverview) {
           setShowDistrictOverview(true);
         } else {
@@ -101,7 +120,7 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [activeStep, showReward, showDistrictOverview, onClose]);
+  }, [activeStep, showReward, showDistrictOverview, showColorGrove, onClose]);
 
   const handleNodeClick = (node: GameLevelNode) => {
     if (node.status === 'locked') {
@@ -297,6 +316,14 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
     );
   }
 
+  if (showColorGrove) {
+    return <ColorGroveAdventure progress={colorProgress} onBack={() => setShowColorGrove(false)}
+      onSave={async (mission, mistakes, correct, duration) => {
+        const updated = await saveColorGroveMission(getProgressRepository(), profileId, mission, mistakes, correct, duration);
+        setColorProgress(updated);
+      }} />;
+  }
+
   // Kelime Bahçesi artık kendi keşif bölgelerine sahip bir oyun alanı.
   // Yalnızca tamamlanmış pedagojik içerik oynanabilir.
   if (showDistrictOverview) {
@@ -305,6 +332,10 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
         completedLevels={levels.filter((level) => level.status === 'completed').length}
         totalLevels={levels.length}
         onEnterAnimals={() => setShowDistrictOverview(false)}
+        colorsUnlocked={levels.every((level) => level.status === 'completed')}
+        colorCompleted={colorProgress.completedLevels}
+        colorsAvailable={!colorProgressError}
+        onEnterColors={() => setShowColorGrove(true)}
         onBack={onClose}
       />
     );

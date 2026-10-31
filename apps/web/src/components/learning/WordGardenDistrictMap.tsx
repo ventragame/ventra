@@ -6,12 +6,16 @@ interface WordGardenDistrictMapProps {
   completedLevels: number;
   totalLevels: number;
   onEnterAnimals: () => void;
+  onEnterColors: () => void;
+  colorsUnlocked: boolean;
+  colorsAvailable: boolean;
+  colorCompleted: number;
   onBack: () => void;
 }
 
 /**
  * A growing island, not a collection of fake playable levels.
- * Only Animal Meadow has complete lessons, audio and persistence.
+ * Only published districts are playable; unimplemented content stays disabled.
  */
 const DISTRICTS = [
   {
@@ -27,10 +31,10 @@ const DISTRICTS = [
   {
     id: 'color_grove',
     name: 'Renk Korusu',
-    subtitle: 'Colors • Planlanan bölge',
+    subtitle: 'Colors • Üç görev',
     description: 'Renklerle dolu büyülü ağaçlar ve keşif görevleri.',
     icon: '🎨',
-    status: 'planned',
+    status: 'unlockable',
     regionClass: 'from-fuchsia-900/80 via-pink-800/75 to-rose-600/60',
     coordinates: 'lg:col-start-1 lg:row-start-1',
   },
@@ -80,6 +84,10 @@ export const WordGardenDistrictMap: React.FC<WordGardenDistrictMapProps> = ({
   completedLevels,
   totalLevels,
   onEnterAnimals,
+  onEnterColors,
+  colorsUnlocked,
+  colorsAvailable,
+  colorCompleted,
   onBack,
 }) => {
   const progress = totalLevels > 0 ? Math.round((completedLevels / totalLevels) * 100) : 0;
@@ -111,7 +119,7 @@ export const WordGardenDistrictMap: React.FC<WordGardenDistrictMapProps> = ({
             ← Takımadaya Dön
           </button>
           <div className="rounded-2xl border border-emerald-300/30 bg-emerald-950/60 px-4 py-2 text-sm font-bold">
-            🌱 Hayvan Çayırı · {completedLevels}/{totalLevels} aşama
+            🌱 Hayvanlar {completedLevels}/{totalLevels} · 🎨 Renkler {colorCompleted}/3
           </div>
         </header>
 
@@ -122,7 +130,7 @@ export const WordGardenDistrictMap: React.FC<WordGardenDistrictMapProps> = ({
           </h1>
           <p className="mt-3 text-sm leading-relaxed text-sky-100 sm:text-base">
             Bir bahçeden daha fazlası: farklı konulara açılan altı keşif bölgesi.
-            İlk macera Hayvan Çayırı'nda başlıyor.
+            Hayvan Çayırı'nı tamamladığında Renk Korusu açılır.
           </p>
         </div>
 
@@ -137,7 +145,9 @@ export const WordGardenDistrictMap: React.FC<WordGardenDistrictMapProps> = ({
 
         <div className="relative grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:grid-rows-2" aria-label="Kelime Bahçesi keşif bölgeleri">
           {DISTRICTS.map((district) => {
-            const playable = district.status === 'playable';
+            const playable = district.status === 'playable' || (district.id === 'color_grove' && colorsUnlocked && colorsAvailable);
+            const isColor = district.id === 'color_grove';
+            const lockedColor = isColor && !playable;
             const content = (
               <>
                 <div className="flex items-start justify-between gap-3">
@@ -145,7 +155,7 @@ export const WordGardenDistrictMap: React.FC<WordGardenDistrictMapProps> = ({
                     {district.icon}
                   </span>
                   <span className={`rounded-full border px-2.5 py-1 text-[11px] font-extrabold ${playable ? 'border-lime-200/50 bg-lime-400/25 text-lime-100' : 'border-white/25 bg-black/25 text-white/80'}`}>
-                    {playable ? '● OYNANABİLİR' : '◇ GELİŞTİRİLECEK'}
+                    {playable ? '● OYNANABİLİR' : lockedColor ? (colorsAvailable ? '🔒 HAYVANLARI BİTİR' : '⚠ İLERLEME YÜKLENEMEDİ') : '◇ GELİŞTİRİLECEK'}
                   </span>
                 </div>
                 <div className="mt-5 text-left">
@@ -154,13 +164,13 @@ export const WordGardenDistrictMap: React.FC<WordGardenDistrictMapProps> = ({
                   <p className="mt-3 min-h-12 text-sm leading-relaxed text-white/85">{district.description}</p>
                 </div>
                 <div className={`mt-4 rounded-xl px-4 py-3 text-center text-sm font-extrabold ${playable ? 'bg-lime-300 text-emerald-950 shadow-lg shadow-emerald-950/20' : 'border border-white/20 bg-black/20 text-white/75'}`}>
-                  {playable ? 'Macera Rotasına Gir →' : 'İçerik hazırlanıyor'}
+                  {playable ? (isColor ? `Renk Macerası (${colorCompleted}/3) →` : 'Macera Rotasına Gir →') : lockedColor ? (colorsAvailable ? 'Hayvan Çayırı tamamlanınca açılır' : 'İlerlemeyi yeniden yükleyin') : 'İçerik hazırlanıyor'}
                 </div>
               </>
             );
             const classes = `relative flex min-h-[270px] flex-col justify-between overflow-hidden rounded-[2rem] border p-5 text-left shadow-2xl transition-transform duration-200 bg-gradient-to-br ${district.regionClass} ${district.coordinates} ${playable ? 'border-lime-200/70 hover:-translate-y-1 hover:shadow-lime-500/20 focus-visible:outline focus-visible:outline-4 focus-visible:outline-lime-300' : 'border-white/15'}`;
             return playable ? (
-              <button key={district.id} onClick={onEnterAnimals} className={classes}>
+              <button key={district.id} onClick={isColor ? onEnterColors : onEnterAnimals} className={classes}>
                 {content}
               </button>
             ) : (
@@ -171,7 +181,7 @@ export const WordGardenDistrictMap: React.FC<WordGardenDistrictMapProps> = ({
           })}
         </div>
         <p className="mt-6 text-center text-xs leading-relaxed text-sky-200">
-          Diğer bölgeler mevcut ilerlemeyi etkilemez. Yeni oyunlar, seslendirmeler ve öğrenme içerikleri tamamlandıkça açılacaktır.
+          Açılmamış bölgeler ilerlemeyi etkilemez. Yeni görevler gerçek içerikleri tamamlandıkça açılacaktır.
         </p>
       </div>
     </div>
