@@ -121,6 +121,11 @@ export const ProfileSelectorModal: React.FC<ProfileSelectorModalProps> = ({
 
   const handleDeleteProfile = async (p: PlayerProfile, e: React.MouseEvent) => {
     e.stopPropagation();
+    if (p.userId) {
+      setErrorMessage('Aileye bağlı profili yalnızca ebeveyn alanından silebilirsiniz.');
+      onOpenParentGate?.();
+      return;
+    }
     if (profiles.length <= 1) {
       alert('En az 1 oyuncu profili bulunmalıdır.');
       return;
