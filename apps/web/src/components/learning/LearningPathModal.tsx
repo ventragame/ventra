@@ -7,6 +7,7 @@ import {
   WORD_GARDEN_LEVELS
 } from '@ventra/shared';
 import { GameLevelMap } from './GameLevelMap';
+import { WordGardenDistrictMap } from './WordGardenDistrictMap';
 import { ExploreActivity } from './activities/ExploreActivity';
 import { MatchActivity } from './activities/MatchActivity';
 import { ListenActivity } from './activities/ListenActivity';
@@ -51,6 +52,7 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
   const [levels, setLevels] = useState<GameLevelNode[]>(() =>
     initializeLevels(initialCompletedLevels, initialStarsByLevel)
   );
+  const [showDistrictOverview, setShowDistrictOverview] = useState(true);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const savingRef = useRef(false);
@@ -86,6 +88,8 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
         } else if (activeStep) {
           soundService.playSfx('tap');
           setActiveStep(null);
+        } else if (!showDistrictOverview) {
+          setShowDistrictOverview(true);
         } else {
           soundService.playSfx('whoosh');
           onClose();
@@ -97,7 +101,7 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
     };
-  }, [activeStep, showReward, onClose]);
+  }, [activeStep, showReward, showDistrictOverview, onClose]);
 
   const handleNodeClick = (node: GameLevelNode) => {
     if (node.status === 'locked') {
@@ -293,12 +297,25 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
     );
   }
 
-  // 3. Varsayılan Görünüm: Premium Game Level Map (Kıvrımlı Macera Patikası)
+  // Kelime Bahçesi artık kendi keşif bölgelerine sahip bir oyun alanı.
+  // Yalnızca tamamlanmış pedagojik içerik oynanabilir.
+  if (showDistrictOverview) {
+    return (
+      <WordGardenDistrictMap
+        completedLevels={levels.filter((level) => level.status === 'completed').length}
+        totalLevels={levels.length}
+        onEnterAnimals={() => setShowDistrictOverview(false)}
+        onBack={onClose}
+      />
+    );
+  }
+
+  // Bölge seçildikten sonra mevcut beş aşamalı öğrenme rotası korunur.
   return (
     <GameLevelMap
       levels={levels}
       onSelectNode={handleNodeClick}
-      onBack={onClose}
+      onBack={() => setShowDistrictOverview(true)}
       isMuted={isMuted}
       onToggleMute={handleToggleMute}
     />
