@@ -1,0 +1,40 @@
+name: Ventra Kids Slice QA
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: kids-slice-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  web-and-android-export:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Check TypeScript
+        run: npm run type-check
+      - name: Test learning, isolation, progress and RLS
+        run: npm --workspace=apps/web test
+      - name: Build production web bundle (no deployment)
+        run: npm run build:web
+      - name: Build static mobile web bundle (no deployment)
+        run: npm --workspace=apps/web run export
+      - name: Sync Android Capacitor assets (no APK or deployment)
+        run: npm --workspace=apps/mobile run sync:android
