@@ -94,6 +94,17 @@ test('Family-linked child removal requires the parent area and cloud confirmatio
   const adult = fs.readFileSync('src/components/profile/AdultAccountModal.tsx','utf8');
   assert.match(modal, /if \(p\.userId\)/);
   assert.match(adult, /handleDeleteLinkedChild/);
-  assert.match(adult, /\.is\('deleted_at', null\)\.select\('id'\)/);
+  assert.match(adult, /\.rpc\('delete_child_profile'/);
   assert.match(adult, /await getProgressRepository\(\)\.deleteProfile\(profile\.id\)/);
+});
+
+test('Child profile SQL deletion purges learning events atomically and keeps only a tombstone', () => {
+  const sql = fs.readFileSync('../../supabase/migrations/20261101000001_delete_child_profile_atomically.sql', 'utf8');
+  assert.match(sql, /CREATE OR REPLACE FUNCTION public\.delete_child_profile/);
+  assert.match(sql, /SECURITY DEFINER/);
+  assert.match(sql, /parent_id := auth\.uid\(\)/);
+  assert.match(sql, /WHERE id = p_profile_id\s+AND user_id = parent_id/);
+  assert.match(sql, /DELETE FROM public\.progress_events\s+WHERE profile_id = p_profile_id\s+AND user_id = parent_id/);
+  assert.match(sql, /REVOKE ALL ON FUNCTION public\.delete_child_profile\(uuid\) FROM PUBLIC, anon/);
+  assert.match(sql, /GRANT EXECUTE ON FUNCTION public\.delete_child_profile\(uuid\) TO authenticated/);
 });
