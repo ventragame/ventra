@@ -1,3 +1,5 @@
+> **TARİHSEL BELGE (31.10.2026):** Bu sayfa ilk dil öğrenme prototipinin ADR ve yol haritasını kayıt altına alır; güncel ürün geliştirme sırası için [Kanonik Ventra Product Roadmap v1.0](../PRODUCT_ROADMAP.md) esas alınır. Buradaki başlangıç tarihleri ve motor sürümü güncel durumu temsil etmeyebilir.
+
 # VENTRA — DİL ÖĞRENME PLATFORMU V1
 ## 07: Karar Kayıtları (ADR) ve Geliştirme Yol Haritası
 
