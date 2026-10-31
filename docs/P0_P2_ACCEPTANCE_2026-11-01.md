@@ -44,3 +44,12 @@ Use two non-production test devices A and B with the same authenticated test adu
 - Event merge on a large history can be slow; measure latency and investigate retries during device testing.
 - Vulnerable dependencies identified by npm audit remain an open P0 gate until severity, reachability and compatible upgrades have been reviewed.
 - P3 (assessed placement/learning efficacy), P4 physical child/UX QA, P5 coins, P6 school and P7 billing/store policy are separate future gates.
+
+## Actual GitHub CI findings on the source commit
+- Run: https://github.com/ventragame/ventra/actions/runs/41253543619
+- Tested SHA: `e1960672bd3cbbe8b48ebcb9760d85b45add15fc`
+- 60 of 60 offline tests passed, 0 failed; TypeScript and production Next.js build passed.
+- Android API 36 unsigned AAB/debug build passed; iOS Simulator unsigned build passed.
+- `npm ci` reported **7 total vulnerabilities** (4 moderate, 2 high, 1 critical). Runtime dependency audit (`npm audit --omit=dev --audit-level=high`) reported **2**: a high and a moderate finding in the Next.js/PostCSS dependency chain. Safe remediation needs a planned Next.js 16 upgrade or verified equivalent patched dependencies; `npm audit fix --force` would perform a breaking major upgrade and was not run.
+- The audit step is intentionally advisory and can fail without failing the compilation pipeline: **CI success is not a security sign-off**.
+- Latest parent UI indicator / timestamp patches must pass a subsequent CI run before source head is marked fully verified.
