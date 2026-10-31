@@ -31,7 +31,7 @@ jobs:
       - name: Check TypeScript
         run: npm run type-check
       - name: Test learning, isolation, progress and RLS
-        run: npm --workspace=apps/web test
+        run: npm --workspace=apps/web run test:ci
       - name: Build production web bundle (no deployment)
         run: npm run build:web
       - name: Build static mobile web bundle (no deployment)
