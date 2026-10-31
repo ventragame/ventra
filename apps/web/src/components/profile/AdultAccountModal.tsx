@@ -101,10 +101,13 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
       // Syncing only the current local profile list would miss deleted ones.
       const updated = await CloudSyncService.getInstance().pullAllCloudProfiles();
       await loadData();
+      const allLocal = await getProgressRepository().getAllProfiles();
+      const guests = allLocal.filter(profile => !profile.userId).length;
       recordSuccess(account.userId);
       onSyncCompleted?.();
       setMessage({ type: 'success', text:
-        `Eşitleme tamamlandı. ${updated.length} çocuk profili kontrol edildi; yerel ve bulut öğrenme kayıtları birleştirildi.`
+        `Bulut eşitlemesi tamamlandı: ${updated.length} bağlı profil kontrol edildi.` +
+        (guests ? ` ${guests} yalnızca yerel profil henüz aileye bağlanmadığı için yedeklenmedi.` : '')
       });
     } catch (error) {
       setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Eşitleme başarısız oldu.' });
