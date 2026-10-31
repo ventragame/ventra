@@ -28,6 +28,8 @@ export interface ColorAnswerEvidence {
   wordId: string;
   mistakes: number;
   firstTryCorrect: boolean;
+  // Optional scaffold evidence: seeing the Turkish hint is exposure, not proof of independent recall.
+  hintUsed?: boolean;
   // Discovery is exposure, not proof of recall.
   kind: 'discovery' | 'recall';
   timestamp: string;

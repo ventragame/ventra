@@ -49,6 +49,11 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
   const [awaitingAdvance, setAwaitingAdvance] = useState(false);
   const [finishedAnswers, setFinishedAnswers] = useState<ColorAnswerEvidence[] | null>(null);
   const [answerHighlight, setAnswerHighlight] = useState<string | null>(null);
+  const [wrongAnswerId, setWrongAnswerId] = useState<string | null>(null);
+  const [hintShown, setHintShown] = useState(false);
+  const [speechAvailable, setSpeechAvailable] = useState(false);
+  const dialogRef = useRef<HTMLDivElement>(null);
+  const headingRef = useRef<HTMLHeadingElement>(null);
   const [paintedIds, setPaintedIds] = useState<string[]>([]);
   const [muted, setMuted] = useState<boolean>(() => soundService.getMuted());
   const runId = useRef(`cg_${profileId}_${Date.now()}_${Math.random().toString(36).slice(2)}`);
@@ -95,6 +100,18 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
   }, [step, profileId, englishLevel, replayNonce, identity]);
 
   useEffect(() => {
+    setSpeechAvailable(typeof window !== 'undefined' && 'speechSynthesis' in window &&
+      typeof SpeechSynthesisUtterance !== 'undefined');
+  }, []);
+
+  // On small screens, switching activities must return to the start of the
+  // lesson, not leave the child scrolled to the previous mission's bottom.
+  useEffect(() => {
+    dialogRef.current?.scrollTo({ top: 0, behavior: 'auto' });
+    headingRef.current?.focus({ preventScroll: true });
+  }, [step, replayNonce]);
+
+  useEffect(() => {
     const onMute = (next: boolean) => {
       setMuted(next);
       if (next && typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel();
@@ -126,6 +143,8 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
     setAwaitingAdvance(false);
     setFinishedAnswers(null);
     setAnswerHighlight(null);
+    setWrongAnswerId(null);
+    setHintShown(false);
     setPaintedIds([]);
     setStep(next);
     setDiscovered([]);
@@ -156,19 +175,26 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
     }
   };
   const choose = (id: string) => {
-    if (saving || complete || locked.current || feedback || !activePlan || !currentQuestion || awaitingAdvance) return;
+    if (saving || complete || locked.current || !activePlan || !currentQuestion || awaitingAdvance) return;
     const target = currentQuestion.target;
     if (id !== target) {
+      setWrongAnswerId(id);
       setMistakes((value) => value + 1);
       setQuestionMistakes((value) => value + 1);
       soundService.playSfx('gentle_retry');
-      setFeedback('Bir daha dene. Renk kelimesini dikkatle oku veya dinle.');
+      setFeedback('Bu renk değil. Başka bir seçeneğe dokun veya yönergeyi tekrar dinle.');
       return;
     }
     soundService.playSfx('correct');
+    setWrongAnswerId(null);
     const nextCorrect = correct + 1;
     setCorrect(nextCorrect);
-    const answer: ColorAnswerEvidence = { wordId: target, mistakes: questionMistakes, firstTryCorrect: questionMistakes === 0, kind: 'recall', timestamp: new Date().toISOString() };
+    const answer: ColorAnswerEvidence = {
+      wordId: target, mistakes: questionMistakes,
+      firstTryCorrect: questionMistakes === 0 && !hintShown,
+      hintUsed: hintShown,
+      kind: 'recall', timestamp: new Date().toISOString()
+    };
     const nextEvidence = [...evidence, answer];
     setEvidence(nextEvidence);
     setQuestionMistakes(0);
@@ -188,6 +214,8 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
       setQuestion(value => value + 1);
       setFeedback(null);
       setAnswerHighlight(null);
+      setWrongAnswerId(null);
+      setHintShown(false);
       setAwaitingAdvance(false);
     }
   };
@@ -201,7 +229,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
     }
   };
   return (
-    <div role="dialog" aria-modal="true" aria-label="Renk Korusu macerası"
+    <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Renk Korusu macerası"
       onPointerDown={(event) => event.stopPropagation()}
       onPointerMove={(event) => event.stopPropagation()}
       onPointerUp={(event) => event.stopPropagation()}
@@ -211,7 +239,8 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
         <div className="absolute -left-40 top-0 h-96 w-96 rounded-full bg-cyan-300/10 blur-3xl" />
         <div className="absolute -right-28 bottom-0 h-96 w-96 rounded-full bg-lime-300/10 blur-3xl" />
       </div>
-      <div className="relative mx-auto max-w-5xl px-3 py-4 sm:px-7 sm:py-6" style={{ paddingBottom: 'max(28px, env(safe-area-inset-bottom))' }}>
+      <div className="relative mx-auto max-w-5xl px-3 py-4 sm:px-7 sm:py-6"
+        style={{ paddingTop: 'max(16px, env(safe-area-inset-top))', paddingBottom: 'max(28px, env(safe-area-inset-bottom))' }}>
         <header className="flex flex-wrap items-center justify-between gap-2">
           <button onClick={onBack} disabled={saving}
             className="vg-answer-card min-h-11 rounded-2xl border border-white/25 bg-white/10 px-3 py-2.5 text-sm font-bold hover:bg-white/20 disabled:opacity-50 sm:px-4">
@@ -229,7 +258,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
         </header>
         <div className="py-4 text-center sm:py-6">
           <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-lime-200">Büyülü Renkler Hikâyesi · Bölüm {step}/3</p>
-          <h1 className="mt-2 text-3xl font-black tracking-tight sm:text-5xl">{names[step - 1]}</h1>
+          <h1 ref={headingRef} tabIndex={-1} className="mt-2 text-3xl font-black tracking-tight outline-none sm:text-5xl">{names[step - 1]}</h1>
           <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-sky-100 sm:text-base">
             {step === 1 ? 'Lumi’nin korusunu keşfet. Altı renk taşına dokun ve İngilizce adlarını dinle.' :
             step === 2 ? 'Rengini kaybeden çiçeği kurtar! Gördüğün rengin İngilizce adını seç.' :
@@ -303,7 +332,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
                   <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl border-4 border-white/40 text-2xl shadow-2xl sm:h-24 sm:w-24" style={{ backgroundColor: word.hex }}>
                     {discovered.includes(word.id) && <span className="rounded-full bg-emerald-950/80 px-2 py-1 text-sm text-lime-100">✓</span>}
                   </div>
-                  <div className="mt-3 text-base font-black tracking-wide">{word.id.toUpperCase()} <span aria-hidden="true">🔊</span></div>
+                  <div className="mt-3 text-base font-black tracking-wide">{word.id.toUpperCase()} {speechAvailable && !muted && <span aria-hidden="true">🔊</span>}</div>
                   <div className="text-sm text-white/80">{word.tr}</div>
                 </button>
               ))}
@@ -319,6 +348,11 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
               <span>🪄 Lumi’nin Görevi</span>
               <span aria-label={`Soru ${question + 1} / ${activePlan.questions.length}`}>{question + 1} / {activePlan.questions.length}</span>
             </div>
+            {activePlan.reviewColorIds.length > 0 && (
+              <p className="mb-3 rounded-xl border border-sky-200/25 bg-sky-950/40 p-2 text-center text-xs font-bold text-sky-100">
+                🔁 Hatırlama turu: {activePlan.reviewColorIds.length} renk daha pekiştiriliyor
+              </p>
+            )}
             <div aria-hidden="true" className="mb-5 h-2 overflow-hidden rounded-full bg-white/15">
               <div className="h-full rounded-full bg-gradient-to-r from-lime-300 to-sky-300 transition-all" style={{ width: `${Math.round(((question + Number(awaitingAdvance)) / activePlan.questions.length) * 100)}%` }} />
             </div>
@@ -336,11 +370,22 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
               <p className="mt-1 text-sm text-slate-100">
                 {getColorInstruction(currentQuestion.target, step, englishLevel).guide}
               </p>
-              <button disabled={muted} onClick={() => pronounce(getColorInstruction(currentQuestion.target, step, englishLevel).speech)}
+              <button disabled={muted || !speechAvailable} onClick={() => pronounce(getColorInstruction(currentQuestion.target, step, englishLevel).speech)}
                 aria-label="İngilizce yönergeyi dinle"
                 className="vg-answer-card mt-3 min-h-11 rounded-full border border-sky-200/40 bg-sky-300/15 px-5 text-sm font-black disabled:opacity-45">
-                {muted ? '🔇 Ses Kapalı' : '🔊 Dinle'}
+                {muted ? '🔇 Ses Kapalı' : speechAvailable ? '🔊 Dinle' : '🔇 Bu cihazda ses yok'}
               </button>
+              {step === 2 && (
+                <div className="mt-3">
+                  <button type="button" disabled={awaitingAdvance} onClick={() => setHintShown(value => !value)}
+                    aria-expanded={hintShown} className="vg-answer-card min-h-11 rounded-xl border border-white/20 bg-white/10 px-4 text-xs font-bold disabled:opacity-50">
+                    {hintShown ? 'Türkçe İpucunu Gizle' : 'Renkleri Ayırt Etmek İçin Türkçe İpucu'}
+                  </button>
+                  {hintShown && <p role="status" className="mt-2 text-sm font-bold text-lime-100">
+                    Bu rengin Türkçe adı: {getWord(currentQuestion.target).tr}
+                  </p>}
+                </div>
+              )}
             </div>
             <div className="grid grid-cols-3 gap-2 sm:gap-3">
               {currentQuestion.choices.map((id) => {
@@ -348,7 +393,8 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
                 return (
                   <button key={id} onClick={() => choose(id)} disabled={saving || awaitingAdvance}
                     aria-label={step === 2 ? `${word.id} rengini seç` : `${word.tr} rengini seç`}
-                    className={`vg-answer-card min-h-24 rounded-2xl border bg-slate-950/45 p-2 text-center transition hover:scale-[1.02] disabled:opacity-60 sm:min-h-28 sm:p-4 ${answerHighlight === id ? 'border-lime-300 bg-lime-300/20 ring-2 ring-lime-300/60' : 'border-white/25 hover:border-yellow-200'}`}>
+                    aria-pressed={answerHighlight === id}
+                    className={`vg-answer-card min-h-24 rounded-2xl border bg-slate-950/45 p-2 text-center transition hover:scale-[1.02] disabled:opacity-60 sm:min-h-28 sm:p-4 ${answerHighlight === id ? 'border-lime-300 bg-lime-300/20 ring-2 ring-lime-300/60' : wrongAnswerId === id ? 'border-rose-300 bg-rose-500/20 ring-2 ring-rose-300/50' : 'border-white/25 hover:border-yellow-200'}`}>
                     {step === 3 && <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full border-4 border-white/40 shadow-lg" style={{ background: word.hex }}>
                       <span className="text-xl drop-shadow-lg" aria-hidden="true">🖌️</span>
                     </div>}
@@ -357,12 +403,15 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
                 );
               })}
             </div>
-            <div aria-live="polite" className="mt-5 min-h-12 text-center text-sm font-semibold text-yellow-100">
-              {feedback && (
-                <button className={`min-h-12 rounded-xl px-5 py-3 ${awaitingAdvance ? 'bg-lime-500/20 text-lime-100' : 'bg-amber-400/15 text-amber-100'}`} onClick={() => {
-                  if (awaitingAdvance) advance(); else setFeedback(null);
-                }}>
-                  {feedback} · {awaitingAdvance ? 'Devam Et →' : 'Tekrar Dene ↻'}
+            <div className="mt-5 min-h-12 text-center text-sm font-semibold">
+              {feedback && <p role="status" aria-live="polite"
+                className={`rounded-xl px-4 py-3 ${awaitingAdvance ? 'text-lime-100' : 'text-amber-100'}`}>
+                {feedback}
+              </p>}
+              {awaitingAdvance && (
+                <button onClick={advance} disabled={saving}
+                  className="vg-answer-card mt-2 min-h-12 w-full rounded-xl bg-lime-300 px-5 py-3 font-black text-emerald-950 disabled:opacity-50 sm:w-auto">
+                  {saving ? 'Kaydediliyor…' : question + 1 === activePlan.questions.length ? 'Görevi Tamamla →' : 'Sonraki Renk →'}
                 </button>
               )}
             </div>
