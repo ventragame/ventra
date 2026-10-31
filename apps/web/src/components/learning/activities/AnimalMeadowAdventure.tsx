@@ -45,7 +45,11 @@ function AnimalPicture({word, size='normal'}:{word:AnimalWord;size?:'normal'|'la
         className={size==='large'?'h-28 w-28 object-contain drop-shadow-xl sm:h-36 sm:w-36':'h-16 w-16 object-contain drop-shadow-lg sm:h-20 sm:w-20'} />
     : <span aria-hidden="true" className={size==='large'?'text-8xl drop-shadow-xl sm:text-9xl':'text-5xl drop-shadow-lg sm:text-6xl'}>{word.emoji}</span>;
 }
-function MeadowScene({stage, word, blooms}:{stage:Stage;word:AnimalWord|null;blooms:number}) {
+function MeadowScene({stage, word, blooms, choices, onChoose, wrongChoice, awaiting}:{
+  stage:Stage;word:AnimalWord|null;blooms:number;
+  choices?:AnimalId[];onChoose?:(id:AnimalId)=>void;
+  wrongChoice?:AnimalId|null;awaiting?:boolean;
+}) {
   return (
     <div className="am-scene relative isolate w-full overflow-hidden rounded-[1.75rem] border border-white/40 shadow-[0_16px_55px_rgba(6,44,48,.25)]" aria-label="Hayvan Çayırı oyun sahnesi">
       <svg aria-hidden="true" className="block h-auto w-full" viewBox="0 0 900 340" preserveAspectRatio="xMidYMid slice">
@@ -83,6 +87,19 @@ function MeadowScene({stage, word, blooms}:{stage:Stage;word:AnimalWord|null;blo
       {stage===5 && word && <div className="am-pop absolute left-1/2 top-[42%] -translate-x-1/2 -translate-y-1/2 rounded-3xl border-4 border-white/80 bg-emerald-950/85 px-5 py-4 text-center shadow-xl">
         <div aria-hidden="true" className="text-4xl">🏡</div>
         <p className="mt-1 text-base font-extrabold text-white sm:text-2xl">{word.habitat}</p>
+      </div>}
+      {stage===4 && choices && onChoose && <div className="absolute inset-x-1 bottom-10 flex items-end justify-around gap-1 sm:bottom-7"
+        role="group" aria-label="Çayırdaki hayvanlardan doğru olanı seç">
+        {choices.map(id=>{
+          const item=findAnimal(id);
+          return item && <button key={id} type="button" onClick={()=>onChoose(id)} disabled={awaiting}
+            aria-label={`${item.tr}, çayırda bul`} aria-pressed={awaiting&&word?.id===id}
+            className={`am-tap am-forest-animal flex min-h-20 min-w-20 flex-col items-center justify-end rounded-2xl border-2 bg-white/90 px-1 py-1 shadow-xl sm:min-h-28 sm:min-w-28
+              ${wrongChoice===id?'border-rose-400 bg-rose-50':awaiting&&word?.id===id?'border-lime-400 bg-lime-100':'border-white/80'}`}>
+            <AnimalPicture word={item}/>
+            <span className="text-[10px] font-black text-emerald-950 sm:text-xs">{item.tr}</span>
+          </button>;
+        })}
       </div>}
       {stage===1 && <div className="am-float absolute bottom-[15%] right-[13%] text-5xl" aria-hidden="true">🦋</div>}
     </div>
@@ -373,7 +390,9 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
             <div className="mb-4 h-2 overflow-hidden rounded-full bg-white/20" aria-hidden="true">
               <div className="h-full rounded-full bg-gradient-to-r from-emerald-300 to-sky-300 transition-all" style={{width:`${Math.round(((questionIndex+Number(awaiting))/activePlan.questions.length)*100)}%`}}/>
             </div>
-            <MeadowScene stage={stage} word={stage===5 && rescueSelected?null:target} blooms={correctCount}/>
+            <MeadowScene stage={stage} word={stage===5 && rescueSelected?null:target} blooms={correctCount}
+              choices={stage===4?currentQuestion.choices:undefined} onChoose={stage===4?choose:undefined}
+              wrongChoice={wrongChoice} awaiting={awaiting}/>
             {stage===5 && rescueSelected && <div className="am-rescue mt-2 flex items-center justify-center gap-3 rounded-xl bg-emerald-900/75 p-3">
               <AnimalPicture word={target}/>
               <span className="text-sm font-black text-lime-100">→ YUVASINI BUL!</span>
@@ -405,7 +424,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
                 {assisted ? `İpucu: ${target.tr}` : 'Türkçe İpucu Göster'}
               </button>}
             </div>
-            <div className="grid grid-cols-3 gap-2 sm:gap-3" role="group"
+            {stage!==4 && <div className="grid grid-cols-3 gap-2 sm:gap-3" role="group"
               aria-label={stage===5&&rescueSelected?'Hayvan için doğru yuva':'Hayvan cevabı'}>
               {currentQuestion.choices.map(id=>{
                 const word=findAnimal(id)!;
@@ -421,7 +440,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
                   <span className="mt-2 text-xs font-black sm:text-lg">{habitatChoice?word.habitat:textOnly?word.id.toUpperCase():word.tr}</span>
                 </button>;
               })}
-            </div>
+            </div>}
             <div className="mt-4 min-h-16 text-center">
               {feedback && <p role="status" aria-live="polite" className={`rounded-xl px-3 py-3 text-sm font-semibold ${feedback.good?'bg-lime-500/15 text-lime-100':'bg-amber-500/20 text-amber-100'}`}>{feedback.text}</p>}
               {awaiting && <button onClick={advance} disabled={saving} className="am-cta mt-2 w-full sm:w-auto">

@@ -15,3 +15,11 @@
 @keyframes am-rescue-appear{from{opacity:.3;transform:translateY(12px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
 @keyframes am-album-enter{from{opacity:0;transform:translateY(-8px)}to{opacity:1;transform:translateY(0)}}
 @media(prefers-reduced-motion:reduce){.am-rescue,.am-album{animation:none!important}}
+
+.am-scene {height:clamp(232px,32vw,340px)}
+.am-scene>svg {width:100%;height:100%;display:block}
+.am-forest-animal{animation:am-forest-grow .35s cubic-bezier(.2,1,.5,1) both}
+.am-forest-animal:nth-child(2){animation-delay:.08s}
+.am-forest-animal:nth-child(3){animation-delay:.16s}
+@keyframes am-forest-grow{from{opacity:.5;transform:translateY(18px) scale(.85)}to{opacity:1;transform:translateY(0) scale(1)}}
+@media(prefers-reduced-motion:reduce){.am-forest-animal{animation:none!important}}
