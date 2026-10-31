@@ -188,34 +188,19 @@ export class IndexedDBProgressRepository implements IProgressRepository {
         }
       }
 
-      // Learning attempts güncelle
-      const laStore = tx.objectStore('learning_attempts');
-      const allLa = await this.getAllRecords<any>(db, 'learning_attempts');
-      for (const a of allLa) {
-        if (!a.profileId) {
-          a.profileId = legacyProfileId;
-          laStore.put(a);
-        }
-      }
-
-      // Game attempts güncelle
-      const gaStore = tx.objectStore('game_attempts');
-      const allGa = await this.getAllRecords<any>(db, 'game_attempts');
-      for (const a of allGa) {
-        if (!a.profileId) {
-          a.profileId = legacyProfileId;
-          gaStore.put(a);
-        }
-      }
-
-      // Activities güncelle
-      const actStore = tx.objectStore('activities');
-      const allAct = await this.getAllRecords<any>(db, 'activities');
-      for (const a of allAct) {
-        if (!a.profileId) {
-          a.profileId = legacyProfileId;
-          actStore.put(a);
-        }
+      // Tüm cursor okumaları ve yazmaları aynı transaction'ın kendi callback'inde kalır.
+      // Auto-increment mağazalarında cursor.update orijinal anahtarları korur.
+      for (const name of ['learning_attempts', 'game_attempts', 'activities']) {
+        const request = tx.objectStore(name).openCursor();
+        request.onsuccess = () => {
+          const cursor = request.result;
+          if (!cursor) return;
+          const record = cursor.value;
+          if (!record.profileId) {
+            cursor.update({ ...record, profileId: legacyProfileId });
+          }
+          cursor.continue();
+        };
       }
 
       await this.waitForTx(tx);
@@ -299,34 +284,44 @@ export class IndexedDBProgressRepository implements IProgressRepository {
 
   public async deleteProfile(id: string): Promise<void> {
     const db = await this.getDB();
-    const tx = db.transaction(['profiles', 'sessions', 'levels', 'learning_attempts', 'game_attempts', 'activities', 'meta'], 'readwrite');
+    const profiles = await this.getAllProfiles();
+    if (!profiles.some((p) => p.id === id)) return;
 
+    const activeMeta = await this.getRecord<{ key: string; value: string }>(db, 'meta', 'activeProfileId');
+    const wasActive = activeMeta?.value === id || profiles.some((p) => p.id === id && p.isActive);
+    const replacement = wasActive ? profiles.find((p) => p.id !== id) : undefined;
+
+    const tx = db.transaction(
+      ['profiles', 'sessions', 'levels', 'learning_attempts', 'game_attempts', 'activities', 'meta'],
+      'readwrite'
+    );
     tx.objectStore('profiles').delete(id);
-    // Cihazlar arası silme (tombstone) kaydı oluştur
     tx.objectStore('meta').put({
       key: `tombstone:${id}`,
       value: { id, deletedAt: new Date().toISOString() }
     });
 
-    // Profile ait verileri temizle
-    const pSessions = await this.getRecordsByIndex<any>(db, 'sessions', 'profileId', id);
-    for (const s of pSessions) tx.objectStore('sessions').delete(s.sessionId);
+    // İlgili tüm kayıtları transaction içinde index cursor ile sil.
+    // Ayrı readonly sorgulara await yapmak transaction'ı kapatabiliyordu.
+    for (const name of ['sessions', 'levels', 'learning_attempts', 'game_attempts', 'activities']) {
+      const request = tx.objectStore(name).index('profileId').openKeyCursor(id);
+      request.onsuccess = () => {
+        const cursor = request.result;
+        if (!cursor) return;
+        tx.objectStore(name).delete(cursor.primaryKey);
+        cursor.continue();
+      };
+    }
 
-    const pLevels = await this.getRecordsByIndex<any>(db, 'levels', 'profileId', id);
-    for (const l of pLevels) tx.objectStore('levels').delete(l.id);
-
-    const pActivities = await this.getRecordsByIndex<any>(db, 'activities', 'profileId', id);
-    for (const a of pActivities) tx.objectStore('activities').delete(a.id);
-
-    await this.waitForTx(tx);
-
-    const active = await this.getActiveProfile();
-    if (active?.id === id) {
-      const remaining = await this.getAllProfiles();
-      if (remaining.length > 0) {
-        await this.switchActiveProfile(remaining[0].id);
+    if (wasActive) {
+      if (replacement) {
+        tx.objectStore('profiles').put({ ...replacement, isActive: true });
+        tx.objectStore('meta').put({ key: 'activeProfileId', value: replacement.id });
+      } else {
+        tx.objectStore('meta').delete('activeProfileId');
       }
     }
+    await this.waitForTx(tx);
   }
 
   public async getDeletedProfileIds(): Promise<string[]> {
@@ -339,22 +334,19 @@ export class IndexedDBProgressRepository implements IProgressRepository {
 
   public async switchActiveProfile(id: string): Promise<PlayerProfile> {
     const db = await this.getDB();
-    const target = await this.getRecord<PlayerProfile>(db, 'profiles', id);
-    if (!target) {
-      throw new Error(`Profil bulunamadı: ${id}`);
-    }
+    // Bütün okumaları write transaction açılmadan önce tamamla.
+    const all = await this.getAllProfiles();
+    const target = all.find((profile) => profile.id === id);
+    if (!target) throw new Error(`Profil bulunamadı: ${id}`);
 
     const tx = db.transaction(['profiles', 'meta'], 'readwrite');
-    const pStore = tx.objectStore('profiles');
-    const all = await this.getAllRecords<PlayerProfile>(db, 'profiles');
-    for (const p of all) {
-      p.isActive = (p.id === id);
-      pStore.put(p);
+    const store = tx.objectStore('profiles');
+    for (const profile of all) {
+      store.put({ ...profile, isActive: profile.id === id });
     }
     tx.objectStore('meta').put({ key: 'activeProfileId', value: id });
     await this.waitForTx(tx);
-
-    return target;
+    return { ...target, isActive: true };
   }
 
   private async ensureActiveProfileId(targetProfileId?: string): Promise<string> {
@@ -377,6 +369,7 @@ export class IndexedDBProgressRepository implements IProgressRepository {
     }
 
     const completedAt = result.completedAt || new Date().toISOString();
+    const p = await this.getRecord<PlayerProfile>(db, 'profiles', profileId);
     const tx = db.transaction(['sessions', 'learning_attempts', 'activities', 'profiles'], 'readwrite');
 
     tx.objectStore('sessions').put({
@@ -389,7 +382,6 @@ export class IndexedDBProgressRepository implements IProgressRepository {
     });
 
     // Profil son oynama tarihini güncelle
-    const p = await this.getRecord<PlayerProfile>(db, 'profiles', profileId);
     if (p) {
       p.lastPlayedAt = completedAt;
       p.updatedAt = completedAt;
@@ -451,6 +443,7 @@ export class IndexedDBProgressRepository implements IProgressRepository {
     const gameKey = `${profileId}:${payload.gameId}:${payload.levelId}`;
     const prevLevel = await this.getRecord<LevelProgressRecord>(db, 'levels', gameKey);
 
+    const p = await this.getRecord<PlayerProfile>(db, 'profiles', profileId);
     const oldBestStars = prevLevel ? prevLevel.bestStars : 0;
     const newBestStars = Math.max(oldBestStars, Math.min(3, Math.max(0, payload.starsEarned)));
     const starsAdded = newBestStars - oldBestStars;
@@ -479,7 +472,6 @@ export class IndexedDBProgressRepository implements IProgressRepository {
 
     tx.objectStore('levels').put({ id: gameKey, profileId, ...levelRecord });
 
-    const p = await this.getRecord<PlayerProfile>(db, 'profiles', profileId);
     if (p) {
       p.lastPlayedAt = completedAt;
       p.updatedAt = completedAt;
@@ -497,7 +489,9 @@ export class IndexedDBProgressRepository implements IProgressRepository {
       });
     }
 
-    const gameTitle = payload.gameId === 'kesir_koprusu' ? 'Kesir Köprüsü' : 'Kesir Atölyesi';
+    const gameTitle = payload.gameId === 'phaser_exploration_island'
+      ? 'Kelime Bahçesi'
+      : payload.gameId === 'kesir_koprusu' ? 'Kesir Köprüsü' : 'Kesir Atölyesi';
     const logEntry: ActivityLogEntry & { profileId: string } = {
       id: `act_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       profileId,
@@ -719,15 +713,16 @@ export class IndexedDBProgressRepository implements IProgressRepository {
   }
 
   public async markEventsSynced(eventIds: string[]): Promise<void> {
+    if (eventIds.length === 0) return;
     const db = await this.getDB();
     const tx = db.transaction('sessions', 'readwrite');
     const store = tx.objectStore('sessions');
-    for (const eid of eventIds) {
-      const s = await this.getRecord<any>(db, 'sessions', eid);
-      if (s) {
-        s.isCloudSynced = true;
-        store.put(s);
-      }
+    for (const id of new Set(eventIds)) {
+      const request = store.get(id);
+      request.onsuccess = () => {
+        const session = request.result;
+        if (session) store.put({ ...session, isCloudSynced: true });
+      };
     }
     await this.waitForTx(tx);
   }
