@@ -6,12 +6,12 @@ import Link from 'next/link';
 import {
   type PlayerProfile,
   getAvatarById,
-  type GameCompletedPayload,
   ARCHIPELAGO_ISLANDS_CATALOG,
   ARCHIPELAGO_ISLANDS_ORDERED,
   type IslandId
 } from '@ventra/shared';
 import { getProgressRepository } from '../../lib/progress';
+import { getWordGardenProgress, saveWordGardenLevelCompletion } from '../../lib/progress/wordGardenProgress';
 import { ProfileSelectorModal } from '../../components/profile/ProfileSelectorModal';
 import { ParentalGateModal } from '../../components/profile/ParentalGateModal';
 import { AdultAccountModal } from '../../components/profile/AdultAccountModal';
@@ -47,6 +47,7 @@ export default function VentraKidsWorldPage() {
   // Oyun ve Bölge Durumu
   const [wordGardenStatus, setWordGardenStatus] = useState<'dormant' | 'blooming'>('dormant');
   const [wordGardenCompletedLevels, setWordGardenCompletedLevels] = useState<number>(0);
+  const [wordGardenStarsByLevel, setWordGardenStarsByLevel] = useState<Record<number, number>>({});
   const [totalStars, setTotalStars] = useState<number>(0);
   const [isMuted, setIsMuted] = useState<boolean>(() => soundService.getMuted());
 
@@ -96,23 +97,16 @@ export default function VentraKidsWorldPage() {
   // 1. Profil ve İlerleme Yükleme
   const loadProfileAndProgress = useCallback(async (profile: PlayerProfile) => {
     try {
-      const repo = getProgressRepository();
-      const [stars, levelProgress, legacyProgress] = await Promise.all([
-        repo.getTotalStars(profile.id),
-        repo.getLevelProgress('island_word_garden', 1, profile.id),
-        repo.getLevelProgress('phaser_exploration_island', 1, profile.id)
-      ]);
-
-      const activeProg = levelProgress || legacyProgress;
-      const isComplete = !!(activeProg && (activeProg.completedCount > 0 || activeProg.bestStars > 0));
-
-      setTotalStars(stars);
-      setWordGardenStatus(isComplete ? 'blooming' : 'dormant');
-      setWordGardenCompletedLevels(isComplete ? 5 : 0);
-    } catch (e) {
-      console.warn('İlerleme yüklenirken hata oluştu:', e);
+      const progress = await getWordGardenProgress(getProgressRepository(), profile.id);
+      setWordGardenCompletedLevels(progress.completedLevels);
+      setWordGardenStarsByLevel(progress.starsByLevel);
+      setTotalStars(progress.totalStars);
+      setWordGardenStatus(progress.completedLevels === progress.totalLevels ? 'blooming' : 'dormant');
+    } catch (error) {
+      console.error('Kelime Bahçesi ilerlemesi yüklenemedi:', error);
+      showToast('İlerleme yüklenemedi. Lütfen tekrar deneyin.');
     }
-  }, []);
+  }, [showToast]);
 
   useEffect(() => {
     let isMounted = true;
@@ -195,36 +189,10 @@ export default function VentraKidsWorldPage() {
   // 3. Bölge Tamamlandığında (Kelime Bahçesi Bitimi)
   const handleRegionCompleted = useCallback(async () => {
     if (!activeProfile) return;
-
-    try {
-      const repo = getProgressRepository();
-      const payload: GameCompletedPayload = {
-        profileId: activeProfile.id,
-        gameId: 'island_word_garden',
-        levelId: 1,
-        outcomeId: 'en.a1.vocab.animals',
-        skillId: 'en.a1.vocab.animals',
-        score: 100,
-        success: true,
-        starsEarned: 3,
-        metrics: {
-          durationSeconds: 180,
-          attemptsCount: 5,
-          accuracyRate: 1.0,
-          wrongAttempts: 0,
-          hintsUsed: 0
-        },
-        completedAt: new Date().toISOString()
-      };
-
-      await repo.recordGameCompleted(payload, activeProfile.id);
-      setWordGardenStatus('blooming');
-      setWordGardenCompletedLevels(5);
-      await loadProfileAndProgress(activeProfile);
-      showToast('🌸 Harika! Kelime Bahçesi canlandı ve çiçekler açtı.');
-    } catch (e) {
-      console.error('İlerleme kaydedilirken hata:', e);
-    }
+    // All five steps were persisted individually when their activities finished.
+    // Do not create a synthetic whole-island completion or overwrite the true count.
+    await loadProfileAndProgress(activeProfile);
+    showToast('🌸 Kelime Bahçesi tamamlandı!');
   }, [activeProfile, loadProfileAndProgress, showToast]);
 
   // Ada Kamera Odağını Değiştirme
@@ -578,11 +546,16 @@ export default function VentraKidsWorldPage() {
           onClose={handleCloseLearningPath}
           onRegionCompleted={handleRegionCompleted}
           initialCompletedLevels={wordGardenCompletedLevels}
-          onProgressUpdate={(completed) => {
-            setWordGardenCompletedLevels(completed);
-            if (completed >= 5) {
-              setWordGardenStatus('blooming');
-            }
+          initialStarsByLevel={wordGardenStarsByLevel}
+          onProgressUpdate={async (_completed, _total, levelOrder, starsEarned) => {
+            if (!activeProfile) throw new Error('Aktif çocuk profili bulunamadı.');
+            const result = await saveWordGardenLevelCompletion(
+              getProgressRepository(), activeProfile.id, levelOrder, starsEarned
+            );
+            setWordGardenCompletedLevels(result.completedLevels);
+            setWordGardenStarsByLevel(result.starsByLevel);
+            setTotalStars(result.totalStars);
+            setWordGardenStatus(result.completedLevels === result.totalLevels ? 'blooming' : 'dormant');
           }}
         />
       )}

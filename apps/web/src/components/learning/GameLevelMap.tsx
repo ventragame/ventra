@@ -38,12 +38,10 @@ export const GameLevelMap: React.FC<GameLevelMapProps> = ({
   };
 
   const handleCtaClick = () => {
-    if (activeLevel && activeLevel.status !== 'locked') {
+    const target = isAllCompleted ? levels[0] : activeLevel;
+    if (target && target.status !== 'locked') {
       soundService.playSfx('tap');
-      onSelectNode(activeLevel);
-    } else if (isAllCompleted) {
-      soundService.playSfx('tap');
-      onSelectNode(levels[0]); // Tekrar oynama için 1. seviyeden başla
+      onSelectNode(target);
     }
   };
 
@@ -286,7 +284,7 @@ export const GameLevelMap: React.FC<GameLevelMapProps> = ({
                   <div className="mt-2">
                     {isCompleted ? (
                       <span className="text-[9px] bg-emerald-500/20 text-emerald-300 px-2 py-0.5 rounded-full font-bold border border-emerald-500/30">
-                        {level.starsEarned > 0 ? `⭐⭐⭐` : '✓ Tamamlandı'}
+                        {level.starsEarned > 0 ? '⭐'.repeat(Math.min(3, level.starsEarned)) : '✓ Tamamlandı'}
                       </span>
                     ) : isCurrent ? (
                       <span className="text-[9px] bg-sky-500/25 text-sky-200 px-2 py-0.5 rounded-full font-bold border border-sky-400/50">
