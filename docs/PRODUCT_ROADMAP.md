@@ -35,7 +35,7 @@
 |---|---|---|---|
 | **P0 — Baseline ve riskler** | **AKTİF / ön koşul** | Mevcut akış envanteri, veri kaybı riskleri, bağımlılık güvenlik raporu | Önceki kullanıcı bildiriminde 32/32 test, TS ve build başarılı; buna ek olarak 7 npm audit bulgusu şiddet/yol bakımından incelenmeli. Ön koşul riskleri yazılı hale gelmeden kimlik modeli değiştirilmez. |
 | **P1 — Onboarding ve çocuk profili** | **UYGULANIYOR — P1.1/P1.2 kodlandı; yerel kabul bekliyor** | Üç seçenekli net giriş UI; sorunsuz bireysel akış; avatar/takma ad; bağımsız sınıf+İngilizce tercihi; profil değiştirme/silme; ebeveyn yönlendirmesi; mevcut kullanıcı migration | Yeni ve mevcut kullanıcı, sayfa yenileme, mobil, offline, profil değişimi; hiçbir ilerleme ve yıldız kaybı yok; henüz kullanılamayan okul/aile işlemleri açıkça belirtilir. |
-| **P2 — Aile, güvenli bulut ve çoklu cihaz** | PLANLI | Ebeveyn giriş/çıkış; çocuk profilini bağlama; çoklu çocuk; eşitleme/çakışma kuralları; hesap değiştirme; veri kurtarma | Aynı çocuk için cihaz A→B ve B→A, eşzamanlı/offline kayıt, tekrar/aynı event, iki farklı aile hesabı izolasyonu, unlink/silme senaryoları **gerçek testle** geçer. Supabase RLS açık doğrulanır. |
+| **P2 — Aile, güvenli bulut ve çoklu cihaz** | **KISMİ UYGULAMA — iki cihazlı gerçek kabul testi bekliyor** | Ebeveyn giriş/çıkış; çocuk profilini bağlama; çoklu çocuk; eşitleme/çakışma kuralları; hesap değiştirme; veri kurtarma | Aynı çocuk için cihaz A→B ve B→A, eşzamanlı/offline kayıt, tekrar/aynı event, iki farklı aile hesabı izolasyonu, unlink/silme senaryoları **gerçek testle** geçer. Supabase RLS açık doğrulanır. |
 | **P3 — Learning Engine v2** | PLANLI | Ölçülmüş seviye başlangıcı, içerik önkoşulları, kelime bazlı ustalık, aralıklı tekrar, görev çeşitliliği, öğrenme analitiği | Pre-A1/A1 içerik uygunsuzluğu yok; replay varyantları testte farklı; zayıf kelime geri gelir; kullanıcı yanlış anlamadığı komutla sınanmaz; metrikler ölçülür. |
 | **P4 — Premium oyun / world loop** | PLANLI | Gezilebilir Kelime Bahçesi, etkileşimli sahneler, karakter ve çevre tepkisi, tekrar oynanabilir mekanikler, ses/görsel set | Mobil dokunmatik, düşük cihaz FPS/bellek, tamamlanma/tekrar oynama, 5–10 yaşa uygun kullanıcı testi; 'premium' ilanından önce somut sahne ve kalite kriterleri. |
 | **P5 — Ödül ve kişiselleştirme** | PLANLI | Harcanmayan yıldız; ayrı Ventra Coin ledger; avatar/kozmetik kazanma; idempotent ödüller; mağaza UI | Çevrimdışı tekrar ve çift cihazla para çoğaltma yok; yanlış hesaptan harcama yok; öğrenme erişimi kozmetik harcamaya bağlanmaz. Ücretli avatarlar yok. |
@@ -98,3 +98,14 @@ Kaynaklar:
 - Okul seçimi yalnızca bilgilendirme; okul kodu/kurum hesabı **P6** aşamasında.
 - P0 **açık risk:** önceki yerel npm audit sonucunda 7 bulgu (1 kritik, 2 yüksek, 4 orta); etkilenen paket zincirleri incelenmeden kapatılmış sayılmayacak.
 - Kod push/CI sonucu, gerçek mobil E2E ve ebeveyn akışı kabul testi yerine geçmez.  
+
+### Erişim yolu değiştirme ve aile bağlantısı — kod uygulaması (31.10.2026)
+
+- Mevcut oyuncunun Kids ekranından **Oyun Yolum** menüsünü tekrar açması ve aynı profille bireysel oyuna dönmesi kodlandı. Bu işlem profil yaratmaz, oyun kayıtlarını sıfırlamaz ve bağlı aile hesabını koparmaz.
+- Ebeveyn alanında yerel profili **açık onayla tek tek aile hesabına bağlama**, bağlı profilleri eşitleme ve ikinci cihazdan **profilleri buluttan getirme** işlemleri kodlandı.
+- Profil sahipliği uzak sunucuda doğrulanmadan bulut olaylarına müdahale edilmez. Diğer hesaba bağlı yerel profil aileye sessizce aktarılamaz.
+- İlerleme olayları birleştirilirken Renk Korusu kelime bazlı doğru/yanlış kanıtları saklanır; aynı olayın iki kez sayılması engellenir. Profile ait ID değişmez.
+- **Kısıt:** Bulut yedekleme şimdilik ebeveyn alanından manuel tetiklenir; otomatik cihaz eşitliği veya gerçek eşzamanlı oyun iddia edilmez.
+- **Kısıt:** İngilizce düzeyi ve sınıf tercihi hâlen yerel profil alanlarıdır; bulut meta veri senkronu henüz tamamlanmadı. Diğer cihazda öğrenme tercihleri kullanıcı tarafından tekrar seçilmelidir.
+- **Kısıt:** Okul/sınıf üyeliği ve yetki altyapısı P6 kapsamındadır; “Okulumla Oyna” geçerli oyun profiline erişimi engellemeyen hazırlanıyor ekranı olarak kalır.
+- **Kabul eksikleri:** yerel `npm run type-check`, web testleri, production build, gerçek Supabase hesabıyla iki ayrı cihazda A→B ve B→A, offline tekrar, hesap sahipliği testi. Bu doğrulamalar tamamlanmadan P2 **DONE** olarak işaretlenmeyecek.
