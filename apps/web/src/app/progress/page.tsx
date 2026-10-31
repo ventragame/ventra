@@ -191,7 +191,7 @@ export default function ProgressDashboardPage() {
           )}
 
           <Link
-            href="/learn"
+            href="/"
             style={{
               background: 'rgba(11, 18, 32, 0.85)',
               border: '1px solid rgba(56, 189, 248, 0.3)',
@@ -206,8 +206,8 @@ export default function ProgressDashboardPage() {
               textDecoration: 'none'
             }}
           >
-            <span>📖</span>
-            <span>Öğrenme Merkezi</span>
+            <span>🏠</span>
+            <span>Ana Sayfa</span>
           </Link>
 
           <Link
@@ -226,8 +226,8 @@ export default function ProgressDashboardPage() {
               textDecoration: 'none'
             }}
           >
-            <span>🧭</span>
-            <span>Macera Evreni</span>
+            <span>🏝️</span>
+            <span>Adalar Evreni</span>
           </Link>
         </div>
       </header>
@@ -263,7 +263,7 @@ export default function ProgressDashboardPage() {
               Henüz Gelişim Verisi Bulunmuyor
             </h2>
             <p style={{ fontSize: '15px', color: '#94a3b8', margin: 0, maxWidth: '520px', lineHeight: 1.6 }}>
-              Öğrenme Merkezi'ndeki etkileşimli dersleri ve alıştırmaları tamamladığında veya Macera Evreni'ndeki <strong>Kesir Atölyesi</strong> bölümlerini oynadığında, akademik beceri ustalığın ve oyun kazanımların burada görüntülenecektir.
+              Ventra Kids Adalar Evreni'ndeki etkileşimli görevleri ve dersleri tamamladığında, dil kazanımların ve başarı yıldızların burada görüntülenecektir.
             </p>
             <div style={{
               display: 'flex',
@@ -273,7 +273,7 @@ export default function ProgressDashboardPage() {
               justifyContent: 'center'
             }}>
               <Link
-                href="/learn?tab=lesson"
+                href="/kids"
                 style={{
                   background: 'linear-gradient(135deg, #0284c7 0%, #2563eb 100%)',
                   color: '#ffffff',
@@ -285,22 +285,7 @@ export default function ProgressDashboardPage() {
                   boxShadow: '0 4px 14px rgba(2, 132, 199, 0.4)'
                 }}
               >
-                📖 Öğrenme Merkezi'ne Başla
-              </Link>
-              <Link
-                href="/kids"
-                style={{
-                  background: 'rgba(15, 23, 42, 0.8)',
-                  border: '1px solid rgba(56, 189, 248, 0.3)',
-                  color: '#38bdf8',
-                  padding: '12px 24px',
-                  borderRadius: '12px',
-                  fontSize: '14px',
-                  fontWeight: 800,
-                  textDecoration: 'none'
-                }}
-              >
-                🎮 Kesir Atölyesi'ne Git
+                🏝️ Adalar Evreni'ne Başla
               </Link>
             </div>
           </div>

@@ -1,9 +1,0 @@
-[gd_scene load_steps=2 format=3 uid="uid://fraction_piece_01"]
-
-[ext_resource type="Script" path="res://scripts/FractionPiece.gd" id="1_piece"]
-
-[node name="FractionPiece" type="PanelContainer"]
-custom_minimum_size = Vector2(90, 56)
-mouse_default_cursor_shape = 2
-script = ExtResource("1_piece")
-
