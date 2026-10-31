@@ -331,7 +331,14 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
                     </div>
                     {!linked && !foreign && <button disabled={isLoading} onClick={() => void handleLinkProfile(profile)}
                       style={{ borderRadius: '10px', padding: '10px', border: '1px solid #4ade80', background: '#14532d', color: '#fff', fontWeight: 800, fontSize: '12px', cursor: 'pointer' }}>Aileye Bağla</button>}
-                    {linked && <span style={{ color: '#86efac', fontSize: '12px', fontWeight: 700 }}>✓ Bağlı</span>}
+                    {linked && <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                      <span style={{ color: '#86efac', fontSize: '12px', fontWeight: 700 }}>✓ Bağlı</span>
+                      <button disabled={isLoading} onClick={() => void handleDeleteLinkedChild(profile)}
+                        aria-label={`${profile.nickname} çocuk profilini sil`}
+                        style={{ border: '1px solid #f87171', borderRadius: '8px', padding: '9px', background: '#450a0a', color: '#fecaca', fontWeight: 700, fontSize: '11px' }}>
+                        Profili Sil
+                      </button>
+                    </div>}
                   </div>
                 );
               })}
