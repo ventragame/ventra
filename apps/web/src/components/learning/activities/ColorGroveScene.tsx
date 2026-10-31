@@ -1,10 +1,8 @@
 'use client';
 
 import React from 'react';
-import { COLOR_GROVE_WORDS } from '@/lib/progress/colorGroveProgress';
+import { GROVE_TREE_POSITIONS, GROVE_PALETTE, getGroveTreeColors, type GroveMode } from '@/lib/learning/colorGroveSceneModel';
 import './color-grove.css';
-
-type GroveMode = 'discovery' | 'matching' | 'painting';
 
 interface ColorGroveSceneProps {
   mode: GroveMode;
@@ -12,12 +10,6 @@ interface ColorGroveSceneProps {
   paintedIds?: string[];
   highlight?: boolean;
   variant?: 'garden' | 'butterfly' | 'paint';
-}
-
-const BASE_PALETTE = ['#fbcfe8', '#a7f3d0', '#fde68a', '#c4b5fd', '#93c5fd', '#fda4af'];
-
-function hexFor(id: string): string {
-  return COLOR_GROVE_WORDS.find(color => color.id === id)?.hex ?? '#b1c4cb';
 }
 
 /**
@@ -28,9 +20,8 @@ function hexFor(id: string): string {
 export function ColorGroveScene({
   mode, targetHex, paintedIds = [], highlight = false, variant = 'garden'
 }: ColorGroveSceneProps) {
-  const trunks = [115, 292, 528, 698];
-  const colors = trunks.map((_, i) => paintedIds[i] ? hexFor(paintedIds[i]) :
-    mode === 'painting' ? '#b6c6c4' : BASE_PALETTE[i]);
+  const trunks = GROVE_TREE_POSITIONS;
+  const colors = getGroveTreeColors(mode, paintedIds);
 
   return (
     <div className="vg-scene relative isolate mx-auto w-full overflow-hidden rounded-[1.75rem] border border-white/30 shadow-[0_22px_70px_rgba(5,28,33,0.35)]">
@@ -85,7 +76,7 @@ export function ColorGroveScene({
           const x=24+i*69, y=275+(i%3)*16;
           return <g key={i} transform={`translate(${x} ${y})`}>
             <path d="M0 18 V-2" stroke="#327a52" strokeWidth="3" strokeLinecap="round"/>
-            {Array.from({length:5},(_,j)=><ellipse key={j} cx={0} cy={-9} rx={5} ry={11} fill={BASE_PALETTE[(i+j)%6]} transform={`rotate(${j*72} 0 -9)`}/>)}
+            {Array.from({length:5},(_,j)=><ellipse key={j} cx={0} cy={-9} rx={5} ry={11} fill={GROVE_PALETTE[(i+j)%6]} transform={`rotate(${j*72} 0 -9)`}/>)}
             <circle cy="-9" r="4" fill="#ffed94"/>
           </g>;
         })}
@@ -111,6 +102,16 @@ export function ColorGroveScene({
               <ellipse cx="502" cy="93" rx="15" ry="24" fill="#fda4af" transform="rotate(24 502 93)"/>
               <ellipse cx="485" cy="106" rx="5" ry="19" fill="#705789"/>
             </g>}
+          </g>
+        )}
+        {mode === 'painting' && paintedIds.length > 6 && (
+          <g className="vg-correct-pop" aria-label="Tekrar edilen renklerle yanan ışıklar">
+            {paintedIds.slice(6).map((_,i)=>(
+              <g key={i} transform={`translate(${375+i*46} 40)`}>
+                <circle r="16" fill="#ffedac" stroke="#fff" strokeWidth="3"/>
+                <path d="M-12 0H12M0-12V12" stroke="#fff" strokeWidth="3" opacity=".8" />
+              </g>
+            ))}
           </g>
         )}
         <g className="vg-butterfly" aria-hidden="true">

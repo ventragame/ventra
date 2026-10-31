@@ -10,4 +10,5 @@
 @media (prefers-reduced-motion: reduce) {
   .vg-tree-crown, .vg-butterfly, .vg-correct-pop { animation: none !important; }
   .vg-answer-card { transition: none !important; }
+  .vg-answer-card:hover { transform: none !important; }
 }

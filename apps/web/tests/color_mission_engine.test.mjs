@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import { planColorMission, getColorInstruction, getActiveColorQuestion, getWeakColorIds } from '../src/lib/learning/colorMissionEngine.ts';
 import { COLOR_GROVE_WORDS } from '../src/lib/progress/colorGroveProgress.ts';
+import { GROVE_TREE_POSITIONS, getGroveTreeColors } from '../src/lib/learning/colorGroveSceneModel.ts';
 import { MemoryProgressRepository } from '../src/lib/progress/MemoryProgressRepository.ts';
 import { getColorGroveProgress, saveColorGroveMission } from '../src/lib/progress/colorGroveProgress.ts';
 
@@ -132,4 +133,17 @@ test('Review planning guarantees weak colors appear and are spaced over many see
     }
     assert.ok(plan.questions.every(q => new Set(q.choices).size === q.choices.length));
   }
+});
+
+test('Every painting answer colors a distinct tree, including answers five and six', () => {
+  const painted = ['red','blue','green','yellow','pink','purple'];
+  assert.equal(GROVE_TREE_POSITIONS.length, 6);
+  const initial = getGroveTreeColors('painting', []);
+  assert.deepEqual(initial, Array(6).fill('#b6c6c4'));
+  const five = getGroveTreeColors('painting', painted.slice(0,5));
+  assert.equal(five[4], COLOR_GROVE_WORDS.find(word => word.id === 'pink').hex);
+  assert.equal(five[5], '#b6c6c4');
+  const six = getGroveTreeColors('painting', painted);
+  assert.deepEqual(six, painted.map(id => COLOR_GROVE_WORDS.find(word => word.id === id).hex));
+  assert.deepEqual(getGroveTreeColors('discovery', []), getGroveTreeColors('matching', []));
 });
