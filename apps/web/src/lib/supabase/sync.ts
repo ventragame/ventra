@@ -100,28 +100,34 @@ export class CloudSyncService {
     }
 
     try {
-      // 1. Profil Kaydını Bulutta Doğrula veya Oluştur
-      const { error: profError } = await client
-        .from('player_profiles')
-        .upsert({
-          id: profile.id,
-          user_id: userId,
-          nickname: profile.nickname,
-          avatar_id: profile.avatarId,
-          last_played_at: profile.lastPlayedAt,
-          deleted_at: null,
-          updated_at: now
-        }, { onConflict: 'id' });
-
-      if (profError) {
-        throw new Error(`Profil bulut kaydı hatası: ${profError.message}`);
+      // İlk kez bağlanan çocuk yalnızca açık onayla bulutta oluşturulur.
+      // Bağlı bir profilde tekrar upsert yaparak farklı cihazdaki avatar/ad
+      // değişikliklerini sessizce ezmeyiz.
+      if (!profile.userId) {
+        const { error: profError } = await client
+          .from('player_profiles')
+          .upsert({
+            id: profile.id,
+            user_id: userId,
+            nickname: profile.nickname,
+            avatar_id: profile.avatarId,
+            last_played_at: profile.lastPlayedAt,
+            deleted_at: null,
+            updated_at: now
+          }, { onConflict: 'id' });
+        if (profError) throw new Error(`Profil bulut bağlantısı kurulamadı: ${profError.message}`);
+        await repo.updateProfile(profile.id, { userId, isCloudSynced: false });
+      } else {
+        const { data: remoteOwner, error: ownerError } = await client
+          .from('player_profiles')
+          .select('id')
+          .eq('id', profile.id)
+          .eq('user_id', userId)
+          .is('deleted_at', null)
+          .maybeSingle();
+        if (ownerError) throw new Error(`Profil sahipliği doğrulanamadı: ${ownerError.message}`);
+        if (!remoteOwner) throw new Error('Bulut profili bulunamadı veya silinmiş. Yeni profil oluşturmadan işlem durduruldu.');
       }
-
-      // Yerel profili hesaba bağlandı olarak güncelle
-      await repo.updateProfile(profile.id, {
-        userId,
-        isCloudSynced: true
-      });
 
       // 2. Bekleyen Yerel Olayları (Pending Events) Buluta Gönder (Upload)
       const pendingEvents = await repo.getPendingEvents(profile.id);
@@ -173,6 +179,8 @@ export class CloudSyncService {
         downloadedCount = await repo.mergeRemoteEvents(remoteEvents, profile.id);
       }
 
+      // Only report a cloud-backed local profile after both directions finish.
+      await repo.updateProfile(profile.id, { isCloudSynced: true });
       return {
         success: true,
         syncedProfilesCount: 1,
@@ -249,7 +257,7 @@ export class CloudSyncService {
         });
         await repo.updateProfile(local.id, {
           userId: rp.user_id,
-          isCloudSynced: true,
+          isCloudSynced: false,
           lastPlayedAt: rp.last_played_at
         });
       }
@@ -257,7 +265,7 @@ export class CloudSyncService {
       // Remote identity explicitly belongs to the authenticated adult.
       // Only then repair an older local guest record with the same UUID.
       if (!local.userId) {
-        local = await repo.updateProfile(local.id, { userId, isCloudSynced: true });
+        local = await repo.updateProfile(local.id, { userId, isCloudSynced: false });
       }
       // Olayları indir ve birleştir, sessiz başarısızlığı başarı gibi bildirme.
       const syncResult = await this.syncProfile(local.id);
