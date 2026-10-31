@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { planColorMission, getColorInstruction, getActiveColorQuestion } from '../src/lib/learning/colorMissionEngine.ts';
+import { planColorMission, getColorInstruction, getActiveColorQuestion, getWeakColorIds } from '../src/lib/learning/colorMissionEngine.ts';
 import { COLOR_GROVE_WORDS } from '../src/lib/progress/colorGroveProgress.ts';
 import { MemoryProgressRepository } from '../src/lib/progress/MemoryProgressRepository.ts';
 import { getColorGroveProgress, saveColorGroveMission } from '../src/lib/progress/colorGroveProgress.ts';
@@ -100,4 +100,36 @@ test('No weak words means no unnecessary extended replay', () => {
   const plan = planColorMission({ mission: 3, history, seed: 88, englishLevel: 'A1' });
   assert.equal(plan.questions.length, 6);
   assert.equal(plan.reviewColorIds.length, 0);
+});
+
+test('Weak-word state clears after two later first-try correct answers', () => {
+  const wrong = { wordId: 'red', mistakes: 2, firstTryCorrect: false, kind: 'recall', timestamp: '2026-10-31T10:00:00.000Z' };
+  const right1 = { ...wrong, mistakes: 0, firstTryCorrect: true, timestamp: '2026-10-31T11:00:00.000Z' };
+  const right2 = { ...right1, timestamp: '2026-10-31T12:00:00.000Z' };
+  assert.deepEqual(getWeakColorIds([right1, wrong]), ['red'], 'out-of-order events are timestamp sorted');
+  assert.deepEqual(getWeakColorIds([wrong, right1]), ['red'], 'one correct still requires practice');
+  assert.deepEqual(getWeakColorIds([right2, wrong, right1]), [], 'two later successful recalls clear weakness');
+  const recovered = planColorMission({ mission: 2, history: [...discover, wrong, right1, right2], seed: 2, englishLevel: 'Pre-A1' });
+  assert.equal(recovered.reviewColorIds.length, 0);
+  assert.equal(recovered.questions.length, 6);
+});
+
+test('Review planning guarantees weak colors appear and are spaced over many seeds', () => {
+  const allDiscovery = COLOR_GROVE_WORDS.map(word => ({
+    wordId: word.id, mistakes: 0, firstTryCorrect: false, kind: 'discovery', timestamp: '2026-10-31T00:00:00.000Z'
+  }));
+  const weak = ['pink', 'brown'].map(wordId => ({
+    wordId, mistakes: 2, firstTryCorrect: false, kind: 'recall', timestamp: '2026-10-31T11:00:00.000Z'
+  }));
+  for (let seed = 1; seed <= 150; seed++) {
+    const plan = planColorMission({ mission: 3, history: [...allDiscovery, ...weak], seed, englishLevel: 'A1' });
+    assert.equal(plan.questions.length, 8);
+    assert.deepEqual(new Set(plan.reviewColorIds), new Set(['pink', 'brown']));
+    for (const word of ['pink', 'brown']) {
+      const indices = plan.questions.flatMap((q, i) => q.target === word ? [i] : []);
+      assert.equal(indices.length, 2, 'weak word must be tested twice');
+      assert.ok(indices[1] - indices[0] >= 2, 'weak word repeats must not be consecutive');
+    }
+    assert.ok(plan.questions.every(q => new Set(q.choices).size === q.choices.length));
+  }
 });

@@ -36,6 +36,38 @@ export function getActiveColorQuestion(
   return plan.questions[index] ?? null;
 }
 
+/**
+ * Weakness is recoverable. A previous wrong answer schedules review until the
+ * child recalls the word correctly on the first try twice afterwards.
+ * Sort timestamps for deterministic cloud/offline event reconciliation.
+ */
+export function getWeakColorIds(history: ColorAnswerEvidence[]): ColorId[] {
+  const byWord = new Map<string, ColorAnswerEvidence[]>();
+  const chronological = history
+    .filter(item => item.kind === 'recall' && COLOR_GROVE_WORDS.some(word => word.id === item.wordId))
+    .map((item, index) => ({ item, index }))
+    .sort((a, b) => {
+      const at = Date.parse(a.item.timestamp), bt = Date.parse(b.item.timestamp);
+      return (Number.isFinite(at) ? at : 0) - (Number.isFinite(bt) ? bt : 0) || a.index - b.index;
+    });
+  for (const { item } of chronological) {
+    const group = byWord.get(item.wordId) ?? [];
+    group.push(item);
+    byWord.set(item.wordId, group);
+  }
+  return COLOR_GROVE_WORDS.filter(word => {
+    const attempts = byWord.get(word.id) ?? [];
+    const lastMistake = attempts.findLastIndex(attempt =>
+      attempt.mistakes > 0 || !attempt.firstTryCorrect
+    );
+    if (lastMistake < 0) return false;
+    const recovered = attempts.slice(lastMistake + 1).filter(attempt =>
+      attempt.firstTryCorrect && attempt.mistakes === 0
+    ).length >= 2;
+    return !recovered;
+  }).map(word => word.id);
+}
+
 function random(seed: number): () => number {
   let state = seed >>> 0;
   return () => {
@@ -60,18 +92,21 @@ export function planColorMission(args: {
 }): PlannedColorMission {
   const rnd = random(args.seed);
   const all = COLOR_GROVE_WORDS.map((v) => v.id);
-  const seen = new Set(args.history.filter((item) => item.kind === 'discovery').map((item) => item.wordId));
-  const validRecall = args.history.filter((item) => item.kind === 'recall');
-  const misses = new Map<string, number>();
-  const correct = new Map<string, number>();
-  for (const attempt of validRecall) {
-    misses.set(attempt.wordId, (misses.get(attempt.wordId) || 0) + Math.max(0, attempt.mistakes));
-    correct.set(attempt.wordId, (correct.get(attempt.wordId) || 0) + Number(attempt.firstTryCorrect));
+  const seen = new Set(args.history.filter(item => item.kind === 'discovery').map(item => item.wordId));
+  // A learner can recover from an error: two later first-try recalls clear
+  // its "needs review" status. Old cumulative mistakes must not trap the
+  // child in the same extra questions forever.
+  const weak = new Set(getWeakColorIds(args.history));
+  const attemptsByWord = new Map<string, ColorAnswerEvidence[]>();
+  for (const attempt of args.history.filter(item => item.kind === 'recall')) {
+    const attempts = attemptsByWord.get(attempt.wordId) ?? [];
+    attempts.push(attempt);
+    attemptsByWord.set(attempt.wordId, attempts);
   }
   const priority = (id: string) => {
-    const wrong = misses.get(id) || 0;
-    const right = correct.get(id) || 0;
-    return Math.max(0.75, 2 + wrong * 1.7 - right * 0.35);
+    const last = (attemptsByWord.get(id) ?? []).slice(-5);
+    const recentMisses = last.reduce((sum, row) => sum + Math.max(0, row.mistakes), 0);
+    return weak.has(id) ? Math.min(12, 5 + recentMisses) : Math.max(0.75, 2 - last.length * 0.15);
   };
 
   if (args.mission === 1) {
@@ -86,19 +121,22 @@ export function planColorMission(args: {
   const learned = all.filter(id => seen.has(id));
   const allowed = learned.length > 0 ? learned : ['red', 'blue', 'yellow', 'green', 'purple', 'orange'] as ColorId[];
   const count = Math.min(6, allowed.length);
-  const targets = weightedShuffle(allowed, priority, rnd).slice(0, count);
-  // A replay must actually revisit weak vocabulary, not merely shuffle the
-  // same six questions. Add up to two spaced review questions for words
-  // previously answered incorrectly. First-time players stay at six questions.
-  const review = weightedShuffle(
-    targets.filter(id => (misses.get(id) || 0) > 0), priority, rnd
-  ).slice(0, 2);
+  // Guarantee currently weak, previously seen words appear in the base
+  // questions, rather than merely giving them a higher random probability.
+  const review = weightedShuffle(allowed.filter(id => weak.has(id)), priority, rnd).slice(0, 2);
+  const otherTargets = weightedShuffle(allowed.filter(id => !review.includes(id)), priority, rnd)
+    .slice(0, Math.max(0, count - review.length));
+  const targets = weightedShuffle([...review, ...otherTargets], priority, rnd);
   const sequence = [...targets];
   for (const target of review) {
-    const safePositions = Array.from({ length: sequence.length + 1 }, (_, i) => i)
-      .filter(i => (i === 0 || sequence[i - 1] !== target) && (i === sequence.length || sequence[i] !== target));
-    const desired = Math.min(3 + sequence.length - count, sequence.length);
-    const position = safePositions.sort((x, y) => Math.abs(x - desired) - Math.abs(y - desired))[0] ?? sequence.length;
+    const positions = Array.from({ length: sequence.length + 1 }, (_, i) => i)
+      .filter(i => (i === 0 || sequence[i - 1] !== target) &&
+                   (i === sequence.length || sequence[i] !== target));
+    const original = sequence.indexOf(target);
+    // Keep duplicate review questions apart even on short plans.
+    const position = positions.sort((a, b) =>
+      Math.abs(b - original) - Math.abs(a - original) || a - b
+    )[0] ?? sequence.length;
     sequence.splice(position, 0, target);
   }
   const questions = sequence.map((target, index) => {
