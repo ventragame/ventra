@@ -1,7 +1,7 @@
 import { getSupabaseClient, isSupabaseConfigured } from './client.ts';
 import { getProgressRepository } from '../progress/index.ts';
 import type { SyncResult, PlayerProfile } from '@ventra/shared';
-import { uploadInBatches, mergeRemotePages } from './cloudTransfer.ts';
+import { uploadInBatches, mergeRemotePages, assertChildTombstoneAcknowledged } from './cloudTransfer.ts';
 
 const cloudMetadataV2 = process.env.NEXT_PUBLIC_VENTRA_CLOUD_METADATA_V2 === 'true';
 
@@ -83,8 +83,9 @@ export class CloudSyncService {
           .eq('id', profileId).eq('user_id', userId)
           .is('deleted_at', null).select('id');
         if (error) throw error;
+        assertChildTombstoneAcknowledged(profileId, data);
         return {
-          success: true, syncedProfilesCount: data?.length ?? 0,
+          success: true, syncedProfilesCount: 1,
           uploadedEventsCount: 0, downloadedEventsCount: 0, lastSyncedAt: now
         };
       } catch (error) {
@@ -288,12 +289,15 @@ export class CloudSyncService {
 
       // 2. Bu cihazda daha önce silinmişse buluta silme tombstone'u ilet
       if (deletedIds.includes(rp.id)) {
-        const { error: tombstoneError } = await client
+        const { data, error: tombstoneError } = await client
           .from('player_profiles')
           .update({ deleted_at: new Date().toISOString() })
           .eq('id', rp.id)
-          .eq('user_id', userId);
+          .eq('user_id', userId)
+          .is('deleted_at', null)
+          .select('id');
         if (tombstoneError) throw new Error('Silinen profil buluta bildirilemedi: ' + tombstoneError.message);
+        assertChildTombstoneAcknowledged(rp.id, data);
         continue;
       }
 

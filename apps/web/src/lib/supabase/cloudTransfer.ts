@@ -34,3 +34,16 @@ export async function mergeRemotePages<T>(
     if (page.length < pageSize) return merged;
   }
 }
+
+/** Never report a completed cloud deletion unless the authenticated parent
+ * actually updated the intended child's record. A zero-row update may mean
+ * that the row was removed, ownership changed, or RLS rejected visibility.
+ */
+export function assertChildTombstoneAcknowledged(
+  profileId: string,
+  updated: ReadonlyArray<{ id: string }> | null
+): void {
+  if (!Array.isArray(updated) || updated.length !== 1 || updated[0]?.id !== profileId) {
+    throw new Error('Bulut bu çocuk profilinin silindiğini doğrulamadı. Yerel silme kaydı korunuyor; tekrar deneyin.');
+  }
+}

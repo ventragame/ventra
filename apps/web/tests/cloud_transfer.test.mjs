@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { uploadInBatches, mergeRemotePages } from '../src/lib/supabase/cloudTransfer.ts';
+import { uploadInBatches, mergeRemotePages, assertChildTombstoneAcknowledged } from '../src/lib/supabase/cloudTransfer.ts';
 import { MemoryProgressRepository } from '../src/lib/progress/MemoryProgressRepository.ts';
 
 test('1,203 cloud events are downloaded without the Supabase 1,000-row truncation', async () => {
@@ -107,4 +107,13 @@ test('Child profile SQL deletion purges learning events atomically and keeps onl
   assert.match(sql, /DELETE FROM public\.progress_events\s+WHERE profile_id = p_profile_id\s+AND user_id = parent_id/);
   assert.match(sql, /REVOKE ALL ON FUNCTION public\.delete_child_profile\(uuid\) FROM PUBLIC, anon/);
   assert.match(sql, /GRANT EXECUTE ON FUNCTION public\.delete_child_profile\(uuid\) TO authenticated/);
+});
+
+test('Child tombstones cannot silently succeed when RLS matches zero rows', () => {
+  const child = 'child-123';
+  assert.doesNotThrow(() => assertChildTombstoneAcknowledged(child, [{id:child}]));
+  assert.throws(() => assertChildTombstoneAcknowledged(child, []), /doğrulamadı/);
+  assert.throws(() => assertChildTombstoneAcknowledged(child, null), /doğrulamadı/);
+  assert.throws(() => assertChildTombstoneAcknowledged(child, [{id:'another-child'}]), /doğrulamadı/);
+  assert.throws(() => assertChildTombstoneAcknowledged(child, [{id:child},{id:child}]), /doğrulamadı/);
 });
