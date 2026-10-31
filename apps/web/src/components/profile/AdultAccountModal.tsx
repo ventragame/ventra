@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
-import { isSupabaseConfigured } from '../../lib/supabase/client';
+import { getSupabaseClient, isSupabaseConfigured } from '../../lib/supabase/client';
 import { sendAdultOtpEmail, verifyAdultOtp, getAdultAccount, signOutAdult, deleteAdultAccount } from '../../lib/supabase/auth';
 import { CloudSyncService } from '../../lib/supabase/sync';
 import { getProgressRepository } from '../../lib/progress';
@@ -158,6 +158,29 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
       setIsLoading(false);
       setSyncStatus(null);
     }
+  };
+
+  const handleDeleteLinkedChild = async (profile: PlayerProfile) => {
+    if (!account || isLoading || profile.userId !== account.userId) return;
+    if (!window.confirm('Bu çocuk profili ve öğrenme kayıtları kalıcı olarak silinsin mi?')) return;
+    setIsLoading(true);
+    setMessage(null);
+    try {
+      const client = getSupabaseClient();
+      if (!client) throw new Error('Bulut bağlantısı yok.');
+      const { data, error } = await client.from('player_profiles')
+        .update({ deleted_at: new Date().toISOString() })
+        .eq('id', profile.id).eq('user_id', account.userId)
+        .is('deleted_at', null).select('id');
+      if (error) throw error;
+      if (!data?.length) throw new Error('Bulut kaydı doğrulanamadı.');
+      await getProgressRepository().deleteProfile(profile.id);
+      await loadData();
+      onSyncCompleted?.();
+      setMessage({type:'success',text:'Çocuk profili buluttan ve cihazdan silindi.'});
+    } catch (err) {
+      setMessage({type:'error',text:err instanceof Error ? err.message : 'Silme başarısız.'});
+    } finally { setIsLoading(false); }
   };
 
   const handleSignOut = async () => {
