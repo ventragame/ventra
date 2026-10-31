@@ -26,3 +26,12 @@
 - Native app builds and unit tests cannot substitute for store policy approval and QA on physical devices.
 
 No GitHub-to-Vercel deploy or Play/App Store publishing is authorized as part of this change.
+
+## Verified automated gate — 2026-11-01
+- Source SHA: `23b53cbcb9374051c9d0a24c17c2a1e45db9533d`
+- GitHub Actions: https://github.com/ventragame/ventra/actions/runs/41251664203 — **success (both jobs)**.
+- TypeScript: PASS; offline regression suite: **53/53 pass**; production web build: PASS; static mobile web export: PASS.
+- Android: API 36 SDK installed; debug APK build PASS; unsigned release AAB build PASS (`BUILD SUCCESSFUL`). This is not a Play-signed or store-approved artifact.
+- iOS: Capacitor sync, CocoaPods, unsigned simulator Xcode build PASS.
+- Real-device, browser interaction, speech playback, Play prelaunch, Billing (if in-app purchases are required) and children's policy review: NOT VERIFIED.
+- No production deploy; Vercel Git deployment remains disabled.
