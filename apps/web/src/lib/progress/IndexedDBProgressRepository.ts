@@ -681,6 +681,18 @@ export class IndexedDBProgressRepository implements IProgressRepository {
     return summary.recommendedReview;
   }
 
+  public async getColorAnswerHistory(profileId: string): Promise<import('@ventra/shared').ColorAnswerEvidence[]> {
+    const db = await this.getDB();
+    const sessions = await this.getRecordsByIndex<any>(db, 'sessions', 'profileId', profileId);
+    return sessions.flatMap(session => {
+      if (session.data?.gameId !== 'island_word_garden_colors') return [];
+      const answers = session.data?.metrics?.colorAnswers;
+      return Array.isArray(answers) ? answers.filter(
+        (a: any) => typeof a.wordId === 'string' && (a.kind === 'discovery' || a.kind === 'recall')
+      ) : [];
+    });
+  }
+
   public async getTotalStars(targetProfileId?: string, gameId?: string): Promise<number> {
     if (gameId) {
       const levels = await this.getAllLevelProgress(gameId, targetProfileId);

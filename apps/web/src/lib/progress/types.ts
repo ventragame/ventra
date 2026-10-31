@@ -40,6 +40,8 @@ export interface IProgressRepository {
   deleteProfile(id: string): Promise<void>;
   switchActiveProfile(id: string): Promise<PlayerProfile>;
   getDeletedProfileIds?(): Promise<string[]>;
+  // Evidence is read from persisted game sessions; supports offline and cloud sync.
+  getColorAnswerHistory(profileId: string): Promise<import('@ventra/shared').ColorAnswerEvidence[]>;
 
   // --- İlerleme ve Ustalık Kayıtları (Profil Duyarlı) ---
   recordLearningSession(result: LearningSessionResult, targetProfileId?: string): Promise<RecordLearningSessionResult>;

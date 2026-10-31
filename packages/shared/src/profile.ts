@@ -30,6 +30,8 @@ export function getAvatarById(avatarId: string): PlayerAvatar {
   return found || VENTRA_AVATARS[0];
 }
 
+export type EnglishPlacement = 'Pre-A1' | 'A1' | 'A2';
+
 export interface PlayerProfile {
   id: string;                  // Kalıcı UUID
   userId: string | null;       // İsteğe bağlı yetişkin Supabase auth.users ID'si
@@ -40,6 +42,9 @@ export interface PlayerProfile {
   lastPlayedAt: string | null; // Son etkinlik zamanı
   isActive: boolean;           // Cihazdaki aktif seçili profil mi?
   isCloudSynced: boolean;      // Buluta yedeklendi mi?
+  // Optional: older profiles and cloud profiles without these fields remain valid.
+  gradeLevel?: number | null;   // 1-8; independent from language proficiency
+  englishLevel?: EnglishPlacement; // user/parent-selected, NOT an assessed level
 }
 
 export interface AdultAccountInfo {

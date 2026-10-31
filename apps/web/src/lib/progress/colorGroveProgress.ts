@@ -1,4 +1,4 @@
-import type { GameCompletedPayload } from '@ventra/shared';
+import type { GameCompletedPayload, ColorAnswerEvidence } from '@ventra/shared';
 import type { IProgressRepository } from './types.ts';
 
 export const COLOR_GROVE_GAME_ID = 'island_word_garden_colors';
@@ -10,7 +10,11 @@ export const COLOR_GROVE_WORDS = [
   { id: 'yellow', tr: 'Sarı', hex: '#facc15' },
   { id: 'green', tr: 'Yeşil', hex: '#22c55e' },
   { id: 'purple', tr: 'Mor', hex: '#a855f7' },
-  { id: 'orange', tr: 'Turuncu', hex: '#fb923c' }
+  { id: 'orange', tr: 'Turuncu', hex: '#fb923c' },
+  { id: 'pink', tr: 'Pembe', hex: '#ec4899' },
+  { id: 'black', tr: 'Siyah', hex: '#1f2937' },
+  { id: 'white', tr: 'Beyaz', hex: '#f8fafc' },
+  { id: 'brown', tr: 'Kahverengi', hex: '#92400e' }
 ] as const;
 
 export interface ColorGroveProgress {
@@ -49,7 +53,8 @@ export async function saveColorGroveMission(
   mission: number,
   wrongAttempts: number,
   correctAnswers: number,
-  durationSeconds: number
+  durationSeconds: number,
+  colorAnswers: ColorAnswerEvidence[] = []
 ): Promise<ColorGroveProgress> {
   if (!Number.isInteger(mission) || mission < 1 || mission > COLOR_GROVE_MISSIONS) {
     throw new Error('Geçersiz Renk Korusu görevi.');
@@ -78,7 +83,8 @@ export async function saveColorGroveMission(
       durationSeconds: Math.round(durationSeconds),
       attemptsCount: Math.max(1, attemptsCount),
       accuracyRate: attemptsCount > 0 ? correctAnswers / attemptsCount : 0,
-      wrongAttempts
+      wrongAttempts,
+      colorAnswers
     },
     completedAt: new Date().toISOString()
   };

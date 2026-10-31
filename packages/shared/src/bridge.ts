@@ -24,12 +24,22 @@ export interface GameReadyPayload {
   loadedAt: string;
 }
 
+export interface ColorAnswerEvidence {
+  wordId: string;
+  mistakes: number;
+  firstTryCorrect: boolean;
+  // Discovery is exposure, not proof of recall.
+  kind: 'discovery' | 'recall';
+  timestamp: string;
+}
+
 export interface GameMetrics {
   durationSeconds: number;
   attemptsCount: number;
   accuracyRate: number; // 0.0 - 1.0
   wrongAttempts?: number;
   hintsUsed?: number;
+  colorAnswers?: ColorAnswerEvidence[];
 }
 
 export interface GameCompletedPayload {
