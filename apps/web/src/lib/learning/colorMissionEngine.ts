@@ -19,6 +19,23 @@ export interface PlannedColorMission {
   seed: number;
 }
 
+/**
+ * Switching stages can briefly expose the previous stage's plan to React.
+ * Mission 1 intentionally has no questions. Never dereference an invalid
+ * question or a question belonging to another stage.
+ */
+export function getActiveColorQuestion(
+  plan: PlannedColorMission | null,
+  mission: ColorMissionId,
+  index: number
+): ColorMissionQuestion | null {
+  if (!plan || plan.mission !== mission || mission === 1 ||
+      !Number.isInteger(index) || index < 0) {
+    return null;
+  }
+  return plan.questions[index] ?? null;
+}
+
 function random(seed: number): () => number {
   let state = seed >>> 0;
   return () => {

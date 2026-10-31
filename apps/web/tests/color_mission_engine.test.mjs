@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { planColorMission, getColorInstruction } from '../src/lib/learning/colorMissionEngine.ts';
+import { planColorMission, getColorInstruction, getActiveColorQuestion } from '../src/lib/learning/colorMissionEngine.ts';
 import { COLOR_GROVE_WORDS } from '../src/lib/progress/colorGroveProgress.ts';
 import { MemoryProgressRepository } from '../src/lib/progress/MemoryProgressRepository.ts';
 import { getColorGroveProgress, saveColorGroveMission } from '../src/lib/progress/colorGroveProgress.ts';
@@ -54,4 +54,25 @@ test('Color mission recording preserves child isolation and stores answer eviden
   ]);
   assert.equal((await repo.getColorAnswerHistory(a.id)).length, 7);
   assert.equal((await getColorGroveProgress(repo, a.id)).completedLevels, 2);
+});
+
+test('Color Grove stage transitions cannot use questions from a previous mission', () => {
+  const discovery = planColorMission({ mission: 1, history: [], seed: 7, englishLevel: 'Pre-A1' });
+  const quiz = planColorMission({ mission: 2, history: discover, seed: 7, englishLevel: 'Pre-A1' });
+  const paint = planColorMission({ mission: 3, history: discover, seed: 8, englishLevel: 'Pre-A1' });
+
+  // The original runtime crash: stage 2 was rendered with stage 1's empty plan.
+  assert.equal(discovery.questions.length, 0);
+  assert.equal(getActiveColorQuestion(discovery, 2, 0), null);
+  assert.equal(getActiveColorQuestion(quiz, 3, 0), null);
+  assert.equal(getActiveColorQuestion(paint, 2, 0), null);
+  assert.equal(getActiveColorQuestion(quiz, 1, 0), null);
+  assert.equal(getActiveColorQuestion(null, 2, 0), null);
+
+  // Invalid indices must not throw during rapid stage changes / replay.
+  assert.equal(getActiveColorQuestion(quiz, 2, -1), null);
+  assert.equal(getActiveColorQuestion(quiz, 2, quiz.questions.length), null);
+  assert.equal(getActiveColorQuestion(quiz, 2, NaN), null);
+  assert.deepEqual(getActiveColorQuestion(quiz, 2, 0), quiz.questions[0]);
+  assert.deepEqual(getActiveColorQuestion(paint, 3, 0), paint.questions[0]);
 });
