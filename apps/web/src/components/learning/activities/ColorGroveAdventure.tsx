@@ -12,12 +12,19 @@ type Word = (typeof COLOR_GROVE_WORDS)[number];
 type Step = 1 | 2 | 3;
 
 function pronounce(text: string): void {
-  if (typeof window === 'undefined' || !('speechSynthesis' in window)) return;
-  window.speechSynthesis.cancel();
-  const voice = new SpeechSynthesisUtterance(text);
-  voice.lang = 'en-US';
-  voice.rate = 0.8;
-  window.speechSynthesis.speak(voice);
+  if (typeof window === 'undefined' || !('speechSynthesis' in window) ||
+      typeof SpeechSynthesisUtterance === 'undefined') return;
+  try {
+    window.speechSynthesis.cancel();
+    const voice = new SpeechSynthesisUtterance(text);
+    voice.lang = 'en-US';
+    voice.rate = 0.78;
+    window.speechSynthesis.speak(voice);
+  } catch (error) {
+    // Some Android/iOS WebViews expose speech APIs but cannot instantiate them.
+    // Never crash a lesson when a speech engine is unavailable.
+    console.warn('Cihazda sesli telaffuz kullanılamıyor:', error);
+  }
 }
 function getWord(id: string): Word {
   const word = COLOR_GROVE_WORDS.find((item) => item.id === id);
@@ -37,6 +44,7 @@ interface Props {
 export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave, profileId, englishLevel }) => {
   const [step, setStep] = useState<Step>(() => Math.min(3, progress.completedLevels + 1) as Step);
   const [plan, setPlan] = useState<PlannedColorMission | null>(null);
+  const [planIdentity, setPlanIdentity] = useState<string | null>(null);
   const [replayNonce, setReplayNonce] = useState(0);
   const [awaitingAdvance, setAwaitingAdvance] = useState(false);
   const [finishedAnswers, setFinishedAnswers] = useState<ColorAnswerEvidence[] | null>(null);
@@ -60,7 +68,8 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
 
   // Before the async effect runs, React may render the previous stage's plan.
   // Discovery has zero questions; never read questions[0] on the quiz screen.
-  const activePlan = plan?.mission === step ? plan : null;
+  const identity = `${profileId}:${englishLevel}:${step}:${replayNonce}`;
+  const activePlan = planIdentity === identity && plan?.mission === step ? plan : null;
   const currentQuestion = getActiveColorQuestion(activePlan, step, question);
   const invalidPlan = Boolean(activePlan && !complete && (
     step === 1 ? activePlan.colors.length === 0 : currentQuestion === null
@@ -69,17 +78,21 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
   useEffect(() => {
     let alive = true;
     setPlan(null);
+    setPlanIdentity(null);
     setLoadError(false);
     import('@/lib/progress').then(({ getProgressRepository }) =>
       getProgressRepository().getColorAnswerHistory(profileId)
     ).then((history) => {
-      if (alive) setPlan(planColorMission({ mission: step, history, seed: Math.floor(Math.random() * 4294967295), englishLevel }));
+      if (alive) {
+        setPlan(planColorMission({ mission: step, history, seed: Math.floor(Math.random() * 4294967295), englishLevel }));
+        setPlanIdentity(identity);
+      }
     }).catch((err) => {
       console.error('Renk planı yüklenemedi', err);
       if (alive) setLoadError(true);
     });
     return () => { alive = false; };
-  }, [step, profileId, englishLevel, replayNonce]);
+  }, [step, profileId, englishLevel, replayNonce, identity]);
 
   useEffect(() => {
     const onMute = (next: boolean) => {
@@ -104,6 +117,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
   const reset = (next: Step) => {
     if (saving) return;
     setPlan(null);
+    setPlanIdentity(null);
     setLoadError(false);
     locked.current = false;
     startTime.current = Date.now();
@@ -249,8 +263,14 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
           </div>
         )}
         {!loadError && !invalidPlan && (complete ? (
-          <section className="mx-auto max-w-lg rounded-3xl border border-lime-300/50 bg-emerald-900/70 p-7 text-center shadow-xl">
-            <div className="text-6xl" aria-hidden="true">🌟</div>
+          <section className="mx-auto max-w-3xl rounded-3xl border border-lime-300/50 bg-emerald-900/70 p-4 text-center shadow-xl sm:p-7">
+            <ColorGroveScene
+              mode={step === 1 ? 'discovery' : step === 2 ? 'matching' : 'painting'}
+              paintedIds={paintedIds}
+              targetHex={currentQuestion ? getWord(currentQuestion.target).hex : undefined}
+              highlight
+            />
+            <div className="mt-4 text-6xl" aria-hidden="true">🌟</div>
             <h2 className="mt-3 text-2xl font-black">Koru Canlandı!</h2>
             <p className="mt-2 text-sm text-emerald-100">Görev başarıyla kaydedildi.</p>
             <p className="mt-2 text-sm">Doğru: {correct} · Hatalı deneme: {mistakes}</p>
