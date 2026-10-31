@@ -9,6 +9,14 @@ import type { IProgressRepository } from './types.ts';
 export const WORD_GARDEN_STEPS_GAME_ID = 'island_word_garden_steps';
 export const WORD_GARDEN_LEVEL_COUNT = 5;
 
+export interface AnimalMissionTelemetry {
+  wrongAttempts: number;
+  correctAnswers: number;
+  durationSeconds: number;
+  animalAnswers: AnimalAnswerEvidence[];
+  sessionId: string;
+}
+
 export interface WordGardenProgressSnapshot {
   completedLevels: number;
   totalLevels: number;
@@ -72,13 +80,7 @@ export async function saveWordGardenLevelCompletion(
   profileId: string,
   levelOrder: number,
   starsEarned: number,
-  telemetry?: {
-    wrongAttempts: number;
-    correctAnswers: number;
-    durationSeconds: number;
-    animalAnswers: AnimalAnswerEvidence[];
-    sessionId: string;
-  }
+  telemetry?: AnimalMissionTelemetry
 ): Promise<WordGardenProgressSnapshot> {
   if (!Number.isInteger(levelOrder) || levelOrder < 1 || levelOrder > WORD_GARDEN_LEVEL_COUNT) {
     throw new Error('Geçersiz Kelime Bahçesi seviyesi.');

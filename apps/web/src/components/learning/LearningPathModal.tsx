@@ -9,7 +9,9 @@ import {
 import { GameLevelMap } from './GameLevelMap';
 import { WordGardenDistrictMap } from './WordGardenDistrictMap';
 import { ColorGroveAdventure } from './activities/ColorGroveAdventure';
+import { AnimalMeadowAdventure } from './activities/AnimalMeadowAdventure';
 import { getColorGroveProgress, saveColorGroveMission, type ColorGroveProgress } from '@/lib/progress/colorGroveProgress';
+import { getWordGardenProgress, type WordGardenProgressSnapshot, type AnimalMissionTelemetry } from '@/lib/progress/wordGardenProgress';
 import { getProgressRepository } from '@/lib/progress';
 import { ExploreActivity } from './activities/ExploreActivity';
 import { MatchActivity } from './activities/MatchActivity';
@@ -29,7 +31,7 @@ interface LearningPathModalProps {
   englishLevel?: 'Pre-A1' | 'A1' | 'A2';
   initialCompletedLevels?: number;
   initialStarsByLevel?: Record<number, number>;
-  onProgressUpdate: (completed: number, total: number, levelOrder: number, starsEarned: number) => Promise<void>;
+  onProgressUpdate: (completed: number, total: number, levelOrder: number, starsEarned: number, telemetry?: AnimalMissionTelemetry) => Promise<void>;
 }
 
 /**
@@ -62,6 +64,12 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
     initializeLevels(initialCompletedLevels, initialStarsByLevel)
   );
   const [showDistrictOverview, setShowDistrictOverview] = useState(true);
+  const [animalProgress, setAnimalProgress] = useState<WordGardenProgressSnapshot>({
+    completedLevels: initialCompletedLevels, totalLevels: 5,
+    progressPercent: initialCompletedLevels * 20, starsByLevel: initialStarsByLevel,
+    totalStars: Object.values(initialStarsByLevel).reduce((sum,stars)=>sum+stars,0),
+    legacyCompleted: false
+  });
   const [showColorGrove, setShowColorGrove] = useState(false);
   const [colorProgress, setColorProgress] = useState<ColorGroveProgress>({ completedLevels: 0, totalLevels: 3, starsByLevel: {} });
   const [colorProgressError, setColorProgressError] = useState(false);
@@ -76,6 +84,14 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
   useEffect(() => {
     setLevels(initializeLevels(initialCompletedLevels, initialStarsByLevel));
   }, [initialCompletedLevels, initialStarsByLevel]);
+
+  useEffect(() => {
+    let alive = true;
+    getWordGardenProgress(getProgressRepository(), profileId)
+      .then(snapshot => { if(alive)setAnimalProgress(snapshot); })
+      .catch(error=>console.error('Hayvan Çayırı ilerlemesi okunamadı',error));
+    return ()=>{alive=false};
+  },[profileId]);
 
   useEffect(() => {
     let active = true;
@@ -346,14 +362,29 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
     );
   }
 
-  // Bölge seçildikten sonra mevcut beş aşamalı öğrenme rotası korunur.
+  // Hayvan Çayırı: beş özgün görev tek, profil-duyarlı macera akışında.
+  // Legacy level and star records are read by the same repository: no resets.
   return (
-    <GameLevelMap
-      levels={levels}
-      onSelectNode={handleNodeClick}
+    <AnimalMeadowAdventure
+      key={profileId}
+      profileId={profileId}
+      englishLevel={englishLevel}
+      progress={animalProgress}
       onBack={() => setShowDistrictOverview(true)}
-      isMuted={isMuted}
-      onToggleMute={handleToggleMute}
+      onAllCompleted={() => {
+        onRegionCompleted();
+        setShowDistrictOverview(true);
+      }}
+      onSave={async (mission, stars, telemetry) => {
+        await onProgressUpdate(animalProgress.completedLevels, animalProgress.totalLevels, mission, stars, telemetry);
+        const updated = await getWordGardenProgress(getProgressRepository(), profileId);
+        setAnimalProgress(updated);
+        setLevels(initializeLevels(updated.completedLevels, updated.starsByLevel));
+        EventBus.emit('UPDATE_ISLAND_PROGRESS', {
+          islandId: 'word_garden', completed: updated.completedLevels, total: updated.totalLevels
+        });
+        return updated;
+      }}
     />
   );
 };

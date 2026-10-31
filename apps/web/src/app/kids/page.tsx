@@ -226,7 +226,7 @@ export default function VentraKidsWorldPage() {
     // All five steps were persisted individually when their activities finished.
     // Do not create a synthetic whole-island completion or overwrite the true count.
     await loadProfileAndProgress(activeProfile);
-    showToast('🌸 Kelime Bahçesi tamamlandı!');
+    showToast('🌿 Hayvan Çayırı tamamlandı!');
   }, [activeProfile, loadProfileAndProgress, showToast]);
 
   // Ada Kamera Odağını Değiştirme
@@ -635,10 +635,10 @@ export default function VentraKidsWorldPage() {
           onColorProgressSaved={() => { if (activeProfile) void loadProfileAndProgress(activeProfile); }}
           initialCompletedLevels={wordGardenCompletedLevels}
           initialStarsByLevel={wordGardenStarsByLevel}
-          onProgressUpdate={async (_completed, _total, levelOrder, starsEarned) => {
+          onProgressUpdate={async (_completed, _total, levelOrder, starsEarned, telemetry) => {
             if (!activeProfile) throw new Error('Aktif çocuk profili bulunamadı.');
             const result = await saveWordGardenLevelCompletion(
-              getProgressRepository(), activeProfile.id, levelOrder, starsEarned
+              getProgressRepository(), activeProfile.id, levelOrder, starsEarned, telemetry
             );
             setWordGardenCompletedLevels(result.completedLevels);
             setWordGardenStarsByLevel(result.starsByLevel);
