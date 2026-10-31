@@ -64,19 +64,23 @@ export class CloudSyncService {
     // 2. Silinmiş Profil (Tombstone) Senkronizasyonu
     const deletedIds = (await repo.getDeletedProfileIds?.()) || [];
     if (deletedIds.includes(profileId)) {
-      await client
-        .from('player_profiles')
-        .update({ deleted_at: now })
-        .eq('id', profileId)
-        .eq('user_id', userId);
-
-      return {
-        success: true,
-        syncedProfilesCount: 1,
-        uploadedEventsCount: 0,
-        downloadedEventsCount: 0,
-        lastSyncedAt: now
-      };
+      try {
+        const { data, error } = await client.from('player_profiles')
+          .update({ deleted_at: now })
+          .eq('id', profileId).eq('user_id', userId)
+          .is('deleted_at', null).select('id');
+        if (error) throw error;
+        return {
+          success: true, syncedProfilesCount: data?.length ?? 0,
+          uploadedEventsCount: 0, downloadedEventsCount: 0, lastSyncedAt: now
+        };
+      } catch (error) {
+        return {
+          success: false, syncedProfilesCount: 0,
+          uploadedEventsCount: 0, downloadedEventsCount: 0, lastSyncedAt: now,
+          errorMessage: error instanceof Error ? error.message : 'Silme işlemi buluta iletilemedi.'
+        };
+      }
     }
 
     if (!profile) {
