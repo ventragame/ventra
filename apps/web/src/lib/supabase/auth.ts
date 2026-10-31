@@ -125,15 +125,7 @@ export async function deleteAdultAccount(): Promise<AuthResult> {
   // 1. Sunucu tarafı RPC ile auth.users'dan kalıcı sil
   const { error: rpcError } = await client.rpc('delete_adult_user');
   if (rpcError) {
-    console.warn('[Supabase Auth] delete_adult_user RPC çağrısı başarısız, profil temizliği deneniyor:', rpcError.message);
-    const { error: profError } = await client
-      .from('player_profiles')
-      .delete()
-      .eq('user_id', user.id);
-
-    if (profError) {
-      return { success: false, error: profError.message };
-    }
+    return { success: false, error: 'Hesap sunucuda silinemedi: ' + rpcError.message };
   }
 
   // 2. Oturumu kapat
