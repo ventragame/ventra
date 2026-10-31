@@ -1,0 +1,11 @@
+.am-shell {background:linear-gradient(155deg,#092b49 0%,#165566 49%,#143d37 100%)}
+.am-scene {background:linear-gradient(130deg,#9fe0e9,#a8db9e)}
+.am-tap {touch-action:manipulation;-webkit-tap-highlight-color:transparent;transition:transform .16s ease,border-color .16s ease,background-color .16s ease}
+.am-tap:focus-visible,.am-cta:focus-visible {outline:3px solid #fde68a;outline-offset:3px}
+.am-tap:active {transform:scale(.985)}
+.am-cta {touch-action:manipulation;min-height:52px;border-radius:16px;padding:12px 24px;background:linear-gradient(95deg,#d9f99d,#80edc0);color:#124e3c;font-weight:900;box-shadow:0 9px 26px #0b2b2570}
+.am-pop {animation:am-entrance .55s ease-out both}
+.am-float {animation:am-hover 3.5s ease-in-out infinite}
+@keyframes am-entrance {from{opacity:0;scale:.85}to{opacity:1;scale:1}}
+@keyframes am-hover {0%,100%{transform:translateY(0)}50%{transform:translateY(-10px)}}
+@media(prefers-reduced-motion:reduce){.am-pop,.am-float{animation:none!important}.am-tap{transition:none!important}.am-tap:active{transform:none}}
