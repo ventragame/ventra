@@ -76,3 +76,28 @@ test('Color Grove stage transitions cannot use questions from a previous mission
   assert.deepEqual(getActiveColorQuestion(quiz, 2, 0), quiz.questions[0]);
   assert.deepEqual(getActiveColorQuestion(paint, 3, 0), paint.questions[0]);
 });
+
+test('Replay explicitly practices weak colors again with spaced questions', () => {
+  const history = [
+    ...discover,
+    { wordId: 'red', mistakes: 3, firstTryCorrect: false, kind: 'recall', timestamp: '2026-10-31T00:00:00.000Z' },
+    { wordId: 'blue', mistakes: 2, firstTryCorrect: false, kind: 'recall', timestamp: '2026-10-31T00:00:00.000Z' }
+  ];
+  const plan = planColorMission({ mission: 2, history, seed: 77, englishLevel: 'Pre-A1' });
+  assert.equal(plan.questions.length, 8);
+  assert.deepEqual(new Set(plan.reviewColorIds), new Set(['red', 'blue']));
+  assert.equal(plan.questions.filter(q => q.target === 'red').length, 2);
+  assert.equal(plan.questions.filter(q => q.target === 'blue').length, 2);
+  for (let i = 1; i < plan.questions.length; i++) {
+    assert.notEqual(plan.questions[i].target, plan.questions[i - 1].target, 'repeat must not be adjacent');
+  }
+  assert.ok(plan.questions.every(q => q.choices.includes(q.target)));
+  assert.ok(plan.questions.every(q => new Set(q.choices).size === q.choices.length));
+});
+
+test('No weak words means no unnecessary extended replay', () => {
+  const history = [...discover, { wordId: 'red', mistakes: 0, firstTryCorrect: true, kind: 'recall', timestamp: '2026-10-31T00:00:00.000Z' }];
+  const plan = planColorMission({ mission: 3, history, seed: 88, englishLevel: 'A1' });
+  assert.equal(plan.questions.length, 6);
+  assert.equal(plan.reviewColorIds.length, 0);
+});

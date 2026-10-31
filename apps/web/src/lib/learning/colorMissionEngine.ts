@@ -87,7 +87,21 @@ export function planColorMission(args: {
   const allowed = learned.length > 0 ? learned : ['red', 'blue', 'yellow', 'green', 'purple', 'orange'] as ColorId[];
   const count = Math.min(6, allowed.length);
   const targets = weightedShuffle(allowed, priority, rnd).slice(0, count);
-  const questions = targets.map((target, index) => {
+  // A replay must actually revisit weak vocabulary, not merely shuffle the
+  // same six questions. Add up to two spaced review questions for words
+  // previously answered incorrectly. First-time players stay at six questions.
+  const review = weightedShuffle(
+    targets.filter(id => (misses.get(id) || 0) > 0), priority, rnd
+  ).slice(0, 2);
+  const sequence = [...targets];
+  for (const target of review) {
+    const safePositions = Array.from({ length: sequence.length + 1 }, (_, i) => i)
+      .filter(i => (i === 0 || sequence[i - 1] !== target) && (i === sequence.length || sequence[i] !== target));
+    const desired = Math.min(3 + sequence.length - count, sequence.length);
+    const position = safePositions.sort((x, y) => Math.abs(x - desired) - Math.abs(y - desired))[0] ?? sequence.length;
+    sequence.splice(position, 0, target);
+  }
+  const questions = sequence.map((target, index) => {
     const distractors = weightedShuffle(allowed.filter(id => id !== target), () => 1, rnd).slice(0, 2);
     const choices = weightedShuffle([target, ...distractors], () => 1, rnd);
     return {
@@ -96,7 +110,7 @@ export function planColorMission(args: {
       scene: ((index + Math.floor(rnd() * 3)) % 3 === 0 ? 'butterfly' : args.mission === 3 ? 'paint' : 'garden') as ColorMissionQuestion['scene']
     };
   });
-  const reviewColorIds = targets.filter(id => (misses.get(id) || 0) > (correct.get(id) || 0));
+  const reviewColorIds = review;
   return { mission: args.mission, colors: [], questions, reviewColorIds, seed: args.seed };
 }
 
