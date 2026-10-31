@@ -252,7 +252,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
         {loadError && <div role="alert" className="mx-auto max-w-md space-y-3 rounded-2xl border border-rose-300/40 bg-rose-950 p-5 text-center">
           <p>Görev planı yüklenemedi. İlerlemen silinmedi.</p>
           <button onClick={() => reset(step)} className="vg-answer-card rounded-xl bg-lime-300 px-5 py-3 font-black text-emerald-950">Yeniden Dene</button>
-        </div>
+        </div>}
         {!loadError && !activePlan && !complete && <div role="status" className="p-6 text-center">Yeni macera hazırlanıyor…</div>}
         {!loadError && invalidPlan && (
           <div role="alert" className="mx-auto max-w-md rounded-2xl border border-amber-300/50 bg-slate-950/70 p-5 text-center">
