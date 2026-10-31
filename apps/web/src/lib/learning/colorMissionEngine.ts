@@ -101,7 +101,7 @@ export function planColorMission(args: {
   // A learner can recover from an error: two later first-try recalls clear
   // its "needs review" status. Old cumulative mistakes must not trap the
   // child in the same extra questions forever.
-  const weak = new Set(getWeakColorIds(args.history));
+  const weak = new Set<string>(getWeakColorIds(args.history));
   const attemptsByWord = new Map<string, ColorAnswerEvidence[]>();
   for (const attempt of args.history.filter(item => item.kind === 'recall')) {
     const attempts = attemptsByWord.get(attempt.wordId) ?? [];
