@@ -93,7 +93,11 @@ export async function getAdultAccount(): Promise<AdultAccountInfo | null> {
     createdAt: user.created_at,
     isConfirmed: Boolean(user.email_confirmed_at),
     linkedProfilesCount: 0,
-    lastSyncedAt: null
+    lastSyncedAt: (() => {
+      try {
+        return typeof window !== 'undefined' ? window.localStorage.getItem('ventra-last-sync:' + user.id) : null;
+      } catch { return null; }
+    })()
   };
 }
 
