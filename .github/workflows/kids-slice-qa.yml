@@ -38,3 +38,17 @@ jobs:
         run: npm --workspace=apps/web run export
       - name: Sync Android Capacitor assets (no APK or deployment)
         run: npm --workspace=apps/mobile run sync:android
+      - name: Set up Java 17 for native Android
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Set up Android SDK (compile SDK 34)
+        uses: android-actions/setup-android@v3
+      - name: Install Android SDK 34
+        run: sdkmanager "platforms;android-34" "build-tools;34.0.0"
+      - name: Assemble unsigned Android debug APK (no publishing)
+        working-directory: apps/mobile/android
+        run: |
+          chmod +x ./gradlew
+          ./gradlew --no-daemon assembleDebug
