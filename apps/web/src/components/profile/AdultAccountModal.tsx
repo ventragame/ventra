@@ -85,6 +85,12 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
     }
   };
 
+  const recordSuccess = (userId: string) => {
+    const now = new Date().toISOString();
+    try { window.localStorage.setItem('ventra-last-sync:' + userId, now); } catch {}
+    setAccount(current => current?.userId === userId ? { ...current, lastSyncedAt: now } : current);
+  };
+
   const handleSyncNow = async () => {
     if (!account || isLoading) return;
     setIsLoading(true);
@@ -95,6 +101,7 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
       // Syncing only the current local profile list would miss deleted ones.
       const updated = await CloudSyncService.getInstance().pullAllCloudProfiles();
       await loadData();
+      recordSuccess(account.userId);
       onSyncCompleted?.();
       setMessage({ type: 'success', text:
         `Eşitleme tamamlandı. ${updated.length} çocuk profili kontrol edildi; yerel ve bulut öğrenme kayıtları birleştirildi.`
@@ -117,6 +124,7 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
       const result = await CloudSyncService.getInstance().syncProfile(profile.id, { allowLink: true });
       if (!result.success) throw new Error(result.errorMessage || 'Bağlantı başarısız.');
       await loadData();
+      recordSuccess(account.userId);
       setMessage({ type: 'success', text: `${profile.nickname} profili bağlandı. ${result.uploadedEventsCount} kayıt gönderildi, ${result.downloadedEventsCount} kayıt indirildi.` });
       onSyncCompleted?.();
     } catch (error) {
@@ -135,6 +143,7 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
     try {
       const restored = await CloudSyncService.getInstance().pullAllCloudProfiles();
       await loadData();
+      recordSuccess(account.userId);
       if (restored.length > 0) {
         onSyncCompleted?.();
         setMessage({ type: 'success', text: `${restored.length} profil kontrol edildi. İlerlemeler birleştirildi; oyuncu seçicisinden istediğiniz profile geçebilirsiniz.` });
@@ -301,6 +310,11 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
               </div>
               <div style={{ fontSize: '12px', color: '#94a3b8' }}>
                 Bu cihazda {profiles.length} profil var; {profiles.filter(p => p.userId === account.userId).length} tanesi aile hesabına bağlı.
+              </div>
+              <div style={{ fontSize: '11px', color: '#bfdbfe' }}>
+                {account.lastSyncedAt
+                  ? `Bu cihazda son başarılı eşitleme: ${new Date(account.lastSyncedAt).toLocaleString('tr-TR')}`
+                  : 'Bu cihazda henüz doğrulanmış bir bulut eşitlemesi yok.'}
               </div>
             </div>
 
