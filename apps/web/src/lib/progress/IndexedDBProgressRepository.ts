@@ -652,7 +652,8 @@ export class IndexedDBProgressRepository implements IProgressRepository {
     const profileId = await this.ensureActiveProfileId(targetProfileId);
     const result: Record<number, LevelProgressRecord> = {};
 
-    for (let i = 1; i <= 10; i++) {
+    const maxLevel = gameId === 'island_word_garden_numbers' ? 15 : 10;
+    for (let i = 1; i <= maxLevel; i++) {
       const key = `${profileId}:${gameId}:${i}`;
       const rec = await this.getRecord<LevelProgressRecord>(db, 'levels', key);
       if (rec) {
