@@ -1,0 +1,32 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 300" role="img" aria-label="Ventra kaşif karakteri">
+<defs>
+<linearGradient id="shirt" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffde80"/><stop offset="1" stop-color="#f0a74c"/></linearGradient>
+<linearGradient id="hat" x1="0" y1="0" x2="0" y2="1"><stop stop-color="#4ab6ad"/><stop offset="1" stop-color="#246c8e"/></linearGradient>
+<linearGradient id="skin" x1=".2" y1=".1" x2=".9" y2="1"><stop stop-color="#ffd6a2"/><stop offset="1" stop-color="#df985f"/></linearGradient>
+<filter id="depth" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="7" stdDeviation="5" flood-color="#193d48" flood-opacity=".3"/></filter>
+</defs>
+<ellipse cx="125" cy="281" rx="69" ry="13" fill="#174c48" opacity=".18"/>
+<g stroke-linejoin="round" stroke-linecap="round" filter="url(#depth)">
+<path d="M92 220l-9 39q-8 20 1 20h35l13-52M152 223l9 35q0 20 12 20h31q8 0-2-22l-12-38" fill="#385a8d" stroke="#274264" stroke-width="6"/>
+<path d="M78 273q7-19 29-15l14 13v10H78ZM166 272q12-17 28-13l17 15-1 9h-46Z" fill="#42546b" stroke="#2d4155" stroke-width="5"/>
+<path d="M73 148q-18-9-24 18l4 73q11 15 28 1l9-63" fill="#468f93" stroke="#245d72" stroke-width="6"/>
+<path d="M181 148q20-7 26 18l-2 75q-12 14-28 0l-7-69" fill="#468f93" stroke="#245d72" stroke-width="6"/>
+<path d="M101 154Q127 137 156 157L178 216Q157 249 126 251Q96 249 77 220Z" fill="url(#shirt)" stroke="#ae734d" stroke-width="6"/>
+<path d="M100 163l17 20M155 163l-17 20" fill="none" stroke="#fff5c8" stroke-width="8"/>
+<path d="M119 175v66" fill="none" stroke="#c88d51" stroke-width="4" stroke-dasharray="5 10"/>
+<rect x="69" y="168" width="33" height="49" rx="11" transform="rotate(12 69 168)" fill="#227a81" stroke="#23616f" stroke-width="5"/>
+<ellipse cx="128" cy="103" rx="70" ry="75" fill="url(#skin)" stroke="#bd815d" stroke-width="6"/>
+<path d="M64 107q-22-27 1-51q-3-31 38-37q31-27 75 4q34-5 39 37q17 24-1 53L196 82Q142 45 72 88Z" fill="#674e44"/>
+<path d="M85 129q17-15 31 0M144 129q17-15 31 0" fill="none" stroke="#654b49" stroke-width="4"/>
+<ellipse cx="100" cy="139" rx="6" ry="8" fill="#313d4b"/><ellipse cx="160" cy="139" rx="6" ry="8" fill="#313d4b"/>
+<circle cx="98" cy="136" r="2.2" fill="#fff"/><circle cx="158" cy="136" r="2.2" fill="#fff"/>
+<ellipse cx="75" cy="159" rx="15" ry="10" fill="#f39c8e" opacity=".5"/>
+<ellipse cx="184" cy="159" rx="15" ry="10" fill="#f39c8e" opacity=".5"/>
+<path d="M115 166q15 17 29 0" fill="none" stroke="#ab695e" stroke-width="5"/>
+<path d="M72 88q11-25 51-17q40 11 68 3" fill="none" stroke="#6e5146" stroke-width="12"/>
+<path d="M42 91q85-21 173 1q24 13 0 17Q128 98 42 111Q18 106 42 91Z" fill="#205b82" stroke="#18455f" stroke-width="5"/>
+<path d="M75 58q52-39 111 0l18 36Q129 87 57 96Z" fill="url(#hat)" stroke="#174a66" stroke-width="6"/>
+<path d="M73 77q53-16 123-2" fill="none" stroke="#a3e3b9" stroke-width="9"/>
+<path d="M125 62l9-11 10 10-11 12Z" fill="#ffec91"/>
+<path d="M61 209q-18 3-11 16q10 12 23-1M196 208q16 3 11 16q-10 12-23-1" fill="url(#skin)" stroke="#bd815d" stroke-width="4"/>
+</g></svg>
