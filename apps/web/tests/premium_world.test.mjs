@@ -39,7 +39,7 @@ test('P4 all forty animal positions and habitats are unique and playable on a 14
   assert.equal(animals.length,40);
   assert.equal(homes.length,40);
   assert.equal(new Set(animals.map(x=>x.x+':'+x.y)).size,40);
-  assert.equal(new Set(homes.map(x=>x.x+':'+x.y)).size,12,
+  assert.equal(new Set(homes.map(x=>x.x+':'+x.y)).size,40,
     'cow/horse and duck/fish habitats must not overlap');
   for(const target of [...animals,...homes]){
     assert.ok(target.x>=80&&target.x<WORLD_WIDTH-40);

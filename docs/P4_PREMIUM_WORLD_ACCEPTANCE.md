@@ -12,7 +12,7 @@ Bu belge P4.1–P4.4 yazılım teslimi ile P4.5 son kullanıcı / fiziksel cihaz
 ## P4.2 — Çayır keşfi
 - İlk görev 8 hayvan sunar. Çocuk hayvanın yanına yürüyünce ses ve keşif işlenir.
 - Keşfedilmiş hedefin tekrarlanan yakınlaşması ikinci kanıt veya yıldız oluşturmaz.
-- 12 hayvan albümü önceki keşifleri korur; yeniden keşifte yeni dört hayvan tanıtılabilir.
+- 40 hayvanlık katalog önceki keşifleri korur; her turda 8 hayvan gösterilir. Yeni hayvan kaldığı sürece tekrar keşifte en az 6 yeni tür seçilir.
 - Her hayvan için yerel SVG bulunur; internet kesilse bile görsel boş kalmamalıdır.
 
 ## P4.3 — Beş göreve bağlı gerçek etkileşim
@@ -24,11 +24,11 @@ Bu belge P4.1–P4.4 yazılım teslimi ile P4.5 son kullanıcı / fiziksel cihaz
 - Görev tamamlandıktan sonra tekrar oynama farklı tohum/soru verir; P3'e göre zor kelimeler tekrar gelir.
 
 ## P4.4 — Sunum / ses
-- Yerel özgün kaşif görseli, 12 hayvan çizimi, çevre ve çiçek açma tepkileri yüklenir.
+- Yerel kaşif görseli, 40 hayvan görsel varlığı, çevre ve çiçek açma tepkileri yüklenir. Son 28 hayvandan bazıları emoji tabanlı geçici SVG varlıklarıdır; tutarlı özgün premium sanat standardı henüz sağlanmamıştır.
 - Genel ses kapalıysa ortam sesi başlamaz. Ortam müziği yalnızca ayrıca tıklanırsa başlar.
 - Genel mute, uygulamadan çıkış ve sekme gizlenmesinde ortam sesi durur.
 - Erişilebilirlik "reduce motion" ayarıyla sürekli animasyonlar devre dışı kalır.
-- **Açık:** Sekiz yeni hayvan için cihaz bağımsız profesyonel telaffuz kaydı sağlanmadı; tarayıcı TTS sesi her cihazda aynı değil.
+- **Açık:** 36 hayvan için cihaz bağımsız kayıtlı İngilizce telaffuz sağlanmadı; tarayıcı TTS sesi her cihazda aynı değil.
 
 ## P4.5 — Yayın öncesi zorunlu kabul (henüz PASS değil)
 1. Windows Chromium, Android WebView ve iOS Safari/Capacitor: 320px, 360px, tablet, yatay ekran.
@@ -55,3 +55,11 @@ Bu belge P4.1–P4.4 yazılım teslimi ile P4.5 son kullanıcı / fiziksel cihaz
 - Open: Android/iPhone physical device touch/FPS/offline/TTS/VoiceOver/child-user acceptance.
 - Open security gate: npm audit 7 current vulnerabilities: 1 critical, 2 high, 4 moderate. Package impact and fixes require separate triage; no unsafe `npm audit fix --force` was run.
 - No production deploy, mobile store upload, app signing or purchases enabled.
+
+
+## 2026-11-01 — 40 hayvanlı sürüm P4 teknik kapanış takibi
+- 40 hayvan / her tur 8 keşif; en az 6 yeni keşif havuzu, zayıf kelime pekiştirmesi korunur.
+- 40 hayvan büyümesinden sonra CI'da 4 test başarısızdı: 2 eski 12 sayısı beklentisi, 1 sabit tam 6 yeni hayvan beklentisi, 1 anlamsız SVG byte uzunluğu kalite eşiği. Bu committe testlerin gerçek katalog ve yeniden oynama sözleşmesine uyumu düzeltildi.
+- SVG içeriğini güvenli offline kullanılabilirlik testi denetler; görünümün premium olduğu yalnızca uzunlukla doğrulanamaz.
+- Testlerin yeni SHA üzerinde CI PASS sonucu görülmeden P4 teknik kabul tamamlandı sayılmaz.
+- Fiziksel cihaz / pedagojik kabul ve bağımlılık güvenlik incelemesi yayın öncesi ayrı açık kapılardır.
