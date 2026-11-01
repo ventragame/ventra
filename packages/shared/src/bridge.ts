@@ -69,6 +69,11 @@ export interface FamilyAnswerEvidence {
  kind:'discovery'|'recognition'|'listening'|'context'|'dialogue';
  mistakes:number;firstTryCorrect:boolean;hintUsed:boolean;timestamp:string;
 }
+export interface TempleAnswerEvidence {
+  wordId:string;sourceDomain:'animals'|'colors'|'numbers'|'food'|'family';
+  kind:'discovery'|'recognition'|'listening'|'sentence'|'sequence';
+  mistakes:number;firstTryCorrect:boolean;hintUsed:boolean;timestamp:string;
+}
 export interface GameMetrics {
   durationSeconds: number;
   attemptsCount: number;
@@ -80,6 +85,7 @@ export interface GameMetrics {
   numberAnswers?: NumberAnswerEvidence[];
   foodAnswers?: FoodAnswerEvidence[];
   familyAnswers?: FamilyAnswerEvidence[];
+  templeAnswers?: TempleAnswerEvidence[];
 }
 
 export interface GameCompletedPayload {

@@ -1,0 +1,149 @@
+import type {TempleAnswerEvidence,AnimalAnswerEvidence,ColorAnswerEvidence,FoodAnswerEvidence,FamilyAnswerEvidence,NumberAnswerEvidence} from '@ventra/shared';
+import type {EnglishPlacement} from './gradeAwareLearningPolicy.ts';
+import {ANIMAL_MEADOW_WORDS} from './animalMissionEngine.ts';
+import {COLOR_GROVE_WORDS} from '../progress/colorGroveProgress.ts';
+import {MARKET_WORDS} from './foodMarketEngine.ts';
+import {VILLAGE_WORDS} from './familyVillageEngine.ts';
+import {englishNumber} from './numberValleyEngine.ts';
+
+export type TempleDomain='animals'|'colors'|'numbers'|'food'|'family';
+export type TempleChamber='rune'|'echo'|'feast'|'home'|'crown';
+export type TempleStage=1|2|3|4|5;
+export type TempleSkill='discovery'|'recognition'|'listening'|'context'|'sentence'|'sequence';
+export type TempleWord={id:string;en:string;tr:string;icon:string;domain:TempleDomain;
+  color?:string;image?:string;tier:0|1|2;context:string};
+export type TempleQuestion={
+  target:string;options:string[];prompt:string;audio:string;
+  /** Five-stage speech/story challenge; exact tokens are displayed only after attempting. */
+  sentenceTokens?:string[];sentenceAnswer?:string[];
+  pair?:number;
+};
+export type TemplePlan={chamber:TempleChamber;stage:TempleStage;words:string[];questions:TempleQuestion[]};
+
+export const TEMPLE_CHAMBERS=[
+ {id:'rune',title:'Rün Ormanı',subtitle:'Animals & Colours',icon:'🌿',tone:'#9bdfbb'},
+ {id:'echo',title:'Yankı Galerisi',subtitle:'Numbers & Listening',icon:'🔮',tone:'#9acfe8'},
+ {id:'feast',title:'Bereket Salonu',subtitle:'Food & Requests',icon:'🍓',tone:'#eacb9d'},
+ {id:'home',title:'Hatıra Odaları',subtitle:'Home & Family',icon:'🏡',tone:'#e9b9d6'},
+ {id:'crown',title:'Kristal Taht',subtitle:'The Great English Finale',icon:'👑',tone:'#e5dba4'}
+] as const;
+export const TEMPLE_STAGES=[
+ {stage:1,title:'Kayıp Rünler',icon:'🗺️',kind:'discovery',desc:'Sembolleri keşfet, İngilizce anlamlarını dinle.'},
+ {stage:2,title:'Gizemli Yazıt',icon:'🔤',kind:'recognition',desc:'İpucundan doğru İngilizce kelimeyi bul.'},
+ {stage:3,title:'Yankı Kristalleri',icon:'🎧',kind:'listening',desc:'Sesi dinleyerek doğru kristale dokun.'},
+ {stage:4,title:'Cümle Köprüsü',icon:'🧩',kind:'sentence',desc:'İngilizce cümleyi kelime kelime tamamla.'},
+ {stage:5,title:'Mühür Kapısı',icon:'🔐',kind:'sequence',desc:'İki parçalı İngilizce şifreyi sırayla çöz.'}
+] as const;
+export const TEMPLE_GAME_ID='island_word_garden_temple';
+export const TEMPLE_TOTAL=25;
+export const TEMPLE_OFFSETS:Record<TempleChamber,number>={rune:0,echo:5,feast:10,home:15,crown:20};
+export const TEMPLE_KINDS=['discovery','recognition','listening','sentence','sequence'] as const;
+const numAnchors=[1,2,3,4,5,6,7,8,9,10,11,12,13,14,15,16,17,18,19,20,25,30,40,50,60,70,80,90,100,125,200,350,500,750,1000];
+const numberWords:TempleWord[]=numAnchors.map((n,i)=>({
+ id:'numbers:'+n,en:englishNumber(n),tr:String(n),icon:String(n),domain:'numbers',tier:(n<=10?0:n<=100?1:2) as 0|1|2,
+ context:`Find the number ${englishNumber(n)}.`
+}));
+export const TEMPLE_WORDS:readonly TempleWord[]=[
+ ...ANIMAL_MEADOW_WORDS.map((w,i)=>({id:'animals:'+w.id,en:w.id,tr:w.tr,icon:w.emoji,image:w.image,domain:'animals' as const,
+ tier:(i<12?0:i<28?1:2) as 0|1|2,context:`Find the ${w.id}.`})),
+ ...COLOR_GROVE_WORDS.map((w,i)=>({id:'colors:'+w.id,en:w.id,tr:w.tr,icon:'◆',color:w.hex,domain:'colors' as const,
+ tier:(i<6?0:i<9?1:2) as 0|1|2,context:`Find the ${w.id} crystal.`})),
+ ...numberWords,
+ ...MARKET_WORDS.map(w=>({id:'food:'+w.id,en:w.id,tr:w.tr,icon:w.icon,domain:'food' as const,
+ tier:w.tier,context:`Find the ${w.id}.`})),
+ ...VILLAGE_WORDS.map(w=>({id:'family:'+w.id,en:w.id,tr:w.tr,icon:w.icon,domain:'family' as const,
+ tier:w.tier,context:w.command}))
+];
+export function templeWord(id:string):TempleWord{
+ const word=TEMPLE_WORDS.find(w=>w.id===id);
+ if(!word)throw Error('Unknown temple word: '+id);
+ return word;
+}
+const CHAMBER_DOMAINS:Record<TempleChamber,readonly TempleDomain[]>={
+ rune:['animals','colors'],echo:['numbers','colors'],feast:['food','colors'],
+ home:['family','animals'],crown:['animals','colors','numbers','food','family']
+};
+export function templeAllowedWords(chamber:TempleChamber,gradeLevel:number|null|undefined,englishLevel:EnglishPlacement):TempleWord[]{
+ const max=englishLevel==='Pre-A1'||(gradeLevel!=null&&gradeLevel>=1&&gradeLevel<=2)?0:
+  englishLevel==='A1'||(gradeLevel!=null&&gradeLevel<=4)?1:2;
+ return TEMPLE_WORDS.filter(w=>CHAMBER_DOMAINS[chamber].includes(w.domain)&&w.tier<=max);
+}
+export function templeResumePoint(completed:Record<TempleChamber,number>){
+ const c=(TEMPLE_CHAMBERS.find(w=>completed[w.id]<5)??TEMPLE_CHAMBERS[4]).id;
+ return {chamber:c,stage:Math.min(5,completed[c]+1) as TempleStage};
+}
+function rngFor(seed:number){let state=seed>>>0;return ()=>{state=(Math.imul(state,1664525)+1013904223)>>>0;return state/4294967296;};}
+function shuffle<T>(values:readonly T[],random:()=>number):T[]{
+ const a=[...values];for(let i=a.length-1;i>0;i--){const j=Math.floor(random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;
+}
+export type TemplePriorEvidence={
+ animals:readonly AnimalAnswerEvidence[];
+ colors:readonly ColorAnswerEvidence[];
+ numbers:readonly NumberAnswerEvidence[];
+ food:readonly FoodAnswerEvidence[];
+ family:readonly FamilyAnswerEvidence[];
+};
+export function templeWeakWords(prior:TemplePriorEvidence):Set<string>{
+ const out=new Set<string>();
+ for(const [domain,rows] of [
+  ['animals',prior.animals],['colors',prior.colors],['food',prior.food],['family',prior.family]
+ ] as const)for(const row of rows){
+  if(row.kind==='discovery')continue;
+  if(row.mistakes>0||!row.firstTryCorrect||row.hintUsed)out.add(domain+':'+row.wordId);
+ }
+ for(const row of prior.numbers)if(row.kind!=='discovery'&&(row.mistakes>0||!row.firstTryCorrect||row.hintUsed))
+  out.add('numbers:'+row.value);
+ return out;
+}
+export function planTempleMission(input:{chamber:TempleChamber;stage:TempleStage;gradeLevel?:number|null;
+ englishLevel:EnglishPlacement;history:readonly TempleAnswerEvidence[];weak?:ReadonlySet<string>;seed:number}):TemplePlan{
+ const {chamber,stage,gradeLevel,englishLevel,history,weak,seed}=input;
+ if(!TEMPLE_CHAMBERS.some(c=>c.id===chamber)||!TEMPLE_STAGES.some(s=>s.stage===stage)||!Number.isFinite(seed))
+  throw Error('Invalid temple mission');
+ const random=rngFor(seed),all=templeAllowedWords(chamber,gradeLevel,englishLevel);
+ const encountered=new Set(history.filter(h=>h.kind==='discovery').map(h=>h.wordId));
+ const known=all.filter(w=>encountered.has(w.id));
+ const pool=stage===1?all:known.length>=4?known:all;
+ const localWrong=(id:string)=>history.filter(e=>e.wordId===id&&e.kind!=='discovery').slice(-4).reduce((n,e)=>
+  n+(e.mistakes>0||e.hintUsed||!e.firstTryCorrect?2:0),0);
+ const ordered=shuffle(pool,random).sort((a,b)=>stage===1?
+   Number(encountered.has(a.id))-Number(encountered.has(b.id)):
+   (localWrong(b.id)+(weak?.has(b.id)?3:0))-(localWrong(a.id)+(weak?.has(a.id)?3:0)));
+ const count=gradeLevel!=null&&gradeLevel>=1&&gradeLevel<=2?6:8;
+ const chosen=ordered.slice(0,count);
+ const words=chosen.map(w=>w.id);
+ if(stage===1)return {chamber,stage,words,questions:[]};
+ const rounds=stage===5?6:(gradeLevel!=null&&gradeLevel<=2?4:6);
+ const targets=shuffle(Array.from({length:rounds},(_,i)=>chosen[i%chosen.length]),random);
+ const questions=targets.map((w,i)=>{
+  const distractors=shuffle(all.filter(other=>other.id!==w.id),random).slice(0,2).map(w=>w.id);
+  const options=shuffle([w.id,...distractors],random);
+  const sentence=sentenceFor(w);
+  return {target:w.id,options,prompt:stage===2?w.tr:
+    stage===3?'Listen and choose':stage===4?'Build this English sentence':w.context,
+    audio:stage===3?w.en:stage===5?w.context:sentence.join(' '),
+    ...(stage===4?{sentenceTokens:shuffle(sentence,random),sentenceAnswer:sentence}:{}),
+    ...(stage===5?{pair:Math.floor(i/2)}:{})};
+ });
+ return {chamber,stage,words,questions};
+}
+const VOWEL=/^[aeiou]/i;
+export function sentenceFor(w:TempleWord):string[]{
+ if(w.domain==='numbers')return ['I','can','count',w.en+'.'];
+ if(w.domain==='colors')return ['I','see','a',w.en,'crystal.'];
+ if(w.domain==='animals')return ['I','see',VOWEL.test(w.en)?'an':'a',w.en+'.'];
+ if(w.domain==='food')return ['I','like',w.en+'.'];
+ if(w.en==='stairs'||w.en==='parents')return ['I','see','the',w.en+'.'];
+ if(w.domain==='family'&&['wake up','go to school','get dressed','brush my teeth','wash my face','eat breakfast',
+  'read a book','go to bed','do homework','have lunch','play outside','take a shower','tidy my room',
+  'help at home','have dinner'].includes(w.en))
+  return ['I',...w.en.split(' ').map((x,i,a)=>i===a.length-1?x+'.':x)];
+ return ['This','is',VOWEL.test(w.en)?'an':'a',w.en+'.'];
+}
+export function validTempleAnswers(value:unknown):value is TempleAnswerEvidence[]{
+ return Array.isArray(value)&&value.every(x=>x&&typeof x.wordId==='string'&&
+  TEMPLE_WORDS.some(w=>w.id===x.wordId&&w.domain===x.sourceDomain)&&
+  TEMPLE_KINDS.includes(x.kind)&&Number.isInteger(x.mistakes)&&x.mistakes>=0&&
+  typeof x.firstTryCorrect==='boolean'&&typeof x.hintUsed==='boolean'&&
+  typeof x.timestamp==='string'&&Number.isFinite(Date.parse(x.timestamp)));
+}
