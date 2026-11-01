@@ -232,3 +232,15 @@ Kaynaklar:
 - Durumlar gerçek içerik durumuna göre ayrıldı: **OYNANABİLİR**, **KİLİTLİ**, **YÜKLENİYOR**, **YÜKLEME HATASI**, **YAKINDA**. Yeni bölümde eski çocuğun verisi/yıldızları değişmedi.
 - Regresyon: Number Valley tamamlanmamışken Lezzet Pazarı açılabilmeli; henüz kodlanmamış Aile Köyü/Keşif Tapınağı kapalı kalmalı.
 - Kanıt: [GitHub Actions 41323749347](https://github.com/ventragame/ventra/actions/runs/41323749347) — TypeScript, 2D harita testleri, production web, statik mobil export, Android debug APK ve iOS Simulator derlemesi başarılı. Fiziksel cihaz kabulü hâlâ açık.
+
+### 2026-11-01 — G1.5 + G1.6 ve G2 Aile Köyü kod teslimi
+- **Ürün kapsamı değişmedi:** Ventra hâlâ yalnızca oyunlaştırılmış İngilizce/dil öğrenimi platformudur. Aile Köyü ev/şehir simülasyonu veya bağımsız yaşam becerisi oyunu değildir.
+- **G1.5:** Lezzet Pazarı'nın ürün kartları SVG ile görsel olarak güçlendirildi, TTS dinleme başarısı ses bitmeden açılmıyor; cihazın sesi çalamadığı oturumlarda destekli cevap olarak kaydediliyor.
+- **G1.6:** Her seviyede tüm uygun Lezzet Pazarı kelimelerinin tekrar oynarken keşfedilebildiği ve bağımsız/sesli/destekli yanıt kapıları otomatik testlerle denetlendi. **Fiziksel Android/iOS ve çocuk testi açıktır.**
+- **G2:** Aile Köyü oynanabilir. **4 mahalle × 5 aşama = 20 görev**, her mahallede 15 kelime/ifade; toplam **60 kavram**. Pre-A1/A1/A2 havuzları, aynı kelimeleri zamanla tekrar ve hata önceliği var. Dil görevleri keşif, çeviri-tanıma, tamamlanmış ses dinleme, İngilizce yönergeyle bulma ve günlük kısa cümle seçme. 
+- **Mevcut sistem:** `island_word_garden_family`, 20 bölüm, en fazla 60 yıldız, tekrar ödül vermeyen toplam 200 coin, P3 family domain ve mevcut çocuk profili bulut oyun eventleri. Öğretmen ödev sistemi hâlâ ertelendi.
+- **Harita:** Aile Köyü artık **OYNANABİLİR** ve diğer dünyaların tamamlanmasını zorunlu tutmuyor. Aile Köyü'nün kendi mahalleleri/görevleri sırayla açılır. Keşif Tapınağı henüz planlı.
+- **CI:** [41329515175](https://github.com/ventragame/ventra/actions/runs/41329515175) — testler, TypeScript, production web, mobil export, Android debug APK ve iOS Simulator **PASS**. Bu testler fiziksel cihaz ve çocuk kabulünün yerini tutmaz.
+- **Açık premium iş:** Bazı nesneler el çizimi SVG; çok sayıda ürün/kelime halen emojiyle gösteriliyor. İngilizce ses TTS cihazına bağlı. Tam özgün sprite/animasyon/ses ve gerçek kullanıcı pedagojik kabulü eksik. 
+- **Sonraki dünya G3:** Keşif Tapınağı — **önceki İngilizce kazanımları** yeni cümle/bulmacalarda pekiştiren dil macerası; matematik veya dilden bağımsız escape room **değil**.
+- [G1.5–G1.6 + G2 GDD ve kabul raporu](./G1_5_G1_6_G2_FAMILY_VILLAGE_ACCEPTANCE.md).

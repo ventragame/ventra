@@ -15,7 +15,7 @@
 
 Ventra'nın **Kids World (7–12 yaş)** deneyiminde çocuk, haritadaki oyun bölgelerini keşfeder; görsel, ses ve eylemlerle İngilizce kelime/ifadeleri öğrenir. P3 öğrenme motoru yeni öğrenilenleri, ipuçlarını, bağımsız yanıtları ve tekrar ihtiyacını takip eder. Aile ve okul hesapları aynı öğrenim dünyasına farklı erişim ve raporlama yollarıdır.
 
-**Oynanabilir dil bölgeleri:** Hayvan Çayırı (animals), Renk Korusu (colors), Sayı Vadisi (English numbers, düzeye göre 1–1000), **Lezzet Pazarı** (Food & Drinks; 45 kelimelik katalog, 3 sokak, 15 dil görevi). Aile Köyü ve Keşif Tapınağı sonraki dil içerikleridir.
+**Oynanabilir dil bölgeleri:** Hayvan Çayırı (animals), Renk Korusu (colors), Sayı Vadisi (English numbers, düzeye göre 1–1000), **Lezzet Pazarı** (Food & Drinks; 45 kelime, 3 sokak, 15 görev) ve **Aile Köyü** (Family/Home/Routines; 60 kavram, 4 mahalle, 20 dil görevi). Keşif Tapınağı sonraki dil içerik dünyasıdır.
 
 Lezzet Pazarı'nda çocuk İngilizce "apple", "bread", "milk" gibi sözcükleri keşfedecek, sesi tanıyacak, doğru ürünü sahnede seçecek ve "I want an apple" gibi ifadeleri kullanacaktır. **Para üstü, bütçe ve mağaza ekonomisi öğretmek bu projenin hedefi değildir.**
 
@@ -49,3 +49,10 @@ Mobil cihaz ve gerçek çocuk/ebeveyn kabul testleri CI'nin yerini tutar; derlem
 - Ürün yönünü değiştirecek öneri, ürün sahibinin açık onayı ve tarihli karar kaydı olmadan uygulanmaz.
 
 Daha ayrıntılı kurallar: [VENTRA_PRODUCT_CHARTER.md](docs/VENTRA_PRODUCT_CHARTER.md).
+
+### G1.5–G1.6 ve G2 kabul durumu (01.11.2026)
+- Lezzet Pazarı'nda ürün kartlarının SVG sahne çerçeveleri yenilendi; dinleme başarısı sesin tamamlanmasını bekler. Her yaş/düzeyde tüm uygun kelimeler tekrar oturumlarıyla keşfedilebilir.
+- Aile Köyü 60 İngilizce kavram, 20 oynanabilir görev, dört özgün SVG ev/mahalle sahnesi, P3 ve P5 oyun kanıtları ile kodlandı.
+- **Otomatik doğrulama:** [GitHub Actions 41329515175](https://github.com/ventragame/ventra/actions/runs/41329515175). TypeScript, testler, web, Android debug APK ve iOS Simulator başarıyla derlendi.
+- **Eksik kullanıcı kabulü:** gerçek telefon/tablet testleri, profesyonel özgün ürün çizimleri/ses paketi, çocuklarla kullanım ve kalıcılık testi. Emoji kullanılan sahneler nedeniyle kod başarılı olsa da tam stüdyo sanatı bitmiş sayılmaz.
+- [GDD ve kabul raporu](docs/G1_5_G1_6_G2_FAMILY_VILLAGE_ACCEPTANCE.md).

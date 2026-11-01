@@ -53,3 +53,7 @@ Pre-A1/1–2. sınıf ilk 8, A1/3–4. sınıf ilk 12, A2/üst sınıflar 15 kav
 - [ ] Canlı gerçek okul sınırları ve erişim kontrolleri son kabulü.
 
 **CI başarılı olsa da gerçek cihaz/çocuk testi olmadan "mağazada nihai ticari premium sürüm" denemez.**
+
+## CI kanıtı
+- [GitHub Actions 41329515175](https://github.com/ventragame/ventra/actions/runs/41329515175): **TypeScript, testler, web production, Android debug APK, iOS Simulator PASS**; son kod commit'i `ac13d1d1a10d4ed54a290ea22d68ac13dac73296`.
+- Bu dosyadaki açık cihaz, ses ve çocuk kullanım maddeleri **tamamlanmış değildir**.
