@@ -27,6 +27,9 @@ interface LearningPathModalProps {
   onFamilyProgressSaved?: () => void;
   onTempleProgressSaved?: () => void;
   profileId: string;
+  playerName?:string;
+  coinBalance?:number|null;
+  onOpenPassport?:()=>void;
   englishLevel?: 'Pre-A1' | 'A1' | 'A2';
   gradeLevel?:number|null;
   initialCompletedLevels?: number;
@@ -43,6 +46,9 @@ type District = 'overview' | 'animals' | 'colors' | 'numbers' | 'food' | 'family
  */
 export const LearningPathModal: React.FC<LearningPathModalProps> = ({
   profileId,
+  playerName,
+  coinBalance,
+  onOpenPassport,
   englishLevel = 'Pre-A1',
   gradeLevel = null,
   onClose,
@@ -236,6 +242,17 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
   }
 
   return <WordGardenDistrictMap
+    playerName={playerName}
+    coinBalance={coinBalance}
+    onOpenPassport={onOpenPassport}
+    starsByDistrict={{
+      animals:animals.totalStars,
+      colors:Object.values(colors.starsByLevel).reduce((n,x)=>n+x,0),
+      numbers:Object.values(numbers.starsByLevel).reduce((n,x)=>n+x,0),
+      food:Object.values(food.starsByLevel).reduce((n,x)=>n+x,0),
+      family:Object.values(family.starsByLevel).reduce((n,x)=>n+x,0),
+      sanctuary:Object.values(temple.starsByLevel).reduce((n,x)=>n+x,0)
+    }}
     completedLevels={animals.completedLevels}
     totalLevels={animals.totalLevels}
     onEnterAnimals={() => setDistrict('animals')}

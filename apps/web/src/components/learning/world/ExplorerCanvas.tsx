@@ -155,17 +155,17 @@ export function ExplorerCanvas({
   const move=useCallback((x:number,y:number)=>{
     scene.current?.goDirection(x,y);
   },[]);
-  return <div className="relative w-full overflow-hidden rounded-[2rem] border-4 border-[#f9ebaf]/80 bg-[#70ba91] shadow-[0_18px_45px_rgba(17,64,68,.25)]"
-    style={{height:`min(${height}px, 68dvh)`,minHeight:'280px'}}>
+  return <div className="relative w-full overflow-hidden rounded-[1.45rem] border-[3px] border-[#f7e6ae]/90 bg-[#70ba91] shadow-[0_18px_45px_rgba(17,64,68,.25)]"
+    style={{height:`min(${height}px, 72dvh)`,minHeight:'340px'}}>
     <div ref={host} aria-hidden="true" className="absolute inset-0 overflow-hidden"
       style={{touchAction:'none',userSelect:'none'}}/>
-    <div className="pointer-events-none absolute left-3 top-3 rounded-xl border border-white/70 bg-[#164958]/85 px-3 py-2 text-xs font-extrabold text-white shadow-lg sm:text-sm">
+    <div className="pointer-events-none absolute left-3 top-3 rounded-xl border border-[#fff4db]/70 bg-[#163b55]/90 px-3 py-2 text-[10px] font-extrabold tracking-wide text-white shadow-lg sm:text-xs">
       🧭 {caption??(area==='garden'?'Keşif Haritası':'Hayvan Dostları')}
     </div>
     <button type="button" onClick={toggleAmbience} aria-pressed={ambienceOn}
       aria-label={ambienceOn?'Ortam sesini kapat':'Ortam sesini aç'}
       className="absolute right-3 top-3 min-h-11 rounded-xl border border-white/60 bg-[#164958]/90 px-3 py-2 text-xs font-black text-white shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-200">
-      {ambienceOn?'♫ Ortam Açık':'♫ Ortam Sesi'}
+      {ambienceOn?'♪ Ortam Açık':'♪ Ortam Sesi'}
     </button>
     <div role="status" aria-live="polite" className="pointer-events-none absolute left-3 right-3 bottom-3 flex justify-start">
       <div className="max-w-[65%] rounded-xl bg-[#134454]/85 px-3 py-2 text-[11px] font-bold text-white shadow-lg sm:text-xs">

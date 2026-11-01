@@ -653,6 +653,9 @@ export default function VentraKidsWorldPage() {
         <LearningPathModal
           regionId={activeRegion}
           profileId={activeProfile?.id || ''}
+          playerName={activeProfile?.nickname}
+          coinBalance={coinBalance}
+          onOpenPassport={()=>{handleCloseLearningPath();setIsPassportOpen(true);}}
           englishLevel={activeProfile?.englishLevel || 'Pre-A1'}
           gradeLevel={activeProfile?.gradeLevel ?? null}
           onClose={handleCloseLearningPath}

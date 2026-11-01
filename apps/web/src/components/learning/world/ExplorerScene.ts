@@ -40,7 +40,7 @@ export class ExplorerScene extends Phaser.Scene {
   }
   preload():void {
     this.load.svg('p4_explorer','/assets/kids/explorer-avatar.svg',{width:112,height:131});
-    for(const id of ANIMALS){
+    if(this.area==='meadow')for(const id of ANIMALS){
       this.load.svg('p4_'+id,`/assets/animals/premium/${id}.svg`,{width:116,height:116});
     }
   }
