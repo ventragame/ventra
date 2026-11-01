@@ -20,7 +20,7 @@ interface WordGardenDistrictMapProps {
   onBack:()=>void;
 }
 const PLACES:Record<string,{title:string;description:string;icon:string}>={
-  animals:{title:'Hayvan Çayırı',description:'12 hayvan, 5 görev ve kayıp dostları kurtarma macerası',icon:'🐾'},
+  animals:{title:'Hayvan Çayırı',description:'40 hayvanlık havuz, her tur 8 hayvan ve 5 görev ve kayıp dostları kurtarma macerası',icon:'🐾'},
   colors:{title:'Renk Korusu',description:'Renkleri keşfet, boya ve hafızanı güçlendir',icon:'🎨'},
   numbers:{title:'Sayı Vadisi',description:'Yeni öğrenme bölgesi hazırlanıyor',icon:'🔢'},
   food:{title:'Lezzet Pazarı',description:'Yiyeceklerin İngilizce adları yakında',icon:'🍎'},

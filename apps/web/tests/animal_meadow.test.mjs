@@ -11,8 +11,8 @@ function evidence(wordId,kind='discovery',mistakes=0,time='2026-11-01T09:00:00.0
   return {wordId,kind,mistakes,firstTryCorrect:kind==='discovery'?false:mistakes===0,timestamp:time};
 }
 const starters=ANIMAL_MEADOW_WORDS.slice(0,8).map(word=>evidence(word.id));
-test('Animal Meadow catalog contains twenty unique animals and preserves existing audio/image references',()=>{
-  assert.equal(ANIMAL_MEADOW_WORDS.length,20);
+test('Animal Meadow catalog contains forty unique animals and preserves existing audio/image references',()=>{
+  assert.equal(ANIMAL_MEADOW_WORDS.length,40);
   assert.equal(new Set(ANIMAL_MEADOW_WORDS.map(w=>w.id)).size,12);
   for(const animal of ANIMAL_MEADOW_WORDS) {
     assert.ok(animal.emoji && animal.tr && animal.habitat && animal.place);
@@ -114,7 +114,7 @@ test('Muted listening fallback and optional hints are neutral, not permanent wea
   assert.deepEqual(getWeakAnimalIds([assisted,missed]),['cow']);
 });
 
-test('All twenty illustrated characters exist and are self-contained safe SVGs',()=>{
+test('All forty illustrated characters exist and are self-contained safe SVGs',()=>{
   for(const word of ANIMAL_MEADOW_WORDS){
     assert.equal(typeof word.image,'string');
     const file=path.join(process.cwd(),'public',word.image.replace(/^\//,''));

@@ -35,7 +35,27 @@ export const ANIMAL_POSITIONS:Record<string,Point> = {
   frog:{x:1200,y:605}, bee:{x:660,y:236}, butterfly:{x:1220,y:421},
   lion:{x:150,y:215}, elephant:{x:980,y:145}, monkey:{x:180,y:710},
   penguin:{x:850,y:870}, turtle:{x:1300,y:800}, fox:{x:460,y:170},
-  bear:{x:480,y:880}, owl:{x:1100,y:875}
+  bear:{x:480,y:880}, owl:{x:1100,y:875},
+  zebra:{x:130,y:130},
+  giraffe:{x:395,y:130},
+  panda:{x:660,y:130},
+  tiger:{x:925,y:130},
+  crocodile:{x:1190,y:130},
+  hippo:{x:130,y:348},
+  rhino:{x:395,y:348},
+  kangaroo:{x:660,y:348},
+  koala:{x:925,y:348},
+  deer:{x:1190,y:348},
+  wolf:{x:130,y:566},
+  hedgehog:{x:395,y:566},
+  squirrel:{x:660,y:566},
+  snake:{x:925,y:566},
+  dolphin:{x:1190,y:566},
+  whale:{x:130,y:784},
+  shark:{x:395,y:784},
+  octopus:{x:660,y:784},
+  crab:{x:925,y:784},
+  parrot:{x:1190,y:784}
 };
 // One safe interaction point per animal. Multiple species may share
 // a habitat type, but their quest targets must never overlap.
@@ -46,7 +66,27 @@ const HABITAT_POSITIONS:Record<string,Point> = {
   frog:{x:1210,y:680},bee:{x:675,y:295},butterfly:{x:1150,y:400},
   lion:{x:150,y:235},elephant:{x:980,y:165},monkey:{x:180,y:730},
   penguin:{x:850,y:860},turtle:{x:1300,y:785},fox:{x:460,y:190},
-  bear:{x:480,y:865},owl:{x:1100,y:860}
+  bear:{x:480,y:865},owl:{x:1100,y:860},
+  zebra:{x:130,y:145},
+  giraffe:{x:395,y:145},
+  panda:{x:660,y:145},
+  tiger:{x:925,y:145},
+  crocodile:{x:1190,y:145},
+  hippo:{x:130,y:363},
+  rhino:{x:395,y:363},
+  kangaroo:{x:660,y:363},
+  koala:{x:925,y:363},
+  deer:{x:1190,y:363},
+  wolf:{x:130,y:581},
+  hedgehog:{x:395,y:581},
+  squirrel:{x:660,y:581},
+  snake:{x:925,y:581},
+  dolphin:{x:1190,y:581},
+  whale:{x:130,y:799},
+  shark:{x:395,y:799},
+  octopus:{x:660,y:799},
+  crab:{x:925,y:799},
+  parrot:{x:1190,y:799}
 };
 export function clampToWorld(point:Point,margin=76):Point{
   return {x:Math.max(margin,Math.min(WORLD_WIDTH-margin,point.x)),
