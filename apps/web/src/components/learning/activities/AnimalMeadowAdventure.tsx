@@ -1,6 +1,7 @@
 'use client';
 
-import React, { useEffect, useRef, useState } from 'react';
+import React, { useEffect, useMemo, useRef, useState } from 'react';
+import dynamic from 'next/dynamic';
 import type { AnimalAnswerEvidence } from '@ventra/shared';
 import { soundService } from '@/lib/audio/SoundService';
 import { EventBus } from '@/lib/game/EventBus';
@@ -11,6 +12,10 @@ import {
   type AnimalMission, type AnimalWord, type AnimalId, type PlannedAnimalMission
 } from '@/lib/learning/animalMissionEngine';
 import { resolveRescueChoice } from '@/lib/learning/animalRescueEngine';
+import { getAnimalObjects,getHabitatObjects,type WorldObject } from '../world/worldLayout';
+const ExplorerCanvas=dynamic(()=>import('../world/ExplorerCanvas').then(m=>m.ExplorerCanvas),{
+  ssr:false,loading:()=> <div role="status" className="flex min-h-80 items-center justify-center rounded-3xl bg-emerald-900/60 text-white">Çayır hazırlanıyor…</div>
+});
 import './animal-meadow.css';
 
 const STAGES = [
@@ -138,6 +143,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
   // React state commits after the event handler returns. A rapid double tap
   // must not count the same answer twice before awaiting becomes true.
   const answerLocked = useRef(false);
+  const discoveredRef = useRef<Set<AnimalId>>(new Set());
   const panelRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
   const key = `${profileId}:${englishLevel}:${stage}:${nonce}`;
@@ -145,6 +151,16 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
   const currentQuestion = stage===1?null:activePlan?.questions[questionIndex]??null;
   const target = currentQuestion?findAnimal(currentQuestion.target):null;
   const noAudioMode = stage===3 && (textMode || muted || (!voiceAvailable && !target?.audio));
+  const worldObjects=useMemo<WorldObject[]>(()=>{
+    if(!activePlan)return [];
+    if(stage===1)return getAnimalObjects(activePlan.animals.filter(id=>!discovered.includes(id)),
+      id=>findAnimal(id)?.image).map(object=>({...object,label:findAnimal(object.id)?.tr??object.id}));
+    if(!currentQuestion || (stage!==4 && stage!==5))return [];
+    if(stage===5 && rescueSelected)return getHabitatObjects(currentQuestion.choices,
+      id=>findAnimal(id)?.habitat??id);
+    return getAnimalObjects(currentQuestion.choices,id=>findAnimal(id)?.image)
+      .map(object=>({...object,label:findAnimal(object.id)?.tr??object.id}));
+  },[activePlan,stage,discovered,currentQuestion,rescueSelected]);
 
   useEffect(()=>{
     setVoiceAvailable(typeof window!=='undefined' && 'speechSynthesis' in window && typeof SpeechSynthesisUtterance!=='undefined');
@@ -188,6 +204,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
   function reset(next:Stage){
     if(busy.current)return;
     answerLocked.current=false;
+    discoveredRef.current.clear();
     setStage(next);setNonce(x=>x+1);setPlan(null);setPlanKey(null);setLoadError(false);
     setDiscovered([]);setAnswered([]);setQuestionIndex(0);setWrongCount(0);setQuestionWrong(0);
     setCorrectCount(0);setFeedback(null);setAwaiting(false);setAssisted(false);setWrongChoice(null);
@@ -198,8 +215,9 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
   function discover(word:AnimalWord) {
     if(saving||completed)return;
     soundService.playSfx('tap');speak(word);
-    if(discovered.includes(word.id))return;
-    setDiscovered(old=>[...old,word.id]);
+    if(discoveredRef.current.has(word.id))return;
+    discoveredRef.current.add(word.id);
+    setDiscovered(old=>old.includes(word.id)?old:[...old,word.id]);
     setAnswered(old=>[...old,{wordId:word.id,kind:'discovery',mistakes:0,firstTryCorrect:false,timestamp:new Date().toISOString()}]);
   }
   function choose(id:AnimalId) {
@@ -267,6 +285,14 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
       setSaveError('İlerleme kaydedilemedi. Yerel kayıtlarını silmeden yeniden dene.');
     }finally{busy.current=false;setSaving(false);}
   }
+  const onWorldInteract=(object:WorldObject)=>{
+    if(busy.current||saving||completed||awaiting)return;
+    const word=findAnimal(object.id);
+    if(!word)return;
+    if(stage===1){discover(word);return;}
+    if(stage===4){choose(word.id);return;}
+    if(stage===5){if(rescueSelected)chooseHabitat(word.id);else choose(word.id);}
+  };
   const stars=Object.values(localProgress.starsByLevel).reduce((s,n)=>s+n,0);
   const valid = activePlan && (stage===1?activePlan.animals.length>0:Boolean(currentQuestion && target));
   const completedCount=stage===1?discovered.length:correctCount;
@@ -357,11 +383,16 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
         </section>}
         {!loadError && valid && !completed && activePlan && (stage===1?(
           <section className="mx-auto max-w-4xl">
-            <MeadowScene stage={stage} word={null} blooms={discovered.length}/>
+            <ExplorerCanvas key={`meadow-discovery-${nonce}`} area="meadow"
+              caption="Keşif Çayırı · Hayvanlara Dokun" objects={worldObjects}
+              onInteract={onWorldInteract} height={520}/>
+            <p className="mt-3 rounded-xl bg-emerald-950/65 p-3 text-center text-xs font-bold text-sky-100">Hayvanlara dokun, karakterin yanlarına yürüsün. Keşfettiklerin albüme eklenir. İstersen aşağıdaki erişilebilir listeyi de kullan.</p>
             <div className="my-4 flex items-center justify-between rounded-xl border border-white/20 bg-emerald-950/65 px-4 py-3 text-sm font-bold">
               <span>🌱 Keşfedilen Hayvanlar</span><span className="text-lime-200">{discovered.length}/{activePlan.animals.length}</span>
             </div>
-            <div className="grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
+            <details className="mb-3 rounded-2xl border border-white/20 bg-emerald-950/40 p-3">
+              <summary className="min-h-11 cursor-pointer py-3 text-sm font-black text-lime-100">♿ Hayvan Listesi / Alternatif Kontrol</summary>
+              <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
               {activePlan.animals.map(id=>{
                 const word=findAnimal(id)!;
                 return <button key={id} onClick={()=>discover(word)} disabled={saving} aria-pressed={discovered.includes(id)}
@@ -374,7 +405,8 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
                   <span className="mt-1 text-xs font-bold text-lime-200">{discovered.includes(id)?'✓ Keşfedildi':canSpeak(word)?'🔊 Dokun, dinle':'👆 Keşfet'}</span>
                 </button>;
               })}
-            </div>
+              </div>
+            </details>
             <button onClick={()=>void finish()} disabled={saving||discovered.length!==activePlan.animals.length} className="am-cta mt-5 w-full disabled:cursor-not-allowed disabled:opacity-40">
               {saving?'Kaydediliyor…':`Keşfi Tamamla (${discovered.length}/${activePlan.animals.length})`}
             </button>
@@ -387,9 +419,10 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
             <div className="mb-4 h-2 overflow-hidden rounded-full bg-white/20" aria-hidden="true">
               <div className="h-full rounded-full bg-gradient-to-r from-emerald-300 to-sky-300 transition-all" style={{width:`${Math.round(((questionIndex+Number(awaiting))/activePlan.questions.length)*100)}%`}}/>
             </div>
-            <MeadowScene stage={stage} word={stage===5 && rescueSelected?null:target} blooms={correctCount}
-              choices={stage===4?currentQuestion.choices:undefined} onChoose={stage===4?choose:undefined}
-              wrongChoice={wrongChoice} awaiting={awaiting}/>
+            {(stage===4||stage===5)?<ExplorerCanvas key={`meadow-quest-${stage}-${nonce}`} area="meadow"
+              caption={stage===5 ? rescueSelected?'Yuva Kurtarma · Uygun Yuvaya Yürü':'Kayıp Dostu Bul · Hayvana Yürü' : 'Görev Patikası · Söylenen Hayvanı Bul'}
+              objects={worldObjects} onInteract={onWorldInteract} height={510}/>:
+              <MeadowScene stage={stage} word={target} blooms={correctCount}/>}
             {stage===5 && rescueSelected && <div className="am-rescue mt-2 flex items-center justify-center gap-3 rounded-xl bg-emerald-900/75 p-3">
               <AnimalPicture word={target}/>
               <span className="text-sm font-black text-lime-100">→ YUVASINI BUL!</span>
@@ -401,11 +434,12 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
             <div className="my-4 rounded-2xl border border-white/25 bg-emerald-950/80 p-4 text-center">
               <h2 className="text-xl font-black sm:text-2xl">
                 {stage===3 ? (noAudioMode? `Yazılı alternatif: ${target.id.toUpperCase()}` : '🔊 Sesi Dinle') :
-                  stage===5 && rescueSelected ? '🏡 Doğru yuvaya yerleştir' : getAnimalPrompt(stage,target,englishLevel).title}
+                  stage===5 ? (rescueSelected ? '🏡 Find its home!' : `Find the ${target.id.toUpperCase()}!`) : getAnimalPrompt(stage,target,englishLevel).title}
               </h2>
               <p className="mt-1 text-sm text-white/85">
                 {stage===3 && noAudioMode ? 'Ses kullanılamıyor veya yazılı modu seçtin. Kelimeyi okuyarak devam et.' :
-                  stage===5 && rescueSelected ? `${target.tr} için uygun yaşam alanını bul.` :
+                  stage===5 ? (rescueSelected ? 'Hayvanı doğru yaşam alanına götür. Yanlış seçersen tekrar deneyebilirsin.' :
+                    'İngilizce adını öğrendiğin kayıp hayvanı çayırda ara ve yanına git.') :
                   getAnimalPrompt(stage,target,englishLevel).guide}
               </p>
               {(stage===3||stage===4)&&<button onClick={()=>speak(target,stage===4)} disabled={!canSpeak(target)}
@@ -421,7 +455,9 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
                 {assisted ? `İpucu: ${target.tr}` : 'Türkçe İpucu Göster'}
               </button>}
             </div>
-            {stage!==4 && <div className="grid grid-cols-3 gap-2 sm:gap-3" role="group"
+            {stage!==4 && <div>
+              {stage===5 && <p className="mb-2 text-center text-xs font-black text-lime-100">♿ Alternatif dokunmatik seçenekler</p>}
+              <div className="grid grid-cols-3 gap-2 sm:gap-3" role="group"
               aria-label={stage===5&&rescueSelected?'Hayvan için doğru yuva':'Hayvan cevabı'}>
               {currentQuestion.choices.map(id=>{
                 const word=findAnimal(id)!;
@@ -437,6 +473,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
                   <span className="mt-2 text-xs font-black sm:text-lg">{habitatChoice?word.habitat:textOnly?word.id.toUpperCase():word.tr}</span>
                 </button>;
               })}
+              </div>
             </div>}
             <div className="mt-4 min-h-16 text-center">
               {feedback && <p role="status" aria-live="polite" className={`rounded-xl px-3 py-3 text-sm font-semibold ${feedback.good?'bg-lime-500/15 text-lime-100':'bg-amber-500/20 text-amber-100'}`}>{feedback.text}</p>}
