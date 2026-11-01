@@ -1,0 +1,120 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {MARKET_WORDS,MARKET_AISLES,MARKET_STAGES,MARKET_TOTAL,
+ eligibleMarketWords,planMarketMission,validMarketAnswers,marketWord,MARKET_GAME_ID} from '../src/lib/learning/foodMarketEngine.ts';
+import {saveFoodMarketMission,getFoodMarketProgress} from '../src/lib/progress/foodMarketProgress.ts';
+import {MemoryProgressRepository} from '../src/lib/progress/MemoryProgressRepository.ts';
+import {normalizeLearningEvidence,getLearningSnapshot} from '../src/lib/learning/adaptiveLearningEngine.ts';
+import {MemoryEconomyStorage,getPassport} from '../src/lib/rewards/economyRepository.ts';
+
+const stamp='2026-11-01T11:15:00.000Z';
+const make=(id,kind='recognition',mistakes=0,hintUsed=false)=>({
+ wordId:id,kind,mistakes,firstTryCorrect:mistakes===0&&!hintUsed,hintUsed,timestamp:stamp
+});
+const proof=(stage,aisle='orchard')=>{
+ const plan=planMarketMission({aisle,stage,gradeLevel:3,englishLevel:'A1',history:[],seed:123});
+ return (stage===1?plan.words:plan.questions.map(q=>q.target))
+   .map(id=>make(id,MARKET_STAGES[stage-1].skill));
+};
+test('G1 curriculum: 45 unique English food and drink items across 3 districts and 15 language lessons',()=>{
+ assert.equal(MARKET_WORDS.length,45);
+ assert.equal(new Set(MARKET_WORDS.map(x=>x.id)).size,45);
+ assert.equal(MARKET_AISLES.length,3);
+ assert.equal(MARKET_STAGES.length,5);
+ assert.equal(MARKET_TOTAL,15);
+ for(const aisle of MARKET_AISLES){
+  assert.equal(MARKET_WORDS.filter(w=>w.aisle===aisle.id).length,15);
+ }
+ for(const word of MARKET_WORDS){
+  assert.ok(word.tr&&word.icon&&!/\d/.test(word.id));
+  assert.equal(marketWord(word.id).tr,word.tr);
+ }
+ assert.equal(eligibleMarketWords('orchard',1,'Pre-A1').length,8);
+ assert.equal(eligibleMarketWords('orchard',3,'A1').length,12);
+ assert.equal(eligibleMarketWords('orchard',7,'A2').length,15);
+});
+test('G1 mission plan: deterministic, correctly scoped and distractors never match target',()=>{
+ for(const lane of ['orchard','bakery','cafe']){
+  for(let stage=1;stage<=5;stage++){
+   const props={aisle:lane,stage,gradeLevel:3,englishLevel:'A1',history:[],seed:791};
+   const p=planMarketMission(props);
+   assert.deepEqual(p,planMarketMission(props));
+   assert.ok(p.words.length>=6);
+   const allowed=new Set(eligibleMarketWords(lane,3,'A1').map(w=>w.id));
+   assert.ok(p.words.every(id=>allowed.has(id)));
+   for(const q of p.questions){
+    assert.equal(q.options.length,3);
+    assert.equal(new Set(q.options).size,3);
+    assert.ok(allowed.has(q.target));
+    assert.ok(q.options.includes(q.target));
+    assert.ok(q.options.every(id=>allowed.has(id)));
+    if(stage===3)assert.ok(!q.prompt.includes(q.target));
+   }
+   assert.equal(p.questions.length,stage===1?0:6);
+   if(stage===5)assert.equal(new Set(p.questions.map(q=>q.orderPair)).size,3);
+  }
+ }
+});
+test('G1 struggling food vocabulary is revisited, grade scope does not exceed policy',()=>{
+ const history=[make('apple','recognition',2),make('apple','listening',1,true)];
+ const result=planMarketMission({aisle:'orchard',stage:2,englishLevel:'Pre-A1',gradeLevel:1,history,seed:4});
+ assert.ok(result.words.includes('apple'));
+ assert.equal(result.words.length,6);
+ assert.equal(result.questions.length,4);
+ assert.ok(result.questions.every(q=>q.options.length===3));
+});
+test('G1 food evidence stays separate: discovery, listening fallback, independent application',()=>{
+ const rows=[make('apple','discovery'),make('apple','listening',0,true),make('apple','application',0,false)];
+ assert.equal(validMarketAnswers(rows),true);
+ assert.equal(validMarketAnswers([{wordId:'unknown',kind:'listening',timestamp:stamp}]),false);
+ const normalized=normalizeLearningEvidence([],[],[],rows);
+ assert.equal(normalized.filter(x=>x.domain==='food').length,3);
+ assert.equal(normalized.find(x=>x.skill==='discovery').independent,false);
+ assert.equal(normalized.find(x=>x.skill==='listening').independent,false);
+ assert.equal(normalized.find(x=>x.skill==='application').independent,true);
+ const snapshot=getLearningSnapshot({animalAnswers:[],animalWords:[],colorAnswers:[],colorWords:[],
+  foodAnswers:rows,foodWords:['apple'],now:'2026-11-01T15:15:00.000Z'});
+ assert.equal(snapshot.domainStats.food.discovered,1);
+ assert.equal(snapshot.domainStats.food.practiced,1);
+});
+test('G1 saved missions persist by child profile, lock future stages and prevent duplicate stars/coins',async()=>{
+ const repo=new MemoryProgressRepository();
+ const first=await repo.createProfile({nickname:'Market Child',avatarId:'avatar_explorer'});
+ const second=await repo.createProfile({nickname:'Other Child',avatarId:'avatar_explorer'});
+ const now=Date.now();
+ await assert.rejects(saveFoodMarketMission(repo,first.id,'orchard',2,0,20,proof(2),'no-stage1'),/Önceki/);
+ await assert.rejects(saveFoodMarketMission(repo,first.id,'bakery',1,0,20,proof(1,'bakery'),'locked-bakery'),/önceki pazar sokağını/i);
+ for(let stage=1;stage<=5;stage++){
+  await saveFoodMarketMission(repo,first.id,'orchard',stage,0,20,proof(stage),'orchard-'+stage);
+ }
+ let p=await getFoodMarketProgress(repo,first.id);
+ assert.equal(p.completedByAisle.orchard,5);
+ assert.equal(p.completedLevels,5);
+ assert.equal(p.starsByLevel[5],3);
+ assert.equal((await repo.getTotalStars(first.id,MARKET_GAME_ID)),15);
+ assert.equal((await repo.getFoodAnswerHistory(second.id)).length,0);
+ assert.equal((await getFoodMarketProgress(repo,second.id)).completedLevels,0);
+ await saveFoodMarketMission(repo,first.id,'bakery',1,1,19,proof(1,'bakery'),'bakery-1');
+ p=await getFoodMarketProgress(repo,first.id);
+ assert.equal(p.starsByLevel[6],2);
+ await saveFoodMarketMission(repo,first.id,'orchard',1,0,20,proof(1),'orchard-1');
+ assert.equal((await repo.getTotalStars(first.id,MARKET_GAME_ID)),17);
+ const store=new MemoryEconomyStorage();
+ const wallet=await getPassport(repo,first.id,store,new Date());
+ assert.equal(wallet.worldStats.find(x=>x.id===MARKET_GAME_ID).completed,6);
+ assert.equal(wallet.balance,60);
+ assert.ok(wallet.learned.food>0);
+ assert.ok(now>0);
+});
+test('G1 content is English-focused, never a math or money game, and linked in the map',()=>{
+ const ui=fs.readFileSync(new URL('../src/components/learning/activities/FoodMarketAdventure.tsx',import.meta.url),'utf8');
+ const map=fs.readFileSync(new URL('../src/components/learning/WordGardenDistrictMap.tsx',import.meta.url),'utf8');
+ const mod=fs.readFileSync(new URL('../src/components/learning/LearningPathModal.tsx',import.meta.url),'utf8');
+ assert.match(ui,/Listen and find it/);
+ assert.match(ui,/Customer says:/);
+ assert.match(ui,/Shopping list/);
+ assert.doesNotMatch(ui,/calculate|profit|checkout payment|change due/i);
+ assert.match(map,/onEnterFood/);
+ assert.match(mod,/saveFoodMarketMission/);
+});
