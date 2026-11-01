@@ -62,3 +62,8 @@ Daha ayrıntılı kurallar: [VENTRA_PRODUCT_CHARTER.md](docs/VENTRA_PRODUCT_CHAR
 - 40 hayvan SVG'si ve 5 orijinal vektör tapınak sahnesi, düzeye göre kelime havuzu, yanlış kelimeleri yeniden sorma, bağımsız/ipuçlu yanıt ayrımı, yıldız/coin ve çocuk profili kayıtları.
 - [CI #41333293845](https://github.com/ventragame/ventra/actions/runs/41333293845): **140/140 test, TypeScript, web, Android debug APK ve iOS Simulator PASS**. Gerçek cihaz/çocuk pedagojik kabulü ve profesyonel offline ses/sprite çalışmaları açık.
 - [G3 tasarım, sınır ve kabul belgesi](docs/G3_TEMPLE_PREMIUM_GDD_AND_ACCEPTANCE.md).
+
+### M1 — Kelime Bahçesi premium keşif haritası (01.11.2026)
+- Altı ayrı orijinal Phaser landmark girişi ve responsive SVG dünya kartları; parıltılı, katmanlı dünya yüzeyi, masaüstü tüm-dünya görünümü, mobil karakter takibi, hover/kamera yaklaşması.
+- Gerçek çocuk profili görev/yıldız ilerlemesi ve mevcut coin bakiyesi; Maceracı Pasaportu/günlük görev erişimi. `GardenWorldArt.ts` ve `gardenTheme.ts` görsel ve durum sözleşmeleridir.
+- [M1 harita kabul ve kontrol rehberi](docs/M1_WORD_GARDEN_PREMIUM_MAP_ACCEPTANCE.md). Yeni SQL yok, mağaza dağıtımı yok. Fiziksel cihaz görsel kabulü açık.

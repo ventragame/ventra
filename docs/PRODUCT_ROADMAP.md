@@ -252,3 +252,11 @@ Kaynaklar:
 - Önceki oyunları bitirmeden tapınağa girilebilir; tapınağın kendi 25 görevi sırayla açılır. P3 tapınak öğrenme kanıtı, P5 ilk defa tamamlanan bölüm +10 coin (toplam 250), en fazla 75 yıldız, offline/child profile event altyapısı kullanılır.
 - [G3 CI #41333293845](https://github.com/ventragame/ventra/actions/runs/41333293845) **140/140 test, web, Android debug ve iOS Simulator PASS**. **Açık yayın kapıları:** gerçek cihaz/çocuk kalıcılık kabulü, profesyonel sprite ve ses paketi, cihazlar arası senkronizasyon/çocuk verisi denetimi, bağımlılık güvenliği. Canlı DB migration veya mağazaya yayın yapılmadı.
 - [GDD & kabul](./G3_TEMPLE_PREMIUM_GDD_AND_ACCEPTANCE.md).
+
+### 2026-11-01 — M1 Kelime Bahçesi Premium Harita Revamp
+- **M1.1:** six-themed original world art, 6 bölgeli desktop overview + mobile follow, katmanlı çayır, göl, yol, ağaç, kristal, market/köy/tapınak landmark'ları. Eski hayvan/çayır keşif sahnesi korunur.
+- **M1.2:** gerçek profilden ilerleme/yıldız/coin alanı; 6 SVG illüstrasyonlu görev kartı, completion yüzdesi, otomatik erişilebilirlik/durum etiketi. Haritadan pasaport-günlük görev-koleksiyon bağlantısı.
+- **M1.3:** landmark hover/soft camera pan+zoom, responsive dokunma/klavye, ses kontrolleri ve reduced-motion. Alt kartlar WebGL çalışmayan tarayıcıda alternatif navigasyon olmaya devam eder.
+- **CI regresyonları:** [41336066393](https://github.com/ventragame/ventra/actions/runs/41336066393) üzerinden 145/145 test, TypeScript, web, Android debug ve iOS Simulator. Son küçük locked/loading durum mantığı düzeltmesinin teyidi: [41336429385](https://github.com/ventragame/ventra/actions/runs/41336429385).
+- **Açık:** gerçek cihaz ekran görüntüsü, 30 FPS performans, mobil yatay/dikey ekran ve çocuklarla kullanılabilirlik kabulü. Yeni SQL, oyun verisi migration veya yayın yapılmadı.
+- [M1 Premium Map GDD ve kabul](./M1_WORD_GARDEN_PREMIUM_MAP_ACCEPTANCE.md).
