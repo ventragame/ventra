@@ -634,6 +634,7 @@ export default function VentraKidsWorldPage() {
           onClose={handleCloseLearningPath}
           onRegionCompleted={handleRegionCompleted}
           onColorProgressSaved={() => { if (activeProfile) void loadProfileAndProgress(activeProfile); }}
+          onNumberProgressSaved={() => { if (activeProfile) void loadProfileAndProgress(activeProfile); }}
           initialCompletedLevels={wordGardenCompletedLevels}
           initialStarsByLevel={wordGardenStarsByLevel}
           onProgressUpdate={async (_completed, _total, levelOrder, starsEarned, telemetry) => {

@@ -155,7 +155,8 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
     soundService.playSfx('correct');
     const row:NumberAnswerEvidence={
       value:current.target,kind:current.skill,mistakes:perQuestionMistakes,
-      firstTryCorrect:perQuestionMistakes===0&&!hintUsed,hintUsed,
+      firstTryCorrect:perQuestionMistakes===0&&!hintUsed && !(stage===4&&(muted||!speechAvailable)),
+      hintUsed:hintUsed || (stage===4&&(muted||!speechAvailable)),
       timestamp:new Date().toISOString()
     };
     setAnswers(old=>[...old,row]);

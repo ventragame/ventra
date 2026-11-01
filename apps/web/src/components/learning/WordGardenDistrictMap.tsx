@@ -17,27 +17,32 @@ interface WordGardenDistrictMapProps {
   colorsUnlocked:boolean;
   colorsAvailable:boolean;
   colorCompleted:number;
+  numberCompleted:number;
+  numbersUnlocked:boolean;
+  numbersAvailable:boolean;
+  onEnterNumbers:()=>void;
   gradeLevel?:number|null;
   onBack:()=>void;
 }
 const PLACES:Record<string,{title:string;description:string;icon:string}>={
   animals:{title:'Hayvan Çayırı',description:'40 hayvan · Her tur 8 hayvan · 5 macera görevi',icon:'🐾'},
   colors:{title:'Renk Korusu',description:'Renkleri keşfet, boya ve hafızanı güçlendir',icon:'🎨'},
-  numbers:{title:'Sayı Vadisi',description:'Yeni öğrenme bölgesi hazırlanıyor',icon:'🔢'},
+  numbers:{title:'Sayı Vadisi',description:'1–20 İngilizce sayı · 5 kristal macerası · kişiye özel tekrarlar',icon:'🔢'},
   food:{title:'Lezzet Pazarı',description:'Yiyeceklerin İngilizce adları yakında',icon:'🍎'},
   family:{title:'Aile Köyü',description:'Aile ve günlük yaşam macerası yakında',icon:'🏡'},
   sanctuary:{title:'Keşif Tapınağı',description:'Büyük final bölgesi hazırlanıyor',icon:'✨'}
 };
 export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
   completedLevels,totalLevels,onEnterAnimals,onEnterColors,
-  colorsUnlocked,colorsAvailable,colorCompleted,gradeLevel=null,onBack
+  colorsUnlocked,colorsAvailable,colorCompleted,numberCompleted,numbersUnlocked,numbersAvailable,onEnterNumbers,gradeLevel=null,onBack
 })=>{
   const [notice,setNotice]=useState('');
   const progress=totalLevels>0?Math.min(100,Math.round(100*completedLevels/totalLevels)):0;
-  const objects=useMemo(()=>getDistrictObjects(colorsUnlocked&&colorsAvailable),[colorsUnlocked,colorsAvailable]);
+  const objects=useMemo(()=>getDistrictObjects(colorsUnlocked&&colorsAvailable,numbersUnlocked&&numbersAvailable),[colorsUnlocked,colorsAvailable,numbersUnlocked,numbersAvailable]);
   const enter=(obj:WorldObject)=>{
     if(obj.id==='animals')onEnterAnimals();
     else if(obj.id==='colors'&&colorsUnlocked&&colorsAvailable)onEnterColors();
+    else if(obj.id==='numbers'&&numbersUnlocked&&numbersAvailable)onEnterNumbers();
     else setNotice(PLACES[obj.id]?.title+' bölgesi henüz açılmadı.');
   };
   return <div role="dialog" aria-modal="true" aria-labelledby="wg-world-title"
@@ -50,7 +55,7 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
           ← Takımadaya Dön
         </button>
         <div className="rounded-xl border border-lime-200/30 bg-[#073d4a]/80 px-4 py-3 text-xs font-bold text-lime-100 sm:text-sm">
-          🐾 {completedLevels}/{totalLevels} · 🎨 {colorCompleted}/3 · ⭐ Yolculuk %{progress}
+          🐾 {completedLevels}/{totalLevels} · 🎨 {colorCompleted}/3 · 🔢 {numberCompleted}/5 · ⭐ Yolculuk %{progress}
         </div>
       </header>
       <div className="mb-4 text-center">

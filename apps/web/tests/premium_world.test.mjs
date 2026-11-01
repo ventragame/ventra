@@ -19,6 +19,15 @@ test('P4 map retains six districts with only real content interactable',()=>{
   assert.equal(unlocked.find(x=>x.id==='colors').unlocked,true);
   assert.deepEqual(DISTRICTS.map(x=>x.id),unlocked.map(x=>x.id));
 });
+test('Sayı Vadisi opens only after Renk Korusu and retains other district locks',()=>{
+  const before=getDistrictObjects(true,false);
+  const after=getDistrictObjects(true,true);
+  assert.equal(before.find(x=>x.id==='numbers')?.unlocked,false);
+  assert.equal(after.find(x=>x.id==='numbers')?.unlocked,true);
+  assert.equal(after.filter(x=>x.unlocked).length,3);
+  assert.equal(getDistrictObjects(false,true).find(x=>x.id==='numbers')?.unlocked,false);
+  assert.equal(after.find(x=>x.id==='food')?.unlocked,false);
+});
 test('P4 navigation is bounded, deterministic and frame-rate independent',()=>{
   const from={x:400,y:470},to={x:1080,y:470};
   assert.deepEqual(walkTowards(from,to,100),{x:419.2,y:470},'delta capped to prevent tab-resume teleport');

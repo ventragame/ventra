@@ -1,6 +1,6 @@
 # Sayı Vadisi — NV0 Oyun Tasarımı ve Kabul Kapıları
 
-**Durum:** NV0 çekirdek görev motoru uygulandı; henüz oynanabilir ekran veya harita kilidi açılmadı.
+**Durum:** NV1–NV3 oynanabilir beş görev ve profil bazlı kayıt akışı kodlandı; web/Android/iOS CI ve fiziksel cihaz kabulü ayrıca doğrulanır.
 
 ## Ürün amacı
 Çocuk, İngilizce sayı kelimesini görsel miktarla ilişkilendirir. Salt kart eşleştirme değil, etkileşimli fiziksel dünyada anlama ve hatırlama ölçülür. Seçilen Pre-A1 / A1 / A2 ayarı **ölçülen** ustalık iddiası değildir.
@@ -27,3 +27,12 @@
 - **NV4** TypeScript + unit + E2E + web/Android/iOS ve fiziksel cihaz kabulü. Harita bölgesi ancak oynanabilir ve kayıt güvenilir olduğunda açılır.
 
 **Sürüm kapısı:** NV0 motor testi geçti diye Sayı Vadisi "oynanabilir" veya "premium tamamlandı" denmez.
+
+## NV1–NV3 uygulama notları (1 Kasım 2026)
+- `NumberValleyAdventure.tsx` ve `number-valley.css`: özgün kristal tabanlı responsive sahne, keşif, ışık köprüsü, fiziksel miktar toplama, sesli yankı ve iki aşamalı portal.
+- Durum makinesi: her görev tamamlanınca kaydedilir; hata kaydında yıldız verilmez. Yeniden dene idempotent sessionId kullanır.
+- `numberValleyProgress.ts`: oyun anahtarı `island_word_garden_numbers`, 5 bölümün her birine en iyi 3 yıldız, sınıf/İngilizce seviyesinden bağımsız kayıt sürekliliği.
+- `IProgressRepository.getNumberAnswerHistory`: IndexedDB ve Memory implementasyonları; offline olaylar, uzaktan event merge ve profil izolasyonu.
+- Harita: Hayvan Çayırı → Renk Korusu → Sayı Vadisi sırasıyla açılır. Kilidi açılmayan veya kayıt okunamayan bölge oynanabilir görünmez.
+- P3: Sayı Vadisi motoru kalıcı discovery/recognition/quantity/listening/application kanıtlarından tekrar planlar; sessiz erişilebilir yazılı yardım bağımsız listening başarısı değildir.
+- Henüz doğrulanmayan: gerçek mobil cihaz, ekran okuyucu kullanıcı denemesi, mağaza Families/Data Safety kabulü; P4/P7 yayın kapılarında kalır.
