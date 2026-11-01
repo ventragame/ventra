@@ -29,7 +29,7 @@ test('NV0 quiz stages never introduce numbers before discovery, and produce uniq
         assert.ok(history.some(x=>x.value===question.target));
         assert.equal(new Set(question.choices).size,3);
         assert.ok(question.choices.includes(question.target));
-        if(stage===3||stage===5)assert.ok(question.target<=12);
+        if(stage===3||stage===5)assert.ok(question.target<=20);
       }
     }
   }
@@ -55,4 +55,18 @@ test('NV0 reduced initial exposure stays in 1-10 for Pre-A1, advanced unlocks 20
   assert.ok(small.questions.every(q=>q.target<=10));
   const larger=planNumberMission({mission:1,englishLevel:'A2',history:[],seed:2});
   assert.equal(larger.discoveries.length,8);
+});
+
+test('NV4 quantity and portal use the full discovered 1–20 set for upper grades',()=>{
+  const familiar=Array.from({length:20},(_,i)=>discovery(i+1));
+  for(const stage of [3,5]){
+    const targets=new Set();
+    for(let seed=0;seed<120;seed++){
+      const plan=planNumberMission({mission:stage,englishLevel:'A2',gradeLevel:7,history:familiar,seed,
+        now:'2026-11-01T12:00:00.000Z'});
+      for(const item of plan.questions)targets.add(item.target);
+    }
+    assert.ok(targets.has(20), '20 must be available to physical counting missions');
+    assert.ok(targets.has(13), '13 must be available to physical counting missions');
+  }
 });

@@ -61,6 +61,8 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
   const [saveError,setSaveError]=useState('');
   const [completed,setCompleted]=useState(false);
   const [speechAvailable,setSpeechAvailable]=useState(false);
+  const [heardAudio,setHeardAudio]=useState(false);
+  const audioRequest=useRef(0);
   const [muted,setMuted]=useState(()=>soundService.getMuted());
   const start=useRef(Date.now());
   const session=useRef(newSession(profileId,stage));
@@ -88,7 +90,8 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
   },[key,profileId,gradeLevel,englishLevel,stage,nonce]);
 
   useEffect(()=>{
-    const cancel=()=>{if(typeof window!=='undefined'&&'speechSynthesis' in window)window.speechSynthesis.cancel();};
+    const cancel=()=>{audioRequest.current++;setHeardAudio(false);
+      if(typeof window!=='undefined'&&'speechSynthesis' in window)window.speechSynthesis.cancel();};
     const onMute=(next:boolean)=>{setMuted(next);if(next)cancel();};
     const visibility=()=>{if(document.hidden)cancel();};
     setSpeechAvailable(typeof window!=='undefined'&&'speechSynthesis' in window&&
@@ -106,7 +109,11 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
     if(muted||!speechAvailable)return;
     try{
       window.speechSynthesis.cancel();
+      const request=++audioRequest.current;
+      setHeardAudio(false);
       const line=new SpeechSynthesisUtterance(phrase?`Collect ${englishNumber(value)} stars`:englishNumber(value));
+      line.onstart=()=>{if(request===audioRequest.current)setHeardAudio(true);};
+      line.onerror=()=>{if(request===audioRequest.current){setHeardAudio(false);setSpeechAvailable(false);}};
       line.lang='en-US';line.rate=.79;
       const voices=window.speechSynthesis.getVoices();
       line.voice=voices.find(x=>x.lang.toLowerCase()==='en-us')??
@@ -120,6 +127,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
     start.current=Date.now();
     session.current=newSession(profileId,next);
     setStage(next);setNonce(v=>v+1);setPlan(null);setPlanKey('');setLoadError(false);
+    audioRequest.current++;setHeardAudio(false);
     setVisited([]);setAnswers([]);setQuestion(0);setSelectedTokens([]);setPortalPhase('collect');
     setMistakes(0);setPerQuestionMistakes(0);setHintUsed(false);setFeedback(null);
     setAwaitingNext(false);setSaving(false);setSaveError('');setCompleted(false);
@@ -155,8 +163,8 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
     soundService.playSfx('correct');
     const row:NumberAnswerEvidence={
       value:current.target,kind:current.skill,mistakes:perQuestionMistakes,
-      firstTryCorrect:perQuestionMistakes===0&&!hintUsed && !(stage===4&&(muted||!speechAvailable)),
-      hintUsed:hintUsed || (stage===4&&(muted||!speechAvailable)),
+      firstTryCorrect:perQuestionMistakes===0&&!hintUsed && !(stage===4&&(!heardAudio||muted||!speechAvailable)),
+      hintUsed:hintUsed || (stage===4&&(!heardAudio||muted||!speechAvailable)),
       timestamp:new Date().toISOString()
     };
     setAnswers(old=>[...old,row]);
@@ -182,6 +190,8 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
     if(!activePlan||!awaitingNext||saving||writeLock.current)return;
     const last=question+1>=activePlan.questions.length;
     if(last){void finish(answers,answers.length);return;}
+    audioRequest.current++;setHeardAudio(false);
+    if('speechSynthesis' in window)window.speechSynthesis.cancel();
     setQuestion(v=>v+1);setSelectedTokens([]);setPortalPhase('collect');setPerQuestionMistakes(0);
     setFeedback(null);setHintUsed(false);setAwaitingNext(false);
   }
@@ -207,7 +217,8 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
           <span className="nv-control hidden rounded-xl px-3 py-3 text-xs font-bold sm:inline-block">
             {gradeLevel?gradeLevel+'. Sınıf':'Keşif'} · {englishLevel}
           </span>
-          <button onClick={()=>{const value=soundService.toggleMute();setMuted(value);if(value)window.speechSynthesis?.cancel();}}
+          <button onClick={()=>{const value=soundService.toggleMute();setMuted(value);
+            if(value){audioRequest.current++;setHeardAudio(false);window.speechSynthesis?.cancel();}}}
             aria-label={muted?'Sesi aç':'Sesi kapat'} aria-pressed={muted}
             className="nv-control min-h-12 rounded-xl px-3">{muted?'🔇':'🔊'}</button>
         </div>
@@ -284,7 +295,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
                 <p className="mb-3 text-xs font-semibold text-sky-100">Nesnelere dokunarak topla. Tekrar dokunursan geri bırakırsın.</p>
                 <div role="group" aria-label={stage===3?'Yıldız toplama alanı':'Kristal toplama alanı'}
                   className="nv-token-field mx-auto grid max-w-xl grid-cols-4 gap-2 sm:grid-cols-6 sm:gap-3">
-                  {Array.from({length:Math.min(12,policy.maxNumber)},(_,i)=>{
+                  {Array.from({length:policy.maxNumber},(_,i)=>{
                     const selected=selectedTokens.includes(i);
                     return <button type="button" key={i} aria-pressed={selected}
                       aria-label={`${i+1}. ${stage===3?'yıldız':'kristal'} ${selected?'geri bırak':'topla'}`}

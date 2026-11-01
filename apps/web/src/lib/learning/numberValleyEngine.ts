@@ -93,7 +93,9 @@ export function planNumberMission(input:{
   }
   const skill:NumberSkill=mission===2?'recognition':mission===3?'quantity':
     mission===4?'listening':'application';
-  const available=all.filter(n=>encountered.has(n) && ((mission===3 || mission===5)?n<=12:true));
+  const available=all.filter(n=>encountered.has(n));
+  // Quantities are interactively collectible through 20; there is no hidden
+  // 12-object ceiling for older learners in harvest or portal missions.
   // A quiz before discovery is an invalid state, not permission to test unseen words.
   if (available.length<3)return {mission,seed,discoveries:[],questions:[],reviewValues:[]};
   const review=shuffle(available.filter(n=>weak.has(n)),rand).slice(0,2);
