@@ -131,3 +131,12 @@ test('G1 market illustrations distinguish visually selectable products and order
  const plan=planMarketMission({aisle:'orchard',stage:4,englishLevel:'A1',gradeLevel:3,history:[],seed:92});
  assert.ok(plan.questions.every(q=>/^(I would like|Can I have) (a|an|some) /.test(q.prompt)));
 });
+
+test('G1 distinct dialogue responses and accessible market cart actions exist',()=>{
+ const ui=fs.readFileSync(new URL('../src/components/learning/activities/FoodMarketAdventure.tsx',import.meta.url),'utf8');
+ assert.match(ui,/fm-dialogue-option/);
+ assert.match(ui,/You asked for \{marketNounPhrase\(id\)\}/);
+ assert.match(ui,/onDrop=\{event=>/);
+ assert.match(ui,/onClick=\{\(\)=>choose\(id\)\}/);
+ assert.match(ui,/stage===5\?current\.words:task\.options/);
+});

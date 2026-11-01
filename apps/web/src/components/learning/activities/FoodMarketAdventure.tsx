@@ -4,7 +4,7 @@ import type {FoodAnswerEvidence} from '@ventra/shared';
 import {getProgressRepository} from '@/lib/progress';
 import {type EnglishPlacement} from '@/lib/learning/gradeAwareLearningPolicy';
 import {MARKET_AISLES,MARKET_STAGES,MARKET_OFFSETS,
- marketWord,planMarketMission,eligibleMarketWords,type MarketAisle,type MarketStage,type MarketPlan} from '@/lib/learning/foodMarketEngine';
+ marketWord,marketNounPhrase,planMarketMission,type MarketAisle,type MarketStage,type MarketPlan} from '@/lib/learning/foodMarketEngine';
 import type {FoodMarketProgress} from '@/lib/progress/foodMarketProgress';
 import {soundService} from '@/lib/audio/SoundService';
 import './food-market.css';
@@ -51,10 +51,10 @@ function MarketBackdrop({aisle,stage}:{aisle:MarketAisle;stage:MarketStage}){
    {stage===5&&<g><path d="M470 280 l25 29 h60 l24 -29" fill="none" stroke="#fdf1ce" strokeWidth="10" strokeLinecap="round"/></g>}
  </svg>;
 }
-function Item({id,showEnglish=false,selected=false,active=false,disabled=false,onClick}:
- {id:string;showEnglish?:boolean;selected?:boolean;active?:boolean;disabled?:boolean;onClick?:()=>void}){
+function Item({id,showEnglish=false,selected=false,active=false,disabled=false,onClick,draggable=false,onDragStart}:
+ {id:string;showEnglish?:boolean;selected?:boolean;active?:boolean;disabled?:boolean;onClick?:()=>void;draggable?:boolean;onDragStart?:(event:React.DragEvent<HTMLButtonElement>)=>void}){
  const w=marketWord(id);
- return <button type="button" onClick={onClick} disabled={disabled}
+ return <button type="button" onClick={onClick} disabled={disabled} draggable={draggable&&!disabled} onDragStart={onDragStart}
    aria-pressed={selected}
    aria-label={showEnglish?`${w.id}, ${w.tr}`:`Ürün resmi: ${w.tr}`}
    className={`fm-product ${selected?'fm-product-selected':''} ${active?'fm-product-good':''}`}
@@ -290,12 +290,31 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
          <button className="fm-text-hint" onClick={()=>speak(task.audio)}>🔊 İngilizceyi Duy</button>
          {hint&&<span>Türkçesi: {marketWord(task.target).tr}</span>}
        </div>}
-       <div className="fm-products fm-choices">
-         {task.options.map(id=><Item key={id} id={id} showEnglish={stage===2}
-           active={success&&id===task.target} selected={selected===id}
-           disabled={success||busy||(stage===3&&!heard&&!hint)}
-           onClick={()=>choose(id)}/>)}
-       </div>
+       {stage===4?
+         <div className="fm-dialogue-choices" aria-label="Doğru İngilizce cevabı seç">
+           {task.options.map(id=><button key={id}
+             className={`fm-dialogue-option ${selected===id?'fm-dialogue-correct':''}`}
+             disabled={success||busy} onClick={()=>choose(id)}>
+             <span aria-hidden="true">💬</span> You asked for {marketNounPhrase(id)}.
+           </button>)}
+         </div>:
+         <div className={`fm-products fm-choices ${stage===5?'fm-supermarket-grid':''}`}>
+           {(stage===5?current.words:task.options).map(id=><Item key={id} id={id} showEnglish={stage===2}
+             active={success&&id===task.target} selected={selected===id}
+             disabled={success||busy||(stage===3&&!heard&&!hint)}
+             draggable={stage===5}
+             onDragStart={event=>{event.dataTransfer.setData('text/plain',id);event.dataTransfer.effectAllowed='move';}}
+             onClick={()=>choose(id)}/>)}
+         </div>}
+       {stage===5&&<div className="fm-basket-target" role="region"
+         aria-label="Pazar sepeti. Bir ürünü sürükleyip buraya bırakabilir veya ürüne dokunabilirsin."
+         onDragOver={event=>event.preventDefault()}
+         onDrop={event=>{event.preventDefault();const id=event.dataTransfer.getData('text/plain');
+           if(id&&current.words.includes(id))choose(id);}}>
+           <span aria-hidden="true">🧺</span>
+           <div><strong>Drop it in the basket!</strong>
+             <small>Ürünü sepete sürükle veya kartına dokun.</small></div>
+         </div>}
        {stage===3&&!heard&&!hint&&<p className="fm-instruction">Önce sesi dinle. Cihazda ses yoksa “Yazılı yardım” seçeneğiyle devam et.</p>}
        {stage===5&&<p className="fm-basket">🛒 Sepette: {answers.filter(x=>x.kind==='application').map(x=>marketWord(x.wordId).icon).join(' ')||'Henüz ürün yok'}</p>}
        {success&&<button className="fm-cta" onClick={advance} disabled={busy}>
