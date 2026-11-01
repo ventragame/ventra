@@ -23,3 +23,5 @@
 5. If requirements conflict with the charter, stop and obtain the product owner's explicit strategic decision; update the dated decision record before changing scope.
 
 This instruction file does not itself establish a new delivery/deployment authorization.
+
+- **G3 English Temple** is playable: five chambers and 25 English transfer/review missions; it remixes earlier animal, color, number, food and family English concepts. Do not replace the English learning outcomes with generic puzzles, money/math mechanics or unrelated domains. See [G3 GDD](docs/G3_TEMPLE_PREMIUM_GDD_AND_ACCEPTANCE.md).

@@ -244,3 +244,11 @@ Kaynaklar:
 - **Açık premium iş:** Bazı nesneler el çizimi SVG; çok sayıda ürün/kelime halen emojiyle gösteriliyor. İngilizce ses TTS cihazına bağlı. Tam özgün sprite/animasyon/ses ve gerçek kullanıcı pedagojik kabulü eksik. 
 - **Sonraki dünya G3:** Keşif Tapınağı — **önceki İngilizce kazanımları** yeni cümle/bulmacalarda pekiştiren dil macerası; matematik veya dilden bağımsız escape room **değil**.
 - [G1.5–G1.6 + G2 GDD ve kabul raporu](./G1_5_G1_6_G2_FAMILY_VILLAGE_ACCEPTANCE.md).
+
+### 2026-11-01 — G3 Keşif Tapınağı premium kod teslimi
+- **Dil hedefi korunmuştur:** Keşif Tapınağı İngilizce öğrenimini pekiştirir; dilden bağımsız zeka veya matematik bulmacası değildir. 5 salon (Rün Ormanı, Yankı Galerisi, Bereket Salonu, Hatıra Odaları, Kristal Taht), salon başına 5 İngilizce görev, toplam 25 kalıcı bölüm.
+- Birleşik içerik: 40 animals + 10 colors + 35 seçilmiş English numbers + 45 food/drinks + 60 family/home/routines = **190** İngilizce kavram; A1/A2 ve sınıfa göre adaptif seçim, önceki hatalı kelimelerde tekrar önceliği, farklı dünyaların homonim kelimeleri için çift doğru önleme.
+- Oyun etkileşimleri: sembol keşfi, İngilizce yazıt eşleştirme, ses tamamlandıktan sonra dinleme, 4+ parçalı cümle sıralama ve 2 sembollü İngilizce mühür şifresi. Büyük finalde bütün eski dünyaların kelimeleri karıştırılır.
+- Önceki oyunları bitirmeden tapınağa girilebilir; tapınağın kendi 25 görevi sırayla açılır. P3 tapınak öğrenme kanıtı, P5 ilk defa tamamlanan bölüm +10 coin (toplam 250), en fazla 75 yıldız, offline/child profile event altyapısı kullanılır.
+- [G3 CI #41333293845](https://github.com/ventragame/ventra/actions/runs/41333293845) **140/140 test, web, Android debug ve iOS Simulator PASS**. **Açık yayın kapıları:** gerçek cihaz/çocuk kalıcılık kabulü, profesyonel sprite ve ses paketi, cihazlar arası senkronizasyon/çocuk verisi denetimi, bağımlılık güvenliği. Canlı DB migration veya mağazaya yayın yapılmadı.
+- [GDD & kabul](./G3_TEMPLE_PREMIUM_GDD_AND_ACCEPTANCE.md).

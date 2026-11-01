@@ -51,7 +51,7 @@ Beş aşama her sahnede aynı görsel şablonu kullanmak zorunda değildir. **Oy
 | Sayı Vadisi | Numbers (yaşa/düzeye göre 1–1000); İngilizce biçim, telaffuz, yönerge | Mevcut oynanabilir içerik |
 | **Lezzet Pazarı** | **Food & drinks**; yiyecek/içecek isimleri, sesler, basit istek/sipariş ifadeleri | **Oynanabilir kod; gerçek cihaz kabulü açık** |
 | Aile Köyü | Family, home, daily routines; 60 kavram, 4 mahalle ve 20 İngilizce görevi | Oynanabilir kod; cihaz/çocuk kabulü açık |
-| Keşif Tapınağı | Önceki İngilizce sözcük/ifadelerin karışık ve bağlamsal tekrarı | Sıradaki tasarım ve geliştirme |
+| Keşif Tapınağı | Önceki 190 kavramlık İngilizce havuzunun 5 salon/25 görevde tekrar kullanılması | Oynanabilir kod; gerçek cihaz/çocuk kabulü açık |
 
 ### G1 — Lezzet Pazarı için değişmez kapsam
 

@@ -15,7 +15,7 @@
 
 Ventra'nın **Kids World (7–12 yaş)** deneyiminde çocuk, haritadaki oyun bölgelerini keşfeder; görsel, ses ve eylemlerle İngilizce kelime/ifadeleri öğrenir. P3 öğrenme motoru yeni öğrenilenleri, ipuçlarını, bağımsız yanıtları ve tekrar ihtiyacını takip eder. Aile ve okul hesapları aynı öğrenim dünyasına farklı erişim ve raporlama yollarıdır.
 
-**Oynanabilir dil bölgeleri:** Hayvan Çayırı (animals), Renk Korusu (colors), Sayı Vadisi (English numbers, düzeye göre 1–1000), **Lezzet Pazarı** (Food & Drinks; 45 kelime, 3 sokak, 15 görev) ve **Aile Köyü** (Family/Home/Routines; 60 kavram, 4 mahalle, 20 dil görevi). Keşif Tapınağı sonraki dil içerik dünyasıdır.
+**Oynanabilir dil bölgeleri:** Hayvan Çayırı (animals), Renk Korusu (colors), Sayı Vadisi (English numbers, düzeye göre 1–1000), **Lezzet Pazarı** (Food & Drinks; 45 kelime, 3 sokak, 15 görev) ve **Aile Köyü** (Family/Home/Routines; 60 kavram, 4 mahalle, 20 dil görevi). **Keşif Tapınağı** (önceki 190 İngilizce kavramdan seçilen birleşik içerik, 5 salon, 25 görev, 75 yıldız) final dünyası olarak oynanabilir.
 
 Lezzet Pazarı'nda çocuk İngilizce "apple", "bread", "milk" gibi sözcükleri keşfedecek, sesi tanıyacak, doğru ürünü sahnede seçecek ve "I want an apple" gibi ifadeleri kullanacaktır. **Para üstü, bütçe ve mağaza ekonomisi öğretmek bu projenin hedefi değildir.**
 
@@ -56,3 +56,9 @@ Daha ayrıntılı kurallar: [VENTRA_PRODUCT_CHARTER.md](docs/VENTRA_PRODUCT_CHAR
 - **Otomatik doğrulama:** [GitHub Actions 41329515175](https://github.com/ventragame/ventra/actions/runs/41329515175). TypeScript, testler, web, Android debug APK ve iOS Simulator başarıyla derlendi.
 - **Eksik kullanıcı kabulü:** gerçek telefon/tablet testleri, profesyonel özgün ürün çizimleri/ses paketi, çocuklarla kullanım ve kalıcılık testi. Emoji kullanılan sahneler nedeniyle kod başarılı olsa da tam stüdyo sanatı bitmiş sayılmaz.
 - [GDD ve kabul raporu](docs/G1_5_G1_6_G2_FAMILY_VILLAGE_ACCEPTANCE.md).
+
+### G3 Keşif Tapınağı (01.11.2026)
+- Beş salon: Rün Ormanı, Yankı Galerisi, Bereket Salonu, Hatıra Odaları ve Kristal Taht. Toplam **25 İngilizce görev**: rün keşfi, yazı eşleştirme, tam ses dinleme, kelimeleri doğru sırayla İngilizce cümle kurma ve ikili mühürlü final.
+- 40 hayvan SVG'si ve 5 orijinal vektör tapınak sahnesi, düzeye göre kelime havuzu, yanlış kelimeleri yeniden sorma, bağımsız/ipuçlu yanıt ayrımı, yıldız/coin ve çocuk profili kayıtları.
+- [CI #41333293845](https://github.com/ventragame/ventra/actions/runs/41333293845): **140/140 test, TypeScript, web, Android debug APK ve iOS Simulator PASS**. Gerçek cihaz/çocuk pedagojik kabulü ve profesyonel offline ses/sprite çalışmaları açık.
+- [G3 tasarım, sınır ve kabul belgesi](docs/G3_TEMPLE_PREMIUM_GDD_AND_ACCEPTANCE.md).
