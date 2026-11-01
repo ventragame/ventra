@@ -336,7 +336,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
               </p>
               <ValleyMilestone stage={stage} completed={question+Number(awaitingNext)}
                 total={total} active={speaking&&!muted}/>
-              {(stage===3||stage===5)&&<div className="nv-counting mt-5 rounded-[22px] p-3 sm:p-5">
+              {(stage===3||(stage===5&&portalPhase==='collect'))&&<div className="nv-counting mt-5 rounded-[22px] p-3 sm:p-5">
                 <div className="mb-3 flex items-center justify-center gap-3">
                   <span className="text-sm font-extrabold text-sky-100">Topladığın {stage===3?'yıldız':'kristal'}:</span>
                   <span className="text-3xl font-black tabular-nums text-amber-200">{current.target>20?currentCount:count}</span>

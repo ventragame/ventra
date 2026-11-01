@@ -41,3 +41,15 @@ Kodda **NV1–NV3 ve görsel kalite sprinti uygulandı**. Güncel `main` workflo
 - [ ] Çocuk kullanım testi, yaş uygunluğu, uygulama mağazası Families/Data Safety ve güvenlik denetimi onaylandı.
 
 **Not:** TTS sesinin aksanı/kalitesi cihaza bağlıdır; profesyonel kayıtlı 1–20 telaffuz dosyaları bu sürüme dahil değildir. Yüksek ses kalitesi ve cihazlar arası tutarlılık için ayrı offline ses paketi hazırlanmalıdır. Bu gerçek cihaz/yayın kapısını gizleyerek “RELEASE READY” denmemelidir.
+
+## 2026-11-01 — Genişletilmiş premium kapsam 1–1000
+- **Kristal Patikası:** 1–20; tüm profillerin temel keşif yolu. Pre-A1 1–10 ile sınırlandırılır.
+- **Onluklar Geçidi:** 21–100; orta/üst sınıf A1/A2 öğrencileri için, temel yoldaki en az sekiz keşiften sonra.
+- **Binlikler Zirvesi:** 101–1000; 5–8. sınıf A2 için, onluk yolunda en az altı keşiften sonra.
+- 1000 tane buton çizilmez: 1–20 tekil nesne toplama; 21–1000 yüzlük/onluk/birlik bloklarıyla fiziksel sayı inşa etme.
+- 0–1000 İngilizce yazı ve cihazda TTS telaffuzu üretilir; oynanabilir soru hedefi 1–1000'dir.
+- Portalın üçüncü adımında sanal pazarda iki fiyat karşılaştırılır; gerçek ödeme içermez.
+- Her yolda beş ayrı tamamlanabilir görev; ayrı kayıt ID'leri: 1–5, 6–10, 11–15. Toplam en fazla 45 yıldız. Eski 1–5 kayıtları aynen korunur.
+- Tekrar, hatalı cevaplar, çocuk profili izolasyonu, keşfedilmemiş sayı sınavı yasağı ve P3 zamanlama kuralları korunur.
+- **Dikkat:** Yüksek sayıların oynanabilmesi her sınıfta uygun olduğu anlamına gelmez. Sınıf ve İngilizce seviyesine bağlı açılma kuralları kullanılır. 1–1000 aralığının her üyesi öğrenme havuzuna dahil olsa da, tek oturumda tamamının öğretilmesi hedeflenmez.
+- Gerçek cihaz ve bağımsız pedagojik değerlendirme yine yayın kabul kapısıdır.

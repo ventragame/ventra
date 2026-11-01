@@ -187,3 +187,9 @@ Kaynaklar:
 - **NV3:** Yeni ayrı oyun kaydı `island_word_garden_numbers`, yıldız koruması ve profil bazlı kalıcı öğrenme kanıtı.
 - **NV4:** QA ve cihaz kabulü; tüm kapılar geçilince Sayı Vadisi haritada oynanabilir olur.
 - **İlke:** NV0 teknik temel `Sayı Vadisi tamamlandı` anlamına gelmez; P2 aile senkronizasyonu ve P4 fiziksel cihaz doğrulaması yayın kapısı olarak kalır.
+
+### 2026-11-01 Sayı Vadisi genişletme kararı
+- 1–20 içeriği, 21–100 ve 101–1000 yollarına genişletildi; Pre-A1 ve sınıf politikaları korunur.
+- 15 görev bölümü / 45 yıldız, eski 5 görev kaydının devamıdır; her düzey beş orijinal görev mekaniğinin uyarlanmış varyantıdır.
+- Günlük yaşam fiyat karşılaştırma ve yüzlük/onluk/birlik atölyesi eklendi.
+- CI ve fiziksel cihaz kalite kapıları başarı ölçütüdür; mağaza yayın kararı değildir.

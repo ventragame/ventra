@@ -88,3 +88,28 @@ test('grade policy and P3 are connected to Number Valley, preserving discovery s
   const unread=planNumberMission({mission:2,seed:5,history:[],gradeLevel:7,englishLevel:'A2',now:at(4)});
   assert.deepEqual(unread.questions,[]);
 });
+
+test('expanded number policy remains grade and English placement aware',()=>{
+  const get=(gradeLevel,englishLevel)=>resolveGradeAwarePolicy({domain:'numbers',gradeLevel,englishLevel}).maxNumber;
+  assert.equal(get(1,'Pre-A1'),10);
+  assert.equal(get(1,'A2'),20);
+  assert.equal(get(3,'A1'),100);
+  assert.equal(get(4,'A2'),100);
+  assert.equal(get(7,'A1'),100);
+  assert.equal(get(7,'A2'),1000);
+  assert.equal(get(null,'A2'),20,'legacy grade remains at original range');
+});
+test('numeric P3 records recognize and retain three-digit and four-digit words',()=>{
+  const now=at(5);
+  const history=[
+    number(325,'discovery',1,false),
+    number(325,'recognition',2,true),
+    number(1000,'discovery',1,false),
+    number(1000,'quantity',3,true)
+  ];
+  const snap=getLearningSnapshot({animalAnswers:[],colorAnswers:[],animalWords:[],colorWords:[],
+    numberAnswers:history,numberWords:['325','1000'],now});
+  assert.equal(snap.domainStats.numbers.discovered,2);
+  assert.equal(snap.vocabulary.find(x=>x.wordId==='325').skills.find(x=>x.skill==='recognition').independentCorrect,1);
+  assert.equal(snap.vocabulary.find(x=>x.wordId==='1000').skills.find(x=>x.skill==='quantity').independentCorrect,1);
+});
