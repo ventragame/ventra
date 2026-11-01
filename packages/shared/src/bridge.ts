@@ -32,6 +32,8 @@ export interface ColorAnswerEvidence {
   hintUsed?: boolean;
   // Discovery is exposure, not proof of recall.
   kind: 'discovery' | 'recall';
+  /** P3: new color sessions separate recognition from color application. */
+  skill?: 'recognition' | 'application';
   timestamp: string;
 }
 

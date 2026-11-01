@@ -195,7 +195,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
       wordId: target, mistakes: questionMistakes,
       firstTryCorrect: questionMistakes === 0 && !hintUsed,
       hintUsed,
-      kind: 'recall', timestamp: new Date().toISOString()
+      kind: 'recall', skill: step === 3 ? 'application' : 'recognition', timestamp: new Date().toISOString()
     };
     const nextEvidence = [...evidence, answer];
     setEvidence(nextEvidence);

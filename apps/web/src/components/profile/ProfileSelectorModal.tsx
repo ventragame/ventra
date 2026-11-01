@@ -8,6 +8,7 @@ import {
   type PlayerAvatar 
 } from '@ventra/shared';
 import { getProgressRepository } from '../../lib/progress';
+import { StarterPlacementCheck } from './StarterPlacementCheck';
 
 interface ProfileSelectorModalProps {
   isOpen: boolean;
@@ -26,6 +27,7 @@ export const ProfileSelectorModal: React.FC<ProfileSelectorModalProps> = ({
   const [pendingByProfile, setPendingByProfile] = useState<Record<string, number>>({});
   const [activeProfile, setActiveProfile] = useState<PlayerProfile | null>(null);
   const [isCreating, setIsCreating] = useState<boolean>(false);
+  const [isPlacementOpen, setIsPlacementOpen] = useState(false);
   const [nickname, setNickname] = useState<string>('');
   const [selectedAvatarId, setSelectedAvatarId] = useState<string>('avatar_explorer');
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -54,6 +56,7 @@ export const ProfileSelectorModal: React.FC<ProfileSelectorModalProps> = ({
     if (isOpen) {
       loadProfiles();
       setIsCreating(false);
+      setIsPlacementOpen(false);
       setErrorMessage(null);
     }
   }, [isOpen]);
@@ -342,6 +345,18 @@ export const ProfileSelectorModal: React.FC<ProfileSelectorModalProps> = ({
                   </label>
                 </div>
                 <p className="mt-2 text-[11px] text-slate-400">Sınıf mevcut oyunda içerik filtresi değildir. A1 ve A2 tercihleri ilerideki içerik çeşitliliğini hazırlamak içindir.</p>
+                {!isPlacementOpen && <button type="button" disabled={isSubmitting}
+                  onClick={() => setIsPlacementOpen(true)}
+                  className="mt-4 min-h-12 w-full rounded-xl border border-lime-300/40 bg-lime-300/15 p-3 text-sm font-black text-lime-100">
+                  🧭 8 Soruluk Başlangıç Yoklaması
+                </button>}
+                {isPlacementOpen && <div className="mt-4">
+                  <StarterPlacementCheck saving={isSubmitting} onCancel={() => setIsPlacementOpen(false)}
+                    onApply={async suggested => {
+                      await updatePlacement({englishLevel:suggested});
+                      setIsPlacementOpen(false);
+                    }}/>
+                </div>}
               </div>
             )}
 

@@ -16,6 +16,7 @@ import { getProgressRepository } from '../../lib/progress';
 import { ProfileSelectorModal } from '../../components/profile/ProfileSelectorModal';
 import { ParentalGateModal } from '../../components/profile/ParentalGateModal';
 import { AdultAccountModal } from '../../components/profile/AdultAccountModal';
+import { LearningIntelligencePanel } from '../../components/learning/LearningIntelligencePanel';
 
 export default function ProgressDashboardPage() {
   const router = useRouter();
@@ -34,13 +35,11 @@ export default function ProgressDashboardPage() {
       let prof = targetProf;
       if (!prof) {
         prof = await repo.getActiveProfile();
-        if (!prof) {
-          prof = await repo.createProfile({ nickname: 'Kaşif', avatarId: 'avatar_explorer' });
-        }
+        // Viewing a report must never create a child profile implicitly.
       }
       setActiveProfile(prof);
 
-      const data = await repo.getProgressSummary(prof?.id);
+      const data = prof ? await repo.getProgressSummary(prof.id) : null;
       setSummary(data);
       setIsLoading(false);
     } catch (err) {
@@ -145,22 +144,9 @@ export default function ProgressDashboardPage() {
           <div style={{ width: '1px', height: '24px', background: '#334155' }} />
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '12px', color: '#94a3b8' }}>
-            <span style={{ color: '#cbd5e1' }}>4. Sınıf</span>
+            <span style={{ color: '#cbd5e1' }}>Ventra Kids</span>
             <span>›</span>
-            <span style={{ color: '#cbd5e1' }}>Matematik</span>
-            <span>›</span>
-            <span style={{ color: '#38bdf8', fontWeight: 700 }}>Kesirler</span>
-            <span style={{
-              fontSize: '10px',
-              background: 'rgba(56, 189, 248, 0.12)',
-              border: '1px solid rgba(56, 189, 248, 0.3)',
-              color: '#38bdf8',
-              padding: '2px 6px',
-              borderRadius: '6px',
-              marginLeft: '4px'
-            }}>
-              M.4.1.6.1
-            </span>
+            <span style={{ color: '#38bdf8', fontWeight: 700 }}>İngilizce Kelimeler</span>
           </div>
         </div>
 
@@ -244,6 +230,8 @@ export default function ProgressDashboardPage() {
         flexDirection: 'column',
         gap: '28px'
       }}>
+        {activeProfile && <LearningIntelligencePanel key={activeProfile.id} profileId={activeProfile.id} />}
+
         {/* BOŞ DURUM (Honest Empty State) */}
         {!hasData && (
           <div style={{
