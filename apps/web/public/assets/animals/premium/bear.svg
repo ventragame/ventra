@@ -7,4 +7,4 @@
 <text x="160" y="205" text-anchor="middle" font-size="152" font-family="Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif">🐻</text>
 </g><g fill="#fff" opacity=".77"><circle cx="50" cy="93" r="5"/><circle cx="270" cy="86" r="7"/><circle cx="255" cy="244" r="4"/><circle cx="64" cy="233" r="3"/></g>
 <path d="M46 264 Q160 296 274 264" fill="none" stroke="#76bca5" stroke-width="5" opacity=".6"/>
-</svg>
+<g opacity=".72" stroke-linecap="round" stroke-linejoin="round"><path d="M52 130 Q34 150 49 180 M271 120 Q285 152 271 180 M70 70 Q92 42 118 43 M201 43 Q232 48 252 73" stroke="#ffffff" stroke-width="5" fill="none"/><circle cx="48" cy="200" r="4" fill="#ffda85"/><circle cx="272" cy="202" r="4" fill="#ffda85"/><circle cx="90" cy="255" r="3" fill="#fff"/><circle cx="230" cy="256" r="3" fill="#fff"/></g></svg>
