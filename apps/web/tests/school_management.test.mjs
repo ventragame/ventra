@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import {localSchoolCandidates} from '../src/lib/school/parentProfileBridge.ts';
 import {createSchool,createClassroom,issueClassInvite,enrollChild,teacherRoster,
   parentLinkedChildren,schoolClient} from '../src/lib/school/schoolService.ts';
 
@@ -61,4 +62,29 @@ test('P6: missing server RPC denies actions, no implicit local school',async()=>
  const db=stub();
  db.rpc=async()=>({data:null,error:{message:'Could not find function public.ventra_create_school'}});
  await assert.rejects(createSchool('Ventra School','#2563eb',db),/Could not find function/);
+});
+
+test('P6: existing local child is visible to current parent for explicit cloud linking',()=>{
+ const local=[
+  {id:'local-kid',nickname:'Yiğit',gradeLevel:3,userId:null},
+  {id:'needs-sync',nickname:'Merve',gradeLevel:4,userId:'adult-a'},
+  {id:'other-adult',nickname:'Öteki',gradeLevel:2,userId:'adult-b'},
+  {id:'already-cloud',nickname:'Ada',gradeLevel:1,userId:'adult-a'}
+ ];
+ assert.deepEqual(localSchoolCandidates(local,[{id:'already-cloud'}],'adult-a'),[
+  {id:'local-kid',nickname:'Yiğit',gradeLevel:3,status:'unlinked'},
+  {id:'needs-sync',nickname:'Merve',gradeLevel:4,status:'needs_sync'}
+ ]);
+ assert.deepEqual(localSchoolCandidates(local,[],'adult-b'),[
+  {id:'local-kid',nickname:'Yiğit',gradeLevel:3,status:'unlinked'},
+  {id:'other-adult',nickname:'Öteki',gradeLevel:2,status:'needs_sync'}
+ ]);
+ assert.deepEqual(localSchoolCandidates(local,[],''),[]);
+});
+test('P6: school enrollment source requires explicit parental confirmation and valid invite code',()=>{
+ const source=fs.readFileSync(new URL('../src/app/school/page.tsx',import.meta.url),'utf8');
+ assert.match(source,/localSchoolCandidates\(local,profiles,auth\.data\.user\.id\)/);
+ assert.match(source,/window\.confirm\(/);
+ assert.match(source,/linkLocalSchoolCandidate\(profile\.id,adultUserId\)/);
+ assert.match(source,/minLength=\{36\} maxLength=\{36\}/);
 });
