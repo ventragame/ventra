@@ -336,7 +336,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
                 {(hintUsed||muted||!speechAvailable)&&<p role="status" className="text-sm font-black text-lime-100">
                   {englishNumber(current.target).toUpperCase()} · Bu tur yazılı desteklidir.
                 </p>}
-  
+              </div>}
               {(stage===2||stage===4||(stage===5&&portalPhase==='decode'))&&
                 <div className="mx-auto mt-6 grid max-w-xl grid-cols-2 gap-3 sm:grid-cols-3">
                   {current.choices.map((value,i)=><button key={value} onClick={()=>choose(value)} disabled={buttonsDisabled}
@@ -346,7 +346,6 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
                     <span className="mt-2 block text-xs text-sky-100">{stage===4?'Sayı taşı':'Işık taşı'} {i+1}</span>
                   </button>)}
                 </div>}
-            </div>}
             </div>}
           </section>
           {feedback&&<p role="status" aria-live="polite"
