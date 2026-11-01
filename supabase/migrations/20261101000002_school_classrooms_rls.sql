@@ -21,7 +21,7 @@ CREATE TABLE IF NOT EXISTS public.ventra_classrooms (
  school_id uuid NOT NULL REFERENCES public.ventra_schools(id) ON DELETE CASCADE,
  name text NOT NULL CHECK (char_length(btrim(name)) BETWEEN 2 AND 60),
  grade_level smallint NOT NULL CHECK (grade_level BETWEEN 1 AND 8),
- created_by uuid NOT NULL REFERENCES auth.users(id),
+ created_by uuid NULL REFERENCES auth.users(id) ON DELETE SET NULL,
  created_at timestamptz NOT NULL DEFAULT now(),
  UNIQUE (id,school_id),
  UNIQUE (school_id,name)
@@ -31,7 +31,7 @@ CREATE TABLE IF NOT EXISTS public.ventra_class_invites (
  school_id uuid NOT NULL,
  classroom_id uuid NOT NULL,
  code uuid NOT NULL UNIQUE DEFAULT gen_random_uuid(),
- created_by uuid NOT NULL REFERENCES auth.users(id),
+ created_by uuid NOT NULL REFERENCES auth.users(id) ON DELETE CASCADE,
  expires_at timestamptz NOT NULL DEFAULT (now()+interval '7 days'),
  max_uses int NOT NULL DEFAULT 30 CHECK (max_uses BETWEEN 1 AND 100),
  used_count int NOT NULL DEFAULT 0 CHECK (used_count>=0 AND used_count<=max_uses),

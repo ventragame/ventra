@@ -94,6 +94,12 @@ test('P6 real PostgreSQL RLS: owner-only school, parent-only enroll, teacher-onl
  assert.equal((await db.query('SELECT * FROM public.ventra_my_classrooms()')).rows.length,0);
  await as(owner);
  assert.equal((await db.query('SELECT * FROM public.ventra_teacher_roster($1)',[cid])).rows.length,0);
+ // P2 account erasure must cascade school/classroom/invite records, not block
+ // auth.users deletion through leftover audit columns.
+ await db.exec('RESET ROLE;');
+ await db.query('DELETE FROM auth.users WHERE id=$1',[owner]);
+ assert.equal((await db.query('SELECT count(*)::int AS count FROM public.ventra_schools')).rows[0].count,0);
+ assert.equal((await db.query('SELECT count(*)::int AS count FROM public.ventra_classrooms')).rows[0].count,0);
  await as(null,'anon');
  await assert.rejects(db.query('SELECT * FROM public.ventra_schools'),/permission denied/i);
  await assert.rejects(db.query('SELECT public.ventra_create_school($1,$2)',['Unsafe','#000000']),/permission denied/i);
