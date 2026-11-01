@@ -64,6 +64,11 @@ export interface FoodAnswerEvidence {
   timestamp:string;
 }
 
+export interface FamilyAnswerEvidence {
+ wordId:string;
+ kind:'discovery'|'recognition'|'listening'|'context'|'dialogue';
+ mistakes:number;firstTryCorrect:boolean;hintUsed:boolean;timestamp:string;
+}
 export interface GameMetrics {
   durationSeconds: number;
   attemptsCount: number;
@@ -74,6 +79,7 @@ export interface GameMetrics {
   animalAnswers?: AnimalAnswerEvidence[];
   numberAnswers?: NumberAnswerEvidence[];
   foodAnswers?: FoodAnswerEvidence[];
+  familyAnswers?: FamilyAnswerEvidence[];
 }
 
 export interface GameCompletedPayload {
