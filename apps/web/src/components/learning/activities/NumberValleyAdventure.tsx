@@ -63,6 +63,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
   const [completed,setCompleted]=useState(false);
   const [speechAvailable,setSpeechAvailable]=useState(false);
   const [heardAudio,setHeardAudio]=useState(false);
+  const [speaking,setSpeaking]=useState(false);
   const audioRequest=useRef(0);
   const [muted,setMuted]=useState(()=>soundService.getMuted());
   const start=useRef(Date.now());
@@ -91,7 +92,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
   },[key,profileId,gradeLevel,englishLevel,stage,nonce]);
 
   useEffect(()=>{
-    const cancel=()=>{audioRequest.current++;setHeardAudio(false);
+    const cancel=()=>{audioRequest.current++;setHeardAudio(false);setSpeaking(false);
       if(typeof window!=='undefined'&&'speechSynthesis' in window)window.speechSynthesis.cancel();};
     const onMute=(next:boolean)=>{setMuted(next);if(next)cancel();};
     const visibility=()=>{if(document.hidden)cancel();};
@@ -111,10 +112,11 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
     try{
       window.speechSynthesis.cancel();
       const request=++audioRequest.current;
-      setHeardAudio(false);
+      setHeardAudio(false);setSpeaking(false);
       const line=new SpeechSynthesisUtterance(phrase?`Collect ${englishNumber(value)} stars`:englishNumber(value));
-      line.onstart=()=>{if(request===audioRequest.current)setHeardAudio(true);};
-      line.onerror=()=>{if(request===audioRequest.current){setHeardAudio(false);setSpeechAvailable(false);}};
+      line.onstart=()=>{if(request===audioRequest.current){setHeardAudio(true);setSpeaking(true);}};
+      line.onend=()=>{if(request===audioRequest.current)setSpeaking(false);};
+      line.onerror=()=>{if(request===audioRequest.current){setHeardAudio(false);setSpeaking(false);setSpeechAvailable(false);}};
       line.lang='en-US';line.rate=.79;
       const voices=window.speechSynthesis.getVoices();
       line.voice=voices.find(x=>x.lang.toLowerCase()==='en-us')??
@@ -128,7 +130,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
     start.current=Date.now();
     session.current=newSession(profileId,next);
     setStage(next);setNonce(v=>v+1);setPlan(null);setPlanKey('');setLoadError(false);
-    audioRequest.current++;setHeardAudio(false);
+    audioRequest.current++;setHeardAudio(false);setSpeaking(false);
     setVisited([]);setAnswers([]);setQuestion(0);setSelectedTokens([]);setPortalPhase('collect');
     setMistakes(0);setPerQuestionMistakes(0);setHintUsed(false);setFeedback(null);
     setAwaitingNext(false);setSaving(false);setSaveError('');setCompleted(false);
@@ -195,7 +197,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
     if(!activePlan||!awaitingNext||saving||writeLock.current)return;
     const last=question+1>=activePlan.questions.length;
     if(last){void finish(answers,answers.length);return;}
-    audioRequest.current++;setHeardAudio(false);
+    audioRequest.current++;setHeardAudio(false);setSpeaking(false);
     if('speechSynthesis' in window)window.speechSynthesis.cancel();
     setQuestion(v=>v+1);setSelectedTokens([]);setPortalPhase('collect');setPerQuestionMistakes(0);
     setFeedback(null);setHintUsed(false);setAwaitingNext(false);
@@ -223,7 +225,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
             {gradeLevel?gradeLevel+'. Sınıf':'Keşif'} · {englishLevel}
           </span>
           <button onClick={()=>{const value=soundService.toggleMute();setMuted(value);
-            if(value){audioRequest.current++;setHeardAudio(false);window.speechSynthesis?.cancel();}}}
+            if(value){audioRequest.current++;setHeardAudio(false);setSpeaking(false);window.speechSynthesis?.cancel();}}}
             aria-label={muted?'Sesi aç':'Sesi kapat'} aria-pressed={muted}
             className="nv-control min-h-12 rounded-xl px-3">{muted?'🔇':'🔊'}</button>
         </div>
@@ -293,7 +295,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
                   'Kristal sayısı doğru. Şimdi portalın İngilizce şifresini seç.'}
               </p>
               <ValleyMilestone stage={stage} completed={question+Number(awaitingNext)}
-                total={total} active={heardAudio&&!muted}/>
+                total={total} active={speaking&&!muted}/>
               {(stage===3||stage===5)&&<div className="nv-counting mt-5 rounded-[22px] p-3 sm:p-5">
                 <div className="mb-3 flex items-center justify-center gap-3">
                   <span className="text-sm font-extrabold text-sky-100">Topladığın {stage===3?'yıldız':'kristal'}:</span>
