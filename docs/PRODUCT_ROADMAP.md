@@ -221,8 +221,14 @@ Kaynaklar:
 - **VENTRA DİL ODAĞI KORUNDU.** Matematik, kasa, para üstü, bütçe ve ticari mağaza simülasyonu içerik hedefi değildir.
 - Meyve & Sebze, Fırın, Kafe & Sofra için toplam **45** Türkçe karşılıklı İngilizce yiyecek/içecek kelimesi; Pre-A1/A1/A2 için 8/12/15 kelime üst sınırı. Sınıfa göre bir oturumda 6–8 kelime tanıtılır, tekrar keşiflerde yeni kelimeler öne alınır.
 - **3 sokak × 5 oynanabilir dil görevi = 15 bölüm, en çok 45 yıldız**: keşfet, görselden İngilizce adı eşleştir, TTS dinle/görsel bul, İngilizce müşteri diyaloğuna cevap ver, çok ürünlü alışveriş listesini dokun/sürükle ile tamamla.
-- Sayı Vadisi'nin **ilk beş İngilizce sayı görevi** tamamlandığında Lezzet Pazarı açılır; 1000'e kadar sayıları tamamlama zorunlu değildir. Yeni sokaklar sırayla açılır. Profil izolasyonu ve önceki oyun kayıtları korunur.
+- **Erişim düzeltmesi (01.11.2026):** Lezzet Pazarı, Hayvan Çayırı/Renk Korusu/Sayı Vadisi tamamlanmadan **doğrudan oynanabilir**; diğer dünyaları bitirme şartı yoktur. Lezzet Pazarı'nda yalnız kendi üç sokağı ve 15 görevi sırayla açılır. Profil izolasyonu ve önceki oyun kayıtları korunur. İlk sürümün yalnızca Number Valley ilk beş görevine bağlandığı ve haritada hatalı biçimde **PLANLANIYOR** gösterdiği senaryo giderildi.
 - P3 food domain kanıtı: keşif/recognition/listening/dialogue/application, hata/ipuçları, duyulmayan ses için bağımsız dinleme notu verilmez. P5 coin'de sadece benzersiz bölümün ilk bitişi +10 (tüm pazar 150), günlük oyun kayıtları ile uyumlu.
 - CI: https://github.com/ventragame/ventra/actions/runs/41318977803 — testler, TypeScript, Next.js production build, mobil statik paket, Android debug APK, iOS Simulator derlemesi başarılı (kaynak SHA `212b3679dd36b949984bc57c0d4a0112983e53eb`).
 - **Açık yayın kapısı:** çocuk gerçek kullanım denemesi, gerçek Android/iPhone dokunmatik ve offline TTS, kayıt silme/senkronizasyon kabulü, özgün her ürünün illüstrasyonları/profesyonel offline İngilizce ses. Ürün sprite'ları şu anda emoji ikonlar ve orijinal SVG pazar sahnesinden oluşur. CI başarı = mağaza yayın onayı değildir.
 - GDD/kabul: [LEZZET_PAZARI_GDD_AND_ACCEPTANCE.md](./LEZZET_PAZARI_GDD_AND_ACCEPTANCE.md).
+
+### 2026-11-01 — Lezzet Pazarı harita erişim kabulü
+- Ekran görüntüsünde oynanabilir G1 Lezzet Pazarı'nın **PLANLANIYOR** olarak görünmesine yol açan `foodUnlocked` kapısı ve `getDistrictObjects` içindeki çapraz dünya bağımlılığı kaldırıldı.
+- Durumlar gerçek içerik durumuna göre ayrıldı: **OYNANABİLİR**, **KİLİTLİ**, **YÜKLENİYOR**, **YÜKLEME HATASI**, **YAKINDA**. Yeni bölümde eski çocuğun verisi/yıldızları değişmedi.
+- Regresyon: Number Valley tamamlanmamışken Lezzet Pazarı açılabilmeli; henüz kodlanmamış Aile Köyü/Keşif Tapınağı kapalı kalmalı.
+- Kanıt: [GitHub Actions 41323749347](https://github.com/ventragame/ventra/actions/runs/41323749347) — TypeScript, 2D harita testleri, production web, statik mobil export, Android debug APK ve iOS Simulator derlemesi başarılı. Fiziksel cihaz kabulü hâlâ açık.

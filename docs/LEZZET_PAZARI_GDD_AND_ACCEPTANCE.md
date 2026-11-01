@@ -11,7 +11,7 @@
 - Beş görev: **Keşfet** (sese/görsele dokunma), **Kelimeyi Bul** (görselden İngilizce yazım), **Dinle ve İşaret Et** (İngilizce ses→görsel), **Siparişi Anla** (müşteri cümlesi→doğru İngilizce yanıt balonu), **Sepeti Doldur** (iki sözcüklü İngilizce yönerge→çoklu ürünleri dokun/sürükle ile sepete koy).
 - Aynı işlevin farklı görsel kopyaları değildir: keşif, görsel-sözcük tanıma, gerçek ses dinleme, cümle anlama ve çok adımlı dil uygulaması ayrıdır.
 - Ürünler sınıf ve İngilizce seviyesiyle sınırlandırılır. Cümle dili sadece A1/A2'ye özgü gramer olarak **ölçülmüş** sayılmaz: kısa sipariş kalıbının anlaşılması uygulama kanıtıdır.
-- İleri pazar sokakları ilk sokağın beş, ardından ikinci sokağın beş görevi tamamlanınca açılır; ilerleme çocuk profili bazındadır. Lezzet Pazarı, Sayı Vadisi'nin **ilk İngilizce sayı yolu** tamamlanınca açılır; 1000'e kadar sayıları bitirmek zorunlu değildir.
+- İleri pazar sokakları ilk sokağın beş, ardından ikinci sokağın beş görevi tamamlanınca açılır; ilerleme çocuk profili bazındadır. **Lezzet Pazarı doğrudan oynanabilir:** Diğer dil dünyalarını tamamlama koşulu yoktur. Pazarın kendi üç sokağı ve 15 göreviyse pedagojik sırayla açılır.
 
 ## Öğrenme kanıtları ve ekonomi
 - Tek kanonik gameId: `island_word_garden_food`; bölüm id'leri 1–15. Eski üç bölgenin ID ve yıldızları korunur.
