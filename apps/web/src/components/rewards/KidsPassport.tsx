@@ -198,7 +198,7 @@ export function KidsPassport({profileId,nickname,avatarEmoji,gradeLevel,englishL
                   onClick={()=>void perform(
                     owned?()=>setEquipped(profileId,item.id,item.group):()=>purchaseCosmetic(profileId,item.id),
                     owned?'Kozmetik karakterine uygulandı!':'Koleksiyonuna eklendi!'
-                  )}>{equipped?'✓ Takılı':owned?'Kullan':snapshot.balance>=item.price?'Satın Al':'Coin Biriktir'}</button>
+                  )}>{equipped?'✓ Takılı':owned?'Kullan':snapshot.balance>=item.price?'Coin ile Aç':'Coin Biriktir'}</button>
               </article>;
             })}
           </div>
