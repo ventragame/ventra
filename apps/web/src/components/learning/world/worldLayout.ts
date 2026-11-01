@@ -114,9 +114,10 @@ export function getHabitatObjects(ids:readonly string[],placeFor:(id:string)=>st
     id,kind:'habitat' as const,label:placeFor(id),...HABITAT_POSITIONS[id]
   }));
 }
-export function getDistrictObjects(colorsUnlocked:boolean,numbersUnlocked=false,foodUnlocked=false,familyUnlocked=false):WorldObject[]{
+export function getDistrictObjects(colorsUnlocked:boolean,numbersUnlocked=false,foodUnlocked=false,familyUnlocked=false,templeUnlocked=false):WorldObject[]{
   return DISTRICTS.map(d=>d.id==='colors'?{...d,unlocked:colorsUnlocked}:
     d.id==='numbers'?{...d,unlocked:colorsUnlocked&&numbersUnlocked}:
     d.id==='food'?{...d,unlocked:foodUnlocked}:
-    d.id==='family'?{...d,unlocked:familyUnlocked}:{...d});
+    d.id==='family'?{...d,unlocked:familyUnlocked}:
+    d.id==='sanctuary'?{...d,unlocked:templeUnlocked}:{...d});
 }

@@ -661,6 +661,7 @@ export default function VentraKidsWorldPage() {
           onNumberProgressSaved={() => { if (activeProfile) void loadProfileAndProgress(activeProfile); }}
           onFoodProgressSaved={() => { if (activeProfile) void loadProfileAndProgress(activeProfile); }}
           onFamilyProgressSaved={() => { if (activeProfile) void loadProfileAndProgress(activeProfile); }}
+          onTempleProgressSaved={() => { if (activeProfile) void loadProfileAndProgress(activeProfile); }}
           initialCompletedLevels={wordGardenCompletedLevels}
           initialStarsByLevel={wordGardenStarsByLevel}
           onProgressUpdate={async (_completed, _total, levelOrder, starsEarned, telemetry) => {

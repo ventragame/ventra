@@ -34,6 +34,12 @@ interface WordGardenDistrictMapProps {
   familyAvailable:boolean;
   familyError:boolean;
   onEnterFamily:()=>void;
+  templeCompleted:number;
+  templeTotal:number;
+  templeUnlocked:boolean;
+  templeAvailable:boolean;
+  templeError:boolean;
+  onEnterTemple:()=>void;
   gradeLevel?:number|null;
   onBack:()=>void;
 }
@@ -43,24 +49,27 @@ const PLACES:Record<string,{title:string;description:string;icon:string}>={
   numbers:{title:'Sayı Vadisi',description:'İngilizce sayılar · 1–1000 · Düzeye uygun 15 görev',icon:'🔢'},
   food:{title:'Lezzet Pazarı',description:'45 İngilizce yiyecek/içecek · 3 sokak · 15 dil görevi',icon:'🍎'},
   family:{title:'Aile Köyü',description:'60 İngilizce kelime & ifade · 4 mahalle · 20 dil görevi',icon:'🏡'},
-  sanctuary:{title:'Keşif Tapınağı',description:'Büyük final bölgesi hazırlanıyor',icon:'✨'}
+  sanctuary:{title:'Keşif Tapınağı',description:'5 tapınak salonu · 25 İngilizce final görevi · Karma tekrar',icon:'✨'}
 };
 export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
   completedLevels,totalLevels,onEnterAnimals,onEnterColors,
   colorsUnlocked,colorsAvailable,colorCompleted,numberCompleted,numberTotal,numbersUnlocked,numbersAvailable,onEnterNumbers,
   foodCompleted,foodTotal,foodUnlocked,foodAvailable,foodError,onEnterFood,
-  familyCompleted,familyTotal,familyUnlocked,familyAvailable,familyError,onEnterFamily,gradeLevel=null,onBack
+  familyCompleted,familyTotal,familyUnlocked,familyAvailable,familyError,onEnterFamily,
+  templeCompleted,templeTotal,templeUnlocked,templeAvailable,templeError,onEnterTemple,gradeLevel=null,onBack
 })=>{
   const [notice,setNotice]=useState('');
-  const journeyTotal=totalLevels+3+numberTotal+foodTotal+familyTotal;
-  const progress=journeyTotal>0?Math.min(100,Math.round(100*(completedLevels+colorCompleted+numberCompleted+foodCompleted+familyCompleted)/journeyTotal)):0;
-  const objects=useMemo(()=>getDistrictObjects(colorsUnlocked&&colorsAvailable,numbersUnlocked&&numbersAvailable,foodUnlocked&&foodAvailable,familyUnlocked&&familyAvailable),[colorsUnlocked,colorsAvailable,numbersUnlocked,numbersAvailable,foodUnlocked,foodAvailable,familyUnlocked,familyAvailable]);
+  const journeyTotal=totalLevels+3+numberTotal+foodTotal+familyTotal+templeTotal;
+  const progress=journeyTotal>0?Math.min(100,Math.round(100*(completedLevels+colorCompleted+numberCompleted+foodCompleted+familyCompleted+templeCompleted)/journeyTotal)):0;
+  const objects=useMemo(()=>getDistrictObjects(colorsUnlocked&&colorsAvailable,numbersUnlocked&&numbersAvailable,foodUnlocked&&foodAvailable,familyUnlocked&&familyAvailable,templeUnlocked&&templeAvailable),[colorsUnlocked,colorsAvailable,numbersUnlocked,numbersAvailable,foodUnlocked,foodAvailable,familyUnlocked,familyAvailable,templeUnlocked,templeAvailable]);
   const enter=(obj:WorldObject)=>{
     if(obj.id==='animals')onEnterAnimals();
     else if(obj.id==='colors'&&colorsUnlocked&&colorsAvailable)onEnterColors();
     else if(obj.id==='numbers'&&numbersUnlocked&&numbersAvailable)onEnterNumbers();
     else if(obj.id==='food'&&foodUnlocked&&foodAvailable)onEnterFood();
     else if(obj.id==='family'&&familyUnlocked&&familyAvailable)onEnterFamily();
+    else if(obj.id==='sanctuary'&&templeUnlocked&&templeAvailable)onEnterTemple();
+    else if(obj.id==='sanctuary')setNotice(templeError?'Keşif Tapınağı kayıtları yüklenemedi.':'Keşif Tapınağı hazırlanıyor; yeniden dene.');
     else if(obj.id==='family')setNotice(familyError?'Aile Köyü kayıtları yüklenemedi.':'Aile Köyü hazırlanıyor; yeniden dene.');
     else if(obj.id==='food')setNotice(foodError?'Lezzet Pazarı kayıtları yüklenemedi. Haritadan çıkıp yeniden deneyin.':'Lezzet Pazarı yükleniyor; biraz sonra yeniden seçin.');
     else setNotice(PLACES[obj.id]?.title+' bölgesi henüz açılmadı.');
@@ -75,7 +84,7 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
           ← Takımadaya Dön
         </button>
         <div className="rounded-xl border border-lime-200/30 bg-[#073d4a]/80 px-4 py-3 text-xs font-bold text-lime-100 sm:text-sm">
-          🐾 {completedLevels}/{totalLevels} · 🎨 {colorCompleted}/3 · 🔢 {numberCompleted}/{numberTotal} · 🍎 {foodCompleted}/{foodTotal} · 🏡 {familyCompleted}/{familyTotal} · ⭐ Yolculuk %{progress}
+          🐾 {completedLevels}/{totalLevels} · 🎨 {colorCompleted}/3 · 🔢 {numberCompleted}/{numberTotal} · 🍎 {foodCompleted}/{foodTotal} · 🏡 {familyCompleted}/{familyTotal} · ✨ {templeCompleted}/{templeTotal} · ⭐ Yolculuk %{progress}
         </div>
       </header>
       <div className="mb-4 text-center">
@@ -88,6 +97,7 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
       </div>
       <ExplorerCanvas key="garden" area="garden" objects={objects} caption="Gezilebilir Keşif Haritası"
         height={570} onInteract={enter} onInspect={obj=>setNotice(`${obj.label} henüz oynanabilir değil.`)}/>
+      {templeError&&<div role="alert" className="mb-3 rounded-xl border border-rose-300/50 bg-rose-950/75 px-4 py-3 text-sm font-semibold text-white">Keşif Tapınağı kayıtları okunamadı; verilerin korunuyor. Haritadan çıkıp tekrar dene.</div>}
       {familyError&&<div role="alert" className="mb-3 rounded-xl border border-rose-300/50 bg-rose-950/75 px-4 py-3 text-sm font-semibold text-white">Aile Köyü ilerlemesi açılamadı; mevcut kayıtların korunuyor. Haritadan çıkıp yeniden deneyebilirsin.</div>}
       {foodError&&<div role="alert" className="mb-3 rounded-xl border border-rose-300/50 bg-rose-950/75 px-4 py-3 text-sm font-semibold text-white">Lezzet Pazarı ilerlemesi okunamadı. Kayıtların silinmedi; haritadan çıkıp tekrar açarak yeniden dene.</div>}
       {notice&&<div role="status" className="mt-3 rounded-xl border border-amber-300/40 bg-slate-950/65 px-4 py-3 text-sm font-semibold text-amber-100">
@@ -100,7 +110,7 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
           const status=playable?'OYNANABİLİR':obj.id==='food'
             ?(foodError?'YÜKLEME HATASI':'YÜKLENİYOR')
             :obj.id==='family'?(familyError?'YÜKLEME HATASI':'YÜKLENİYOR')
-            :obj.id==='sanctuary'?'YAKINDA':'🔒 KİLİTLİ';
+            :obj.id==='sanctuary'?(templeError?'YÜKLEME HATASI':'YÜKLENİYOR'):'🔒 KİLİTLİ';
           return <button key={obj.id} type="button" disabled={!playable} onClick={()=>enter(obj)}
             aria-label={`${info.title} — ${playable?'oyna':'kilitli'}`}
             className={`min-h-28 rounded-2xl border px-3 py-4 text-left shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300
@@ -112,7 +122,7 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
           </button>;
         })}
       </div>
-      <p className="mt-5 text-center text-xs text-sky-100/80">Lezzet Pazarı oynanabilir bir İngilizce bölgesidir ve diğer dünyaları bitirmeden açılabilir. Yalnız Keşif Tapınağı henüz geliştirme planındadır.</p>
+      <p className="mt-5 text-center text-xs text-sky-100/80">Lezzet Pazarı oynanabilir bir İngilizce bölgesidir ve diğer dünyaları bitirmeden açılabilir. Altı dil bölgesi oynanabilir. Keşif Tapınağı, önceki dünyalarda öğrenilen İngilizceyi bir araya getiren büyük finaldir.</p>
     </div>
   </div>;
 };

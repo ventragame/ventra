@@ -7,11 +7,13 @@ import { ColorGroveAdventure } from './activities/ColorGroveAdventure';
 import { NumberValleyAdventure } from './activities/NumberValleyAdventure';
 import { FoodMarketAdventure } from './activities/FoodMarketAdventure';
 import { FamilyVillageAdventure } from './activities/FamilyVillageAdventure';
+import { TempleAdventure } from './activities/TempleAdventure';
 import { getProgressRepository } from '@/lib/progress';
 import { getWordGardenProgress, type WordGardenProgressSnapshot, type AnimalMissionTelemetry } from '@/lib/progress/wordGardenProgress';
 import { getColorGroveProgress, saveColorGroveMission, type ColorGroveProgress } from '@/lib/progress/colorGroveProgress';
 import {getNumberValleyProgress,saveNumberValleyMission,type NumberValleyProgress} from '@/lib/progress/numberValleyProgress';
-import type {NumberAnswerEvidence,FoodAnswerEvidence,FamilyAnswerEvidence} from '@ventra/shared';
+import type {NumberAnswerEvidence,FoodAnswerEvidence,FamilyAnswerEvidence,TempleAnswerEvidence} from '@ventra/shared';
+import {getTempleProgress,saveTempleMission,type TempleProgress} from '@/lib/progress/templeProgress';
 import {getFamilyVillageProgress,saveFamilyVillageMission,type FamilyVillageProgress} from '@/lib/progress/familyVillageProgress';
 import {getFoodMarketProgress,saveFoodMarketMission,type FoodMarketProgress} from '@/lib/progress/foodMarketProgress';
 
@@ -23,6 +25,7 @@ interface LearningPathModalProps {
   onNumberProgressSaved?: () => void;
   onFoodProgressSaved?: () => void;
   onFamilyProgressSaved?: () => void;
+  onTempleProgressSaved?: () => void;
   profileId: string;
   englishLevel?: 'Pre-A1' | 'A1' | 'A2';
   gradeLevel?:number|null;
@@ -31,7 +34,7 @@ interface LearningPathModalProps {
   onProgressUpdate: (completed: number, total: number, levelOrder: number, starsEarned: number, telemetry?: AnimalMissionTelemetry) => Promise<void>;
 }
 
-type District = 'overview' | 'animals' | 'colors' | 'numbers' | 'food' | 'family';
+type District = 'overview' | 'animals' | 'colors' | 'numbers' | 'food' | 'family' | 'sanctuary';
 
 /**
  * One active district at a time; the old static animal activities are no longer
@@ -48,6 +51,7 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
   onNumberProgressSaved,
   onFoodProgressSaved,
   onFamilyProgressSaved,
+  onTempleProgressSaved,
   initialCompletedLevels = 0,
   initialStarsByLevel = {},
   onProgressUpdate
@@ -66,6 +70,9 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
   const [numbers,setNumbers] = useState<NumberValleyProgress>({completedLevels:0,totalLevels:15,starsByLevel:{},completedByBand:{ones:0,tens:0,hundreds:0}});
   const [food,setFood]=useState<FoodMarketProgress>({completedLevels:0,totalLevels:15,completedByAisle:{orchard:0,bakery:0,cafe:0},starsByLevel:{}});
   const [family,setFamily]=useState<FamilyVillageProgress>({completedLevels:0,totalLevels:20,completedByDistrict:{family:0,rooms:0,objects:0,routines:0},starsByLevel:{}});
+  const [temple,setTemple]=useState<TempleProgress>({completedLevels:0,totalLevels:25,completedByChamber:{rune:0,echo:0,feast:0,home:0,crown:0},starsByLevel:{}});
+  const [templeError,setTempleError]=useState(false);
+  const [templeLoaded,setTempleLoaded]=useState(false);
   const [familyError,setFamilyError]=useState(false);
   const [familyLoaded,setFamilyLoaded]=useState(false);
   const [foodError,setFoodError]=useState(false);
@@ -83,6 +90,7 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
     setNumberLoaded(false);
     setFoodError(false);setFoodLoaded(false);
     setFamilyError(false);setFamilyLoaded(false);
+    setTempleError(false);setTempleLoaded(false);
     const repo = getProgressRepository();
     void getWordGardenProgress(repo, profileId)
       .then(snapshot => { if (active) setAnimals(snapshot); })
@@ -100,6 +108,8 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
     void getFamilyVillageProgress(repo,profileId).then(value=>{if(active){setFamily(value);setFamilyLoaded(true);}})
       .catch(err=>{console.error('Aile Köyü ilerlemesi açılamadı',err);
         if(active){setFamilyError(true);setFamilyLoaded(true);}});
+    void getTempleProgress(repo,profileId).then(value=>{if(active){setTemple(value);setTempleLoaded(true);}})
+      .catch(err=>{console.error('Keşif Tapınağı ilerlemesi okunamadı:',err);if(active){setTempleError(true);setTempleLoaded(true);}});
     return () => { active = false; };
   }, [profileId]);
 
@@ -157,6 +167,22 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
         const updated=await saveNumberValleyMission(getProgressRepository(),profileId,mission,mistakes,correct,duration,answers,sessionId,band);
         setNumbers(updated);
         onNumberProgressSaved?.();
+      }}
+    />;
+  }
+
+  if(district==='sanctuary'){
+    return templeError?(
+      <div role="alert" className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-slate-950 p-6 text-center text-white">
+        <p>Keşif Tapınağı ilerlemesi okunamadı. Kayıtların silinmedi.</p>
+        <button onClick={()=>setDistrict('overview')} className="rounded-xl bg-lime-300 px-5 py-3 font-bold text-slate-950">Bölgelere Dön</button>
+      </div>
+    ):<TempleAdventure
+      key={profileId} profileId={profileId} gradeLevel={gradeLevel} englishLevel={englishLevel}
+      progress={temple} onBack={()=>setDistrict('overview')}
+      onSave={async (room,stage,mistakes,duration,answers:TempleAnswerEvidence[],sessionId)=>{
+        const updated=await saveTempleMission(getProgressRepository(),profileId,room,stage,mistakes,duration,answers,sessionId);
+        setTemple(updated);onTempleProgressSaved?.();
       }}
     />;
   }
@@ -233,6 +259,12 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
     familyAvailable={familyLoaded&&!familyError}
     familyError={familyError}
     onEnterFamily={()=>setDistrict('family')}
+    templeCompleted={temple.completedLevels}
+    templeTotal={temple.totalLevels}
+    templeUnlocked={true}
+    templeAvailable={templeLoaded&&!templeError}
+    templeError={templeError}
+    onEnterTemple={()=>setDistrict('sanctuary')}
     gradeLevel={gradeLevel}
     colorsAvailable={!colorError}
     onEnterColors={() => setDistrict('colors')}
