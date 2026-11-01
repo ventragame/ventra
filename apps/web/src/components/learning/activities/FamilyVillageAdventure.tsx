@@ -9,6 +9,7 @@ import {VILLAGE_DISTRICTS,VILLAGE_STAGES,VILLAGE_OFFSETS,
 } from '@/lib/learning/familyVillageEngine';
 import type {FamilyVillageProgress} from '@/lib/progress/familyVillageProgress';
 import {FamilyVillageScenery} from './FamilyVillageScenery';
+import {FamilyWordArt} from './FamilyVillageWordArt';
 import './family-village.css';
 
 type Props={
@@ -25,7 +26,7 @@ function WordChoice({id,mode,active=false,disabled=false,onPick}:WordChoiceProps
  return <button type="button" onClick={onPick} disabled={disabled} aria-pressed={active}
    className={`fv-choice fv-choice-${mode} ${active?'fv-choice-correct':''}`}
    aria-label={mode==='english'?w.id:mode==='phrase'?w.phrase:`${w.tr}`}>
-   {mode!=='english'&&mode!=='phrase'&&<span className="fv-choice-art" aria-hidden="true">{w.icon}</span>}
+   {mode!=='english'&&mode!=='phrase'&&<span className="fv-choice-art" aria-hidden="true"><FamilyWordArt id={id}/></span>}
    <span className="fv-choice-label">{mode==='english'?w.id:mode==='phrase'?w.phrase:mode==='translation'?w.tr:w.tr}</span>
    {active&&<span aria-hidden="true" className="fv-check">✓</span>}
  </button>;
@@ -225,7 +226,7 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
            {current.words.map(id=><button key={id} type="button"
              onClick={()=>discover(id)} aria-pressed={visited.includes(id)}
              className={`fv-discovery ${visited.includes(id)?'fv-visited':''}`}>
-             <span aria-hidden="true">{villageWord(id).icon}</span>
+             <span aria-hidden="true"><FamilyWordArt id={id}/></span>
              {visited.includes(id)?<><strong>{id}</strong><small>{villageWord(id).tr}</small></>:<strong>Keşfet ✨</strong>}
              {visited.includes(id)&&<b aria-label="Keşfedildi">✓</b>}
            </button>)}
