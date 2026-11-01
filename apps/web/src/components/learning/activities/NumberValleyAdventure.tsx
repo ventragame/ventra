@@ -57,7 +57,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
   const [selectedTokens,setSelectedTokens]=useState<number[]>([]);
   const currentCount=placeValue.hundreds*100+placeValue.tens*10+placeValue.ones;
   const count=selectedTokens.length;
-  const [portalPhase,setPortalPhase]=useState<'collect'|'decode'>('collect');
+  const [portalPhase,setPortalPhase]=useState<'collect'|'decode'|'market'>('collect');
   const [mistakes,setMistakes]=useState(0);
   const [perQuestionMistakes,setPerQuestionMistakes]=useState(0);
   const [hintUsed,setHintUsed]=useState(false);
@@ -80,6 +80,9 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
   const key=`${profileId}:${gradeLevel??'unset'}:${englishLevel}:${band}:${stage}:${nonce}`;
   const activePlan=planKey===key&&plan?.mission===stage?plan:null;
   const current=stage===1?null:activePlan?.questions[question]??null;
+  const marketOther=current?(current.target>=1000?current.target-7:
+    Math.min(1000,current.target+(current.target>=100?100:current.target>20?10:3))):0;
+  const marketPrices=current?(current.target%2===0?[current.target,marketOther]:[marketOther,current.target]):[];
 
   useEffect(()=>{
     let alive=true;
@@ -187,6 +190,18 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
       setFeedback({text:'Önce yankıyı dinle veya yazılı yardım seç.',good:false});return;
     }
     if(value!==current.target){mistake('Bu sayı değil. Diğer seçeneği dene.');return;}
+    if(stage===5&&portalPhase==='decode'){
+      setPortalPhase('market');
+      setFeedback({text:'Portal açıldı! Son görev: pazardaki iki fiyattan ucuz olanı seç.',good:true});
+      soundService.playSfx('correct');return;
+    }
+    correctAnswer();
+  }
+  function chooseMarket(value:number){
+    if(stage!==5||portalPhase!=='market'||!current||buttonsDisabled)return;
+    if(value!==Math.min(current.target,marketOther)){
+      mistake('Bu ürün daha pahalı. Daha uygun fiyatı bul.');return;
+    }
     correctAnswer();
   }
   function confirmCount(){
@@ -316,7 +331,8 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
                   stage===3?`Collect ${englishNumber(current.target)} stars — ${current.target} yıldız topla.`:
                   stage===4?'İngilizce duyduğun sayıya ait taşı seç.':
                   portalPhase==='collect'?`Collect ${englishNumber(current.target)} gems — ${current.target} kristal topla.`:
-                  'Kristal sayısı doğru. Şimdi portalın İngilizce şifresini seç.'}
+                  portalPhase==='decode'?'Kristal sayısı doğru. Şimdi portalın İngilizce şifresini seç.':
+                  'Ventra Pazarı: Which costs less? İki üründen daha ucuz olanı seç.'}
               </p>
               <ValleyMilestone stage={stage} completed={question+Number(awaitingNext)}
                 total={total} active={speaking&&!muted}/>
@@ -351,7 +367,21 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
                     {stage===5?'Portal Kristallerini Yerleştir':'Yıldızları Teslim Et'}
                   </button>}
               </div>}
-              {stage===4&&<div className="mt-4 flex flex-col items-center gap-2">
+              {stage===5&&portalPhase==='market'&&<div className="nv-market mx-auto mt-6 max-w-xl">
+                <p className="mb-4 text-base font-extrabold text-amber-100">🛒 Ventra Pazarı · Which costs less?</p>
+                <div className="grid grid-cols-2 gap-3 sm:gap-5">
+                  {marketPrices.map((price,i)=><button key={price} type="button"
+                    aria-label={`${i===0?'Birinci':'İkinci'} ürün fiyatı ${price} jeton`}
+                    onClick={()=>chooseMarket(price)} disabled={buttonsDisabled}
+                    className="nv-choice nv-price-card min-h-28 rounded-2xl px-3 py-5 text-center disabled:opacity-50">
+                    <span className="block text-3xl" aria-hidden="true">{i===0?'🎒':'🧸'}</span>
+                    <span className="mt-2 block text-2xl font-black tabular-nums text-amber-100">{price} <span className="text-sm">jeton</span></span>
+                    <span className="mt-2 block text-xs font-bold text-cyan-100">Satın al</span>
+                  </button>)}
+                </div>
+                <p className="mt-3 text-xs text-sky-100">Sanal oyun jetonudur; gerçek satın alma yoktur.</p>
+              </div>}
+                            {stage===4&&<div className="mt-4 flex flex-col items-center gap-2">
                 <button onClick={()=>speak(current.target)} disabled={muted||!speechAvailable||buttonsDisabled}
                   className="nv-control min-h-12 rounded-full px-6 text-sm font-bold disabled:opacity-45">
                   {muted?'🔇 Ses Kapalı':speechAvailable?'🔊 Sayıyı Dinle':'🔇 Ses Kullanılamıyor'}
