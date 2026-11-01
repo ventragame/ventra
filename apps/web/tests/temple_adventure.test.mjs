@@ -153,3 +153,17 @@ test('G3: every English sentence has at least four tokens and natural family/foo
  assert.equal(sentenceFor(templeWord('family:kitchen')).join(' '),'This is the kitchen.');
  assert.equal(sentenceFor(templeWord('family:wake up')).join(' '),'Every day, I wake up.');
 });
+
+test('G3: cross-world homonyms never create ambiguous same-label correct/incorrect options',()=>{
+ for(const chamber of TEMPLE_CHAMBERS)for(const stage of TEMPLE_STAGES){
+  for(let seed=1;seed<=22;seed++){
+   const plan=planTempleMission({chamber:chamber.id,stage:stage.stage,gradeLevel:7,
+    englishLevel:'A2',history:[],seed});
+   assert.equal(new Set(plan.words.map(id=>templeWord(id).en)).size,plan.words.length);
+   for(const question of plan.questions){
+    assert.equal(new Set(question.options.map(id=>templeWord(id).en)).size,3);
+    assert.equal(new Set(question.options.map(id=>templeWord(id).tr)).size,3);
+   }
+  }
+ }
+});

@@ -110,13 +110,20 @@ export function planTempleMission(input:{chamber:TempleChamber;stage:TempleStage
    Number(encountered.has(a.id))-Number(encountered.has(b.id)):
    (localWrong(b.id)+(weak?.has(b.id)?3:0))-(localWrong(a.id)+(weak?.has(a.id)?3:0)));
  const count=gradeLevel!=null&&gradeLevel>=1&&gradeLevel<=2?6:8;
- const chosen=ordered.slice(0,count);
+ // Cross-world homonyms must not produce two visually or audibly ambiguous answers
+ // (e.g. orange as colour/fruit, fish as animal/food).
+ const seenEnglish=new Set<string>(),seenTurkish=new Set<string>();
+ const chosen=ordered.filter(w=>{
+  const english=w.en.toLowerCase(),turkish=w.tr.toLowerCase();
+  if(seenEnglish.has(english)||seenTurkish.has(turkish))return false;
+  seenEnglish.add(english);seenTurkish.add(turkish);return true;
+ }).slice(0,count);
  const words=chosen.map(w=>w.id);
  if(stage===1)return {chamber,stage,words,questions:[]};
  const rounds=stage===5?6:(gradeLevel!=null&&gradeLevel<=2?4:6);
  const targets=shuffle(Array.from({length:rounds},(_,i)=>chosen[i%chosen.length]),random);
  const questions=targets.map((w,i)=>{
-  const distractors=shuffle(all.filter(other=>other.id!==w.id),random).slice(0,2).map(w=>w.id);
+  const distractors=shuffle(all.filter(other=>other.id!==w.id&&other.en!==w.en&&other.tr!==w.tr),random).filter((item,i,arr)=>arr.findIndex(other=>other.en===item.en||other.tr===item.tr)===i).slice(0,2).map(w=>w.id);
   const options=shuffle([w.id,...distractors],random);
   const sentence=sentenceFor(w);
   return {target:w.id,options,prompt:stage===2?w.tr:
