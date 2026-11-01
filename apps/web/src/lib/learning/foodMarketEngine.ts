@@ -4,7 +4,7 @@ import type {EnglishPlacement} from './gradeAwareLearningPolicy.ts';
 export type MarketAisle='orchard'|'bakery'|'cafe';
 export type MarketStage=1|2|3|4|5;
 export type FoodWord={id:string;tr:string;icon:string;aisle:MarketAisle;tier:0|1|2;category:'food'|'drink'};
-const catalog=(aisle:MarketAisle,items:readonly [string,string,string,0|1|2,'food'|'drink'?][]):FoodWord[]=>items.map(([id,tr,icon,tier,category])=>({id,tr,icon,tier,aisle,category:category??'food'}));
+const catalog=(aisle:MarketAisle,items:readonly [string,string,string,0|1|2,('food'|'drink')?][]):FoodWord[]=>items.map(([id,tr,icon,tier,category])=>({id,tr,icon,tier,aisle,category:category??'food'}));
 /** Curated, hand-translated English vocabulary. Each aisle has 15 distinct items. */
 export const MARKET_WORDS:readonly FoodWord[]=[
  ...catalog('orchard',[
