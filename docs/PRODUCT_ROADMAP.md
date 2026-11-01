@@ -164,3 +164,15 @@ Kaynaklar:
 - **P4.5:** Klavye/WASD, dokunarak yürüme, büyük mobil yön tuşları, erişilebilir alternatif seçimler, pencere gizlenince pausing ve arka plandaki takımadaların uyutulması, dünya koordinat/model regresyon testleri. Gerçek Android/iPhone ve 5–10 yaş çocuk kabulü **bekliyor**.
 - **Kısıt:** Gerçek pathfinding/engel çarpışmaları, profesyonel bütün hayvan ses paketi, oyuncu üzerinde ölçülmüş FPS ve pedagojik saha testi henüz yok; bu sürümün mağaza seviyesinde kesin "premium/bitmiş" ilan edilmesi uygun değildir.
 - **Git / dağıtım:** Kod `main` dalında, Vercel otomatik dağıtım kapalı, hiçbir mağaza yayını yapılmaz.
+
+## 2026-11-01 — Automated CI evidence (verified)
+
+- GitHub Actions: https://github.com/ventragame/ventra/actions/runs/41258109583
+- Source SHA: `fc6b03eeeee5437ffbba900061fb23b547585c7f`
+- **TypeScript: PASS. 75/75 offline/regression tests: PASS, 0 FAIL.**
+- **Web production build: PASS; mobile static export: PASS.**
+- **Android API 36 native debug APK + unsigned release AAB: BUILD SUCCESSFUL.**
+- **iOS unsigned Xcode Simulator build: PASS.**
+- Open: Android/iPhone physical device touch/FPS/offline/TTS/VoiceOver/child-user acceptance.
+- Open security gate: npm audit 7 current vulnerabilities: 1 critical, 2 high, 4 moderate. Package impact and fixes require separate triage; no unsafe `npm audit fix --force` was run.
+- No production deploy, mobile store upload, app signing or purchases enabled.

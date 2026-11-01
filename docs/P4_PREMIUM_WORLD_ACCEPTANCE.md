@@ -43,3 +43,15 @@ Bu belge P4.1–P4.4 yazılım teslimi ile P4.5 son kullanıcı / fiziksel cihaz
 - TypeScript + Node test + web production build + Android API 36 APK/AAB ve iOS Simulator: GitHub Actions'ta aynı kaynak SHA üzerinde yeşil olması gerekir.
 - Fiziksel cihaz ve çocuk kabulü geçmeden `P4 = RELEASE READY` etiketi konulmaz.
 - Sadece kullanıcı açıkça istediğinde yayın. Otomatik Vercel dağıtımı kapalı.
+
+## 2026-11-01 — Automated CI evidence (verified)
+
+- GitHub Actions: https://github.com/ventragame/ventra/actions/runs/41258109583
+- Source SHA: `fc6b03eeeee5437ffbba900061fb23b547585c7f`
+- **TypeScript: PASS. 75/75 offline/regression tests: PASS, 0 FAIL.**
+- **Web production build: PASS; mobile static export: PASS.**
+- **Android API 36 native debug APK + unsigned release AAB: BUILD SUCCESSFUL.**
+- **iOS unsigned Xcode Simulator build: PASS.**
+- Open: Android/iPhone physical device touch/FPS/offline/TTS/VoiceOver/child-user acceptance.
+- Open security gate: npm audit 7 current vulnerabilities: 1 critical, 2 high, 4 moderate. Package impact and fixes require separate triage; no unsafe `npm audit fix --force` was run.
+- No production deploy, mobile store upload, app signing or purchases enabled.
