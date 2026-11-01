@@ -8,7 +8,7 @@
 - Her sokakta beş özgün dil görevi; toplam **15 görev / 45 yıldız**.
 - Dört aşamalı kelime zorluk gösterimi yok; ürünlerde **Pre-A1 (8), A1 (12), A2 (15)** kelime tavanı ve sınıf 1–2 için Pre-A1 başlangıç havuzu.
 - İlk keşif 6–8 ürün; tekrar oynanınca daha önce keşfedilmeyen ürünlere öncelik. İzleyen görevler daha önce hata yapılan kelimelere öncelik verir.
-- Beş görev: **Keşfet** (sese/görsele dokunma), **Kelimeyi Bul** (görselden İngilizce yazım), **Dinle ve İşaret Et** (İngilizce ses→görsel), **Siparişi Anla** (kısa cümle→görsel), **Sepeti Doldur** (iki sözcüklü İngilizce yönerge).
+- Beş görev: **Keşfet** (sese/görsele dokunma), **Kelimeyi Bul** (görselden İngilizce yazım), **Dinle ve İşaret Et** (İngilizce ses→görsel), **Siparişi Anla** (müşteri cümlesi→doğru İngilizce yanıt balonu), **Sepeti Doldur** (iki sözcüklü İngilizce yönerge→çoklu ürünleri dokun/sürükle ile sepete koy).
 - Aynı işlevin farklı görsel kopyaları değildir: keşif, görsel-sözcük tanıma, gerçek ses dinleme, cümle anlama ve çok adımlı dil uygulaması ayrıdır.
 - Ürünler sınıf ve İngilizce seviyesiyle sınırlandırılır. Cümle dili sadece A1/A2'ye özgü gramer olarak **ölçülmüş** sayılmaz: kısa sipariş kalıbının anlaşılması uygulama kanıtıdır.
 - İleri pazar sokakları ilk sokağın beş, ardından ikinci sokağın beş görevi tamamlanınca açılır; ilerleme çocuk profili bazındadır. Lezzet Pazarı, Sayı Vadisi'nin **ilk İngilizce sayı yolu** tamamlanınca açılır; 1000'e kadar sayıları bitirmek zorunlu değildir.
@@ -29,7 +29,7 @@
 - [x] Aynı oyunu tekrar oynama, eski ilerleme/stars korunması, P3 ve P5 veri entegrasyonu.
 - [x] Harita hotspot, kiosk ve öğrenme yolu arayüzü.
 - [x] Okul ve ebeveyn profil izolasyonu: mevcut repo/cocuk event modelini yeniden kullanır.
-- [ ] CI son kod commit'i üzerinde TypeScript, uygulama testleri, production web, Android/iOS derlemesi.
+- [x] CI son kod commit'i üzerinde TypeScript, uygulama testleri, production web, Android/iOS derlemesi. [Başarılı çalıştırma](https://github.com/ventragame/ventra/actions/runs/41318977803).
 - [ ] **Gerçek** Android/iPhone'da ses, dokunmatik, offline, kesinti, font ve ekran okuyucu kabulü.
 - [ ] 7–12 yaş çocuk kullanıcı oturumu: anlama, dinleme ve 7 gün sonra kelime kalıcılığı.
 - [ ] Özgün ürün illüstrasyonları, profesyonel çevrimdışı İngilizce ses paketi; üretim yayın kararı öncesi kalite incelemesi.

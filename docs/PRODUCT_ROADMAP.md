@@ -216,3 +216,13 @@ Kaynaklar:
 - **Okul fazı:** P6.1 okul ve sınıf kodları yazıldı ve kullanıcı veli-bağlama akışını denedi; ileri öğretmen ödevi/raporlama **erteledi**. Kod ve canlı kabul farkı korunur.
 - **Ücretli coin:** Ebeveyn tarafı Play Billing/StoreKit + doğrulanmış sunucu ledger ileride; çocuklara ödeme baskısı yok, satış şu anda kapalı.
 - **Kalite kapıları:** Her yeni dünya önce hedef **İngilizce kelimeler/ifadeler, pedagojik akış, yanlış/ipuçları, P3 kanıtı, cihaz ve çocuk kabulü** ile tanımlanır; ardından kodlanır.
+
+### 2026-11-01 — G1 Lezzet Pazarı oynanabilir kod teslimi
+- **VENTRA DİL ODAĞI KORUNDU.** Matematik, kasa, para üstü, bütçe ve ticari mağaza simülasyonu içerik hedefi değildir.
+- Meyve & Sebze, Fırın, Kafe & Sofra için toplam **45** Türkçe karşılıklı İngilizce yiyecek/içecek kelimesi; Pre-A1/A1/A2 için 8/12/15 kelime üst sınırı. Sınıfa göre bir oturumda 6–8 kelime tanıtılır, tekrar keşiflerde yeni kelimeler öne alınır.
+- **3 sokak × 5 oynanabilir dil görevi = 15 bölüm, en çok 45 yıldız**: keşfet, görselden İngilizce adı eşleştir, TTS dinle/görsel bul, İngilizce müşteri diyaloğuna cevap ver, çok ürünlü alışveriş listesini dokun/sürükle ile tamamla.
+- Sayı Vadisi'nin **ilk beş İngilizce sayı görevi** tamamlandığında Lezzet Pazarı açılır; 1000'e kadar sayıları tamamlama zorunlu değildir. Yeni sokaklar sırayla açılır. Profil izolasyonu ve önceki oyun kayıtları korunur.
+- P3 food domain kanıtı: keşif/recognition/listening/dialogue/application, hata/ipuçları, duyulmayan ses için bağımsız dinleme notu verilmez. P5 coin'de sadece benzersiz bölümün ilk bitişi +10 (tüm pazar 150), günlük oyun kayıtları ile uyumlu.
+- CI: https://github.com/ventragame/ventra/actions/runs/41318977803 — testler, TypeScript, Next.js production build, mobil statik paket, Android debug APK, iOS Simulator derlemesi başarılı (kaynak SHA `212b3679dd36b949984bc57c0d4a0112983e53eb`).
+- **Açık yayın kapısı:** çocuk gerçek kullanım denemesi, gerçek Android/iPhone dokunmatik ve offline TTS, kayıt silme/senkronizasyon kabulü, özgün her ürünün illüstrasyonları/profesyonel offline İngilizce ses. Ürün sprite'ları şu anda emoji ikonlar ve orijinal SVG pazar sahnesinden oluşur. CI başarı = mağaza yayın onayı değildir.
+- GDD/kabul: [LEZZET_PAZARI_GDD_AND_ACCEPTANCE.md](./LEZZET_PAZARI_GDD_AND_ACCEPTANCE.md).

@@ -15,7 +15,7 @@
 
 Ventra'nın **Kids World (7–12 yaş)** deneyiminde çocuk, haritadaki oyun bölgelerini keşfeder; görsel, ses ve eylemlerle İngilizce kelime/ifadeleri öğrenir. P3 öğrenme motoru yeni öğrenilenleri, ipuçlarını, bağımsız yanıtları ve tekrar ihtiyacını takip eder. Aile ve okul hesapları aynı öğrenim dünyasına farklı erişim ve raporlama yollarıdır.
 
-**Mevcut oynanabilir dil bölgeleri:** Hayvan Çayırı (animals), Renk Korusu (colors), Sayı Vadisi (English numbers, düzeye göre 1–1000). **Sıradaki dünya:** Lezzet Pazarı (food & drinks, çok basit alışveriş ifadeleri). Aile Köyü ve Keşif Tapınağı sonraki dil içerikleridir.
+**Oynanabilir dil bölgeleri:** Hayvan Çayırı (animals), Renk Korusu (colors), Sayı Vadisi (English numbers, düzeye göre 1–1000), **Lezzet Pazarı** (Food & Drinks; 45 kelimelik katalog, 3 sokak, 15 dil görevi). Aile Köyü ve Keşif Tapınağı sonraki dil içerikleridir.
 
 Lezzet Pazarı'nda çocuk İngilizce "apple", "bread", "milk" gibi sözcükleri keşfedecek, sesi tanıyacak, doğru ürünü sahnede seçecek ve "I want an apple" gibi ifadeleri kullanacaktır. **Para üstü, bütçe ve mağaza ekonomisi öğretmek bu projenin hedefi değildir.**
 

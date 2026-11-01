@@ -49,15 +49,15 @@ Beş aşama her sahnede aynı görsel şablonu kullanmak zorunda değildir. **Oy
 | Hayvan Çayırı | Animals; tanıma, dinleme, basit hayvan eylemleri | Mevcut oynanabilir içerik |
 | Renk Korusu | Colors; renkleri tanıma, dinleme, nesneye uygulama | Mevcut oynanabilir içerik |
 | Sayı Vadisi | Numbers (yaşa/düzeye göre 1–1000); İngilizce biçim, telaffuz, yönerge | Mevcut oynanabilir içerik |
-| **Lezzet Pazarı** | **Food & drinks**; yiyecek/içecek isimleri, sesler, basit istek/sipariş ifadeleri | **Bir sonraki içerik geliştirmesi** |
+| **Lezzet Pazarı** | **Food & drinks**; yiyecek/içecek isimleri, sesler, basit istek/sipariş ifadeleri | **Oynanabilir kod; gerçek cihaz kabulü açık** |
 | Aile Köyü | Family, home, daily routines; kısa günlük yaşam ifadeleri | Sonraki içerik |
 | Keşif Tapınağı | Önceki İngilizce sözcük/ifadelerin karışık ve bağlamsal tekrarı | Sonraki içerik |
 
 ### G1 — Lezzet Pazarı için değişmez kapsam
 
-**Dil hedefi:** Yiyecek ve içecek söz varlığını ve yaşa uygun kısa İngilizce ifadeleri öğrenmek. İlk yayın kapsamının kesin ürün listesi, seviye bantları ve kelime hedefleri **ayrı GDD'de kararlaştırılacak**; "50–60 kelime", "20–25 görev" gibi rakamlar şimdilik taahhüt değildir.
+**Dil hedefi:** Yiyecek ve içecek söz varlığını ve yaşa uygun kısa İngilizce ifadeleri öğrenmek. Oynanabilir kodda 3 pazar sokağı, 45 kelimelik katalog ve 15 görev vardır; 5 ayrı dil etkileşimi uygulanmıştır. Pedagojik/cihaz kabulü hâlâ açıktır. [GDD ve kabul raporu](./LEZZET_PAZARI_GDD_AND_ACCEPTANCE.md).
 
-Beş **örnek** premium etkileşim (tasarım onayı ve GDD sonrası uygulanır):
+Uygulanan beş dil etkileşimi (cihaz/çocuk kabulü açık):
 
 1. **Pazarı keşfet:** Ürünleri bul, İngilizce adını ve sesini öğren.
 2. **Doğru ürünü seç:** "Find the apple" veya "Choose the bread" gibi İngilizce isteğe göre ürün seç.
