@@ -8,6 +8,7 @@ import {getProgressRepository} from '@/lib/progress';
 import {englishNumber,planNumberMission,type NumberMissionPlan,type NumberStage} from '@/lib/learning/numberValleyEngine';
 import type {NumberValleyProgress} from '@/lib/progress/numberValleyProgress';
 import {resolveGradeAwarePolicy} from '@/lib/learning/gradeAwareLearningPolicy';
+import {NumberValleyScenery,ValleyMilestone} from './NumberValleyScenery';
 import './number-valley.css';
 
 const CHAPTERS=[
@@ -157,6 +158,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
     if(saving||awaitingNext)return;
     setMistakes(v=>v+1);setPerQuestionMistakes(v=>v+1);
     setFeedback({text:message,good:false});soundService.playSfx('gentle_retry');
+    if(perQuestionMistakes>=1)setHintUsed(true);
   }
   function correctAnswer(){
     if(!activePlan||!current||awaitingNext||saving||completed)return;
@@ -173,6 +175,9 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
   }
   function choose(value:number){
     if(!current||awaitingNext||saving||completed)return;
+    if(stage===4&&!heardAudio&&!hintUsed&&!muted&&speechAvailable){
+      setFeedback({text:'Önce yankıyı dinle veya yazılı yardım seç.',good:false});return;
+    }
     if(value!==current.target){mistake('Bu sayı değil. Diğer seçeneği dene.');return;}
     correctAnswer();
   }
@@ -257,9 +262,9 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
           <div className="mb-5 h-2 overflow-hidden rounded-full bg-white/15" aria-hidden="true">
             <div className="nv-progress h-full rounded-full" style={{width:`${total?100*done/total:0}%`}}/>
           </div>
-          <section aria-label="Sayı Vadisi oyun sahnesi" className="nv-landscape relative min-h-[270px] overflow-hidden rounded-[22px] px-3 py-7 sm:min-h-[355px] sm:p-8">
-            <div aria-hidden="true" className="nv-mountain nv-mountain-one"/><div aria-hidden="true" className="nv-mountain nv-mountain-two"/>
-            <div aria-hidden="true" className="nv-land"/><div aria-hidden="true" className="nv-cloud">☁️</div>
+          <section aria-label="Sayı Vadisi oyun sahnesi"
+            className={`nv-landscape nv-world-${stage} relative min-h-[270px] overflow-hidden rounded-[22px] px-3 py-7 sm:min-h-[355px] sm:p-8`}>
+            <NumberValleyScenery stage={stage}/>
             {stage===1&&<div className="relative z-10">
               <h2 className="mb-3 text-center text-xl font-black text-white drop-shadow-lg sm:text-2xl">Kristallere dokun ve sayılarını dinle!</h2>
               <div className="mx-auto grid max-w-3xl grid-cols-3 gap-3 sm:grid-cols-4 sm:gap-5">
@@ -287,6 +292,8 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
                   portalPhase==='collect'?`Collect ${englishNumber(current.target)} gems — ${current.target} kristal topla.`:
                   'Kristal sayısı doğru. Şimdi portalın İngilizce şifresini seç.'}
               </p>
+              <ValleyMilestone stage={stage} completed={question+Number(awaitingNext)}
+                total={total} active={heardAudio&&!muted}/>
               {(stage===3||stage===5)&&<div className="nv-counting mt-5 rounded-[22px] p-3 sm:p-5">
                 <div className="mb-3 flex items-center justify-center gap-3">
                   <span className="text-sm font-extrabold text-sky-100">Topladığın {stage===3?'yıldız':'kristal'}:</span>
@@ -317,15 +324,6 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
                     {stage===5?'Portal Kristallerini Yerleştir':'Yıldızları Teslim Et'}
                   </button>}
               </div>}
-              {(stage===2||stage===4||(stage===5&&portalPhase==='decode'))&&
-                <div className="mx-auto mt-6 grid max-w-xl grid-cols-2 gap-3 sm:grid-cols-3">
-                  {current.choices.map((value,i)=><button key={value} onClick={()=>choose(value)} disabled={buttonsDisabled}
-                    aria-label={stage===2||stage===5?`${englishNumber(value)} kelimesini seç`:`${value} sayısını seç`}
-                    className="nv-choice group min-h-24 rounded-2xl px-3 py-5 text-center disabled:opacity-60 sm:min-h-32">
-                    <span className="block text-xl font-black tracking-wide sm:text-2xl">{stage===4?value:englishNumber(value).toUpperCase()}</span>
-                    <span className="mt-2 block text-xs text-sky-100">{stage===4?'Sayı taşı':'Işık taşı'} {i+1}</span>
-                  </button>)}
-                </div>}
               {stage===4&&<div className="mt-4 flex flex-col items-center gap-2">
                 <button onClick={()=>speak(current.target)} disabled={muted||!speechAvailable||buttonsDisabled}
                   className="nv-control min-h-12 rounded-full px-6 text-sm font-bold disabled:opacity-45">
@@ -338,7 +336,17 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
                 {(hintUsed||muted||!speechAvailable)&&<p role="status" className="text-sm font-black text-lime-100">
                   {englishNumber(current.target).toUpperCase()} · Bu tur yazılı desteklidir.
                 </p>}
-              </div>}
+  
+              {(stage===2||stage===4||(stage===5&&portalPhase==='decode'))&&
+                <div className="mx-auto mt-6 grid max-w-xl grid-cols-2 gap-3 sm:grid-cols-3">
+                  {current.choices.map((value,i)=><button key={value} onClick={()=>choose(value)} disabled={buttonsDisabled}
+                    aria-label={stage===2||stage===5?`${englishNumber(value)} kelimesini seç`:`${value} sayısını seç`}
+                    className="nv-choice group min-h-24 rounded-2xl px-3 py-5 text-center disabled:opacity-60 sm:min-h-32">
+                    <span className="block text-xl font-black tracking-wide sm:text-2xl">{stage===4?value:englishNumber(value).toUpperCase()}</span>
+                    <span className="mt-2 block text-xs text-sky-100">{stage===4?'Sayı taşı':'Işık taşı'} {i+1}</span>
+                  </button>)}
+                </div>}
+            </div>}
             </div>}
           </section>
           {feedback&&<p role="status" aria-live="polite"

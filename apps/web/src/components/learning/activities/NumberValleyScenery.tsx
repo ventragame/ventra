@@ -132,7 +132,7 @@ export function NumberValleyScenery({stage}:{stage:NumberStage}){
   </svg>;
 }
 
-export function ValleyMilestone({stage,completed,total}:{stage:NumberStage;completed:number;total:number}){
+export function ValleyMilestone({stage,completed,total,active=false}:{stage:NumberStage;completed:number;total:number;active?:boolean}){
   if(stage===2)return <div className="nv-milestone nv-bridge-track" role="img" aria-label={`Işık Köprüsü: ${completed} / ${total} taş aydınlandı`}>
     {Array.from({length:Math.min(total,9)},(_,i)=><span key={i} className={i<completed?'nv-bridge-lit':'nv-bridge-dim'} aria-hidden="true">⬡</span>)}
   </div>;
@@ -140,7 +140,7 @@ export function ValleyMilestone({stage,completed,total}:{stage:NumberStage;compl
     <div className="nv-portal-dial"><span aria-hidden="true">✦</span></div>
     <span className="nv-portal-meter">Portal enerjisi %{total?Math.round(100*completed/total):0}</span>
   </div>;
-  if(stage===4)return <div className="nv-milestone nv-echo-track" aria-hidden="true">
+  if(stage===4)return <div className={`nv-milestone nv-echo-track ${active?'nv-echo-active':''}`} aria-hidden="true">
     {Array.from({length:13},(_,i)=><span key={i} style={{height:`${14+((i*37)%38)}px`,animationDelay:`${i*.12}s`}}/>)}
   </div>;
   return null;
