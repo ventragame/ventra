@@ -1,8 +1,8 @@
-import type { AnimalAnswerEvidence, ColorAnswerEvidence, FoodAnswerEvidence, FamilyAnswerEvidence } from '@ventra/shared';
+import type { AnimalAnswerEvidence, ColorAnswerEvidence, FoodAnswerEvidence, FamilyAnswerEvidence, TempleAnswerEvidence } from '@ventra/shared';
 
 /** P3 v1: deterministic, explainable and fully offline learning analytics. */
-export type LearningDomain = 'animals' | 'colors' | 'numbers' | 'food' | 'family';
-export type LearningSkill = 'recognition' | 'listening' | 'command' | 'habitat' | 'application' | 'quantity' | 'dialogue' | 'context';
+export type LearningDomain = 'animals' | 'colors' | 'numbers' | 'food' | 'family' | 'temple';
+export type LearningSkill = 'recognition' | 'listening' | 'command' | 'habitat' | 'application' | 'quantity' | 'dialogue' | 'context' | 'sentence' | 'sequence';
 export type LearningStatus = 'unseen' | 'exposed' | 'practicing' | 'review_due' | 'progressing';
 /** Numeric evidence uses the same P3 clock and independence rules as vocabulary. */
 export interface NumberLearningEvidence {
@@ -60,7 +60,8 @@ const SKILLS: Record<LearningDomain, readonly LearningSkill[]> = {
   colors: ['recognition', 'application'],
   numbers: ['recognition', 'quantity', 'listening', 'application'],
   food: ['recognition','listening','dialogue','application'],
-  family:['recognition','listening','context','dialogue']
+  family:['recognition','listening','context','dialogue'],
+  temple:['recognition','listening','sentence','sequence']
 };
 const INTERVAL_DAYS = [0, 0.5, 1, 3, 7, 14, 30] as const;
 const DAY = 86400000;
@@ -81,7 +82,8 @@ export function normalizeLearningEvidence(
   color: readonly ColorAnswerEvidence[],
   numbers: readonly NumberLearningEvidence[] = [],
   food: readonly FoodAnswerEvidence[] = [],
-  family: readonly FamilyAnswerEvidence[] = []
+  family: readonly FamilyAnswerEvidence[] = [],
+  temple: readonly TempleAnswerEvidence[] = []
 ): LearningEvidence[] {
   const rows: LearningEvidence[] = [];
   for (const item of animal) {
@@ -132,6 +134,14 @@ export function normalizeLearningEvidence(
       independent:item.kind!=='discovery'&&item.firstTryCorrect===true&&
        item.hintUsed!==true&&item.mistakes===0});
   }
+  for(const item of temple){
+    const t=validDate(item.timestamp);
+    if(t===null||!item.wordId||!['discovery',...SKILLS.temple].includes(item.kind))continue;
+    rows.push({domain:'temple',wordId:item.wordId,skill:item.kind,
+      timestamp:new Date(t).toISOString(),mistakes:sanitizeMistakes(item.mistakes),
+      independent:item.kind!=='discovery'&&item.firstTryCorrect===true&&
+        item.hintUsed!==true&&item.mistakes===0});
+  }
   // Stable ordering across repeated cloud event merges, independent of source array order.
   rows.sort((a,b) => a.timestamp.localeCompare(b.timestamp) ||
     a.domain.localeCompare(b.domain) || a.wordId.localeCompare(b.wordId) ||
@@ -180,9 +190,11 @@ export function getLearningSnapshot(args:{
   foodWords?:readonly string[];
   familyAnswers?:readonly FamilyAnswerEvidence[];
   familyWords?:readonly string[];
+  templeAnswers?:readonly TempleAnswerEvidence[];
+  templeWords?:readonly string[];
   now:string;
 }):LearningSnapshot {
-  const events=normalizeLearningEvidence(args.animalAnswers,args.colorAnswers,args.numberAnswers??[],args.foodAnswers??[],args.familyAnswers??[]);
+  const events=normalizeLearningEvidence(args.animalAnswers,args.colorAnswers,args.numberAnswers??[],args.foodAnswers??[],args.familyAnswers??[],args.templeAnswers??[]);
   const timestamp=validDate(args.now);
   if(timestamp===null)throw new Error('Geçersiz değerlendirme tarihi.');
   const domainStats={
@@ -190,11 +202,12 @@ export function getLearningSnapshot(args:{
     colors:{discovered:0,practiced:0,due:0,progressing:0},
     numbers:{discovered:0,practiced:0,due:0,progressing:0},
     food:{discovered:0,practiced:0,due:0,progressing:0},
-    family:{discovered:0,practiced:0,due:0,progressing:0}
+    family:{discovered:0,practiced:0,due:0,progressing:0},
+    temple:{discovered:0,practiced:0,due:0,progressing:0}
   };
   const vocabulary:VocabularyState[]=[];
   for(const [domain,words] of [
-    ['animals',args.animalWords],['colors',args.colorWords],['numbers',args.numberWords??[]],['food',args.foodWords??[]],['family',args.familyWords??[]]
+    ['animals',args.animalWords],['colors',args.colorWords],['numbers',args.numberWords??[]],['food',args.foodWords??[]],['family',args.familyWords??[]],['temple',args.templeWords??[]]
   ] as const){
     for(const wordId of [...new Set(words)]){
       const discovered=events.some(e=>e.domain===domain&&e.wordId===wordId&&e.skill==='discovery' &&

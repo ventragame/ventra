@@ -9,7 +9,7 @@ export type PassportSnapshot={
   economy:EconomyState;balance:number;totalStars:number;completed:number;
   worldStats:{id:string;label:string;icon:string;completed:number;total:number}[];
   daily:ReturnType<typeof dailyStatus>;day:string;plays:number;
-  learned:{animals:number;colors:number;numbers:number;food:number;family:number};
+  learned:{animals:number;colors:number;numbers:number;food:number;family:number;temple:number};
 };
 export interface EconomyStorage {
   mutate(profileId:string,fn:(state:EconomyState)=>EconomyState):Promise<EconomyState>;
@@ -109,9 +109,9 @@ async function playEvidence(repo:IProgressRepository,profileId:string,now:Date){
 }
 export async function getPassport(repo:IProgressRepository,profileId:string,
   storage:EconomyStorage=economyStorage(),now=new Date()):Promise<PassportSnapshot>{
-  const [world,activity,stars,animalAnswers,colorAnswers,numberAnswers,foodAnswers,familyAnswers]=await Promise.all([
+  const [world,activity,stars,animalAnswers,colorAnswers,numberAnswers,foodAnswers,familyAnswers,templeAnswers]=await Promise.all([
     passportEvidence(repo,profileId),playEvidence(repo,profileId,now),repo.getTotalStars(profileId),
-    repo.getAnimalAnswerHistory(profileId),repo.getColorAnswerHistory(profileId),repo.getNumberAnswerHistory(profileId),repo.getFoodAnswerHistory(profileId),repo.getFamilyAnswerHistory(profileId)
+    repo.getAnimalAnswerHistory(profileId),repo.getColorAnswerHistory(profileId),repo.getNumberAnswerHistory(profileId),repo.getFoodAnswerHistory(profileId),repo.getFamilyAnswerHistory(profileId),repo.getTempleAnswerHistory(profileId)
   ]);
   const economy=await storage.mutate(profileId,s=>reconcileRewards(s,world.evidence,now.toISOString()));
   const learned={
@@ -119,7 +119,8 @@ export async function getPassport(repo:IProgressRepository,profileId:string,
     colors:new Set(colorAnswers.filter(e=>e.kind==='discovery').map(e=>e.wordId)).size,
     numbers:new Set(numberAnswers.filter(e=>e.kind==='discovery').map(e=>e.value)).size,
     food:new Set(foodAnswers.filter(e=>e.kind==='discovery').map(e=>e.wordId)).size,
-    family:new Set(familyAnswers.filter(e=>e.kind==='discovery').map(e=>e.wordId)).size
+    family:new Set(familyAnswers.filter(e=>e.kind==='discovery').map(e=>e.wordId)).size,
+    temple:new Set(templeAnswers.filter(e=>e.kind==='discovery').map(e=>e.wordId)).size
   };
   return {economy,balance:economyBalance(economy),totalStars:stars,completed:world.evidence.length,
     learned,worldStats:world.worlds,daily:dailyStatus(economy,activity.day,activity.plays),...activity};
