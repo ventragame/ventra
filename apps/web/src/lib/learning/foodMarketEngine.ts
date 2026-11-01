@@ -114,7 +114,7 @@ export function planMarketMission(input:{
    const distractors=shuffled(distractorPool,rng).slice(0,2).map(w=>w.id);
    const options=shuffled([word.id,...distractors],rng);
    const customer=i%2===0?'I would like':'Can I have';
-   const phrase=stage===4?`${customer} ${marketNounPhrase(word.id)}, please.`:
+   const phrase=stage===4?`${customer} ${marketNounPhrase(word.id)}, please${i%2===0?'.':'?'}`:
       stage===5?`Find the ${word.id}.`:word.id;
    return {target:word.id,options,prompt:stage===2?'Choose the English name':
      stage===3?'Listen and find the item':phrase,

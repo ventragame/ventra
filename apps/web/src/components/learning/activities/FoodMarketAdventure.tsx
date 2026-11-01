@@ -272,7 +272,7 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
          stage===3?<><strong>Listen and find it!</strong><small>Sesi dinle, doğru görsele dokun.</small></>:
          stage===4?<><strong>Customer says:</strong><strong className="fm-english">{task.prompt}</strong></>:
          <><strong>Shopping list · {Math.floor(q/2)+1}/3</strong><strong className="fm-english">
-           Find {current.questions[Math.floor(q/2)*2]?.target} and {current.questions[Math.floor(q/2)*2+1]?.target}.
+           Find the {current.questions[Math.floor(q/2)*2]?.target} and the {current.questions[Math.floor(q/2)*2+1]?.target}.
          </strong><small>İngilizce listedeki ürünleri sırayla sepete koy.</small></>}
         </div>
        </div>

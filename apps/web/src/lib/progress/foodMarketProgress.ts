@@ -1,6 +1,6 @@
 import type {GameCompletedPayload,FoodAnswerEvidence} from '@ventra/shared';
 import type {IProgressRepository} from './types.ts';
-import {MARKET_GAME_ID,MARKET_OFFSETS,MARKET_TOTAL,MARKET_KINDS,
+import {MARKET_GAME_ID,MARKET_OFFSETS,MARKET_TOTAL,MARKET_KINDS,marketWord,
  validMarketAnswers,type MarketAisle,type MarketStage} from '../learning/foodMarketEngine.ts';
 
 export interface FoodMarketProgress {
@@ -32,7 +32,7 @@ export async function saveFoodMarketMission(
  if(!profileId||!sessionId||!Number.isFinite(mistakes)||mistakes<0||
    !Number.isFinite(durationSeconds)||durationSeconds<0||
    !validMarketAnswers(answers)||answers.length<4||
-   answers.some(x=>x.kind!==MARKET_KINDS[stage-1]))
+   answers.some(x=>x.kind!==MARKET_KINDS[stage-1]||marketWord(x.wordId).aisle!==aisle))
    throw Error('Geçersiz dil öğrenme kanıtı.');
  const previous=await getFoodMarketProgress(repo,profileId);
  if(stage>previous.completedByAisle[aisle]+1)

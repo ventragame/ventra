@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {MARKET_WORDS,MARKET_AISLES,MARKET_STAGES,MARKET_TOTAL,
- eligibleMarketWords,planMarketMission,validMarketAnswers,marketWord,MARKET_GAME_ID} from '../src/lib/learning/foodMarketEngine.ts';
+ eligibleMarketWords,planMarketMission,validMarketAnswers,marketWord,marketNounPhrase,MARKET_GAME_ID} from '../src/lib/learning/foodMarketEngine.ts';
 import {saveFoodMarketMission,getFoodMarketProgress} from '../src/lib/progress/foodMarketProgress.ts';
 import {MemoryProgressRepository} from '../src/lib/progress/MemoryProgressRepository.ts';
 import {normalizeLearningEvidence,getLearningSnapshot} from '../src/lib/learning/adaptiveLearningEngine.ts';
@@ -117,4 +117,17 @@ test('G1 content is English-focused, never a math or money game, and linked in t
  assert.doesNotMatch(ui,/calculate|profit|checkout payment|change due/i);
  assert.match(map,/onEnterFood/);
  assert.match(mod,/saveFoodMarketMission/);
+});
+
+test('G1 market illustrations distinguish visually selectable products and order phrases are grammatical',()=>{
+ for(const lane of MARKET_AISLES){
+  const icons=MARKET_WORDS.filter(w=>w.aisle===lane.id).map(w=>w.icon);
+  assert.equal(new Set(icons).size,icons.length,`Duplicate visual icon in ${lane.id}`);
+ }
+ assert.equal(marketNounPhrase('apple'),'an apple');
+ assert.equal(marketNounPhrase('banana'),'a banana');
+ assert.equal(marketNounPhrase('bread'),'some bread');
+ assert.equal(marketNounPhrase('grapes'),'some grapes');
+ const plan=planMarketMission({aisle:'orchard',stage:4,englishLevel:'A1',gradeLevel:3,history:[],seed:92});
+ assert.ok(plan.questions.every(q=>/^(I would like|Can I have) (a|an|some) /.test(q.prompt)));
 });
