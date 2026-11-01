@@ -25,9 +25,9 @@ interface WordGardenDistrictMapProps {
   onBack:()=>void;
 }
 const PLACES:Record<string,{title:string;description:string;icon:string}>={
-  animals:{title:'Hayvan Çayırı',description:'40 hayvan · Her tur 8 hayvan · 5 macera görevi',icon:'🐾'},
+  animals:{title:'Hayvan Çayırı',description:'40 hayvan · Sınıfa göre 6–8 keşif · 5 görev',icon:'🐾'},
   colors:{title:'Renk Korusu',description:'Renkleri keşfet, boya ve hafızanı güçlendir',icon:'🎨'},
-  numbers:{title:'Sayı Vadisi',description:'1–20 İngilizce sayı · 5 kristal macerası · kişiye özel tekrarlar',icon:'🔢'},
+  numbers:{title:'Sayı Vadisi',description:'1–20 sayı havuzu · Sınıfa uygun 5 kristal görevi',icon:'🔢'},
   food:{title:'Lezzet Pazarı',description:'Yiyeceklerin İngilizce adları yakında',icon:'🍎'},
   family:{title:'Aile Köyü',description:'Aile ve günlük yaşam macerası yakında',icon:'🏡'},
   sanctuary:{title:'Keşif Tapınağı',description:'Büyük final bölgesi hazırlanıyor',icon:'✨'}
@@ -37,7 +37,8 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
   colorsUnlocked,colorsAvailable,colorCompleted,numberCompleted,numbersUnlocked,numbersAvailable,onEnterNumbers,gradeLevel=null,onBack
 })=>{
   const [notice,setNotice]=useState('');
-  const progress=totalLevels>0?Math.min(100,Math.round(100*completedLevels/totalLevels)):0;
+  const journeyTotal=totalLevels+3+5;
+  const progress=journeyTotal>0?Math.min(100,Math.round(100*(completedLevels+colorCompleted+numberCompleted)/journeyTotal)):0;
   const objects=useMemo(()=>getDistrictObjects(colorsUnlocked&&colorsAvailable,numbersUnlocked&&numbersAvailable),[colorsUnlocked,colorsAvailable,numbersUnlocked,numbersAvailable]);
   const enter=(obj:WorldObject)=>{
     if(obj.id==='animals')onEnterAnimals();
