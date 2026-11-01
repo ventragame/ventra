@@ -187,7 +187,7 @@ BEGIN
       AND m.user_id=auth.uid() AND m.role IN ('owner','teacher')
  ) THEN RAISE EXCEPTION 'Sınıf listesine erişim yetkisi yok'; END IF;
  RETURN QUERY
- SELECT p.id,p.nickname,p.grade_level,
+ SELECT p.id,p.nickname::text,p.grade_level,
         COALESCE(scores.completed,0)::bigint,COALESCE(scores.total_stars,0)::bigint
  FROM public.ventra_class_enrollments e
  JOIN public.player_profiles p ON p.id=e.profile_id AND p.user_id=e.parent_id AND p.deleted_at IS NULL
