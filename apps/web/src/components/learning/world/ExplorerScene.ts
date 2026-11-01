@@ -199,6 +199,14 @@ export class ExplorerScene extends Phaser.Scene {
       }
       const hit=this.add.rectangle(0,-25,212,310,0xffffff,.001).setInteractive({useHandCursor:true});
       node.add(hit);
+      hit.on('pointerover',()=>{
+        if(this.reducedMotion)return;
+        this.tweens.add({targets:node,scale:1.055,duration:170,ease:'Sine.easeOut'});
+      });
+      hit.on('pointerout',()=>{
+        if(this.reducedMotion){node.setScale(1);return;}
+        this.tweens.add({targets:node,scale:1,duration:160,ease:'Sine.easeOut'});
+      });
       hit.on('pointerdown',(_pointer:Phaser.Input.Pointer,_x:number,_y:number,event:any)=>{
         event?.stopPropagation?.();this.goToObject(object.id);
       });
@@ -278,6 +286,11 @@ export class ExplorerScene extends Phaser.Scene {
     if(object.unlocked===false){this.onInspect(object);return;}
     this.pendingTarget=id;
     this.path=clampToWorld({x:object.x,y:object.y+76});
+    if(this.area==='garden'&&!this.reducedMotion&&this.scale.width>=750){
+      const fit=Math.min(this.scale.width/WORLD_WIDTH,this.scale.height/WORLD_HEIGHT)*.965;
+      this.cameras.main.pan(object.x,object.y,620,'Sine.easeInOut',true);
+      this.cameras.main.zoomTo(Math.min(.85,fit*1.16),620,'Sine.easeInOut',true);
+    }
   }
   goDirection(x:number,y:number):void {
     if(!this.ready)return;
