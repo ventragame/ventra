@@ -17,7 +17,6 @@ const CHAPTERS=[
   {icon:'🔊',title:'Yankı Kanyonu',caption:'Duyduğun sayıyı bul'},
   {icon:'🌀',title:'Portal Onarımı',caption:'Kristal say, doğru şifreyi seç'}
 ] as const;
-const DECOR=['💎','🔮','✨','⭐','🌟','💠'] as const;
 interface Props {
   profileId:string;
   gradeLevel?:number|null;
@@ -50,7 +49,8 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
   const [visited,setVisited]=useState<number[]>([]);
   const [answers,setAnswers]=useState<NumberAnswerEvidence[]>([]);
   const [question,setQuestion]=useState(0);
-  const [count,setCount]=useState(0);
+  const [selectedTokens,setSelectedTokens]=useState<number[]>([]);
+  const count=selectedTokens.length;
   const [portalPhase,setPortalPhase]=useState<'collect'|'decode'>('collect');
   const [mistakes,setMistakes]=useState(0);
   const [perQuestionMistakes,setPerQuestionMistakes]=useState(0);
@@ -120,7 +120,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
     start.current=Date.now();
     session.current=newSession(profileId,next);
     setStage(next);setNonce(v=>v+1);setPlan(null);setPlanKey('');setLoadError(false);
-    setVisited([]);setAnswers([]);setQuestion(0);setCount(0);setPortalPhase('collect');
+    setVisited([]);setAnswers([]);setQuestion(0);setSelectedTokens([]);setPortalPhase('collect');
     setMistakes(0);setPerQuestionMistakes(0);setHintUsed(false);setFeedback(null);
     setAwaitingNext(false);setSaving(false);setSaveError('');setCompleted(false);
   }
@@ -182,7 +182,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
     if(!activePlan||!awaitingNext||saving||writeLock.current)return;
     const last=question+1>=activePlan.questions.length;
     if(last){void finish(answers,answers.length);return;}
-    setQuestion(v=>v+1);setCount(0);setPortalPhase('collect');setPerQuestionMistakes(0);
+    setQuestion(v=>v+1);setSelectedTokens([]);setPortalPhase('collect');setPerQuestionMistakes(0);
     setFeedback(null);setHintUsed(false);setAwaitingNext(false);
   }
   const total=stage===1?activePlan?.discoveries.length??0:activePlan?.questions.length??0;
@@ -277,22 +277,32 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
                   'Kristal sayısı doğru. Şimdi portalın İngilizce şifresini seç.'}
               </p>
               {(stage===3||stage===5)&&<div className="nv-counting mt-5 rounded-[22px] p-3 sm:p-5">
-                <div className="mb-2 flex items-center justify-center gap-3">
-                  <button type="button" disabled={buttonsDisabled||count===0||portalPhase==='decode'}
-                    onClick={()=>setCount(x=>Math.max(0,x-1))}
-                    aria-label="Bir nesneyi geri bırak"
-                    className="nv-control min-h-12 min-w-12 rounded-full text-2xl font-black disabled:opacity-35">−</button>
-                  <span className="min-w-16 text-4xl font-black tabular-nums text-amber-200">{count}</span>
-                  <button type="button" disabled={buttonsDisabled||count>=20||portalPhase==='decode'}
-                    onClick={()=>{setCount(x=>Math.min(20,x+1));soundService.playSfx('tap');}}
-                    aria-label="Bir nesne topla" className="nv-control min-h-12 min-w-12 rounded-full text-2xl font-black disabled:opacity-35">+</button>
+                <div className="mb-3 flex items-center justify-center gap-3">
+                  <span className="text-sm font-extrabold text-sky-100">Topladığın {stage===3?'yıldız':'kristal'}:</span>
+                  <span className="text-3xl font-black tabular-nums text-amber-200">{count}</span>
                 </div>
-                {stage===3?<Stars count={count} active/>:
-                  <div aria-label={`${count} kristal toplandı`} className="flex min-h-14 flex-wrap justify-center gap-1.5" >
-                    {Array.from({length:count},(_,i)=><span key={i} className="text-xl sm:text-2xl" aria-hidden="true">💎</span>)}
-                  </div>}
+                <p className="mb-3 text-xs font-semibold text-sky-100">Nesnelere dokunarak topla. Tekrar dokunursan geri bırakırsın.</p>
+                <div role="group" aria-label={stage===3?'Yıldız toplama alanı':'Kristal toplama alanı'}
+                  className="nv-token-field mx-auto grid max-w-xl grid-cols-4 gap-2 sm:grid-cols-6 sm:gap-3">
+                  {Array.from({length:Math.min(12,policy.maxNumber)},(_,i)=>{
+                    const selected=selectedTokens.includes(i);
+                    return <button type="button" key={i} aria-pressed={selected}
+                      aria-label={`${i+1}. ${stage===3?'yıldız':'kristal'} ${selected?'geri bırak':'topla'}`}
+                      disabled={buttonsDisabled||portalPhase==='decode'}
+                      onClick={()=>{
+                        setSelectedTokens(old=>old.includes(i)?old.filter(v=>v!==i):[...old,i]);
+                        soundService.playSfx('tap');
+                      }}
+                      className={`nv-token min-h-14 rounded-xl text-3xl sm:min-h-16 ${selected?'nv-token-selected':''} disabled:opacity-50`}>
+                      <span aria-hidden="true">{stage===3?'★':'💎'}</span>
+                      <span className="block text-[10px] font-black">{selected?'✓':''}</span>
+                    </button>;
+                  })}
+                </div>
+                {stage===3&&<Stars count={count} active/>}
                 {(stage===3||portalPhase==='collect')&&
-                  <button onClick={confirmCount} disabled={buttonsDisabled} className="nv-primary mt-3 min-h-12 rounded-xl px-7 py-3 text-sm font-black disabled:opacity-50">
+                  <button onClick={confirmCount} disabled={buttonsDisabled}
+                    className="nv-primary mt-4 min-h-12 rounded-xl px-7 py-3 text-sm font-black disabled:opacity-50">
                     {stage===5?'Portal Kristallerini Yerleştir':'Yıldızları Teslim Et'}
                   </button>}
               </div>}
@@ -308,7 +318,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
               {stage===4&&<div className="mt-4 flex flex-col items-center gap-2">
                 <button onClick={()=>speak(current.target)} disabled={muted||!speechAvailable||buttonsDisabled}
                   className="nv-control min-h-12 rounded-full px-6 text-sm font-bold disabled:opacity-45">
-                  {muted?'🔇 Ses Kapalı':speechAvailable?'🔊 Yeniden Dinle':'🔇 Ses Kullanılamıyor'}
+                  {muted?'🔇 Ses Kapalı':speechAvailable?'🔊 Sayıyı Dinle':'🔇 Ses Kullanılamıyor'}
                 </button>
                 <button onClick={()=>{setHintUsed(true);setFeedback({good:true,text:`Yazılı destek: ${englishNumber(current.target).toUpperCase()}`});}}
                   disabled={buttonsDisabled} className="min-h-11 rounded-xl px-4 text-xs font-bold underline underline-offset-4">
