@@ -24,10 +24,10 @@ export const MARKET_WORDS:readonly FoodWord[]=[
  ...catalog('cafe',[
   ['milk','Süt','🥛',0,'drink'],['water','Su','💧',0,'drink'],['juice','Meyve suyu','🧃',0,'drink'],
   ['tea','Çay','🍵',0,'drink'],['lemonade','Limonata','🍋',0,'drink'],
-  ['soup','Çorba','🥣',0],['rice','Pirinç','🍚',0],['fish','Balık','🐟',0],
+  ['soup','Çorba','🍲',0],['rice','Pirinç','🍚',0],['fish','Balık','🐟',0],
   ['smoothie','Smoothie','🥤',1,'drink'],['coffee','Kahve','☕',1,'drink'],
   ['pasta','Makarna','🍝',1],['chicken','Tavuk','🍗',1],
-  ['cereal','Kahvaltılık gevrek','🥣',2],['sugar','Şeker','🧂',2],['salt','Tuz','🧂',2]
+  ['cereal','Kahvaltılık gevrek','🥣',2],['beans','Fasulye','🫘',2],['salt','Tuz','🧂',2]
  ])
 ];
 export const MARKET_AISLES=[
@@ -69,6 +69,14 @@ export function eligibleMarketWords(aisle:MarketAisle,gradeLevel:number|null|und
  const maxTier=englishLevel==='Pre-A1'||grade>0&&grade<=2?0:englishLevel==='A1'||grade>0&&grade<=4?1:2;
  return MARKET_WORDS.filter(x=>x.aisle===aisle&&x.tier<=maxTier);
 }
+const PLURAL_MARKET=new Set(['grapes','cherries','pancakes','beans']);
+const MASS_MARKET=new Set(['bread','cheese','butter','honey','milk','water','juice','tea','lemonade','soup','rice','fish','smoothie','coffee','pasta','chicken','cereal','salt']);
+/** Natural introductory shopping English; avoid "I want apple" or "a bread". */
+export function marketNounPhrase(id:string):string{
+ marketWord(id);
+ return PLURAL_MARKET.has(id)||MASS_MARKET.has(id)?`some ${id}`:
+ /^[aeiou]/.test(id)?`an ${id}`:`a ${id}`;
+}
 export function marketWord(id:string):FoodWord{
  const found=MARKET_WORDS.find(w=>w.id===id);if(!found)throw Error('Unknown market item: '+id);return found;
 }
@@ -89,7 +97,9 @@ export function planMarketMission(input:{
  const count=gradeLevel!==null&&gradeLevel!==undefined&&gradeLevel<=2?6:8;
  const discovered=new Set(history.filter(h=>h.kind==='discovery').map(h=>h.wordId));
  // First discovery has broad coverage; subsequent lessons prioritise missed items.
- const ordered=shuffled(all,rng).sort((a,b)=>{
+ const pool=stage===1?all:(all.filter(w=>discovered.has(w.id)).length>=4?
+   all.filter(w=>discovered.has(w.id)):all);
+ const ordered=shuffled(pool,rng).sort((a,b)=>{
   if(stage===1)return Number(discovered.has(a.id))-Number(discovered.has(b.id));
   return priority(b,history)-priority(a,history);
  });
@@ -100,12 +110,12 @@ export function planMarketMission(input:{
  const selected=Array.from({length:rounds},(_,i)=>active[i%active.length]);
  const sequence=shuffled(selected,rng);
  const questions=sequence.map((word,i)=>{
-   const pool=all.filter(w=>w.id!==word.id);
-   const distractors=shuffled(pool,rng).slice(0,2).map(w=>w.id);
+   const distractorPool=all.filter(w=>w.id!==word.id);
+   const distractors=shuffled(distractorPool,rng).slice(0,2).map(w=>w.id);
    const options=shuffled([word.id,...distractors],rng);
    const customer=i%2===0?'I would like':'Can I have';
-   const phrase=stage===4?`${customer} ${word.id}, please.`:
-      stage===5?`Find ${word.id}.`:word.id;
+   const phrase=stage===4?`${customer} ${marketNounPhrase(word.id)}, please.`:
+      stage===5?`Find the ${word.id}.`:word.id;
    return {target:word.id,options,prompt:stage===2?'Choose the English name':
      stage===3?'Listen and find the item':phrase,
      audio:stage===3?word.id:phrase,
