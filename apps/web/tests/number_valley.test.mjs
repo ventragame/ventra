@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { NUMBER_WORDS,englishNumber,planNumberMission,weakNumberValues } from '../src/lib/learning/numberValleyEngine.ts';
+import { NUMBER_WORDS,englishNumber,planNumberMission,weakNumberValues,unlockedNumberBands,bandNumberPool } from '../src/lib/learning/numberValleyEngine.ts';
 
 const discovery=(value)=>({value,kind:'discovery',mistakes:0,firstTryCorrect:false,timestamp:'2026-11-01T10:00:00.000Z'});
 test('NV0 English numbers 1–20 are correct and zero is not a quiz objective',()=>{
@@ -73,4 +73,62 @@ test('NV4 quantity and portal use the full discovered 1–20 set for upper grade
     assert.ok(targets.has(20), '20 must be available to physical counting missions');
     assert.ok(targets.has(13), '13 must be available to physical counting missions');
   }
+});
+
+test('expanded 1–1000 English lexicon has unique, valid spoken forms',()=>{
+  const all=new Set();
+  for(let n=0;n<=1000;n++){
+    const text=englishNumber(n);
+    assert.match(text,/^[a-z]+(?:[ -][a-z]+)*$/);
+    assert.ok(!all.has(text),`duplicate English form for ${n}`);
+    all.add(text);
+  }
+  assert.equal(englishNumber(30),'thirty');
+  assert.equal(englishNumber(40),'forty');
+  assert.equal(englishNumber(80),'eighty');
+  assert.equal(englishNumber(219),'two hundred nineteen');
+  assert.equal(englishNumber(700),'seven hundred');
+  assert.equal(englishNumber(999),'nine hundred ninety-nine');
+  assert.equal(englishNumber(1000),'one thousand');
+});
+test('unlock number paths only after discovery in the prior band',()=>{
+  const familiar=(lo,hi)=>Array.from({length:hi-lo+1},(_,i)=>discovery(i+lo));
+  assert.deepEqual(unlockedNumberBands(1000,[]),['ones']);
+  assert.deepEqual(unlockedNumberBands(1000,familiar(1,7)),['ones']);
+  assert.deepEqual(unlockedNumberBands(100,familiar(1,8)),['ones','tens']);
+  const ones=familiar(1,8);
+  assert.deepEqual(unlockedNumberBands(1000,[...ones,...familiar(21,26)]),['ones','tens','hundreds']);
+  assert.deepEqual(unlockedNumberBands(100,[...ones,...familiar(21,26)]),['ones','tens']);
+  assert.equal(bandNumberPool('ones',10).length,10);
+  assert.equal(bandNumberPool('tens',100).length,80);
+  assert.equal(bandNumberPool('hundreds',1000).length,900);
+});
+test('tens and hundreds missions are grade-gated, deterministic, and require discover-first',()=>{
+  const familiar=(lo,hi)=>Array.from({length:hi-lo+1},(_,i)=>discovery(i+lo));
+  const before=familiar(1,8);
+  assert.throws(()=>planNumberMission({mission:1,seed:1,englishLevel:'A2',gradeLevel:7,
+    band:'hundreds',history:before}),RangeError);
+  const introduction=planNumberMission({mission:1,seed:1,englishLevel:'A2',gradeLevel:7,
+    band:'tens',history:before});
+  assert.equal(introduction.discoveries.length,8);
+  assert.ok(introduction.discoveries.every(n=>n>=21&&n<=100));
+  const hundredsHistory=[...before,...familiar(21,26)];
+  const h=planNumberMission({mission:1,seed:1,englishLevel:'A2',gradeLevel:7,
+    band:'hundreds',history:hundredsHistory});
+  assert.ok(h.discoveries.every(n=>n>=101&&n<=1000));
+  const trained=[...hundredsHistory,...h.discoveries.map(discovery)];
+  for(const mission of [2,3,4,5]){
+    const args={mission,seed:101,englishLevel:'A2',gradeLevel:7,
+      band:'hundreds',history:trained,now:'2026-11-01T12:00:00.000Z'};
+    const quiz=planNumberMission(args);
+    assert.equal(quiz.questions.length,7);
+    assert.deepEqual(quiz,planNumberMission(args));
+    for(const q of quiz.questions){
+      assert.ok(h.discoveries.includes(q.target));
+      assert.ok(q.choices.every(n=>h.discoveries.includes(n)));
+      assert.equal(new Set(q.choices).size,3);
+    }
+  }
+  assert.throws(()=>planNumberMission({mission:1,seed:1,englishLevel:'A1',gradeLevel:7,
+    band:'hundreds',history:trained}),RangeError);
 });

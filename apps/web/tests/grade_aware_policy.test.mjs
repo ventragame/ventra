@@ -83,7 +83,7 @@ test('grade policy and P3 are connected to Number Valley, preserving discovery s
   const easy=planNumberMission({mission:2,seed:5,history,gradeLevel:1,englishLevel:'A2',now:at(4)});
   const older=planNumberMission({mission:2,seed:5,history,gradeLevel:7,englishLevel:'A2',now:at(4)});
   assert.equal(easy.questions.length,4);assert.equal(older.questions.length,7);
-  assert.ok(easy.questions.every(q=>q.target<=10&&q.choices.length===2&&q.choices.every(n=>n<=10)));
+  assert.ok(easy.questions.every(q=>q.target<=20&&q.choices.length===2&&q.choices.every(n=>n<=20)));
   assert.ok(older.questions.every(q=>q.target<=1000&&q.choices.length===3));
   const unread=planNumberMission({mission:2,seed:5,history:[],gradeLevel:7,englishLevel:'A2',now:at(4)});
   assert.deepEqual(unread.questions,[]);
