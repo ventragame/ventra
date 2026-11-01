@@ -38,7 +38,7 @@ test('NV0 quiz stages never introduce numbers before discovery, and produce uniq
 test('NV0 missed words return as spaced review then recover after two independent recalls',()=>{
   const wrong={value:3,kind:'recognition',mistakes:1,firstTryCorrect:false,timestamp:'2026-11-01T11:00:00.000Z'};
   const good1={...wrong,kind:'quantity',mistakes:0,firstTryCorrect:true,timestamp:'2026-11-01T12:00:00.000Z'};
-  const good2={...wrong,kind:'listening',timestamp:'2026-11-01T13:00:00.000Z'};
+  const good2={...wrong,kind:'listening',mistakes:0,firstTryCorrect:true,timestamp:'2026-11-01T13:00:00.000Z'};
   assert.deepEqual(weakNumberValues([wrong]),[3]);
   assert.deepEqual(weakNumberValues([wrong,good1]),[3]);
   assert.deepEqual(weakNumberValues([wrong,good1,good2]),[]);
