@@ -1,8 +1,8 @@
-import type { AnimalAnswerEvidence, ColorAnswerEvidence } from '@ventra/shared';
+import type { AnimalAnswerEvidence, ColorAnswerEvidence, FoodAnswerEvidence } from '@ventra/shared';
 
 /** P3 v1: deterministic, explainable and fully offline learning analytics. */
-export type LearningDomain = 'animals' | 'colors' | 'numbers';
-export type LearningSkill = 'recognition' | 'listening' | 'command' | 'habitat' | 'application' | 'quantity';
+export type LearningDomain = 'animals' | 'colors' | 'numbers' | 'food';
+export type LearningSkill = 'recognition' | 'listening' | 'command' | 'habitat' | 'application' | 'quantity' | 'dialogue';
 export type LearningStatus = 'unseen' | 'exposed' | 'practicing' | 'review_due' | 'progressing';
 /** Numeric evidence uses the same P3 clock and independence rules as vocabulary. */
 export interface NumberLearningEvidence {
@@ -58,7 +58,8 @@ export interface LearningSnapshot {
 const SKILLS: Record<LearningDomain, readonly LearningSkill[]> = {
   animals: ['recognition', 'listening', 'command', 'habitat'],
   colors: ['recognition', 'application'],
-  numbers: ['recognition', 'quantity', 'listening', 'application']
+  numbers: ['recognition', 'quantity', 'listening', 'application'],
+  food: ['recognition','listening','dialogue','application']
 };
 const INTERVAL_DAYS = [0, 0.5, 1, 3, 7, 14, 30] as const;
 const DAY = 86400000;
@@ -77,7 +78,8 @@ const sanitizeMistakes = (value: number) => Number.isFinite(value) ? Math.max(0,
 export function normalizeLearningEvidence(
   animal: readonly AnimalAnswerEvidence[],
   color: readonly ColorAnswerEvidence[],
-  numbers: readonly NumberLearningEvidence[] = []
+  numbers: readonly NumberLearningEvidence[] = [],
+  food: readonly FoodAnswerEvidence[] = []
 ): LearningEvidence[] {
   const rows: LearningEvidence[] = [];
   for (const item of animal) {
@@ -111,6 +113,14 @@ export function normalizeLearningEvidence(
       independent:item.kind!=='discovery' && item.firstTryCorrect===true &&
         item.hintUsed!==true && item.mistakes===0
     });
+  }
+  for(const item of food){
+    const t=validDate(item.timestamp);
+    if(t===null||!item.wordId||!['discovery',...SKILLS.food].includes(item.kind))continue;
+    rows.push({domain:'food',wordId:item.wordId,skill:item.kind,
+      timestamp:new Date(t).toISOString(),mistakes:sanitizeMistakes(item.mistakes),
+      independent:item.kind!=='discovery'&&item.firstTryCorrect===true&&
+        item.hintUsed!==true&&item.mistakes===0});
   }
   // Stable ordering across repeated cloud event merges, independent of source array order.
   rows.sort((a,b) => a.timestamp.localeCompare(b.timestamp) ||
@@ -156,19 +166,22 @@ export function getLearningSnapshot(args:{
   colorWords:readonly string[];
   numberAnswers?:readonly NumberLearningEvidence[];
   numberWords?:readonly string[];
+  foodAnswers?:readonly FoodAnswerEvidence[];
+  foodWords?:readonly string[];
   now:string;
 }):LearningSnapshot {
-  const events=normalizeLearningEvidence(args.animalAnswers,args.colorAnswers,args.numberAnswers??[]);
+  const events=normalizeLearningEvidence(args.animalAnswers,args.colorAnswers,args.numberAnswers??[],args.foodAnswers??[]);
   const timestamp=validDate(args.now);
   if(timestamp===null)throw new Error('Geçersiz değerlendirme tarihi.');
   const domainStats={
     animals:{discovered:0,practiced:0,due:0,progressing:0},
     colors:{discovered:0,practiced:0,due:0,progressing:0},
-    numbers:{discovered:0,practiced:0,due:0,progressing:0}
+    numbers:{discovered:0,practiced:0,due:0,progressing:0},
+    food:{discovered:0,practiced:0,due:0,progressing:0}
   };
   const vocabulary:VocabularyState[]=[];
   for(const [domain,words] of [
-    ['animals',args.animalWords],['colors',args.colorWords],['numbers',args.numberWords??[]]
+    ['animals',args.animalWords],['colors',args.colorWords],['numbers',args.numberWords??[]],['food',args.foodWords??[]]
   ] as const){
     for(const wordId of [...new Set(words)]){
       const discovered=events.some(e=>e.domain===domain&&e.wordId===wordId&&e.skill==='discovery' &&
