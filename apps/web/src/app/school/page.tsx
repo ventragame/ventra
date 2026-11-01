@@ -4,6 +4,8 @@ import {useCallback,useEffect,useState,type FormEvent} from 'react';
 import Link from 'next/link';
 import {getSupabaseClient,isSupabaseConfigured} from '@/lib/supabase/client';
 import {sendAdultOtpEmail,verifyAdultOtp,signOutAdult} from '@/lib/supabase/auth';
+import {getProgressRepository} from '@/lib/progress';
+import {linkLocalSchoolCandidate,localSchoolCandidates,type LocalSchoolCandidate} from '@/lib/school/parentProfileBridge';
 import {
  schoolDashboard,createSchool,createClassroom,issueClassInvite,teacherRoster,
  parentLinkedChildren,enrollChild,parentClassrooms,leaveClassroom,
@@ -27,6 +29,8 @@ export default function SchoolPortal(){
  const [grade,setGrade]=useState(3);
  const [issuedInvite,setIssuedInvite]=useState('');
  const [children,setChildren]=useState<LinkedChild[]>([]);
+ const [localCandidates,setLocalCandidates]=useState<LocalSchoolCandidate[]>([]);
+ const [adultUserId,setAdultUserId]=useState('');
  const [chosenChild,setChosenChild]=useState('');
  const [inviteCode,setInviteCode]=useState('');
  const [joined,setJoined]=useState<ParentClassroom[]>([]);
@@ -41,7 +45,14 @@ export default function SchoolPortal(){
      const hasClass=result.classes.some(c=>c.id===activeClass);
      setActiveClass(hasClass?activeClass:result.classes[0]?.id??'');
    }else{
-     const [profiles,memberships]=await Promise.all([parentLinkedChildren(),parentClassrooms()]);
+     const client=getSupabaseClient();
+     if(!client)throw new Error('Supabase bağlantısı yok.');
+     const [profiles,memberships,local,auth]=await Promise.all([
+       parentLinkedChildren(),parentClassrooms(),getProgressRepository().getAllProfiles(),client.auth.getUser()
+     ]);
+     if(auth.error||!auth.data.user)throw new Error('Yetişkin oturumu bulunamadı.');
+     setAdultUserId(auth.data.user.id);
+     setLocalCandidates(localSchoolCandidates(local,profiles,auth.data.user.id));
      setChildren(profiles);setJoined(memberships);
      setChosenChild(old=>profiles.some(p=>p.id===old)?old:profiles[0]?.id??'');
    }
@@ -135,7 +146,7 @@ export default function SchoolPortal(){
          <span className="text-sm text-sky-100">Yetişkin hesabı: <strong>{email}</strong></span>
          <button disabled={busy} onClick={()=>{if(busy)return;setBusy(true);setError('');
            void signOutAdult().then(()=>{
-             setSignedIn(false);setSchools([]);setChildren([]);setClasses([]);setRoster([]);setIssuedInvite('');
+             setSignedIn(false);setSchools([]);setChildren([]);setLocalCandidates([]);setAdultUserId('');setClasses([]);setRoster([]);setIssuedInvite('');
              setOtpSent(false);setCode('');setNotice('Oturum kapatıldı.');
            }).catch(e=>setError(e instanceof Error?e.message:'Çıkış yapılamadı.'))
              .finally(()=>setBusy(false));
