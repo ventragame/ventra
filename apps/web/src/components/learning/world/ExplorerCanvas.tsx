@@ -27,7 +27,7 @@ export function ExplorerCanvas({
   const objectsRef=useRef(objects);
   const [ready,setReady]=useState(false);
   const [engineFailed,setEngineFailed]=useState(false);
-  const [debugFps,setDebugFps]=useState<number|null>(null);
+  const [debugFps,setDebugFps]=useState<{current:number;average:number;samples:number}|null>(null);
   const ambience=useRef<WorldAmbience|null>(null);
   const [ambienceOn,setAmbienceOn]=useState(false);
   const [reduced,setReduced]=useState(false);
@@ -127,9 +127,16 @@ export function ExplorerCanvas({
   },[onInteract,onInspect]);
   useEffect(()=>{
     if(typeof window==='undefined'||new URLSearchParams(window.location.search).get('p4debug')!=='1')return;
+    let sum=0;
+    let samples=0;
     const timer=setInterval(()=>{
-      if(document.hidden||!game.current)return;
-      setDebugFps(Math.round(game.current.loop.actualFps || 0));
+      if(document.hidden||!game.current?.isRunning)return;
+      const current=game.current.loop.actualFps;
+      // Ignore startup/invalid frames so QA averages are not biased by loading.
+      if(!Number.isFinite(current)||current<=0)return;
+      sum+=current;
+      samples+=1;
+      setDebugFps({current:Math.round(current),average:Math.round(sum/samples),samples});
     },2000);
     return ()=>clearInterval(timer);
   },[]);
@@ -165,7 +172,7 @@ export function ExplorerCanvas({
         {engineFailed?'Sahne kullanılamıyor; alternatif seçimler aşağıda.':ready?hint:'Dünya hazırlanıyor…'}
       </div>
     </div>
-    {debugFps!==null && <div className="pointer-events-none absolute left-3 bottom-20 rounded-lg bg-black/70 px-2 py-1 text-xs font-black text-lime-100">FPS {debugFps}</div>}
+    {debugFps!==null && <div className="pointer-events-none absolute left-3 bottom-20 rounded-lg bg-black/70 px-2 py-1 text-xs font-black text-lime-100">FPS {debugFps.current} · Ort. {debugFps.average} ({debugFps.samples})</div>}
     <div aria-label="Yön kontrolleri" className="absolute bottom-3 right-3 grid grid-cols-3 gap-1.5" style={{touchAction:'manipulation'}}>
       <span/><button type="button" onClick={()=>move(0,-1)} aria-label="Yukarı yürü" className="min-h-11 min-w-11 rounded-xl border border-white/70 bg-[#fff7d7]/95 font-black text-emerald-950 shadow-lg">↑</button><span/>
       <button type="button" onClick={()=>move(-1,0)} aria-label="Sola yürü" className="min-h-11 min-w-11 rounded-xl border border-white/70 bg-[#fff7d7]/95 font-black text-emerald-950 shadow-lg">←</button>
