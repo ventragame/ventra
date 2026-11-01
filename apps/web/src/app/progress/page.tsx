@@ -233,7 +233,7 @@ export default function ProgressDashboardPage() {
         {activeProfile && <LearningIntelligencePanel key={activeProfile.id} profileId={activeProfile.id} />}
 
         {/* BOŞ DURUM (Honest Empty State) */}
-        {!hasData && (
+        {!activeProfile && (
           <div style={{
             background: 'linear-gradient(145deg, #091224 0%, #060b18 100%)',
             border: '1px solid rgba(56, 189, 248, 0.25)',
@@ -248,10 +248,10 @@ export default function ProgressDashboardPage() {
           }}>
             <div style={{ fontSize: '56px' }}>✨</div>
             <h2 style={{ fontSize: '24px', fontWeight: 800, color: '#f8fafc', margin: 0 }}>
-              Henüz Gelişim Verisi Bulunmuyor
+              Henüz Bir Oyuncu Profili Seçilmedi
             </h2>
             <p style={{ fontSize: '15px', color: '#94a3b8', margin: 0, maxWidth: '520px', lineHeight: 1.6 }}>
-              Ventra Kids Adalar Evreni'ndeki etkileşimli görevleri ve dersleri tamamladığında, dil kazanımların ve başarı yıldızların burada görüntülenecektir.
+              Öğrenme karnesini görüntülemek için bir çocuk profili oluştur veya mevcut profili seç. Profil açmak için oyun tamamlaman gerekmez.
             </p>
             <div style={{
               display: 'flex',
@@ -344,6 +344,14 @@ export default function ProgressDashboardPage() {
               </div>
             )}
 
+            <details className="rounded-2xl border border-sky-300/20 bg-slate-950/30 p-4">
+              <summary className="min-h-12 cursor-pointer py-3 text-sm font-bold text-sky-200">
+                Arşiv: Eski matematik ve genel ilerleme göstergeleri
+              </summary>
+              <p className="mb-4 text-xs text-slate-400">
+                Aşağıdaki eski Kesir Atölyesi istatistikleri P3 İngilizce öğrenme karnesi değildir.
+                Güncel İngilizce beceri verileri üstteki P3 bölümünde gösterilir.
+              </p>
             {/* B. GENEL METRİK KARTLARI (Öğrenme vs Oyun Ayrımı) */}
             <div style={{
               display: 'grid',
@@ -715,6 +723,7 @@ export default function ProgressDashboardPage() {
                 </div>
               )}
             </div>
+            </details>
           </>
         )}
       </main>
