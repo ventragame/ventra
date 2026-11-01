@@ -16,6 +16,8 @@ test('NV1 five missions persist independently; replay never duplicates stars/evi
     const key='number-test-'+mission;
     const saved=await saveNumberValleyMission(repo,a.id,mission,0,answers.length,31,answers,key);
     assert.equal(saved.completedLevels,mission);
+    if(mission===1)assert.equal((await repo.getSkillMastery('en.a1.vocab.numbers',a.id)).gameAttempts,0,
+      'discovery must not count as independent skill success');
     assert.equal(await repo.getTotalStars(a.id,NUMBER_VALLEY_GAME_ID),mission*3);
     history.push(...answers);
     await saveNumberValleyMission(repo,a.id,mission,0,answers.length,31,answers,key);

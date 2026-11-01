@@ -43,7 +43,9 @@ export async function saveNumberValleyMission(
   const attempts=Math.max(1,correct+mistakes);
   const payload:GameCompletedPayload={
     sessionId,profileId,gameId:NUMBER_VALLEY_GAME_ID,levelId:mission,
-    outcomeId:'en.a1.vocab.numbers',skillId:'en.a1.vocab.numbers',
+    outcomeId:'en.a1.vocab.numbers',
+    // Discovery is exposure, never scored as an independently mastered skill.
+    skillId:mission===1?undefined:'en.a1.vocab.numbers',
     score:Math.round(100*correct/attempts),success:true,starsEarned:stars,
     metrics:{durationSeconds:Math.round(durationSeconds),attemptsCount:attempts,
       accuracyRate:correct/attempts,wrongAttempts:mistakes,numberAnswers:answers},
