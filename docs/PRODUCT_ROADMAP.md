@@ -176,3 +176,14 @@ Kaynaklar:
 - Open: Android/iPhone physical device touch/FPS/offline/TTS/VoiceOver/child-user acceptance.
 - Open security gate: npm audit 7 current vulnerabilities: 1 critical, 2 high, 4 moderate. Package impact and fixes require separate triage; no unsafe `npm audit fix --force` was run.
 - No production deploy, mobile store upload, app signing or purchases enabled.
+
+
+### 2026-11-01 — Onaylı öncelik revizyonu: Sayı Vadisi
+- **Karar:** P4'ün 40 hayvanlık kod regresyonları kısa teknik sprintte kapatılır; fiziksel cihaz, pedagojik kabul, geçici SVG sanat kalitesi ve güvenlik analizleri yayın öncesi açık risk olarak izlenir. Bunlar çözülmeden `RELEASE READY` denmez.
+- **Yeni dünya önceliği:** P5 ödül ekonomisinin geliştirilmesinden önce üçüncü Kelime Bahçesi bölgesi **Sayı Vadisi** geliştirilecek. Kullanıcı bu sırayı 01.11.2026 tarihinde onayladı.
+- **NV0:** `apps/web/src/lib/learning/numberValleyEngine.ts` ve testler eklendi; 1–20 İngilizce sayılar, 8'li keşif, 3 seçenekli ve yanlışları yeniden soran seed'li soru planlayıcı var. Henüz dünya kartı açılmaz.
+- **NV1:** Görsel keşif sahnesi ve erişilebilir mobil etkileşim.
+- **NV2:** Işık Köprüsü, Yıldız Hasadı, Yankı Kanyonu, Portal Onarımı özgün mekanikleri.
+- **NV3:** Yeni ayrı oyun kaydı `island_word_garden_numbers`, yıldız koruması ve profil bazlı kalıcı öğrenme kanıtı.
+- **NV4:** QA ve cihaz kabulü; tüm kapılar geçilince Sayı Vadisi haritada oynanabilir olur.
+- **İlke:** NV0 teknik temel `Sayı Vadisi tamamlandı` anlamına gelmez; P2 aile senkronizasyonu ve P4 fiziksel cihaz doğrulaması yayın kapısı olarak kalır.
