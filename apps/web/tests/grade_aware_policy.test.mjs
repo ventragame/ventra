@@ -43,3 +43,48 @@ test('P3 numeric evidence rejects invalid values, future events and hinted recal
   assert.equal(state.attempts,1);assert.equal(state.independentCorrect,0);
   assert.equal(normalizeLearningEvidence([],[],evidence).length,2);
 });
+
+test('grade policy is wired into Animal Meadow without changing old profile difficulty',async()=>{
+  const {planAnimalMission}=await import('../src/lib/learning/animalMissionEngine.ts');
+  const d=(wordId)=>({wordId,kind:'discovery',mistakes:0,firstTryCorrect:false,timestamp:at(1)});
+  const grade1=planAnimalMission({mission:1,history:[],gradeLevel:1,englishLevel:'Pre-A1',seed:5});
+  const grade7=planAnimalMission({mission:1,history:[],gradeLevel:7,englishLevel:'Pre-A1',seed:5});
+  const legacy=planAnimalMission({mission:1,history:[],seed:5});
+  assert.equal(grade1.animals.length,6);
+  assert.equal(grade7.animals.length,8);
+  assert.equal(legacy.animals.length,8);
+  const history=grade7.animals.map(d);
+  const easy=planAnimalMission({mission:2,history,gradeLevel:1,englishLevel:'Pre-A1',seed:12,now:at(4)});
+  const older=planAnimalMission({mission:2,history,gradeLevel:7,englishLevel:'Pre-A1',seed:12,now:at(4)});
+  assert.equal(easy.questions.length,4);
+  assert.ok(easy.questions.every(q=>q.choices.length===2));
+  assert.equal(older.questions.length,7);
+  assert.ok(older.questions.every(q=>q.choices.length===3));
+  assert.ok(older.questions.every(q=>q.choices.every(id=>history.some(h=>h.wordId===id))));
+});
+test('grade policy is wired into Color Grove while maintaining legacy color progress',async()=>{
+  const {planColorMission}=await import('../src/lib/learning/colorMissionEngine.ts');
+  const d=(wordId)=>({wordId,kind:'discovery',mistakes:0,firstTryCorrect:false,timestamp:at(1)});
+  const small=planColorMission({mission:1,seed:3,history:[],gradeLevel:1,englishLevel:'A1'});
+  const old=planColorMission({mission:1,seed:3,history:[],englishLevel:'A1'});
+  assert.equal(small.colors.length,4);
+  assert.equal(old.colors.length,6);
+  const quiz=planColorMission({mission:2,seed:3,history:old.colors.map(d),gradeLevel:1,englishLevel:'A1',now:at(4)});
+  assert.equal(quiz.questions.length,4);
+  assert.ok(quiz.questions.every(q=>q.choices.length===2));
+});
+test('grade policy and P3 are connected to Number Valley, preserving discovery safety',async()=>{
+  const {planNumberMission}=await import('../src/lib/learning/numberValleyEngine.ts');
+  const d=(value)=>({value,kind:'discovery',mistakes:0,firstTryCorrect:false,timestamp:at(1)});
+  const early=planNumberMission({mission:1,seed:5,history:[],gradeLevel:1,englishLevel:'A2',now:at(4)});
+  const upper=planNumberMission({mission:1,seed:5,history:[],gradeLevel:7,englishLevel:'A2',now:at(4)});
+  assert.equal(early.discoveries.length,6);assert.equal(upper.discoveries.length,8);
+  const history=Array.from({length:20},(_,i)=>d(i+1));
+  const easy=planNumberMission({mission:2,seed:5,history,gradeLevel:1,englishLevel:'A2',now:at(4)});
+  const older=planNumberMission({mission:2,seed:5,history,gradeLevel:7,englishLevel:'A2',now:at(4)});
+  assert.equal(easy.questions.length,4);assert.equal(older.questions.length,7);
+  assert.ok(easy.questions.every(q=>q.target<=10&&q.choices.length===2&&q.choices.every(n=>n<=10)));
+  assert.ok(older.questions.every(q=>q.target<=20&&q.choices.length===3));
+  const unread=planNumberMission({mission:2,seed:5,history:[],gradeLevel:7,englishLevel:'A2',now:at(4)});
+  assert.deepEqual(unread.questions,[]);
+});
