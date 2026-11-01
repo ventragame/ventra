@@ -15,7 +15,7 @@ test('grade, English and domain are distinct policy dimensions',()=>{
   const early=resolveGradeAwarePolicy({domain:'numbers',gradeLevel:1,englishLevel:'A2'});
   const upper=resolveGradeAwarePolicy({domain:'numbers',gradeLevel:7,englishLevel:'A2'});
   const beginner=resolveGradeAwarePolicy({domain:'numbers',gradeLevel:7,englishLevel:'Pre-A1'});
-  assert.equal(early.maxNumber,10);assert.equal(upper.maxNumber,20);
+  assert.equal(early.maxNumber,20);assert.equal(upper.maxNumber,1000);
   assert.equal(beginner.maxNumber,10,'older English beginners must not be pushed into A2');
   assert.equal(early.questionCount,4);assert.equal(upper.questionCount,7);
   assert.equal(resolveGradeAwarePolicy({domain:'colors',gradeLevel:2,englishLevel:'A1'}).discoveryCount,4);
@@ -35,7 +35,7 @@ test('P3 numeric adapter preserves separate skill states, due dates and independ
   assert.equal(normalized.find(x=>x.skill==='recognition').independent,false);
 });
 test('P3 numeric evidence rejects invalid values, future events and hinted recall',()=>{
-  const evidence=[number(21,'recognition',1),number(-1,'recognition',1),
+  const evidence=[number(1001,'recognition',1),number(-1,'recognition',1),
     {...number(5,'recognition',1),hintUsed:true},number(5,'recognition',12)];
   const snap=getLearningSnapshot({animalAnswers:[],colorAnswers:[],animalWords:[],colorWords:[],
     numberAnswers:evidence,numberWords:['5'],now:at(5)});
@@ -84,7 +84,7 @@ test('grade policy and P3 are connected to Number Valley, preserving discovery s
   const older=planNumberMission({mission:2,seed:5,history,gradeLevel:7,englishLevel:'A2',now:at(4)});
   assert.equal(easy.questions.length,4);assert.equal(older.questions.length,7);
   assert.ok(easy.questions.every(q=>q.target<=10&&q.choices.length===2&&q.choices.every(n=>n<=10)));
-  assert.ok(older.questions.every(q=>q.target<=20&&q.choices.length===3));
+  assert.ok(older.questions.every(q=>q.target<=1000&&q.choices.length===3));
   const unread=planNumberMission({mission:2,seed:5,history:[],gradeLevel:7,englishLevel:'A2',now:at(4)});
   assert.deepEqual(unread.questions,[]);
 });

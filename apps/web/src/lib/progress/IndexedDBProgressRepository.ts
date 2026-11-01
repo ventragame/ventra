@@ -720,7 +720,7 @@ export class IndexedDBProgressRepository implements IProgressRepository {
       .flatMap(s => {
         const answers = s.data?.metrics?.numberAnswers;
         return Array.isArray(answers) ? answers.filter(
-          (x: any) => Number.isInteger(x.value) && x.value>=1 && x.value<=20 &&
+          (x: any) => Number.isInteger(x.value) && x.value>=1 && x.value<=1000 &&
             ['discovery','recognition','quantity','listening','application'].includes(x.kind) &&
             typeof x.timestamp === 'string' && Number.isFinite(Date.parse(x.timestamp)) &&
             Number.isFinite(x.mistakes) && typeof x.firstTryCorrect === 'boolean'

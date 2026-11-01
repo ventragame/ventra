@@ -31,7 +31,7 @@ export async function saveNumberValleyMission(
     throw new Error('Geçersiz görev ölçümleri.');
   if(!sessionId||!profileId||!Array.isArray(answers)||answers.length!==correct)
     throw new Error('Eksik Sayı Vadisi görev kanıtı.');
-  if(answers.some(row=>!Number.isInteger(row.value)||row.value<1||row.value>20||
+  if(answers.some(row=>!Number.isInteger(row.value)||row.value<1||row.value>1000||
     !['discovery','recognition','quantity','listening','application'].includes(row.kind)||
     !Number.isFinite(row.mistakes)||row.mistakes<0||
     typeof row.firstTryCorrect!=='boolean'||

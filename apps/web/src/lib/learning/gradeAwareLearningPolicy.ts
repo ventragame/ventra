@@ -31,8 +31,9 @@ export function resolveGradeAwarePolicy(input:{
     band==='early'?4:6 : band==='early'?6:8;
   const questionCount=band==='early'?4:band==='upper'?7:6;
   const choiceCount=band==='early'?2:3;
-  const englishCeiling=input.englishLevel==='Pre-A1'?10:20;
-  const gradeCeiling=band==='early'?10:band==='middle'?15:20;
+  const englishCeiling=input.englishLevel==='Pre-A1'?10:
+    input.englishLevel==='A1'?100:1000;
+  const gradeCeiling=band==='unselected'?20:band==='early'?20:band==='middle'?100:1000;
   const maxNumber=Math.min(englishCeiling,gradeCeiling);
   return {gradeLevel:grade,band,englishLevel:input.englishLevel,
     discoveryCount,questionCount,choiceCount,maxNumber,

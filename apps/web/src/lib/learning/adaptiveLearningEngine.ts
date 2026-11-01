@@ -103,7 +103,7 @@ export function normalizeLearningEvidence(
   }
   for (const item of numbers) {
     const t=validDate(item.timestamp);
-    if(t===null || !Number.isInteger(item.value) || item.value<1 || item.value>20 ||
+    if(t===null || !Number.isInteger(item.value) || item.value<1 || item.value>1000 ||
        !['discovery',...SKILLS.numbers].includes(item.kind)) continue;
     rows.push({
       domain:'numbers',wordId:String(item.value),skill:item.kind,
