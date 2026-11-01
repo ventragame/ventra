@@ -20,12 +20,31 @@ const PhaserGameComponent: React.FC<PhaserGameProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
+  const worldLockedRef = useRef(false);
 
   const callbacksRef = useRef({ onOpenLearningPath, onToast });
   callbacksRef.current = { onOpenLearningPath, onToast };
 
   useEffect(() => {
     let isCancelled = false;
+    const applyFrameBudget = () => {
+      const game=gameRef.current;
+      if(!game)return;
+      try {
+        const sleeping=game.scene.isSleeping('WorldScene');
+        const shouldSleep=worldLockedRef.current || document.hidden;
+        if(shouldSleep && !sleeping)game.scene.sleep('WorldScene');
+        else if(!shouldSleep && sleeping)game.scene.wake('WorldScene');
+      } catch {
+        // Scene may not have finished its initial Phaser preload.
+      }
+    };
+    const onWorldLock=(locked:boolean)=>{
+      worldLockedRef.current=Boolean(locked);
+      applyFrameBudget();
+    };
+    EventBus.on('SET_WORLD_INPUT_LOCKED',onWorldLock);
+    document.addEventListener('visibilitychange',applyFrameBudget);
 
     const timer = setTimeout(() => {
       if (isCancelled || !containerRef.current || gameRef.current) return;
@@ -70,6 +89,7 @@ const PhaserGameComponent: React.FC<PhaserGameProps> = ({
       }
 
       game.scene.start('WorldScene', { wordGardenStatus, wordGardenCompletedLevels });
+      applyFrameBudget();
     }, 16);
 
     const handleOpenPath = (regionId: string) => {
@@ -89,6 +109,8 @@ const PhaserGameComponent: React.FC<PhaserGameProps> = ({
       console.log('[PhaserGame] Cleaning up archipelago Phaser.Game instance...');
       EventBus.off('OPEN_LEARNING_PATH', handleOpenPath);
       EventBus.off('SHOW_TOAST', handleToast);
+      EventBus.off('SET_WORLD_INPUT_LOCKED',onWorldLock);
+      document.removeEventListener('visibilitychange',applyFrameBudget);
 
       if (gameRef.current) {
         if (typeof window !== 'undefined' && (window as any).__VENTRA_PHASER_GAME__ === gameRef.current) {
