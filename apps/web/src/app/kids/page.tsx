@@ -18,6 +18,9 @@ import { ParentalGateModal } from '../../components/profile/ParentalGateModal';
 import { AdultAccountModal } from '../../components/profile/AdultAccountModal';
 import { CloudTransition } from '../../components/learning/CloudTransition';
 import { LearningPathModal } from '../../components/learning/LearningPathModal';
+import { KidsPassport } from '../../components/rewards/KidsPassport';
+import { getPassport } from '../../lib/rewards/economyRepository';
+import { COSMETICS,type CosmeticId } from '../../lib/rewards/economyEngine';
 import { soundService } from '../../lib/audio/SoundService';
 import { EventBus } from '../../lib/game/EventBus';
 
@@ -53,6 +56,9 @@ export default function VentraKidsWorldPage() {
   const [wordGardenCompletedLevels, setWordGardenCompletedLevels] = useState<number>(0);
   const [wordGardenStarsByLevel, setWordGardenStarsByLevel] = useState<Record<number, number>>({});
   const [totalStars, setTotalStars] = useState<number>(0);
+  const [isPassportOpen,setIsPassportOpen]=useState(false);
+  const [coinBalance,setCoinBalance]=useState<number|null>(null);
+  const [avatarEquipment,setAvatarEquipment]=useState<Partial<Record<'hat'|'badge'|'aura',CosmeticId>>>({});
   const [isMuted, setIsMuted] = useState<boolean>(() => soundService.getMuted());
 
   // Aktif Seçili / Odaklanılan Ada (Navigasyon ve Detay Kartı İçin)
@@ -70,6 +76,7 @@ export default function VentraKidsWorldPage() {
     isProfileModalOpen ||
     isParentGateOpen ||
     isAdultAccountModalOpen ||
+    isPassportOpen ||
     isTransitionActive
   );
 
@@ -106,6 +113,13 @@ export default function VentraKidsWorldPage() {
       setWordGardenCompletedLevels(progress.completedLevels);
       setWordGardenStarsByLevel(progress.starsByLevel);
       setTotalStars(await getProgressRepository().getTotalStars(profile.id));
+      try {
+        const passport=await getPassport(getProgressRepository(),profile.id);
+        setCoinBalance(passport.balance);
+        setAvatarEquipment(passport.economy.equipped);
+      }catch(err){console.warn('P5 rewards could not be read',err);
+        setCoinBalance(null);setAvatarEquipment({});
+      }
       setWordGardenStatus(progress.completedLevels === progress.totalLevels ? 'blooming' : 'dormant');
     } catch (error) {
       console.error('Kelime Bahçesi ilerlemesi yüklenemedi:', error);
@@ -185,6 +199,7 @@ export default function VentraKidsWorldPage() {
 
   const handleProfileSwitched = useCallback(
     async (newProf: PlayerProfile) => {
+      setIsPassportOpen(false);
       setActiveProfile(newProf);
       await loadProfileAndProgress(newProf);
       showToast(`Aktif Profil: ${newProf.nickname}`);
@@ -356,6 +371,9 @@ export default function VentraKidsWorldPage() {
               style={{ backgroundColor: currentAvatar.bgColor }}
             >
               {currentAvatar.emoji}
+              {avatarEquipment.hat&&<span aria-hidden="true" className="absolute -right-2 -top-2 text-sm">
+                {COSMETICS.find(x=>x.id===avatarEquipment.hat)?.icon}
+              </span>}
             </div>
             <div className="text-left">
               <div className="text-xs md:text-sm font-extrabold text-white leading-tight">
@@ -405,6 +423,11 @@ export default function VentraKidsWorldPage() {
               {totalStars}
             </span>
           </div>
+          <button onClick={()=>{soundService.playSfx('tap');setIsPassportOpen(true);}}
+            className="flex min-h-9 items-center gap-1 rounded-xl border border-cyan-300/40 bg-slate-950/80 px-2.5 text-xs font-extrabold text-cyan-100 hover:bg-cyan-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-300"
+            title="Maceracı Pasaportu, görevler ve kozmetik koleksiyonu">
+            🪙 <span>{coinBalance??'—'}</span> <span className="hidden md:inline">Pasaport</span>
+          </button>
 
           {/* Ses Aç/Kapat */}
           <button
@@ -649,6 +672,17 @@ export default function VentraKidsWorldPage() {
           }}
         />
       )}
+
+      {isPassportOpen&&activeProfile&&<KidsPassport
+        key={activeProfile.id}
+        profileId={activeProfile.id}
+        nickname={activeProfile.nickname}
+        avatarEmoji={currentAvatar.emoji}
+        gradeLevel={activeProfile.gradeLevel??null}
+        englishLevel={activeProfile.englishLevel??'Pre-A1'}
+        onClose={()=>{setIsPassportOpen(false);void loadProfileAndProgress(activeProfile);}}
+        onChanged={()=>void loadProfileAndProgress(activeProfile)}
+      />}
 
       {/* 7. TOAST MESAJI */}
       {toastMessage && (

@@ -301,6 +301,7 @@ export class IndexedDBProgressRepository implements IProgressRepository {
       'readwrite'
     );
     tx.objectStore('profiles').delete(id);
+    tx.objectStore('meta').delete(`p5:${id}`);
     tx.objectStore('meta').put({
       key: `tombstone:${id}`,
       value: { id, deletedAt: new Date().toISOString() }
