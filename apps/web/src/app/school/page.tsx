@@ -239,21 +239,67 @@ export default function SchoolPortal(){
            Ebeveyn olarak öğretmenin verdiği davet kodunu kullan. Yalnızca bu hesabına bulutta bağlı olan çocuklar seçilebilir.
            Katılımı daha sonra kaldırabilirsin. Öğretmen gerçek isim veya e-posta yerine takma adı ve özet ilerlemeyi görür.
          </p>
+         {localCandidates.length>0&&<div className="mt-5 rounded-2xl border border-amber-300/45 bg-amber-950/25 p-4">
+           <h3 className="text-base font-black text-amber-100">☁️ Cihazdaki Çocuk Profilini Aileye Bağla</h3>
+           <p className="mt-2 text-sm leading-relaxed text-amber-50/90">
+             Bu tarayıcıdaki profiller henüz yetişkin hesabının bulut listesinde görünmüyor.
+             Mevcut oyun ilerlemesi korunarak aile hesabına bağlanabilir.
+           </p>
+           <div className="mt-3 space-y-2">
+             {localCandidates.map(profile=><div key={profile.id}
+               className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/15 bg-slate-900/75 p-3">
+               <div>
+                 <strong className="text-sm">{profile.nickname}</strong>
+                 <p className="mt-1 text-xs text-slate-300">
+                   {profile.gradeLevel?`${profile.gradeLevel}. sınıf · `:''}
+                   {profile.status==='unlinked'?'Yalnızca bu cihazda':'Bulut eşitlemesi gerekiyor'}
+                 </p>
+               </div>
+               <button type="button" disabled={busy}
+                 onClick={()=>{
+                   const verb=profile.status==='unlinked'?'kalıcı olarak bağlamak':'bulutla eşitlemek';
+                   if(!window.confirm(
+                     `"${profile.nickname}" profilini ${email} hesabına ${verb} istiyor musun? `+
+                     'Öğrenme kayıtları silinmez; farklı yetişkin hesabına aktarma desteklenmez.'
+                   ))return;
+                   void run(async()=>{await linkLocalSchoolCandidate(profile.id,adultUserId);},
+                     `${profile.nickname} aile hesabına bağlandı. Şimdi sınıfa katılabilir.`);
+                 }}
+                 className="min-h-11 rounded-xl bg-amber-200 px-4 text-xs font-black text-slate-950 disabled:opacity-40">
+                 {profile.status==='unlinked'?'Aileye Bağla':'Buluta Eşitle'}
+               </button>
+             </div>)}
+           </div>
+         </div>}
+         {children.length===0&&<div role="status" className="mt-5 rounded-2xl border border-sky-300/30 bg-sky-950/45 p-4">
+           <p className="text-sm font-extrabold text-sky-100">Bu yetişkin hesabında bağlı çocuk bulunamadı</p>
+           <p className="mt-2 text-sm leading-relaxed text-slate-200">
+             Yukarıda mevcut profilin görünüyorsa önce <strong>Aileye Bağla</strong> düğmesini kullan.
+             Hiç görünmüyorsa başka Chrome profilinde veya cihazda oluşturmuş olabilirsin.
+             O cihazdaki <strong>Ebeveyn &amp; Bulut</strong> alanından aynı yetişkin hesabına bağla ve bu sayfayı yenile.
+           </p>
+           <Link href="/kids" className="mt-3 inline-flex min-h-11 items-center rounded-xl border border-sky-300/40 bg-sky-900/70 px-4 text-xs font-bold">
+             🎮 Çocuk profillerine git
+           </Link>
+         </div>}
          <form onSubmit={e=>{e.preventDefault();void run(async()=>{
            await enrollChild(chosenChild,inviteCode);setInviteCode('');
          },'Çocuk sınıfa bağlandı.');}} className="mt-5 space-y-4">
            <label className="block text-sm font-bold">Bağlı çocuk profili
              <select required value={chosenChild} onChange={e=>setChosenChild(e.target.value)}
                className="mt-2 min-h-12 w-full rounded-xl border border-white/30 bg-slate-800 px-3 text-white">
-               {children.length===0&&<option value="">Önce aile hesabına çocuk profili bağla</option>}
+               {children.length===0&&<option value="">Bu yetişkin hesabında bulut profili yok</option>}
                {children.map(c=><option key={c.id} value={c.id}>{c.nickname} {c.grade_level?`(${c.grade_level}. sınıf)`:''}</option>)}
              </select>
            </label>
            <label className="block text-sm font-bold">Öğretmenin gönderdiği davet kodu
              <input required value={inviteCode} onChange={e=>setInviteCode(e.target.value)}
+               minLength={36} maxLength={36} pattern="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
+               title="Öğretmen panelindeki 36 karakterli sınıf davet kodunu kullan."
                autoComplete="off" placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
                className="mt-2 min-h-12 w-full rounded-xl border border-white/30 bg-slate-800 px-3 font-mono text-sm text-white"/>
            </label>
+           <p className="-mt-2 text-xs text-sky-200">Sınıf daveti 36 karakterli UUID kodudur; e-postaya gelen giriş kodunu kullanma.</p>
            <button disabled={!children.length||!chosenChild||busy}
              className="min-h-12 rounded-xl bg-lime-300 px-5 font-black text-slate-950 disabled:cursor-not-allowed disabled:opacity-40">
              Çocuğumun Sınıfa Katılmasını Onaylıyorum
