@@ -25,7 +25,7 @@ interface Props {
   englishLevel:'Pre-A1'|'A1'|'A2';
   progress:NumberValleyProgress;
   onBack:()=>void;
-  onSave:(mission:number,mistakes:number,correct:number,duration:number,answers:NumberAnswerEvidence[],sessionId:string)=>Promise<void>;
+  onSave:(mission:number,mistakes:number,correct:number,duration:number,answers:NumberAnswerEvidence[],sessionId:string,band:NumberBand)=>Promise<void>;
 }
 function newSession(profileId:string,stage:number):string{
   return `nv_${profileId}_${stage}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
@@ -46,7 +46,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
   const [band,setBand]=useState<NumberBand>('ones');
   const [unlockedBands,setUnlockedBands]=useState<NumberBand[]>(['ones']);
   const [placeValue,setPlaceValue]=useState<PlaceValue>({hundreds:0,tens:0,ones:0});
-  const [stage,setStage]=useState<NumberStage>(()=>Math.min(5,progress.completedLevels+1) as NumberStage);
+  const [stage,setStage]=useState<NumberStage>(()=>Math.min(5,progress.completedByBand.ones+1) as NumberStage);
   const [nonce,setNonce]=useState(0);
   const [plan,setPlan]=useState<NumberMissionPlan|null>(null);
   const [planKey,setPlanKey]=useState('');
@@ -145,7 +145,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
     if(writeLock.current)return;
     writeLock.current=true;setSaving(true);setSaveError('');
     try{
-      await onSave(stage,mistakes,correct,(Date.now()-start.current)/1000,evidence,session.current);
+      await onSave(stage,mistakes,correct,(Date.now()-start.current)/1000,evidence,session.current,band);
       soundService.playSfx('fanfare');
       setAnswers(evidence);setCompleted(true);setFeedback(null);
     }catch(error){
@@ -227,7 +227,8 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
         <button onClick={onBack} disabled={saving} className="nv-control rounded-2xl px-4 py-3 text-sm font-bold disabled:opacity-50">← Kelime Bahçesi</button>
         <div className="flex items-center gap-2">
           <span className="nv-control rounded-xl px-3 py-3 text-xs font-black">
-            ⭐ {Object.values(progress.starsByLevel).reduce((s,n)=>s+n,0)}/15
+            ⭐ {Object.entries(progress.starsByLevel).filter(([id])=>Number(id)<=
+              (policy.maxNumber>=1000?15:policy.maxNumber>=100?10:5)).reduce((s,[,n])=>s+n,0)}/{policy.maxNumber>=1000?45:policy.maxNumber>=100?30:15}
           </span>
           <span className="nv-control hidden rounded-xl px-3 py-3 text-xs font-bold sm:inline-block">
             {gradeLevel?gradeLevel+'. Sınıf':'Keşif'} · {englishLevel}
@@ -262,7 +263,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
       </nav>
       <nav aria-label="Sayı Vadisi görevleri" className="mb-5 grid grid-cols-5 gap-1.5 sm:gap-3">
         {CHAPTERS.map((part,i)=>{
-          const unlocked=i<progress.completedLevels+1;
+          const unlocked=i<progress.completedByBand[band]+1;
           return <button key={i} disabled={!unlocked||saving} onClick={()=>restart((i+1) as NumberStage)}
             aria-current={stage===i+1?'step':undefined}
             aria-label={`${i+1}. ${part.title}${unlocked?'':' (kilitli)'}`}

@@ -18,6 +18,7 @@ interface WordGardenDistrictMapProps {
   colorsAvailable:boolean;
   colorCompleted:number;
   numberCompleted:number;
+  numberTotal:number;
   numbersUnlocked:boolean;
   numbersAvailable:boolean;
   onEnterNumbers:()=>void;
@@ -34,10 +35,10 @@ const PLACES:Record<string,{title:string;description:string;icon:string}>={
 };
 export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
   completedLevels,totalLevels,onEnterAnimals,onEnterColors,
-  colorsUnlocked,colorsAvailable,colorCompleted,numberCompleted,numbersUnlocked,numbersAvailable,onEnterNumbers,gradeLevel=null,onBack
+  colorsUnlocked,colorsAvailable,colorCompleted,numberCompleted,numberTotal,numbersUnlocked,numbersAvailable,onEnterNumbers,gradeLevel=null,onBack
 })=>{
   const [notice,setNotice]=useState('');
-  const journeyTotal=totalLevels+3+5;
+  const journeyTotal=totalLevels+3+numberTotal;
   const progress=journeyTotal>0?Math.min(100,Math.round(100*(completedLevels+colorCompleted+numberCompleted)/journeyTotal)):0;
   const objects=useMemo(()=>getDistrictObjects(colorsUnlocked&&colorsAvailable,numbersUnlocked&&numbersAvailable),[colorsUnlocked,colorsAvailable,numbersUnlocked,numbersAvailable]);
   const enter=(obj:WorldObject)=>{
@@ -56,7 +57,7 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
           ← Takımadaya Dön
         </button>
         <div className="rounded-xl border border-lime-200/30 bg-[#073d4a]/80 px-4 py-3 text-xs font-bold text-lime-100 sm:text-sm">
-          🐾 {completedLevels}/{totalLevels} · 🎨 {colorCompleted}/3 · 🔢 {numberCompleted}/5 · ⭐ Yolculuk %{progress}
+          🐾 {completedLevels}/{totalLevels} · 🎨 {colorCompleted}/3 · 🔢 {numberCompleted}/{numberTotal} · ⭐ Yolculuk %{progress}
         </div>
       </header>
       <div className="mb-4 text-center">

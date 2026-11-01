@@ -55,7 +55,7 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
   const [colors, setColors] = useState<ColorGroveProgress>({
     completedLevels: 0, totalLevels: 3, starsByLevel: {}
   });
-  const [numbers,setNumbers] = useState<NumberValleyProgress>({completedLevels:0,totalLevels:5,starsByLevel:{}});
+  const [numbers,setNumbers] = useState<NumberValleyProgress>({completedLevels:0,totalLevels:15,starsByLevel:{},completedByBand:{ones:0,tens:0,hundreds:0}});
   const [numberError,setNumberError]=useState(false);
   const [numberLoaded,setNumberLoaded]=useState(false);
   const [colorError, setColorError] = useState(false);
@@ -131,8 +131,8 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
       gradeLevel={gradeLevel}
       progress={numbers}
       onBack={()=>setDistrict('overview')}
-      onSave={async (mission:number,mistakes:number,correct:number,duration:number,answers:NumberAnswerEvidence[],sessionId:string)=>{
-        const updated=await saveNumberValleyMission(getProgressRepository(),profileId,mission,mistakes,correct,duration,answers,sessionId);
+      onSave={async (mission:number,mistakes:number,correct:number,duration:number,answers:NumberAnswerEvidence[],sessionId:string,band)=>{
+        const updated=await saveNumberValleyMission(getProgressRepository(),profileId,mission,mistakes,correct,duration,answers,sessionId,band);
         setNumbers(updated);
         onNumberProgressSaved?.();
       }}
@@ -162,6 +162,8 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
     colorsUnlocked={animals.completedLevels === animals.totalLevels}
     colorCompleted={colors.completedLevels}
     numberCompleted={numbers.completedLevels}
+    numberTotal={englishLevel==='Pre-A1'||gradeLevel===null||gradeLevel<=2?5:
+      (gradeLevel<=4||englishLevel==='A1')?10:15}
     numbersUnlocked={!colorError && colors.completedLevels===colors.totalLevels}
     numbersAvailable={numberLoaded&&!numberError}
     onEnterNumbers={()=>setDistrict('numbers')}

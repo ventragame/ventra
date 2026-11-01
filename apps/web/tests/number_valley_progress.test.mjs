@@ -16,6 +16,7 @@ test('NV1 five missions persist independently; replay never duplicates stars/evi
     const key='number-test-'+mission;
     const saved=await saveNumberValleyMission(repo,a.id,mission,0,answers.length,31,answers,key);
     assert.equal(saved.completedLevels,mission);
+    assert.equal(saved.completedByBand.ones,mission);
     if(mission===1)assert.equal((await repo.getSkillMastery('en.a1.vocab.numbers',a.id)).gameAttempts,0,
       'discovery must not count as independent skill success');
     assert.equal(await repo.getTotalStars(a.id,NUMBER_VALLEY_GAME_ID),mission*3);
@@ -46,4 +47,27 @@ test('NV1 cloud event replay retains number evidence with profile isolation',asy
   assert.equal((await second.getNumberAnswerHistory('kid-b')).length,0);
   assert.equal(await second.mergeRemoteEvents(wire,'kid-a'),0);
   assert.equal(await second.getTotalStars('kid-a',NUMBER_VALLEY_GAME_ID),3);
+});
+
+test('three number paths have separate progress/stars without changing legacy ones',async()=>{
+  const repo=new MemoryProgressRepository();
+  const p=await repo.createProfile({nickname:'Berk',avatarId:'avatar_explorer',gradeLevel:7,englishLevel:'A2'});
+  const d=(value)=>answer(value,'discovery');
+  const base=Array.from({length:8},(_,i)=>d(i+1));
+  await saveNumberValleyMission(repo,p.id,1,0,base.length,4,base,'path-ones','ones');
+  const tens=[21,22,25,30,40,50].map(d);
+  await saveNumberValleyMission(repo,p.id,1,0,tens.length,4,tens,'path-tens','tens');
+  const hundreds=[101,200,300,500,750,1000].map(d);
+  await saveNumberValleyMission(repo,p.id,1,0,hundreds.length,4,hundreds,'path-hundreds','hundreds');
+  const state=await getNumberValleyProgress(repo,p.id);
+  assert.equal(state.completedByBand.ones,1);
+  assert.equal(state.completedByBand.tens,1);
+  assert.equal(state.completedByBand.hundreds,1);
+  assert.equal(state.completedLevels,3);
+  assert.equal(state.totalLevels,15);
+  assert.equal(await repo.getTotalStars(p.id,NUMBER_VALLEY_GAME_ID),9);
+  assert.equal((await repo.getNumberAnswerHistory(p.id)).length,20);
+  await assert.rejects(
+    saveNumberValleyMission(repo,p.id,3,0,1,2,[answer(1000,'recognition')],'jump','hundreds'),/Önceki/
+  );
 });
