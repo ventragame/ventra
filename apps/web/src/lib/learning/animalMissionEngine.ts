@@ -13,7 +13,15 @@ export const ANIMAL_MEADOW_WORDS = [
   { id: 'sheep', tr: 'Koyun', emoji: '🐑', habitat: 'Otlayan sürü', place: 'Çayır', audio: null, image: '/assets/animals/premium/sheep.svg' },
   { id: 'frog', tr: 'Kurbağa', emoji: '🐸', habitat: 'Nilüfer yaprağı', place: 'Gölet', audio: null, image: '/assets/animals/premium/frog.svg' },
   { id: 'bee', tr: 'Arı', emoji: '🐝', habitat: 'Bal peteği', place: 'Çiçeklik', audio: null, image: '/assets/animals/premium/bee.svg' },
-  { id: 'butterfly', tr: 'Kelebek', emoji: '🦋', habitat: 'Çiçek bahçesi', place: 'Çiçeklik', audio: null, image: '/assets/animals/premium/butterfly.svg' }
+  { id: 'butterfly', tr: 'Kelebek', emoji: '🦋', habitat: 'Çiçek bahçesi', place: 'Çiçeklik', audio: null, image: '/assets/animals/premium/butterfly.svg' },
+  { id: 'lion', tr: 'Aslan', emoji: '🦁', habitat: 'Savan gölgesi', place: 'Savan', audio: null, image: '/assets/animals/premium/lion.svg' },
+  { id: 'elephant', tr: 'Fil', emoji: '🐘', habitat: 'Nehir kenarı', place: 'Savan', audio: null, image: '/assets/animals/premium/elephant.svg' },
+  { id: 'monkey', tr: 'Maymun', emoji: '🐒', habitat: 'Orman ağacı', place: 'Orman', audio: null, image: '/assets/animals/premium/monkey.svg' },
+  { id: 'penguin', tr: 'Penguen', emoji: '🐧', habitat: 'Buz kıyısı', place: 'Kutup', audio: null, image: '/assets/animals/premium/penguin.svg' },
+  { id: 'turtle', tr: 'Kaplumbağa', emoji: '🐢', habitat: 'Sahil kumu', place: 'Sahil', audio: null, image: '/assets/animals/premium/turtle.svg' },
+  { id: 'fox', tr: 'Tilki', emoji: '🦊', habitat: 'Orman ini', place: 'Orman', audio: null, image: '/assets/animals/premium/fox.svg' },
+  { id: 'bear', tr: 'Ayı', emoji: '🐻', habitat: 'Dağ mağarası', place: 'Dağ', audio: null, image: '/assets/animals/premium/bear.svg' },
+  { id: 'owl', tr: 'Baykuş', emoji: '🦉', habitat: 'Ağaç kovuğu', place: 'Orman', audio: null, image: '/assets/animals/premium/owl.svg' }
 ] as const;
 export type AnimalId = (typeof ANIMAL_MEADOW_WORDS)[number]['id'];
 export type AnimalMission = 1 | 2 | 3 | 4 | 5;
@@ -95,9 +103,11 @@ export function planAnimalMission(input: {
     due.has(id)?6:2;
   if (input.mission === 1) {
     const pool = input.history.length === 0 ? STARTERS : all;
-    // New animals are always available on replay, but new vocabulary cannot
-    // enter a quiz until the child has encountered it during discovery.
-    const fresh = shuffleWeighted(pool.filter(id => !seen.has(id)), () => 5, rnd).slice(0, 4);
+    // Eight per round, with at least six fresh animals while they exist.
+    // Never quiz unseen vocabulary: new animals enter the assessment pool
+    // only after an actual discovery event is persisted.
+    const unseen = shuffleWeighted(pool.filter(id => !seen.has(id)), () => 1, rnd);
+    const fresh = unseen.slice(0, Math.min(6, unseen.length));
     const rest = shuffleWeighted(pool.filter(id => !fresh.includes(id)), weight, rnd)
       .slice(0, 8 - fresh.length);
     return { mission: 1, animals: shuffleWeighted([...fresh,...rest], () => 1, rnd),
