@@ -455,8 +455,8 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
                 {assisted ? `İpucu: ${target.tr}` : 'Türkçe İpucu Göster'}
               </button>}
             </div>
-            {stage!==4 && <div>
-              {stage===5 && <p className="mb-2 text-center text-xs font-black text-lime-100">♿ Alternatif dokunmatik seçenekler</p>}
+            <div>
+              {(stage===4 || stage===5) && <p className="mb-2 text-center text-xs font-black text-lime-100">♿ Alternatif dokunmatik seçenekler · Sahne kullanılamıyorsa buradan devam et</p>}
               <div className="grid grid-cols-3 gap-2 sm:gap-3" role="group"
               aria-label={stage===5&&rescueSelected?'Hayvan için doğru yuva':'Hayvan cevabı'}>
               {currentQuestion.choices.map(id=>{
