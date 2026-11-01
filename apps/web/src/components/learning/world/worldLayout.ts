@@ -34,10 +34,13 @@ export const ANIMAL_POSITIONS:Record<string,Point> = {
   horse:{x:504,y:785}, duck:{x:1000,y:650}, sheep:{x:774,y:756},
   frog:{x:1200,y:605}, bee:{x:660,y:236}, butterfly:{x:1220,y:421}
 };
+// One safe interaction point per animal. Multiple species may share
+// a habitat type, but their quest targets must never overlap.
 const HABITAT_POSITIONS:Record<string,Point> = {
-  Ev:{x:315,y:330},Bahçe:{x:505,y:295},Ağaç:{x:730,y:275},
-  Çayır:{x:905,y:335},Çiftlik:{x:380,y:750},Gölet:{x:1100,y:670},
-  Çiçeklik:{x:950,y:790}
+  cat:{x:315,y:305},dog:{x:520,y:305},bird:{x:720,y:270},
+  rabbit:{x:970,y:304},cow:{x:315,y:670},fish:{x:1110,y:670},
+  horse:{x:520,y:772},duck:{x:1060,y:520},sheep:{x:770,y:750},
+  frog:{x:1210,y:680},bee:{x:675,y:295},butterfly:{x:1150,y:400}
 };
 export function clampToWorld(point:Point,margin=76):Point{
   return {x:Math.max(margin,Math.min(WORLD_WIDTH-margin,point.x)),
@@ -61,8 +64,8 @@ export function getAnimalObjects(ids:readonly string[], imageFor:(id:string)=>st
   }));
 }
 export function getHabitatObjects(ids:readonly string[],placeFor:(id:string)=>string):WorldObject[]{
-  return [...new Set(ids)].filter(id=>Boolean(HABITAT_POSITIONS[placeFor(id)])).map(id=>({
-    id,kind:'habitat' as const,label:placeFor(id),...HABITAT_POSITIONS[placeFor(id)]
+  return [...new Set(ids)].filter(id=>Boolean(HABITAT_POSITIONS[id])).map(id=>({
+    id,kind:'habitat' as const,label:placeFor(id),...HABITAT_POSITIONS[id]
   }));
 }
 export function getDistrictObjects(colorsUnlocked:boolean):WorldObject[]{

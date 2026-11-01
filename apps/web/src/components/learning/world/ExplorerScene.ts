@@ -49,7 +49,8 @@ export class ExplorerScene extends Phaser.Scene {
     this.reframe();
     this.scale.on('resize',this.reframe,this);
     this.input.on('pointerdown',(pointer:Phaser.Input.Pointer)=>{
-      if(!pointer || this.pendingTarget) return;
+      if(!pointer) return;
+      this.pendingTarget=null;
       this.path=clampToWorld({x:pointer.worldX,y:pointer.worldY});
     });
     if(this.input.keyboard){
@@ -209,10 +210,10 @@ export class ExplorerScene extends Phaser.Scene {
   update(_time:number,delta:number):void {
     if(!this.ready||!this.player)return;
     let dx=0,dy=0;
-    if(this.keys[0]?.isDown||this.keys[6]?.isDown)dy-=1;
-    if(this.keys[1]?.isDown||this.keys[4]?.isDown)dx-=1;
-    if(this.keys[2]?.isDown||this.keys[7]?.isDown)dy+=1;
-    if(this.keys[3]?.isDown||this.keys[5]?.isDown)dx+=1;
+    if(this.keys[0]?.isDown||this.keys[4]?.isDown)dy-=1;
+    if(this.keys[1]?.isDown||this.keys[6]?.isDown)dx-=1;
+    if(this.keys[2]?.isDown||this.keys[5]?.isDown)dy+=1;
+    if(this.keys[3]?.isDown||this.keys[7]?.isDown)dx+=1;
     const movement=Math.hypot(dx,dy);
     if(movement>0){
       this.pendingTarget=null;this.path=null;
