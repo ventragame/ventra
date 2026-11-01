@@ -474,7 +474,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
                 </button>;
               })}
               </div>
-            </div>}
+            </div>
             <div className="mt-4 min-h-16 text-center">
               {feedback && <p role="status" aria-live="polite" className={`rounded-xl px-3 py-3 text-sm font-semibold ${feedback.good?'bg-lime-500/15 text-lime-100':'bg-amber-500/20 text-amber-100'}`}>{feedback.text}</p>}
               {awaiting && <button onClick={advance} disabled={saving} className="am-cta mt-2 w-full sm:w-auto">
