@@ -23,3 +23,6 @@
 .am-forest-animal:nth-child(3){animation-delay:.16s}
 @keyframes am-forest-grow{from{opacity:.5;transform:translateY(18px) scale(.85)}to{opacity:1;transform:translateY(0) scale(1)}}
 @media(prefers-reduced-motion:reduce){.am-forest-animal{animation:none!important}}
+
+.am-story{animation:am-album-enter .28s ease-out both}
+@media(prefers-reduced-motion:reduce){.am-story{animation:none!important}}

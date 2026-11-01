@@ -19,11 +19,11 @@ const ExplorerCanvas=dynamic(()=>import('../world/ExplorerCanvas').then(m=>m.Exp
 import './animal-meadow.css';
 
 const STAGES = [
-  { name:'Keşfet', icon:'🌱',desc:'Hayvanlarla tanış' },
-  { name:'Eşleştir',icon:'🧩',desc:'Resim ve kelime' },
-  { name:'Dinle',icon:'👂',desc:'Sesten tanı' },
-  { name:'Uygula',icon:'🧭',desc:'Yönergeyi uygula' },
-  { name:'Mini Macera',icon:'🏡',desc:'Yuvasını keşfet' }
+  { name:'Keşfet', icon:'🌱',desc:'Hayvanlarla tanış',story:'Çayırın yeni dostları seni bekliyor. Hepsini ziyaret et ve isimlerini öğren!' },
+  { name:'Eşleştir',icon:'🧩',desc:'Resim ve kelime',story:'Bir rüzgâr isim kartlarını karıştırdı! Doğru İngilizce isimleri bul.' },
+  { name:'Dinle',icon:'👂',desc:'Sesten tanı',story:'Hayvanların sesli ipuçlarını dinle ve doğru dostunu seç.' },
+  { name:'Uygula',icon:'🧭',desc:'Yönergeyi uygula',story:'Rehberimiz İngilizce yön veriyor. Söylediği hayvanın yanına git.' },
+  { name:'Mini Macera',icon:'🏡',desc:'Yuvasını keşfet',story:'Fırtınadan sonra yollar karıştı! Kayıp dostları bul ve güvenle evlerine götür.' }
 ] as const;
 type Stage = 1|2|3|4|5;
 type Feedback = { text: string; good: boolean } | null;
@@ -327,6 +327,12 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
              'Her hayvanın yaşadığı yeri ve İngilizce adını eşleştir.'}
           </p>
         </div>
+        <aside role="note" className="am-story mb-4 flex items-center gap-3 rounded-2xl border border-amber-200/45 bg-[#104b51]/90 px-4 py-3 shadow-xl">
+          <span aria-hidden="true" className="text-3xl sm:text-4xl">🦉</span>
+          <p className="text-xs font-bold leading-relaxed text-amber-50 sm:text-sm">
+            <span className="font-black text-amber-200">Rehber Pufi:</span> {STAGES[stage-1].story}
+          </p>
+        </aside>
         {showAlbum && <section aria-label="Keşif albümü" className="am-album mb-4 rounded-3xl border border-lime-200/40 bg-[#0b3649]/90 p-3 shadow-2xl sm:p-5">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div><h2 className="text-lg font-black text-lime-100">📖 Hayvan Dostları Albümü</h2>

@@ -20,6 +20,7 @@ export class ExplorerScene extends Phaser.Scene {
   private reducedMotion:boolean;
   private player!:Phaser.GameObjects.Container;
   private targetGraphics:Phaser.GameObjects.Container[]=[];
+  private targetAnimations:Phaser.Tweens.Tween[]=[];
   private path:Point|null=null;
   private pendingTarget:string|null=null;
   private keys:Phaser.Input.Keyboard.Key[]=[];
@@ -165,7 +166,15 @@ export class ExplorerScene extends Phaser.Scene {
     marker.lineStyle(5,locked?0x8da9a5:0xfff4cf,.95);marker.strokeEllipse(0,10,150,83);
     node.add(marker);
     if(object.kind==='animal' && this.textures.exists('p4_'+object.id)){
-      node.add(this.add.image(0,-56,'p4_'+object.id).setDisplaySize(105,105));
+      const portrait=this.add.image(0,-56,'p4_'+object.id).setDisplaySize(105,105);
+      node.add(portrait);
+      if(!this.reducedMotion){
+        const index=ANIMALS.indexOf(object.id);
+        this.targetAnimations.push(this.tweens.add({
+          targets:portrait,y:-62,duration:1050+Math.max(0,index)*65,
+          ease:'Sine.easeInOut',yoyo:true,repeat:-1
+        }));
+      }
     }else if(object.kind==='habitat'){
       node.add(this.add.text(0,-51,object.label==='Gölet'?'💧':object.label==='Çiftlik'?'🚜':
         object.label==='Ağaç'?'🌳':object.label==='Çiçeklik'?'🌸':'🏡',
@@ -194,6 +203,8 @@ export class ExplorerScene extends Phaser.Scene {
     return node;
   }
   private drawTargets():void {
+    this.targetAnimations.forEach(tween=>tween.remove());
+    this.targetAnimations=[];
     this.targetGraphics.forEach(node=>node.destroy(true));
     this.targetGraphics=[];
     for(const object of this.targets){
