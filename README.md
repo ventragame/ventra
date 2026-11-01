@@ -23,20 +23,20 @@ Lezzet Pazarı'nda çocuk İngilizce "apple", "bread", "milk" gibi sözcükleri 
 
 ## Yerel geliştirme
 
-\`\`\`bash
+```bash
 npm ci
 npm run dev:web
-\`\`\`
+```
 
 Yerel web arayüzü geliştirme sunucusunda başlar. Ortam değişkenleri ve gerçek Supabase entegrasyonu için projeye özel yapılandırma gereklidir; gizli anahtarlar Git'e eklenmez.
 
 Önemli komutlar:
 
-\`\`\`bash
+```bash
 npm run type-check
 npm run build:web
 npm run export:mobile
-\`\`\`
+```
 
 Mobil cihaz ve gerçek çocuk/ebeveyn kabul testleri CI'nin yerini tutar; derlemenin geçmesi ürünün mağazaya hazır olduğu anlamına gelmez.
 
