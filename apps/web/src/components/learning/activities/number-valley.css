@@ -1,0 +1,36 @@
+.nv-root{background:linear-gradient(165deg,#05162f 0%,#103865 45%,#174a58 100%);isolation:isolate}
+.nv-sky{position:fixed;inset:0;pointer-events:none;overflow:hidden;z-index:-1}
+.nv-orb{position:absolute;border-radius:50%;filter:blur(60px);opacity:.24}
+.nv-orb-one{width:29rem;height:29rem;background:#67e8f9;top:-15rem;left:-12rem}
+.nv-orb-two{width:33rem;height:33rem;background:#bb95ff;right:-12rem;top:25%}
+.nv-orb-three{width:25rem;height:25rem;background:#ffd878;left:20%;bottom:-13rem}
+.nv-sky-stars{position:absolute;top:12%;left:20%;font-size:2rem;letter-spacing:3.5rem;color:#c8ffff;opacity:.35}
+.nv-control,.nv-chapter,.nv-panel{border:1px solid rgba(196,244,255,.23);background:rgba(6,37,75,.65);box-shadow:0 8px 32px rgba(0,7,30,.14)}
+.nv-control:hover:enabled,.nv-chapter:hover:enabled{background:rgba(47,105,143,.75)}
+.nv-chapter-current{border-color:#e0fd9c;background:linear-gradient(155deg,rgba(46,128,146,.94),rgba(45,80,129,.9));box-shadow:inset 0 0 15px #b7f7ff22,0 6px 22px #0b173c55}
+.nv-landscape{background:radial-gradient(circle at 50% 0%,#a8effc 0%,#67b8e6 27%,#6579bd 57%,#375d99 100%);border:1px solid #b4f8ff77}
+.nv-mountain{position:absolute;bottom:0;clip-path:polygon(0% 100%,50% 0%,100% 100%);opacity:.65}
+.nv-mountain-one{left:-10%;width:75%;height:60%;background:linear-gradient(#a0cef5,#426d9b)}
+.nv-mountain-two{right:-7%;width:75%;height:72%;background:linear-gradient(#d3dcfa,#5887a5)}
+.nv-land{position:absolute;bottom:-24%;left:-10%;width:120%;height:45%;border-radius:50% 50% 0 0;background:linear-gradient(#60c6a1,#33838e)}
+.nv-cloud{position:absolute;top:4%;right:8%;font-size:4rem;opacity:.7}
+.nv-progress{background:linear-gradient(90deg,#64f6df,#fff1a1);transition:width .25s ease}
+.nv-gem{position:relative;display:inline-flex;align-items:center;justify-content:center;clip-path:polygon(50% 0,91% 22%,100% 65%,50% 100%,0 65%,9% 22%);width:68px;height:76px;background:linear-gradient(130deg,#b6ffff,#5db9ff 34%,#4c6fcb 65%,#b7e8ff);box-shadow:inset 0 0 10px #fff8}
+.nv-gem-facet{position:absolute;inset:0;clip-path:polygon(50% 0,72% 31%,50% 100%,27% 31%);background:#e5faff66}
+.nv-gem-number{position:relative;z-index:1;font-size:1.65rem;font-weight:900;color:#16365e;text-shadow:0 1px #ffffffb3}
+.nv-gem-found{background:linear-gradient(130deg,#fff6b0,#afea9a 44%,#3bbfa4)}
+.nv-crystal-tile{border:1px solid #ffffff66;background:#053b7ba8;min-height:128px;transition:transform .18s,background .18s;animation:nv-appear .44s both}
+.nv-crystal-tile:hover{transform:translateY(-4px);background:#155c91cc}
+.nv-crystal-tile:focus-visible,.nv-control:focus-visible,.nv-choice:focus-visible,.nv-chapter:focus-visible{outline:3px solid #f6f7a4;outline-offset:3px}
+.nv-discovered{border-color:#e4fd9a;background:#187b82dd}
+.nv-primary{color:#063b49;background:linear-gradient(110deg,#f6f5a0,#b4f9b3,#6cddd5);box-shadow:0 7px 23px #011e3c77}
+.nv-primary:hover:enabled{filter:brightness(1.08)}
+.nv-choice,.nv-counting{border:1px solid #ffffff66;background:linear-gradient(160deg,#123b83de,#174d70e6);box-shadow:inset 0 2px 12px #afeaff1a,0 6px 17px #09203e66}
+.nv-choice:hover:enabled{transform:translateY(-3px);border-color:#f0fbb0;background:linear-gradient(160deg,#246aab,#287874)}
+.nv-stars{display:flex;max-width:100%;min-height:50px;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px}
+.nv-star{font-size:1.5rem;line-height:1.4;color:#ffe293;text-shadow:0 2px 8px #4b2b63}
+.nv-star-active{animation:nv-bob .85s ease-in-out infinite alternate}
+@keyframes nv-bob{to{transform:translateY(-5px) scale(1.07)}}
+@keyframes nv-appear{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:translateY(0)}}
+@media(max-width:390px){.nv-gem{width:53px;height:60px}.nv-gem-number{font-size:1.3rem}.nv-crystal-tile{min-height:110px}.nv-sky-stars{letter-spacing:1.8rem}}
+@media(prefers-reduced-motion:reduce){.nv-star-active,.nv-crystal-tile{animation:none!important}.nv-crystal-tile,.nv-progress,.nv-choice{transition:none!important}}
