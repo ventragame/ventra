@@ -314,7 +314,8 @@ export class MemoryProgressRepository implements IProgressRepository {
       });
     }
 
-    const gameTitle = payload.gameId === 'island_word_garden_numbers' ? 'Sayı Vadisi'
+    const gameTitle = payload.gameId === 'island_word_garden_food' ? 'Lezzet Pazarı'
+      : payload.gameId === 'island_word_garden_numbers' ? 'Sayı Vadisi'
       : payload.gameId === 'island_word_garden_colors' ? 'Renk Korusu'
       : payload.gameId === 'island_word_garden_steps' || payload.gameId === 'phaser_exploration_island'
       ? 'Hayvan Çayırı'

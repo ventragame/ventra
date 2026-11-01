@@ -22,29 +22,36 @@ interface WordGardenDistrictMapProps {
   numbersUnlocked:boolean;
   numbersAvailable:boolean;
   onEnterNumbers:()=>void;
+  foodCompleted:number;
+  foodTotal:number;
+  foodUnlocked:boolean;
+  foodAvailable:boolean;
+  onEnterFood:()=>void;
   gradeLevel?:number|null;
   onBack:()=>void;
 }
 const PLACES:Record<string,{title:string;description:string;icon:string}>={
   animals:{title:'Hayvan Çayırı',description:'40 hayvan · Sınıfa göre 6–8 keşif · 5 görev',icon:'🐾'},
   colors:{title:'Renk Korusu',description:'Renkleri keşfet, boya ve hafızanı güçlendir',icon:'🎨'},
-  numbers:{title:'Sayı Vadisi',description:'1–20 sayı havuzu · Sınıfa uygun 5 kristal görevi',icon:'🔢'},
-  food:{title:'Lezzet Pazarı',description:'Yiyeceklerin İngilizce adları yakında',icon:'🍎'},
+  numbers:{title:'Sayı Vadisi',description:'İngilizce sayılar · 1–1000 · Düzeye uygun 15 görev',icon:'🔢'},
+  food:{title:'Lezzet Pazarı',description:'45 İngilizce yiyecek/içecek · 3 sokak · 15 dil görevi',icon:'🍎'},
   family:{title:'Aile Köyü',description:'Aile ve günlük yaşam macerası yakında',icon:'🏡'},
   sanctuary:{title:'Keşif Tapınağı',description:'Büyük final bölgesi hazırlanıyor',icon:'✨'}
 };
 export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
   completedLevels,totalLevels,onEnterAnimals,onEnterColors,
-  colorsUnlocked,colorsAvailable,colorCompleted,numberCompleted,numberTotal,numbersUnlocked,numbersAvailable,onEnterNumbers,gradeLevel=null,onBack
+  colorsUnlocked,colorsAvailable,colorCompleted,numberCompleted,numberTotal,numbersUnlocked,numbersAvailable,onEnterNumbers,
+  foodCompleted,foodTotal,foodUnlocked,foodAvailable,onEnterFood,gradeLevel=null,onBack
 })=>{
   const [notice,setNotice]=useState('');
-  const journeyTotal=totalLevels+3+numberTotal;
-  const progress=journeyTotal>0?Math.min(100,Math.round(100*(completedLevels+colorCompleted+numberCompleted)/journeyTotal)):0;
-  const objects=useMemo(()=>getDistrictObjects(colorsUnlocked&&colorsAvailable,numbersUnlocked&&numbersAvailable),[colorsUnlocked,colorsAvailable,numbersUnlocked,numbersAvailable]);
+  const journeyTotal=totalLevels+3+numberTotal+foodTotal;
+  const progress=journeyTotal>0?Math.min(100,Math.round(100*(completedLevels+colorCompleted+numberCompleted+foodCompleted)/journeyTotal)):0;
+  const objects=useMemo(()=>getDistrictObjects(colorsUnlocked&&colorsAvailable,numbersUnlocked&&numbersAvailable,foodUnlocked&&foodAvailable),[colorsUnlocked,colorsAvailable,numbersUnlocked,numbersAvailable,foodUnlocked,foodAvailable]);
   const enter=(obj:WorldObject)=>{
     if(obj.id==='animals')onEnterAnimals();
     else if(obj.id==='colors'&&colorsUnlocked&&colorsAvailable)onEnterColors();
     else if(obj.id==='numbers'&&numbersUnlocked&&numbersAvailable)onEnterNumbers();
+    else if(obj.id==='food'&&foodUnlocked&&foodAvailable)onEnterFood();
     else setNotice(PLACES[obj.id]?.title+' bölgesi henüz açılmadı.');
   };
   return <div role="dialog" aria-modal="true" aria-labelledby="wg-world-title"
@@ -57,7 +64,7 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
           ← Takımadaya Dön
         </button>
         <div className="rounded-xl border border-lime-200/30 bg-[#073d4a]/80 px-4 py-3 text-xs font-bold text-lime-100 sm:text-sm">
-          🐾 {completedLevels}/{totalLevels} · 🎨 {colorCompleted}/3 · 🔢 {numberCompleted}/{numberTotal} · ⭐ Yolculuk %{progress}
+          🐾 {completedLevels}/{totalLevels} · 🎨 {colorCompleted}/3 · 🔢 {numberCompleted}/{numberTotal} · 🍎 {foodCompleted}/{foodTotal} · ⭐ Yolculuk %{progress}
         </div>
       </header>
       <div className="mb-4 text-center">

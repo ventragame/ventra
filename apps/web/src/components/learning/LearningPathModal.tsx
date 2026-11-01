@@ -5,11 +5,13 @@ import { WordGardenDistrictMap } from './WordGardenDistrictMap';
 import { AnimalMeadowAdventure } from './activities/AnimalMeadowAdventure';
 import { ColorGroveAdventure } from './activities/ColorGroveAdventure';
 import { NumberValleyAdventure } from './activities/NumberValleyAdventure';
+import { FoodMarketAdventure } from './activities/FoodMarketAdventure';
 import { getProgressRepository } from '@/lib/progress';
 import { getWordGardenProgress, type WordGardenProgressSnapshot, type AnimalMissionTelemetry } from '@/lib/progress/wordGardenProgress';
 import { getColorGroveProgress, saveColorGroveMission, type ColorGroveProgress } from '@/lib/progress/colorGroveProgress';
 import {getNumberValleyProgress,saveNumberValleyMission,type NumberValleyProgress} from '@/lib/progress/numberValleyProgress';
-import type {NumberAnswerEvidence} from '@ventra/shared';
+import type {NumberAnswerEvidence,FoodAnswerEvidence} from '@ventra/shared';
+import {getFoodMarketProgress,saveFoodMarketMission,type FoodMarketProgress} from '@/lib/progress/foodMarketProgress';
 
 interface LearningPathModalProps {
   regionId: string;
@@ -17,6 +19,7 @@ interface LearningPathModalProps {
   onRegionCompleted: () => void;
   onColorProgressSaved?: () => void;
   onNumberProgressSaved?: () => void;
+  onFoodProgressSaved?: () => void;
   profileId: string;
   englishLevel?: 'Pre-A1' | 'A1' | 'A2';
   gradeLevel?:number|null;
@@ -25,7 +28,7 @@ interface LearningPathModalProps {
   onProgressUpdate: (completed: number, total: number, levelOrder: number, starsEarned: number, telemetry?: AnimalMissionTelemetry) => Promise<void>;
 }
 
-type District = 'overview' | 'animals' | 'colors' | 'numbers';
+type District = 'overview' | 'animals' | 'colors' | 'numbers' | 'food';
 
 /**
  * One active district at a time; the old static animal activities are no longer
@@ -40,6 +43,7 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
   onRegionCompleted,
   onColorProgressSaved,
   onNumberProgressSaved,
+  onFoodProgressSaved,
   initialCompletedLevels = 0,
   initialStarsByLevel = {},
   onProgressUpdate
@@ -56,6 +60,9 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
     completedLevels: 0, totalLevels: 3, starsByLevel: {}
   });
   const [numbers,setNumbers] = useState<NumberValleyProgress>({completedLevels:0,totalLevels:15,starsByLevel:{},completedByBand:{ones:0,tens:0,hundreds:0}});
+  const [food,setFood]=useState<FoodMarketProgress>({completedLevels:0,totalLevels:15,completedByAisle:{orchard:0,bakery:0,cafe:0},starsByLevel:{}});
+  const [foodError,setFoodError]=useState(false);
+  const [foodLoaded,setFoodLoaded]=useState(false);
   const [numberError,setNumberError]=useState(false);
   const [numberLoaded,setNumberLoaded]=useState(false);
   const [colorError, setColorError] = useState(false);
@@ -67,6 +74,7 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
     setColorError(false);
     setNumberError(false);
     setNumberLoaded(false);
+    setFoodError(false);setFoodLoaded(false);
     const repo = getProgressRepository();
     void getWordGardenProgress(repo, profileId)
       .then(snapshot => { if (active) setAnimals(snapshot); })
@@ -78,6 +86,9 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
       .then(snapshot=>{if(active){setNumbers(snapshot);setNumberLoaded(true);}})
       .catch(error=>{console.error('Sayı Vadisi ilerlemesi okunamadı:',error);
         if(active){setNumberError(true);setNumberLoaded(true);}});
+    void getFoodMarketProgress(repo,profileId).then(value=>{if(active){setFood(value);setFoodLoaded(true);}})
+      .catch(err=>{console.error('Lezzet Pazarı ilerlemesi açılamadı:',err);
+        if(active){setFoodError(true);setFoodLoaded(true);}});
     return () => { active = false; };
   }, [profileId]);
 
@@ -139,6 +150,22 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
     />;
   }
 
+  if(district==='food'){
+    return foodError?(
+      <div role="alert" className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-slate-950 p-6 text-center text-white">
+        <p>Lezzet Pazarı ilerlemesi okunamadı. Oyun kayıtlarını silmeden yeniden deneyebilirsin.</p>
+        <button onClick={()=>setDistrict('overview')} className="rounded-xl bg-lime-300 px-5 py-3 font-bold text-slate-950">Bölgelere Dön</button>
+      </div>
+    ):<FoodMarketAdventure
+      key={profileId} profileId={profileId} gradeLevel={gradeLevel} englishLevel={englishLevel}
+      progress={food} onBack={()=>setDistrict('overview')}
+      onSave={async (aisle,stage,mistakes,duration,answers:FoodAnswerEvidence[],sessionId)=>{
+        const updated=await saveFoodMarketMission(getProgressRepository(),profileId,aisle,stage,mistakes,duration,answers,sessionId);
+        setFood(updated);onFoodProgressSaved?.();
+      }}
+    />;
+  }
+
   if (district === 'colors') {
     return <ColorGroveAdventure
       key={profileId}
@@ -167,6 +194,11 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
     numbersUnlocked={!colorError && colors.completedLevels===colors.totalLevels}
     numbersAvailable={numberLoaded&&!numberError}
     onEnterNumbers={()=>setDistrict('numbers')}
+    foodCompleted={food.completedLevels}
+    foodTotal={food.totalLevels}
+    foodUnlocked={!numberError&&numbers.completedByBand.ones===5}
+    foodAvailable={foodLoaded&&!foodError}
+    onEnterFood={()=>setDistrict('food')}
     gradeLevel={gradeLevel}
     colorsAvailable={!colorError}
     onEnterColors={() => setDistrict('colors')}

@@ -119,11 +119,12 @@ export function KidsPassport({profileId,nickname,avatarEmoji,gradeLevel,englishL
               ${tab===id?'border-lime-300 bg-emerald-800/75 text-white':'border-sky-300/25 bg-slate-900/70 text-slate-200 hover:bg-slate-800'}`}>{name}</button>)}
         </nav>
         {tab==='passport'&&<div className="space-y-4">
-          <section className="grid gap-3 sm:grid-cols-3">
+          <section className="grid gap-3 sm:grid-cols-4">
             {[
               {icon:'🐾',label:'Keşfedilen Hayvan',value:snapshot.learned.animals},
               {icon:'🎨',label:'Keşfedilen Renk',value:snapshot.learned.colors},
-              {icon:'🔢',label:'Keşfedilen Sayı',value:snapshot.learned.numbers}
+              {icon:'🔢',label:'Keşfedilen Sayı',value:snapshot.learned.numbers},
+              {icon:'🍎',label:'Keşfedilen Yiyecek',value:snapshot.learned.food}
             ].map(x=><div key={x.label} className="flex items-center gap-3 rounded-xl border border-cyan-100/20 bg-slate-900/60 px-4 py-3">
               <span className="text-2xl">{x.icon}</span><div>
                 <strong className="block text-xl text-lime-200">{x.value}</strong>
