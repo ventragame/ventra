@@ -46,6 +46,11 @@ export const MARKET_GAME_ID='island_word_garden_food';
 export const MARKET_TOTAL=15;
 export const MARKET_OFFSETS:Record<MarketAisle,number>={orchard:0,bakery:5,cafe:10};
 export const MARKET_KINDS=['discovery','recognition','listening','dialogue','application'] as const;
+/** Reopening a partially finished market always resumes the first incomplete stage. */
+export function marketResumePoint(completed:Record<MarketAisle,number>){
+ const aisle:MarketAisle=completed.orchard<5?'orchard':completed.bakery<5?'bakery':'cafe';
+ return {aisle,stage:Math.min(5,completed[aisle]+1) as MarketStage};
+}
 export type MarketQuestion={
  target:string;options:string[];
  prompt:string;audio:string;

@@ -4,7 +4,7 @@ import type {FoodAnswerEvidence} from '@ventra/shared';
 import {getProgressRepository} from '@/lib/progress';
 import {type EnglishPlacement} from '@/lib/learning/gradeAwareLearningPolicy';
 import {MARKET_AISLES,MARKET_STAGES,MARKET_OFFSETS,
- marketWord,marketNounPhrase,planMarketMission,type MarketAisle,type MarketStage,type MarketPlan} from '@/lib/learning/foodMarketEngine';
+ marketWord,marketNounPhrase,marketResumePoint,planMarketMission,type MarketAisle,type MarketStage,type MarketPlan} from '@/lib/learning/foodMarketEngine';
 import type {FoodMarketProgress} from '@/lib/progress/foodMarketProgress';
 import {soundService} from '@/lib/audio/SoundService';
 import './food-market.css';
@@ -65,9 +65,8 @@ function Item({id,showEnglish=false,selected=false,active=false,disabled=false,o
  </button>;
 }
 export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,progress,onBack,onSave}:Props){
- const [aisle,setAisle]=useState<MarketAisle>(()=>progress.completedByAisle.orchard===5?
-   progress.completedByAisle.bakery===5?'cafe':'bakery':'orchard');
- const [stage,setStage]=useState<MarketStage>(()=>Math.min(5,progress.completedByAisle.orchard+1) as MarketStage);
+ const [aisle,setAisle]=useState<MarketAisle>(()=>marketResumePoint(progress.completedByAisle).aisle);
+ const [stage,setStage]=useState<MarketStage>(()=>marketResumePoint(progress.completedByAisle).stage);
  const [revision,setRevision]=useState(0);
  const [plan,setPlan]=useState<MarketPlan|null>(null);
  const [planKey,setPlanKey]=useState('');

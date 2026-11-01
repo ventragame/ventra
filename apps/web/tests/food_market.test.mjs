@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {MARKET_WORDS,MARKET_AISLES,MARKET_STAGES,MARKET_TOTAL,
- eligibleMarketWords,planMarketMission,validMarketAnswers,marketWord,marketNounPhrase,MARKET_GAME_ID} from '../src/lib/learning/foodMarketEngine.ts';
+ eligibleMarketWords,planMarketMission,marketResumePoint,validMarketAnswers,marketWord,marketNounPhrase,MARKET_GAME_ID} from '../src/lib/learning/foodMarketEngine.ts';
 import {saveFoodMarketMission,getFoodMarketProgress} from '../src/lib/progress/foodMarketProgress.ts';
 import {MemoryProgressRepository} from '../src/lib/progress/MemoryProgressRepository.ts';
 import {normalizeLearningEvidence,getLearningSnapshot} from '../src/lib/learning/adaptiveLearningEngine.ts';
@@ -139,4 +139,32 @@ test('G1 distinct dialogue responses and accessible market cart actions exist',(
  assert.match(ui,/onDrop=\{event=>/);
  assert.match(ui,/onClick=\{\(\)=>choose\(id\)\}/);
  assert.match(ui,/stage===5\?current\.words:task\.options/);
+});
+
+test('G1 learner resumes correct incomplete stage when returning after finishing first or second street',()=>{
+ assert.deepEqual(marketResumePoint({orchard:0,bakery:0,cafe:0}),{aisle:'orchard',stage:1});
+ assert.deepEqual(marketResumePoint({orchard:3,bakery:0,cafe:0}),{aisle:'orchard',stage:4});
+ assert.deepEqual(marketResumePoint({orchard:5,bakery:0,cafe:0}),{aisle:'bakery',stage:1});
+ assert.deepEqual(marketResumePoint({orchard:5,bakery:2,cafe:0}),{aisle:'bakery',stage:3});
+ assert.deepEqual(marketResumePoint({orchard:5,bakery:5,cafe:0}),{aisle:'cafe',stage:1});
+ assert.deepEqual(marketResumePoint({orchard:5,bakery:5,cafe:5}),{aisle:'cafe',stage:5});
+});
+test('G1 entire 15-level path yields exactly 45 stars and 150 first-time earned coins',async()=>{
+ const repo=new MemoryProgressRepository();
+ const p=await repo.createProfile({nickname:'Full market',avatarId:'avatar_explorer'});
+ for(const aisle of ['orchard','bakery','cafe']){
+  for(let stage=1;stage<=5;stage++){
+   await saveFoodMarketMission(repo,p.id,aisle,stage,0,12,proof(stage,aisle),`${aisle}-${stage}`);
+  }
+ }
+ const progress=await getFoodMarketProgress(repo,p.id);
+ assert.equal(progress.completedLevels,15);
+ assert.deepEqual(progress.completedByAisle,{orchard:5,bakery:5,cafe:5});
+ assert.equal(await repo.getTotalStars(p.id,MARKET_GAME_ID),45);
+ const storage=new MemoryEconomyStorage();
+ const wallet=await getPassport(repo,p.id,storage,new Date());
+ assert.equal(wallet.balance,150);
+ assert.equal(wallet.worldStats.find(w=>w.id===MARKET_GAME_ID).completed,15);
+ await saveFoodMarketMission(repo,p.id,'cafe',5,0,15,proof(5,'cafe'),'cafe-5');
+ assert.equal((await getPassport(repo,p.id,storage,new Date())).balance,150);
 });
