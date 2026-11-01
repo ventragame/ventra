@@ -1,189 +1,85 @@
 'use client';
+import React,{useMemo,useState} from 'react';
+import dynamic from 'next/dynamic';
+import { getDistrictObjects } from './world/worldLayout';
+import type { WorldObject } from './world/worldLayout';
 
-import React from 'react';
+const ExplorerCanvas=dynamic(()=>import('./world/ExplorerCanvas').then(x=>x.ExplorerCanvas),{
+  ssr:false,
+  loading:()=> <div role="status" className="flex min-h-80 items-center justify-center rounded-3xl bg-emerald-900/60 text-white">Kelime Bahçesi yükleniyor…</div>
+});
 
 interface WordGardenDistrictMapProps {
-  completedLevels: number;
-  totalLevels: number;
-  onEnterAnimals: () => void;
-  onEnterColors: () => void;
-  colorsUnlocked: boolean;
-  colorsAvailable: boolean;
-  colorCompleted: number;
-  onBack: () => void;
+  completedLevels:number;
+  totalLevels:number;
+  onEnterAnimals:()=>void;
+  onEnterColors:()=>void;
+  colorsUnlocked:boolean;
+  colorsAvailable:boolean;
+  colorCompleted:number;
+  onBack:()=>void;
 }
-
-/**
- * A growing island, not a collection of fake playable levels.
- * Only published districts are playable; unimplemented content stays disabled.
- */
-const DISTRICTS = [
-  {
-    id: 'animal_meadow',
-    name: 'Hayvan Çayırı',
-    subtitle: 'Animals • İlk keşif',
-    description: '12 hayvan dostunu keşfet, seslerini öğren, yuvalarını kurtar ve albümünü tamamla.',
-    icon: '🐾',
-    status: 'playable',
-    regionClass: 'from-emerald-800/90 via-green-700/80 to-lime-600/70',
-    coordinates: 'lg:col-start-2 lg:row-start-2',
-  },
-  {
-    id: 'color_grove',
-    name: 'Renk Korusu',
-    subtitle: 'Colors • Üç görev',
-    description: 'Renklerle dolu büyülü ağaçlar ve keşif görevleri.',
-    icon: '🎨',
-    status: 'unlockable',
-    regionClass: 'from-fuchsia-900/80 via-pink-800/75 to-rose-600/60',
-    coordinates: 'lg:col-start-1 lg:row-start-1',
-  },
-  {
-    id: 'number_valley',
-    name: 'Sayı Vadisi',
-    subtitle: 'Numbers • Planlanan bölge',
-    description: 'Sayıları oyunla keşfedeceğin vadi.',
-    icon: '🔢',
-    status: 'planned',
-    regionClass: 'from-blue-900/80 via-cyan-800/75 to-sky-600/60',
-    coordinates: 'lg:col-start-3 lg:row-start-1',
-  },
-  {
-    id: 'food_market',
-    name: 'Lezzet Pazarı',
-    subtitle: 'Food • Planlanan bölge',
-    description: 'Yiyeceklerin İngilizce adlarını öğrenme alanı.',
-    icon: '🍎',
-    status: 'planned',
-    regionClass: 'from-orange-900/85 via-amber-800/75 to-yellow-600/60',
-    coordinates: 'lg:col-start-1 lg:row-start-2',
-  },
-  {
-    id: 'family_village',
-    name: 'Aile Köyü',
-    subtitle: 'Family • Planlanan bölge',
-    description: 'Günlük yaşam ve aile kelimeleri için yeni hikâyeler.',
-    icon: '🏡',
-    status: 'planned',
-    regionClass: 'from-violet-900/85 via-indigo-800/75 to-purple-600/60',
-    coordinates: 'lg:col-start-3 lg:row-start-2',
-  },
-  {
-    id: 'discovery_sanctuary',
-    name: 'Keşif Tapınağı',
-    subtitle: 'Final • Planlanan bölge',
-    description: 'Öğrendiğin kelimelerin birleşeceği son keşif.',
-    icon: '✨',
-    status: 'planned',
-    regionClass: 'from-teal-900/85 via-cyan-900/75 to-emerald-600/60',
-    coordinates: 'lg:col-start-2 lg:row-start-1',
-  },
-] as const;
-
-export const WordGardenDistrictMap: React.FC<WordGardenDistrictMapProps> = ({
-  completedLevels,
-  totalLevels,
-  onEnterAnimals,
-  onEnterColors,
-  colorsUnlocked,
-  colorsAvailable,
-  colorCompleted,
-  onBack,
-}) => {
-  const progress = totalLevels > 0 ? Math.round((completedLevels / totalLevels) * 100) : 0;
-
-  return (
-    <div
-      role="dialog"
-      aria-modal="true"
-      aria-labelledby="word-garden-world-title"
-      className="fixed inset-0 z-40 overflow-y-auto overscroll-contain bg-gradient-to-b from-sky-950 via-sky-900 to-emerald-950 text-white"
-      onPointerDown={(event) => event.stopPropagation()}
-      onPointerMove={(event) => event.stopPropagation()}
-      onPointerUp={(event) => event.stopPropagation()}
-      onWheel={(event) => event.stopPropagation()}
-    >
-      <div className="pointer-events-none absolute inset-0 overflow-hidden" aria-hidden="true">
-        <div className="absolute -top-32 left-1/4 h-96 w-96 rounded-full bg-sky-400/20 blur-3xl" />
-        <div className="absolute top-1/3 -right-32 h-96 w-96 rounded-full bg-teal-400/20 blur-3xl" />
-        <div className="absolute bottom-0 left-0 h-80 w-80 rounded-full bg-lime-300/10 blur-3xl" />
-      </div>
-
-      <div className="relative mx-auto max-w-6xl px-4 pb-10 pt-5 sm:px-6">
-        <header className="flex flex-wrap items-center justify-between gap-3">
-          <button
-            onClick={onBack}
-            className="rounded-2xl border border-white/20 bg-white/10 px-4 py-3 text-sm font-bold backdrop-blur-sm hover:bg-white/20 focus-visible:outline focus-visible:outline-2 focus-visible:outline-yellow-300"
-            aria-label="Takımada haritasına dön"
-          >
-            ← Takımadaya Dön
-          </button>
-          <div className="rounded-2xl border border-emerald-300/30 bg-emerald-950/60 px-4 py-2 text-sm font-bold">
-            🌱 Hayvanlar {completedLevels}/{totalLevels} · 🎨 Renkler {colorCompleted}/3
-          </div>
-        </header>
-
-        <div className="mx-auto max-w-2xl py-6 text-center sm:py-8">
-          <div className="mb-2 text-4xl" aria-hidden="true">🌸</div>
-          <h1 id="word-garden-world-title" className="text-3xl font-black tracking-tight sm:text-5xl">
-            Kelime Bahçesi
-          </h1>
-          <p className="mt-3 text-sm leading-relaxed text-sky-100 sm:text-base">
-            Bir bahçeden daha fazlası: farklı konulara açılan altı keşif bölgesi.
-            Hayvan Çayırı'nı tamamladığında Renk Korusu açılır.
-          </p>
+const PLACES:Record<string,{title:string;description:string;icon:string}>={
+  animals:{title:'Hayvan Çayırı',description:'12 hayvan, 5 görev ve kayıp dostları kurtarma macerası',icon:'🐾'},
+  colors:{title:'Renk Korusu',description:'Renkleri keşfet, boya ve hafızanı güçlendir',icon:'🎨'},
+  numbers:{title:'Sayı Vadisi',description:'Yeni öğrenme bölgesi hazırlanıyor',icon:'🔢'},
+  food:{title:'Lezzet Pazarı',description:'Yiyeceklerin İngilizce adları yakında',icon:'🍎'},
+  family:{title:'Aile Köyü',description:'Aile ve günlük yaşam macerası yakında',icon:'🏡'},
+  sanctuary:{title:'Keşif Tapınağı',description:'Büyük final bölgesi hazırlanıyor',icon:'✨'}
+};
+export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
+  completedLevels,totalLevels,onEnterAnimals,onEnterColors,
+  colorsUnlocked,colorsAvailable,colorCompleted,onBack
+})=>{
+  const [notice,setNotice]=useState('');
+  const progress=totalLevels>0?Math.min(100,Math.round(100*completedLevels/totalLevels)):0;
+  const objects=useMemo(()=>getDistrictObjects(colorsUnlocked&&colorsAvailable),[colorsUnlocked,colorsAvailable]);
+  const enter=(obj:WorldObject)=>{
+    if(obj.id==='animals')onEnterAnimals();
+    else if(obj.id==='colors'&&colorsUnlocked&&colorsAvailable)onEnterColors();
+    else setNotice(PLACES[obj.id]?.title+' bölgesi henüz açılmadı.');
+  };
+  return <div role="dialog" aria-modal="true" aria-labelledby="wg-world-title"
+    onPointerDown={e=>e.stopPropagation()} onPointerMove={e=>e.stopPropagation()}
+    onPointerUp={e=>e.stopPropagation()} onWheel={e=>e.stopPropagation()}
+    className="fixed inset-0 z-40 overflow-y-auto overscroll-contain bg-gradient-to-b from-[#153d54] via-[#1a6973] to-[#174f46] text-white">
+    <div className="mx-auto max-w-6xl px-3 pb-10 pt-4 sm:px-6" style={{paddingTop:'max(16px, env(safe-area-inset-top))',paddingBottom:'max(24px, env(safe-area-inset-bottom))'}}>
+      <header className="mb-3 flex flex-wrap items-center justify-between gap-2">
+        <button onClick={onBack} className="min-h-12 rounded-xl border border-white/35 bg-[#083e50]/70 px-4 py-3 text-xs font-black focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-200 sm:text-sm">
+          ← Takımadaya Dön
+        </button>
+        <div className="rounded-xl border border-lime-200/30 bg-[#073d4a]/80 px-4 py-3 text-xs font-bold text-lime-100 sm:text-sm">
+          🐾 {completedLevels}/{totalLevels} · 🎨 {colorCompleted}/3 · ⭐ Yolculuk %{progress}
         </div>
-
-        <div className="mx-auto mb-6 max-w-xl">
-          <div className="flex justify-between text-xs font-semibold text-emerald-100">
-            <span>İlk keşif rotası</span><span>%{progress} tamamlandı</span>
-          </div>
-          <div className="mt-2 h-3 overflow-hidden rounded-full bg-black/35 ring-1 ring-white/20">
-            <div className="h-full rounded-full bg-gradient-to-r from-lime-400 to-emerald-400 transition-all duration-500" style={{ width: `${progress}%` }} />
-          </div>
-        </div>
-
-        <div className="relative grid gap-4 sm:grid-cols-2 lg:grid-cols-3 lg:grid-rows-2" aria-label="Kelime Bahçesi keşif bölgeleri">
-          {DISTRICTS.map((district) => {
-            const playable = district.status === 'playable' || (district.id === 'color_grove' && colorsUnlocked && colorsAvailable);
-            const isColor = district.id === 'color_grove';
-            const lockedColor = isColor && !playable;
-            const content = (
-              <>
-                <div className="flex items-start justify-between gap-3">
-                  <span className="flex h-16 w-16 items-center justify-center rounded-3xl border border-white/25 bg-white/15 text-4xl shadow-lg" aria-hidden="true">
-                    {district.icon}
-                  </span>
-                  <span className={`rounded-full border px-2.5 py-1 text-[11px] font-extrabold ${playable ? 'border-lime-200/50 bg-lime-400/25 text-lime-100' : 'border-white/25 bg-black/25 text-white/80'}`}>
-                    {playable ? '● OYNANABİLİR' : lockedColor ? (colorsAvailable ? '🔒 HAYVANLARI BİTİR' : '⚠ İLERLEME YÜKLENEMEDİ') : '◇ GELİŞTİRİLECEK'}
-                  </span>
-                </div>
-                <div className="mt-5 text-left">
-                  <h2 className="text-xl font-black tracking-tight">{district.name}</h2>
-                  <p className="mt-1 text-xs font-bold text-white/75">{district.subtitle}</p>
-                  <p className="mt-3 min-h-12 text-sm leading-relaxed text-white/85">{district.description}</p>
-                </div>
-                <div className={`mt-4 rounded-xl px-4 py-3 text-center text-sm font-extrabold ${playable ? 'bg-lime-300 text-emerald-950 shadow-lg shadow-emerald-950/20' : 'border border-white/20 bg-black/20 text-white/75'}`}>
-                  {playable ? (isColor ? `Renk Macerası (${colorCompleted}/3) →` : 'Macera Rotasına Gir →') : lockedColor ? (colorsAvailable ? 'Hayvan Çayırı tamamlanınca açılır' : 'İlerlemeyi yeniden yükleyin') : 'İçerik hazırlanıyor'}
-                </div>
-              </>
-            );
-            const classes = `relative flex min-h-[270px] flex-col justify-between overflow-hidden rounded-[2rem] border p-5 text-left shadow-2xl transition-transform duration-200 bg-gradient-to-br ${district.regionClass} ${district.coordinates} ${playable ? 'border-lime-200/70 hover:-translate-y-1 hover:shadow-lime-500/20 focus-visible:outline focus-visible:outline-4 focus-visible:outline-lime-300' : 'border-white/15'}`;
-            return playable ? (
-              <button key={district.id} onClick={isColor ? onEnterColors : onEnterAnimals} className={classes}>
-                {content}
-              </button>
-            ) : (
-              <div key={district.id} className={classes} aria-label={`${district.name}: içerik geliştirilme aşamasında`}>
-                {content}
-              </div>
-            );
-          })}
-        </div>
-        <p className="mt-6 text-center text-xs leading-relaxed text-sky-200">
-          Açılmamış bölgeler ilerlemeyi etkilemez. Yeni görevler gerçek içerikleri tamamlandıkça açılacaktır.
+      </header>
+      <div className="mb-4 text-center">
+        <p className="text-[11px] font-black uppercase tracking-[.2em] text-amber-200">Ventra Kids · Keşif Dünyası</p>
+        <h1 id="wg-world-title" className="mt-1 text-3xl font-black tracking-tight text-white sm:text-5xl">🌸 Kelime Bahçesi</h1>
+        <p className="mt-2 text-xs text-sky-100 sm:text-sm">
+          Yol boyunca ilerle, bölge tabelalarına dokun. Bilgisayarda WASD/oklar, telefonda yön tuşları da çalışır.
         </p>
       </div>
+      <ExplorerCanvas key="garden" area="garden" objects={objects} caption="Gezilebilir Keşif Haritası"
+        height={570} onInteract={enter} onInspect={obj=>setNotice(`${obj.label} henüz oynanabilir değil.`)}/>
+      {notice&&<div role="status" className="mt-3 rounded-xl border border-amber-300/40 bg-slate-950/65 px-4 py-3 text-sm font-semibold text-amber-100">
+        {notice} <button onClick={()=>setNotice('')} className="ml-3 rounded-md underline">Kapat</button>
+      </div>}
+      <div className="mt-4 grid grid-cols-2 gap-3 sm:grid-cols-3">
+        {objects.map(obj=>{
+          const info=PLACES[obj.id];
+          const playable=obj.unlocked===true;
+          return <button key={obj.id} type="button" disabled={!playable} onClick={()=>enter(obj)}
+            aria-label={`${info.title} — ${playable?'oyna':'kilitli'}`}
+            className={`min-h-28 rounded-2xl border px-3 py-4 text-left shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300
+              ${playable?'border-lime-200/60 bg-emerald-900/65 hover:bg-emerald-800/75':'border-white/15 bg-slate-950/30 text-white/65'}`}>
+            <div className="flex items-center justify-between gap-2"><span aria-hidden="true" className="text-2xl">{info.icon}</span>
+              <span className="text-[10px] font-black">{playable?'OYNANABİLİR':'🔒 PLANLANIYOR'}</span></div>
+            <h2 className="mt-2 text-sm font-black sm:text-base">{info.title}</h2>
+            <p className="mt-1 text-[11px] leading-snug text-white/75">{info.description}</p>
+          </button>;
+        })}
+      </div>
+      <p className="mt-5 text-center text-xs text-sky-100/80">Kilitli bölgelerde henüz görev yoktur. Mevcut kazanımlar ve yıldızlar korunur.</p>
     </div>
-  );
+  </div>;
 };
