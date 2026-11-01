@@ -32,13 +32,13 @@ test('P4 navigation is bounded, deterministic and frame-rate independent',()=>{
     assert.ok(position.y>=0&&position.y<=WORLD_HEIGHT);
   }
 });
-test('P4 all twelve animal positions and habitats are unique and playable on a 1400x940 world',()=>{
+test('P4 all twenty animal positions and habitats are unique and playable on a 1400x940 world',()=>{
   const ids=ANIMAL_MEADOW_WORDS.map(x=>x.id);
   const animals=getAnimalObjects(ids,id=>ANIMAL_MEADOW_WORDS.find(x=>x.id===id)?.image);
   const homes=getHabitatObjects(ids,id=>ANIMAL_MEADOW_WORDS.find(x=>x.id===id)?.habitat??id);
-  assert.equal(animals.length,12);
-  assert.equal(homes.length,12);
-  assert.equal(new Set(animals.map(x=>x.x+':'+x.y)).size,12);
+  assert.equal(animals.length,20);
+  assert.equal(homes.length,20);
+  assert.equal(new Set(animals.map(x=>x.x+':'+x.y)).size,20);
   assert.equal(new Set(homes.map(x=>x.x+':'+x.y)).size,12,
     'cow/horse and duck/fish habitats must not overlap');
   for(const target of [...animals,...homes]){
@@ -47,7 +47,7 @@ test('P4 all twelve animal positions and habitats are unique and playable on a 1
   }
   assert.ok(animals.every(x=>x.image?.endsWith('.svg')));
   assert.ok(homes.every(x=>x.kind==='habitat'&&x.label));
-  assert.equal(Object.keys(ANIMAL_POSITIONS).length,12);
+  assert.equal(Object.keys(ANIMAL_POSITIONS).length,20);
 });
 test('P4 mission IDs still match existing persisted P3 five-stage contract',()=>{
   const intro=planAnimalMission({mission:1,history:[],seed:4});
