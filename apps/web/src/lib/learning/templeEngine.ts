@@ -2,7 +2,7 @@ import type {TempleAnswerEvidence,AnimalAnswerEvidence,ColorAnswerEvidence,FoodA
 import type {EnglishPlacement} from './gradeAwareLearningPolicy.ts';
 import {ANIMAL_MEADOW_WORDS} from './animalMissionEngine.ts';
 import {COLOR_GROVE_WORDS} from '../progress/colorGroveProgress.ts';
-import {MARKET_WORDS} from './foodMarketEngine.ts';
+import {MARKET_WORDS,marketNounPhrase} from './foodMarketEngine.ts';
 import {VILLAGE_WORDS} from './familyVillageEngine.ts';
 import {englishNumber} from './numberValleyEngine.ts';
 
@@ -128,17 +128,22 @@ export function planTempleMission(input:{chamber:TempleChamber;stage:TempleStage
  return {chamber,stage,words,questions};
 }
 const VOWEL=/^[aeiou]/i;
+const FAMILY_MEMBERS=new Set(['mother','father','sister','brother','baby','grandmother','grandfather','family',
+ 'aunt','uncle','cousin','parents','daughter','son','grandchild']);
+const DAILY_ACTIONS=new Set(['wake up','brush my teeth','wash my face','get dressed','eat breakfast','go to school',
+ 'read a book','go to bed','do homework','have lunch','play outside','take a shower','tidy my room','help at home','have dinner']);
+/** A phrase for every source-domain concept; always 4+ meaningful reorderable tokens. */
 export function sentenceFor(w:TempleWord):string[]{
- if(w.domain==='numbers')return ['I','can','count',w.en+'.'];
- if(w.domain==='colors')return ['I','see','a',w.en,'crystal.'];
- if(w.domain==='animals')return ['I','see',VOWEL.test(w.en)?'an':'a',w.en+'.'];
- if(w.domain==='food')return ['I','like',w.en+'.'];
- if(w.en==='stairs'||w.en==='parents')return ['I','see','the',w.en+'.'];
- if(w.domain==='family'&&['wake up','go to school','get dressed','brush my teeth','wash my face','eat breakfast',
-  'read a book','go to bed','do homework','have lunch','play outside','take a shower','tidy my room',
-  'help at home','have dinner'].includes(w.en))
-  return ['I',...w.en.split(' ').map((x,i,a)=>i===a.length-1?x+'.':x)];
- return ['This','is',VOWEL.test(w.en)?'an':'a',w.en+'.'];
+ if(w.domain==='numbers')return ['I','can','count','to',w.en+'.'];
+ if(w.domain==='colors')return ['I','can','see','a',w.en,'crystal.'];
+ if(w.domain==='animals')return ['I','can','see',VOWEL.test(w.en)?'an':'a',w.en+'.'];
+ if(w.domain==='food')return ['I','would','like',...marketNounPhrase(w.en).split(' ').map((token,i,a)=>
+   i===a.length-1?token+'.':token)];
+ if(DAILY_ACTIONS.has(w.en))return ['Every','day,','I',...w.en.split(' ').map((x,i,a)=>i===a.length-1?x+'.':x)];
+ if(w.en==='stairs')return ['These','are','the','stairs.'];
+ if(w.en==='parents')return ['These','are','my','parents.'];
+ if(FAMILY_MEMBERS.has(w.en))return ['This','is','my',w.en+'.'];
+ return ['This','is','the',w.en+'.'];
 }
 export function validTempleAnswers(value:unknown):value is TempleAnswerEvidence[]{
  return Array.isArray(value)&&value.every(x=>x&&typeof x.wordId==='string'&&

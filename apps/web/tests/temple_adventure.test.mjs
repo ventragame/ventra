@@ -76,9 +76,9 @@ test('G3: weakness in earlier games prioritizes the same concept and repeats pre
  assert.ok(weak.has('animals:cat'));
  const plan=planTempleMission({chamber:'rune',stage:2,gradeLevel:3,englishLevel:'A1',history:[],weak,seed:12});
  assert.ok(plan.words.includes('animals:cat'));
- assert.equal(sentenceFor(templeWord('animals:owl')).join(' '),'I see an owl.');
- assert.equal(sentenceFor(templeWord('numbers:5')).join(' '),'I can count five.');
- assert.equal(sentenceFor(templeWord('colors:blue')).join(' '),'I see a blue crystal.');
+ assert.equal(sentenceFor(templeWord('animals:owl')).join(' '),'I can see an owl.');
+ assert.equal(sentenceFor(templeWord('numbers:5')).join(' '),'I can count to five.');
+ assert.equal(sentenceFor(templeWord('colors:blue')).join(' '),'I can see a blue crystal.');
 });
 test('G3: discovery, hinted listening, word-order errors and independent seal solutions are distinguished in P3',()=>{
  const answers=[proof('animals:cat','discovery'),proof('animals:cat','listening',0,true),
@@ -139,4 +139,17 @@ test('G3: accessible active map, all five temple challenges, audio completion an
  assert.match(modal,/templeUnlocked=\{true\}/);
  assert.match(modal,/saveTempleMission/);
  assert.match(scene,/ENGLISH TEMPLE/);
+});
+
+test('G3: every English sentence has at least four tokens and natural family/food grammar',()=>{
+ for(const concept of TEMPLE_WORDS){
+  const words=sentenceFor(concept);
+  assert.ok(words.length>=4,`Too short: ${concept.id}`);
+  assert.ok(words.at(-1).endsWith('.'),`Punctuation missing: ${concept.id}`);
+ }
+ assert.equal(sentenceFor(templeWord('food:apple')).join(' '),'I would like an apple.');
+ assert.equal(sentenceFor(templeWord('food:bread')).join(' '),'I would like some bread.');
+ assert.equal(sentenceFor(templeWord('family:mother')).join(' '),'This is my mother.');
+ assert.equal(sentenceFor(templeWord('family:kitchen')).join(' '),'This is the kitchen.');
+ assert.equal(sentenceFor(templeWord('family:wake up')).join(' '),'Every day, I wake up.');
 });

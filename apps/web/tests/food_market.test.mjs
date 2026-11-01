@@ -180,7 +180,8 @@ test('G1 live map accessibility: food area is playable without completing Number
  assert.match(map,/obj\.id==='food'&&foodUnlocked&&foodAvailable/);
  assert.match(map,/YÜKLEME HATASI/);
  assert.match(map,/YÜKLENİYOR/);
- assert.match(map,/YAKINDA/);
+ assert.match(map,/onEnterTemple/);
+ assert.match(map,/templeError/);
  assert.match(map,/OYNANABİLİR/);
 });
 
