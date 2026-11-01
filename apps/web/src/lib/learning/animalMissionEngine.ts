@@ -90,7 +90,7 @@ export function planAnimalMission(input: {
   });
   const targetSkill = input.mission===2?'recognition':
     input.mission===3?'listening':input.mission===4?'command':'habitat';
-  const due = new Set(all.filter(id=>needsReview(learning,'animals',targetSkill,id)));
+  const due = new Set<string>(all.filter(id=>needsReview(learning,'animals',targetSkill,id)));
   const weight = (id: string) => weak.has(id) ? Math.min(12,5+(mistakes.get(id)||0)) :
     due.has(id)?6:2;
   if (input.mission === 1) {
