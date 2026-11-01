@@ -11,8 +11,8 @@ function evidence(wordId,kind='discovery',mistakes=0,time='2026-11-01T09:00:00.0
   return {wordId,kind,mistakes,firstTryCorrect:kind==='discovery'?false:mistakes===0,timestamp:time};
 }
 const starters=ANIMAL_MEADOW_WORDS.slice(0,8).map(word=>evidence(word.id));
-test('Animal Meadow catalog contains twelve unique animals and preserves existing audio/image references',()=>{
-  assert.equal(ANIMAL_MEADOW_WORDS.length,12);
+test('Animal Meadow catalog contains twenty unique animals and preserves existing audio/image references',()=>{
+  assert.equal(ANIMAL_MEADOW_WORDS.length,20);
   assert.equal(new Set(ANIMAL_MEADOW_WORDS.map(w=>w.id)).size,12);
   for(const animal of ANIMAL_MEADOW_WORDS) {
     assert.ok(animal.emoji && animal.tr && animal.habitat && animal.place);
@@ -24,14 +24,14 @@ test('Animal Meadow catalog contains twelve unique animals and preserves existin
     assert.ok(animal.image?.endsWith('.svg'));
   }
 });
-test('New learner discovers eight; replay eventually introduces the four additional animals',()=>{
+test('New learner discovers eight; replay eventually introduces fresh additional animals',()=>{
   const intro=planAnimalMission({mission:1,history:[],seed:1});
   assert.equal(intro.animals.length,8);
   assert.equal(intro.questions.length,0);
   assert.deepEqual(new Set(intro.animals),new Set(starters.map(x=>x.wordId)));
   const replay=planAnimalMission({mission:1,history:intro.animals.map(id=>evidence(id)),seed:8});
   assert.equal(replay.animals.length,8);
-  assert.ok(['sheep','frog','bee','butterfly'].every(id=>replay.animals.includes(id)));
+  assert.equal(replay.animals.filter(id=>!intro.animals.includes(id)).length,6);
 });
 test('Quiz missions select only encountered animals, ensure valid three-choice prompts',()=>{
   for(let mission=2;mission<=5;mission++){
@@ -114,7 +114,7 @@ test('Muted listening fallback and optional hints are neutral, not permanent wea
   assert.deepEqual(getWeakAnimalIds([assisted,missed]),['cow']);
 });
 
-test('All twelve illustrated characters exist and are self-contained safe SVGs',()=>{
+test('All twenty illustrated characters exist and are self-contained safe SVGs',()=>{
   for(const word of ANIMAL_MEADOW_WORDS){
     assert.equal(typeof word.image,'string');
     const file=path.join(process.cwd(),'public',word.image.replace(/^\//,''));
