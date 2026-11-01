@@ -2,6 +2,9 @@
 import React,{useCallback,useEffect,useRef,useState} from 'react';
 import Phaser from 'phaser';
 import { ExplorerScene } from './ExplorerScene';
+import { WorldAmbience } from '@/lib/audio/WorldAmbience';
+import { soundService } from '@/lib/audio/SoundService';
+import { EventBus } from '@/lib/game/EventBus';
 import type { WorldArea,WorldObject } from './worldLayout';
 
 export interface ExplorerCanvasProps {
@@ -23,6 +26,8 @@ export function ExplorerCanvas({
   const onInspectRef=useRef(onInspect);
   const objectsRef=useRef(objects);
   const [ready,setReady]=useState(false);
+  const ambience=useRef<WorldAmbience|null>(null);
+  const [ambienceOn,setAmbienceOn]=useState(false);
   const [reduced,setReduced]=useState(false);
   const [hint,setHint]=useState('Yolculuğa başlamak için bir bölgeye dokun.');
   onInteractRef.current=onInteract;
@@ -71,15 +76,24 @@ export function ExplorerCanvas({
       setReady(true);
     },0);
     const onVisibility=()=>{
+      if(document.hidden){
+        ambience.current?.stop();setAmbienceOn(false);
+      }
       if(!game.current)return;
       if(document.hidden)game.current.scene.pause('VentraExplorer');
       else game.current.scene.resume('VentraExplorer');
     };
+    const onMute=(muted:boolean)=>{
+      if(muted){ambience.current?.stop();setAmbienceOn(false);}
+    };
+    EventBus.on('MUTE_STATE_CHANGED',onMute);
     document.addEventListener('visibilitychange',onVisibility);
     return ()=>{
       alive=false;
       if(handle!==undefined)clearTimeout(handle);
       document.removeEventListener('visibilitychange',onVisibility);
+      EventBus.off('MUTE_STATE_CHANGED',onMute);
+      ambience.current?.stop();ambience.current=null;
       scene.current=null;
       if(game.current){game.current.destroy(true,false);game.current=null;}
     };
@@ -102,6 +116,18 @@ export function ExplorerCanvas({
       object=>{setHint(`${object.label} henüz açılmadı.`);onInspectRef.current?.(object);}
     );
   },[onInteract,onInspect]);
+  const toggleAmbience=useCallback(()=>{
+    if(ambience.current?.isPlaying){
+      ambience.current.stop();setAmbienceOn(false);return;
+    }
+    if(soundService.getMuted()){
+      setHint('Ortam sesini dinlemek için önce genel sesi aç.');return;
+    }
+    if(!ambience.current)ambience.current=new WorldAmbience();
+    const success=ambience.current.start();
+    setAmbienceOn(success);
+    if(!success)setHint('Bu cihazda ortam sesi açılamadı; ses olmadan oynamaya devam edebilirsin.');
+  },[]);
   const move=useCallback((x:number,y:number)=>{
     scene.current?.goDirection(x,y);
   },[]);
@@ -112,6 +138,11 @@ export function ExplorerCanvas({
     <div className="pointer-events-none absolute left-3 top-3 rounded-xl border border-white/70 bg-[#164958]/85 px-3 py-2 text-xs font-extrabold text-white shadow-lg sm:text-sm">
       🧭 {caption??(area==='garden'?'Keşif Haritası':'Hayvan Dostları')}
     </div>
+    <button type="button" onClick={toggleAmbience} aria-pressed={ambienceOn}
+      aria-label={ambienceOn?'Ortam sesini kapat':'Ortam sesini aç'}
+      className="absolute right-3 top-3 min-h-11 rounded-xl border border-white/60 bg-[#164958]/90 px-3 py-2 text-xs font-black text-white shadow-lg focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-200">
+      {ambienceOn?'♫ Ortam Açık':'♫ Ortam Sesi'}
+    </button>
     <div role="status" aria-live="polite" className="pointer-events-none absolute left-3 right-3 bottom-3 flex justify-start">
       <div className="max-w-[65%] rounded-xl bg-[#134454]/85 px-3 py-2 text-[11px] font-bold text-white shadow-lg sm:text-xs">
         {ready?hint:'Dünya hazırlanıyor…'}
