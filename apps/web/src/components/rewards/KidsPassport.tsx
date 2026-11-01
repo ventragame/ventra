@@ -1,6 +1,6 @@
 'use client';
 
-import React,{useCallback,useEffect,useState} from 'react';
+import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {
   COSMETICS,DAILY_GOALS, WORLD_GAMES,type CosmeticId,type CosmeticGroup,type DailyGoal
 } from '@/lib/rewards/economyEngine';
@@ -16,6 +16,7 @@ type Props={
   englishLevel:string;onClose:()=>void;onChanged?:()=>void;
 };
 export function KidsPassport({profileId,nickname,avatarEmoji,gradeLevel,englishLevel,onClose,onChanged}:Props){
+  const closeButton=useRef<HTMLButtonElement>(null);
   const [tab,setTab]=useState<Tab>('passport');
   const [snapshot,setSnapshot]=useState<PassportSnapshot|null>(null);
   const [busy,setBusy]=useState(false);
@@ -41,6 +42,14 @@ export function KidsPassport({profileId,nickname,avatarEmoji,gradeLevel,englishL
       setError(e instanceof Error?e.message:'İşlem tamamlanamadı. Tekrar deneyebilirsin.');}
     finally{setBusy(false);}
   };
+  useEffect(()=>{
+    closeButton.current?.focus({preventScroll:true});
+    const handleKey=(event:KeyboardEvent)=>{
+      if(event.key==='Escape'){event.preventDefault();event.stopPropagation();onClose();}
+    };
+    document.addEventListener('keydown',handleKey,true);
+    return()=>document.removeEventListener('keydown',handleKey,true);
+  },[onClose]);
   const equipment=snapshot?.economy.equipped??{};
   const hat=COSMETICS.find(c=>c.id===equipment.hat);
   const badge=COSMETICS.find(c=>c.id===equipment.badge);
@@ -61,7 +70,7 @@ export function KidsPassport({profileId,nickname,avatarEmoji,gradeLevel,englishL
           <div className="text-xs font-extrabold uppercase tracking-[.22em] text-cyan-300">Ventra Kids • P5</div>
           <h1 className="mt-1 text-xl font-black sm:text-3xl">✨ Maceracı Pasaportu</h1>
         </div>
-        <button onClick={onClose} className="min-h-12 rounded-2xl border border-white/25 bg-slate-900/90 px-4 text-sm font-black hover:bg-slate-800">
+        <button ref={closeButton} onClick={onClose} className="min-h-12 rounded-2xl border border-white/25 bg-slate-900/90 px-4 text-sm font-black hover:bg-slate-800">
           ✕ Kapat
         </button>
       </header>
