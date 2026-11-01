@@ -164,9 +164,18 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
 
   useEffect(()=>{
     setVoiceAvailable(typeof window!=='undefined' && 'speechSynthesis' in window && typeof SpeechSynthesisUtterance!=='undefined');
-    const listen=(next:boolean)=>{ setMuted(next); if(next && typeof window!=='undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel(); };
+    const cancelSpeech=()=>{
+      if(typeof window!=='undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+    };
+    const listen=(next:boolean)=>{ setMuted(next); if(next)cancelSpeech(); };
+    const onVisibility=()=>{if(document.hidden)cancelSpeech();};
     EventBus.on('MUTE_STATE_CHANGED',listen);
-    return ()=>{ EventBus.off('MUTE_STATE_CHANGED',listen); if(typeof window!=='undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel(); };
+    document.addEventListener('visibilitychange',onVisibility);
+    return ()=>{
+      EventBus.off('MUTE_STATE_CHANGED',listen);
+      document.removeEventListener('visibilitychange',onVisibility);
+      cancelSpeech();
+    };
   },[]);
   useEffect(()=>{
     let live=true;
@@ -188,11 +197,19 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
     if(muted)return;
     soundService.unlockAudio();
     if((!sentence || !voiceAvailable) && word.audio){soundService.playSpeech(word.audio);return;}
-    if(!voiceAvailable || typeof window==='undefined')return;
+    if(!voiceAvailable || typeof window==='undefined' || document.hidden)return;
     try {
       window.speechSynthesis.cancel();
       const say=new SpeechSynthesisUtterance(sentence?`Find the ${word.id}`:word.id);
-      say.lang='en-US';say.rate=.77;window.speechSynthesis.speak(say);
+      say.lang='en-US';
+      // Prefer a real English voice when the platform exposes one; device voices
+      // remain a fallback until the remaining licensed offline recordings exist.
+      const voices=window.speechSynthesis.getVoices();
+      const english=voices.find(voice=>voice.lang.toLowerCase()==='en-us')
+        ??voices.find(voice=>voice.lang.toLowerCase().startsWith('en'));
+      if(english)say.voice=english;
+      say.rate=.77;
+      window.speechSynthesis.speak(say);
     }catch(err){console.warn('Speech not available',err);}
   }
   const canSpeak = (word:AnimalWord|null) => !muted && Boolean(word && (word.audio || voiceAvailable));
