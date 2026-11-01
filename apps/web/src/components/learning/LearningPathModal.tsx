@@ -15,6 +15,7 @@ interface LearningPathModalProps {
   onColorProgressSaved?: () => void;
   profileId: string;
   englishLevel?: 'Pre-A1' | 'A1' | 'A2';
+  gradeLevel?:number|null;
   initialCompletedLevels?: number;
   initialStarsByLevel?: Record<number, number>;
   onProgressUpdate: (completed: number, total: number, levelOrder: number, starsEarned: number, telemetry?: AnimalMissionTelemetry) => Promise<void>;
@@ -30,6 +31,7 @@ type District = 'overview' | 'animals' | 'colors';
 export const LearningPathModal: React.FC<LearningPathModalProps> = ({
   profileId,
   englishLevel = 'Pre-A1',
+  gradeLevel = null,
   onClose,
   onRegionCompleted,
   onColorProgressSaved,
@@ -86,6 +88,7 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
       key={profileId}
       profileId={profileId}
       englishLevel={englishLevel}
+      gradeLevel={gradeLevel}
       progress={animals}
       onBack={() => setDistrict('overview')}
       onAllCompleted={() => {
@@ -106,6 +109,7 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
       key={profileId}
       profileId={profileId}
       englishLevel={englishLevel}
+      gradeLevel={gradeLevel}
       progress={colors}
       onBack={() => setDistrict('overview')}
       onSave={async (mission, mistakes, correct, duration, answers, sessionId) => {
@@ -122,6 +126,7 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
     onEnterAnimals={() => setDistrict('animals')}
     colorsUnlocked={animals.completedLevels === animals.totalLevels}
     colorCompleted={colors.completedLevels}
+    gradeLevel={gradeLevel}
     colorsAvailable={!colorError}
     onEnterColors={() => setDistrict('colors')}
     onBack={onClose}

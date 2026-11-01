@@ -17,6 +17,7 @@ interface WordGardenDistrictMapProps {
   colorsUnlocked:boolean;
   colorsAvailable:boolean;
   colorCompleted:number;
+  gradeLevel?:number|null;
   onBack:()=>void;
 }
 const PLACES:Record<string,{title:string;description:string;icon:string}>={
@@ -29,7 +30,7 @@ const PLACES:Record<string,{title:string;description:string;icon:string}>={
 };
 export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
   completedLevels,totalLevels,onEnterAnimals,onEnterColors,
-  colorsUnlocked,colorsAvailable,colorCompleted,onBack
+  colorsUnlocked,colorsAvailable,colorCompleted,gradeLevel=null,onBack
 })=>{
   const [notice,setNotice]=useState('');
   const progress=totalLevels>0?Math.min(100,Math.round(100*completedLevels/totalLevels)):0;
@@ -57,6 +58,7 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
         <h1 id="wg-world-title" className="mt-1 text-3xl font-black tracking-tight text-white sm:text-5xl">🌸 Kelime Bahçesi</h1>
         <p className="mt-2 text-xs text-sky-100 sm:text-sm">
           Yol boyunca ilerle, bölge tabelalarına dokun. Bilgisayarda WASD/oklar, telefonda yön tuşları da çalışır.
+          {gradeLevel!==null&&Number.isInteger(gradeLevel)&&gradeLevel>=1&&gradeLevel<=8 && <span className="ml-2 font-bold text-lime-200">• {gradeLevel}. sınıfa uygun görevler</span>}
         </p>
       </div>
       <ExplorerCanvas key="garden" area="garden" objects={objects} caption="Gezilebilir Keşif Haritası"

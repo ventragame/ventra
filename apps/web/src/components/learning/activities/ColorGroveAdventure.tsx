@@ -39,9 +39,10 @@ interface Props {
   onSave: (mission: number, mistakes: number, correct: number, duration: number, answers: ColorAnswerEvidence[], sessionId: string) => Promise<void>;
   profileId: string;
   englishLevel: EnglishPlacement;
+  gradeLevel?:number|null;
 }
 
-export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave, profileId, englishLevel }) => {
+export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave, profileId, englishLevel, gradeLevel=null }) => {
   const [step, setStep] = useState<Step>(() => Math.min(3, progress.completedLevels + 1) as Step);
   const [plan, setPlan] = useState<PlannedColorMission | null>(null);
   const [planIdentity, setPlanIdentity] = useState<string | null>(null);
@@ -74,7 +75,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
 
   // Before the async effect runs, React may render the previous stage's plan.
   // Discovery has zero questions; never read questions[0] on the quiz screen.
-  const identity = `${profileId}:${englishLevel}:${step}:${replayNonce}`;
+  const identity = `${profileId}:${englishLevel}:${gradeLevel??'unset'}:${step}:${replayNonce}`;
   const activePlan = planIdentity === identity && plan?.mission === step ? plan : null;
   const currentQuestion = getActiveColorQuestion(activePlan, step, question);
   const invalidPlan = Boolean(activePlan && !complete && (
@@ -90,7 +91,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
       getProgressRepository().getColorAnswerHistory(profileId)
     ).then((history) => {
       if (alive) {
-        setPlan(planColorMission({ mission: step, history, seed: Math.floor(Math.random() * 4294967295), englishLevel }));
+        setPlan(planColorMission({ mission: step, history, seed: Math.floor(Math.random() * 4294967295), englishLevel, gradeLevel }));
         setPlanIdentity(identity);
       }
     }).catch((err) => {

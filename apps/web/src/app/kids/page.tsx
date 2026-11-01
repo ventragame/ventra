@@ -630,6 +630,7 @@ export default function VentraKidsWorldPage() {
           regionId={activeRegion}
           profileId={activeProfile?.id || ''}
           englishLevel={activeProfile?.englishLevel || 'Pre-A1'}
+          gradeLevel={activeProfile?.gradeLevel ?? null}
           onClose={handleCloseLearningPath}
           onRegionCompleted={handleRegionCompleted}
           onColorProgressSaved={() => { if (activeProfile) void loadProfileAndProgress(activeProfile); }}

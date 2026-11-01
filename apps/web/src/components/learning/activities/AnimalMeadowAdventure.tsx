@@ -37,6 +37,7 @@ type Telemetry = {
 interface Props {
   profileId:string;
   englishLevel:'Pre-A1'|'A1'|'A2';
+  gradeLevel?:number|null;
   progress:WordGardenProgressSnapshot;
   onSave:(mission:Stage,stars:number,telemetry:Telemetry)=>Promise<WordGardenProgressSnapshot>;
   onBack:()=>void;
@@ -108,7 +109,7 @@ function MeadowScene({stage, word, blooms, choices, onChoose, wrongChoice, await
   );
 }
 
-export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSave, onBack, onAllCompleted }:Props) {
+export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null, progress, onSave, onBack, onAllCompleted }:Props) {
   const [localProgress,setLocalProgress] = useState(progress);
   // The parent reads IndexedDB asynchronously. If the child enters the meadow
   // before hydration finishes, the real progress must replace placeholders.
@@ -146,7 +147,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
   const discoveredRef = useRef<Set<AnimalId>>(new Set());
   const panelRef = useRef<HTMLDivElement>(null);
   const headingRef = useRef<HTMLHeadingElement>(null);
-  const key = `${profileId}:${englishLevel}:${stage}:${nonce}`;
+  const key = `${profileId}:${englishLevel}:${gradeLevel??'unset'}:${stage}:${nonce}`;
   const activePlan = planKey===key && plan?.mission===stage ? plan : null;
   const currentQuestion = stage===1?null:activePlan?.questions[questionIndex]??null;
   const target = currentQuestion?findAnimal(currentQuestion.target):null;
@@ -184,7 +185,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
       if(!live)return;
       setSeenAnimals(Array.from(new Set(history.filter(row=>row.kind==='discovery').map(row=>row.wordId)))
         .filter((id): id is AnimalId => Boolean(findAnimal(id))));
-      setPlan(planAnimalMission({mission:stage,history,seed:Math.floor(Math.random()*4294967295)}));
+      setPlan(planAnimalMission({mission:stage,history,seed:Math.floor(Math.random()*4294967295),gradeLevel,englishLevel}));
       setPlanKey(key);
     }).catch(error=>{ console.error('Hayvan Çayırı planı yüklenemedi',error);if(live)setLoadError(true); });
     return ()=>{live=false};
