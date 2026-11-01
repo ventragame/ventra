@@ -1,6 +1,7 @@
 import { COLOR_GROVE_WORDS } from '../progress/colorGroveProgress.ts';
 import type { ColorAnswerEvidence } from '@ventra/shared';
 import { getLearningSnapshot, needsReview } from './adaptiveLearningEngine.ts';
+import { resolveGradeAwarePolicy, gradeAwareReviewPriority } from './gradeAwareLearningPolicy.ts';
 
 export type ColorId = (typeof COLOR_GROVE_WORDS)[number]['id'];
 export type ColorMissionId = 1 | 2 | 3;
@@ -95,9 +96,11 @@ export function planColorMission(args: {
   history: ColorAnswerEvidence[];
   seed: number;
   englishLevel: EnglishPlacement;
+  gradeLevel?:number|null;
   now?: string;
 }): PlannedColorMission {
   const rnd = random(args.seed);
+  const policy=resolveGradeAwarePolicy({domain:'colors',gradeLevel:args.gradeLevel,englishLevel:args.englishLevel});
   const all = COLOR_GROVE_WORDS.map((v) => v.id);
   const seen = new Set(args.history.filter(item => item.kind === 'discovery').map(item => item.wordId));
   // A learner can recover from an error: two later first-try recalls clear
@@ -127,14 +130,14 @@ export function planColorMission(args: {
     // First visit exposes six accessible colors. Replays preferentially introduce unseen colors.
     const starters: ColorId[] = ['red', 'blue', 'yellow', 'green', 'purple', 'orange'];
     const pool = args.history.length === 0 ? starters : all;
-    const selected = weightedShuffle(pool, id => seen.has(id) ? priority(id) : 4, rnd).slice(0, 6);
+    const selected = weightedShuffle(pool, id => seen.has(id) ? priority(id) : 4, rnd).slice(0, policy.discoveryCount);
     return { mission: 1, colors: selected, questions: [], reviewColorIds: [], seed: args.seed };
   }
 
   // A learner cannot be tested on words they have not encountered in the discovery mission.
   const learned = all.filter(id => seen.has(id));
   const allowed = learned.length > 0 ? learned : ['red', 'blue', 'yellow', 'green', 'purple', 'orange'] as ColorId[];
-  const count = Math.min(6, allowed.length);
+  const count = Math.min(policy.questionCount, allowed.length);
   // Guarantee currently weak, previously seen words appear in the base
   // questions, rather than merely giving them a higher random probability.
   const review = weightedShuffle(allowed.filter(id => weak.has(id)), priority, rnd).slice(0, 2);
@@ -142,7 +145,8 @@ export function planColorMission(args: {
     .slice(0,Math.min(2,count-review.length));
   const otherTargets = [
     ...dueTargets,
-    ...weightedShuffle(allowed.filter(id=>!review.includes(id)&&!dueTargets.includes(id)),priority,rnd)
+    ...weightedShuffle(gradeAwareReviewPriority(learning,'colors',args.mission===3?'application':'recognition',allowed)
+        .filter((id): id is ColorId=>!review.includes(id as ColorId)&&!dueTargets.includes(id as ColorId)),priority,rnd)
       .slice(0,Math.max(0,count-review.length-dueTargets.length))
   ];
   const targets = weightedShuffle([...review, ...otherTargets], priority, rnd);
@@ -159,7 +163,7 @@ export function planColorMission(args: {
     sequence.splice(position, 0, target);
   }
   const questions = sequence.map((target, index) => {
-    const distractors = weightedShuffle(allowed.filter(id => id !== target), () => 1, rnd).slice(0, 2);
+    const distractors = weightedShuffle(allowed.filter(id => id !== target), () => 1, rnd).slice(0, policy.choiceCount-1);
     const choices = weightedShuffle([target, ...distractors], () => 1, rnd);
     return {
       target,

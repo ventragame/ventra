@@ -1,5 +1,6 @@
 import type { AnimalAnswerEvidence } from '@ventra/shared';
 import { getLearningSnapshot, needsReview } from './adaptiveLearningEngine.ts';
+import { resolveGradeAwarePolicy, gradeAwareReviewPriority, type EnglishPlacement } from './gradeAwareLearningPolicy.ts';
 
 export const ANIMAL_MEADOW_WORDS = [
   { id: 'cat', tr: 'Kedi', emoji: '🐱', habitat: 'Yumuşak minder', place: 'Ev', audio: '/audio/en/animals/cat.wav', image: '/assets/animals/premium/cat.svg' },
@@ -103,8 +104,11 @@ export function planAnimalMission(input: {
   history: AnimalAnswerEvidence[];
   seed: number;
   now?: string;
+  gradeLevel?:number|null;
+  englishLevel?:EnglishPlacement;
 }): PlannedAnimalMission {
   const rnd = rndGenerator(input.seed);
+  const policy=resolveGradeAwarePolicy({domain:'animals',gradeLevel:input.gradeLevel,englishLevel:input.englishLevel??'Pre-A1'});
   const all: AnimalId[] = ANIMAL_MEADOW_WORDS.map(item => item.id);
   const seen = new Set(input.history.filter(item => item.kind === 'discovery').map(item => item.wordId));
   const weak = new Set<string>(getWeakAnimalIds(input.history));
@@ -127,21 +131,22 @@ export function planAnimalMission(input: {
     // Never quiz unseen vocabulary: new animals enter the assessment pool
     // only after an actual discovery event is persisted.
     const unseen = shuffleWeighted(pool.filter(id => !seen.has(id)), () => 1, rnd);
-    const fresh = unseen.slice(0, Math.min(6, unseen.length));
+    const fresh = unseen.slice(0, Math.min(policy.discoveryCount===6?4:6, unseen.length));
     const rest = shuffleWeighted(pool.filter(id => !fresh.includes(id)), weight, rnd)
-      .slice(0, 8 - fresh.length);
+      .slice(0, policy.discoveryCount - fresh.length);
     return { mission: 1, animals: shuffleWeighted([...fresh,...rest], () => 1, rnd),
       questions: [], reviewIds: [], seed: input.seed };
   }
   const encountered = all.filter(id => seen.has(id));
   const allowed = encountered.length >= 3 ? encountered : STARTERS; // legacy players
-  const count = Math.min(6, allowed.length);
+  const count = Math.min(policy.questionCount, allowed.length);
   const review = shuffleWeighted(allowed.filter(id => weak.has(id)), weight, rnd).slice(0, 2);
   const dueTargets = shuffleWeighted(allowed.filter(id => due.has(id) && !review.includes(id)),weight,rnd)
     .slice(0,Math.min(2,count-review.length));
   const ordinary = [
     ...dueTargets,
-    ...shuffleWeighted(allowed.filter(id => !review.includes(id) && !dueTargets.includes(id)),weight,rnd)
+    ...shuffleWeighted(gradeAwareReviewPriority(learning,'animals',targetSkill,allowed)
+      .filter((id): id is AnimalId => !review.includes(id as AnimalId) && !dueTargets.includes(id as AnimalId)),weight,rnd)
       .slice(0,count-review.length-dueTargets.length)
   ];
   const sequence = shuffleWeighted([...review,...ordinary], weight, rnd);
@@ -153,7 +158,7 @@ export function planAnimalMission(input: {
     sequence.splice(positions[0] ?? sequence.length,0,target);
   }
   const questions: AnimalQuestion[] = sequence.map(target => {
-    const others = shuffleWeighted(allowed.filter(id => id !== target),()=>1,rnd).slice(0,2);
+    const others = shuffleWeighted(allowed.filter(id => id !== target),()=>1,rnd).slice(0,policy.choiceCount-1);
     return { target, choices: shuffleWeighted([target,...others],()=>1,rnd) };
   });
   return { mission:input.mission,animals:[],questions,reviewIds:review,seed:input.seed };

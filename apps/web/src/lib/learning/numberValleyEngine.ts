@@ -2,6 +2,9 @@
  * Selected English level controls initial content, never claims measured mastery.
  * No quiz can use vocabulary absent from persisted discovery evidence.
  */
+import {getLearningSnapshot,needsReview} from './adaptiveLearningEngine.ts';
+import {resolveGradeAwarePolicy,gradeAwareReviewPriority,type EnglishPlacement} from './gradeAwareLearningPolicy.ts';
+
 export const NUMBER_WORDS = [
   'zero','one','two','three','four','five','six','seven','eight','nine',
   'ten','eleven','twelve','thirteen','fourteen','fifteen','sixteen',
@@ -68,22 +71,30 @@ export function weakNumberValues(history: readonly NumberEvidence[]): number[] {
 export function planNumberMission(input:{
   mission:NumberStage;
   seed:number;
-  englishLevel:'Pre-A1'|'A1'|'A2';
+  englishLevel:EnglishPlacement;
+  gradeLevel?:number|null;
+  now?:string;
   history:readonly NumberEvidence[];
 }):NumberMissionPlan {
   const {mission,seed,history}=input;
   if (!Number.isInteger(mission) || mission<1 || mission>5)throw new RangeError('Geçersiz Sayı Vadisi görevi.');
   const rand=generator(seed);
-  const max=input.englishLevel==='Pre-A1'?10:20;
+  const policy=resolveGradeAwarePolicy({domain:'numbers',gradeLevel:input.gradeLevel,englishLevel:input.englishLevel});
+  const max=policy.maxNumber;
   const all=Array.from({length:max},(_,i)=>i+1);
   const encountered=new Set(history.filter(e=>e.kind==='discovery' && all.includes(e.value)).map(e=>e.value));
   const weak=new Set(weakNumberValues(history));
+  const learning=getLearningSnapshot({
+    animalAnswers:[],colorAnswers:[],animalWords:[],colorWords:[],
+    numberAnswers:history,numberWords:all.map(String),
+    now:input.now??new Date().toISOString()
+  });
   if (mission===1) {
-    const fresh=encountered.size===0 ? all.slice(0,8) :
-      shuffle(all.filter(n=>!encountered.has(n)),rand).slice(0,6);
+    const fresh=encountered.size===0 ? all.slice(0,policy.discoveryCount) :
+      shuffle(all.filter(n=>!encountered.has(n)),rand).slice(0,policy.discoveryCount===6?4:6);
     const remaining=all.filter(n=>!fresh.includes(n)).sort((x,y)=>
       Number(weak.has(y))-Number(weak.has(x)));
-    const rest=shuffle(remaining,rand).slice(0,8-fresh.length);
+    const rest=shuffle(remaining,rand).slice(0,policy.discoveryCount-fresh.length);
     return {mission,seed,discoveries:shuffle([...fresh,...rest],rand),questions:[],reviewValues:[]};
   }
   const skill:NumberSkill=mission===2?'recognition':mission===3?'quantity':
@@ -92,7 +103,12 @@ export function planNumberMission(input:{
   // A quiz before discovery is an invalid state, not permission to test unseen words.
   if (available.length<3)return {mission,seed,discoveries:[],questions:[],reviewValues:[]};
   const review=shuffle(available.filter(n=>weak.has(n)),rand).slice(0,2);
-  const targets=shuffle(available.filter(n=>!review.includes(n)),rand).slice(0,Math.max(0,6-review.length));
+  const due=shuffle(available.filter(n=>!review.includes(n)&&
+    needsReview(learning,'numbers',skill,String(n))),rand)
+    .slice(0,Math.min(2,policy.questionCount-review.length));
+  const ranked=gradeAwareReviewPriority(learning,'numbers',skill,available.map(String)).map(Number);
+  const targets=[...due,...shuffle(ranked.filter(n=>!review.includes(n)&&!due.includes(n)),rand)
+    .slice(0,Math.max(0,policy.questionCount-review.length-due.length))];
   const sequence=shuffle([...review,...targets],rand);
   // Distribute a second encounter of missed words with >=2 questions between both sightings.
   for (const n of review) {
@@ -101,7 +117,7 @@ export function planNumberMission(input:{
     sequence.splice(position,0,n);
   }
   const questions=sequence.map(target=>{
-    const alternatives=shuffle(available.filter(n=>n!==target),rand).slice(0,2);
+    const alternatives=shuffle(available.filter(n=>n!==target),rand).slice(0,policy.choiceCount-1);
     return {target,skill,choices:shuffle([target,...alternatives],rand)};
   });
   return {mission,seed,discoveries:[],questions,reviewValues:review};
