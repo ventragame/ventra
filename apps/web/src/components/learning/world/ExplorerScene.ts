@@ -5,7 +5,7 @@ import {
   type WorldArea,type WorldObject,type Point
 } from './worldLayout';
 
-const ANIMALS=['cat','dog','bird','rabbit','cow','fish','horse','duck','sheep','frog','bee','butterfly'];
+const ANIMALS=['cat','dog','bird','rabbit','cow','fish','horse','duck','sheep','frog','bee','butterfly','lion','elephant','monkey','penguin','turtle','fox','bear','owl'];
 type ActivityCallback=(object:WorldObject)=>void;
 const tintById:Record<string,number>={
   animals:0x89e789,colors:0xf6a5da,numbers:0x94d7ff,food:0xffb87e,
