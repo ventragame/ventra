@@ -183,3 +183,25 @@ test('G1 live map accessibility: food area is playable without completing Number
  assert.match(map,/YAKINDA/);
  assert.match(map,/OYNANABİLİR/);
 });
+
+test('G1.5: every eligible food item becomes discoverable through repeated stage-one missions',()=>{
+ for(const aisle of ['orchard','bakery','cafe']){
+  for(const [gradeLevel,englishLevel] of [[1,'Pre-A1'],[3,'A1'],[6,'A2']]){
+   const history=[],seen=new Set();
+   const available=eligibleMarketWords(aisle,gradeLevel,englishLevel);
+   for(let visit=0;visit<8;visit++){
+    const plan=planMarketMission({aisle,stage:1,gradeLevel,englishLevel,history,seed:100+visit});
+    for(const id of plan.words){seen.add(id);history.push(make(id,'discovery'));}
+   }
+   assert.equal(seen.size,available.length,`Incomplete word discovery ${aisle} ${englishLevel}`);
+  }
+ }
+});
+test('G1.6: listening choices unlock only after completed voice or explicit assisted fallback',()=>{
+ const code=fs.readFileSync(new URL('../src/components/learning/activities/FoodMarketAdventure.tsx',import.meta.url),'utf8');
+ assert.match(code,/voice\.onend=\(\)=>\{if\(token===speechRun\.current\)\{setSpeaking\(false\);if\(listenGate\)setHeard\(true\)/);
+ assert.match(code,/voice\.onerror=\(\)=>\{if\(token!==speechRun\.current\)return;setSpeaking\(false\);/);
+ assert.match(code,/if\(stage===3&&!heard&&!hint\)return/);
+ assert.match(code,/hint\|\|\(stage===3&&!heard\)/);
+ assert.match(code,/aria-label=\{showEnglish\?/);
+});

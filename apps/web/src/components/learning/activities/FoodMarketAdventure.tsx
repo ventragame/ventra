@@ -59,7 +59,18 @@ function Item({id,showEnglish=false,selected=false,active=false,disabled=false,o
    aria-label={showEnglish?`${w.id}, ${w.tr}`:`Ürün resmi: ${w.tr}`}
    className={`fm-product ${selected?'fm-product-selected':''} ${active?'fm-product-good':''}`}
    title={showEnglish?w.id:undefined}>
-   <span className="fm-product-art" aria-hidden="true">{w.icon}</span>
+   <span className={`fm-product-illustration fm-product-illustration-${w.aisle}`} aria-hidden="true">
+     <svg className="fm-product-illustration-frame" viewBox="0 0 140 112" preserveAspectRatio="xMidYMid meet">
+       <defs><linearGradient id={`fm-item-${w.id}`} x1="0" y1="0" x2="1" y2="1">
+          <stop stopColor="#fff9df"/><stop offset="1" stopColor={w.aisle==='orchard'?'#f3b9a4':w.aisle==='bakery'?'#efd1a1':'#b1e0d5'}/>
+       </linearGradient></defs>
+       <rect x="7" y="8" width="126" height="96" rx="27" fill={`url(#fm-item-${w.id})`} stroke="#ffffff" strokeWidth="3"/>
+       <ellipse cx="70" cy="93" rx="39" ry="7" fill="#735b5a" opacity=".16"/>
+       <path d="M29 39 Q70 7 110 39" fill="none" stroke="#fffef1" strokeWidth="3" opacity=".75"/>
+       <circle cx="20" cy="78" r="3" fill="#ffffff" opacity=".9"/><circle cx="117" cy="23" r="4" fill="#ffffff" opacity=".9"/>
+     </svg>
+     <span className="fm-product-art">{w.icon}</span>
+   </span>
    {showEnglish&&<span className="fm-product-name">{w.id}</span>}
    {selected&&<span className="fm-check" aria-hidden="true">✓</span>}
  </button>;
@@ -129,11 +140,10 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
   const token=speechRun.current;
   try{
     const voice=new SpeechSynthesisUtterance(text);voice.lang='en-US';voice.rate=.78;
-    voice.onstart=()=>{if(token!==speechRun.current)return;
-      setSpeaking(true);if(listenGate)setHeard(true);};
-    voice.onend=()=>{if(token===speechRun.current)setSpeaking(false);};
+    voice.onstart=()=>{if(token!==speechRun.current)return;setSpeaking(true);};
+    voice.onend=()=>{if(token===speechRun.current){setSpeaking(false);if(listenGate)setHeard(true);}};
     voice.onerror=()=>{if(token!==speechRun.current)return;setSpeaking(false);
-      if(listenGate){setHint(true);setFeedback('Ses oynatılamadı; yazılı destek açıldı.');}};
+      if(listenGate){setHeard(false);setHint(true);setFeedback('Ses tamamlanamadı; yazılı destek açıldı.');}};
     window.speechSynthesis.speak(voice);
   }catch{if(listenGate){setHint(true);setFeedback('Ses açılamadı. Yazılı destekle devam et.');}}
  }

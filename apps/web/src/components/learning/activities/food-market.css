@@ -54,3 +54,13 @@
 .fm-basket-target>span{font-size:39px}.fm-basket-target strong,.fm-basket-target small{display:block}.fm-basket-target strong{font-size:15px}.fm-basket-target small{font-size:11px;color:#d6f6e7;margin-top:4px}
 @media(max-width:680px){.fm-supermarket-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}.fm-supermarket-grid .fm-product{min-height:82px;padding:3px}.fm-supermarket-grid .fm-product-art{font-size:clamp(26px,7vw,38px)}}
 @media(prefers-reduced-motion:reduce){.fm-dialogue-option{transition:none}}
+
+/* G1.5: original self-contained market product frames, distinct aisle palettes */
+.fm-product-illustration{position:relative;width:min(100%,160px);height:106px;display:flex;align-items:center;justify-content:center}
+.fm-product-illustration-frame{position:absolute;inset:0;width:100%;height:100%}
+.fm-product-illustration>.fm-product-art{position:relative;z-index:1;transform:translateY(-4px);filter:drop-shadow(0 7px 2px #3b44402e);font-size:clamp(45px,6vw,65px)}
+.fm-product{overflow:hidden}.fm-product:focus-visible{outline:4px solid #ffcf87;outline-offset:3px}
+.fm-product-illustration-orchard{filter:drop-shadow(0 3px 3px #b653493b)}
+.fm-product-illustration-bakery{filter:drop-shadow(0 3px 3px #9a713c3b)}
+.fm-product-illustration-cafe{filter:drop-shadow(0 3px 3px #266e7038)}
+@media(max-width:680px){.fm-product-illustration{height:78px}.fm-supermarket-grid .fm-product-illustration{height:64px}.fm-product-illustration>.fm-product-art{font-size:clamp(31px,8vw,48px)}}
