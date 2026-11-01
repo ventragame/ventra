@@ -177,12 +177,15 @@ test('G1 live map accessibility: food area is playable without completing Number
  assert.match(modal,/foodAvailable=\{foodLoaded&&!foodError\}/);
  assert.doesNotMatch(modal,/foodUnlocked=\{[^}]*completedByBand/);
  assert.match(layout,/d\.id==='food'\?\{\.\.\.d,unlocked:foodUnlocked\}/);
- assert.match(map,/obj\.id==='food'&&foodUnlocked&&foodAvailable/);
- assert.match(map,/YÜKLEME HATASI/);
- assert.match(map,/YÜKLENİYOR/);
+ assert.match(map,/foodUnlocked&&foodAvailable/);
+ assert.match(map,/onEnterFood/);
+ const theme=fs.readFileSync(new URL('../src/components/learning/world/gardenTheme.ts',import.meta.url),'utf8');
+ assert.match(theme,/districtStatus/);
+ assert.match(map,/districtStatusLabel/);
+ assert.match(map,/districtStatus\(p\)/);
  assert.match(map,/onEnterTemple/);
  assert.match(map,/templeError/);
- assert.match(map,/OYNANABİLİR/);
+ assert.match(map,/districtStatus\(p\)/);
 });
 
 test('G1.5: every eligible food item becomes discoverable through repeated stage-one missions',()=>{

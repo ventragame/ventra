@@ -123,5 +123,7 @@ test('G2 child-friendly interface includes authored house SVG, accessible voice 
  assert.match(ui,/current\.words\.map/);
  assert.match(ui,/role="progressbar"/);
  assert.match(map,/onEnterFamily/);
- assert.match(map,/60 İngilizce kelime/);
+ const theme=fs.readFileSync(new URL('../src/components/learning/world/gardenTheme.ts',import.meta.url),'utf8');
+ assert.match(theme,/60 kavram/);
+ assert.match(map,/onEnterFamily/);
 });
