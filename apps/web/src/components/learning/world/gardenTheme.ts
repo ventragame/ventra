@@ -15,8 +15,8 @@ export const GARDEN_THEMES:Record<GardenDistrictId,{
 export const GARDEN_ORDER:readonly GardenDistrictId[]=['animals','colors','numbers','food','family','sanctuary'];
 export function districtStatus(p:GardenDistrictProgress):GardenDistrictStatus{
  if(p.error)return 'error';
- if(!p.available)return 'loading';
  if(!p.unlocked)return 'locked';
+ if(!p.available)return 'loading';
  if(p.total>0&&p.completed>=p.total)return 'complete';
  return p.completed>0?'continue':'ready';
 }
