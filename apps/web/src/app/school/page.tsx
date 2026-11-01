@@ -133,7 +133,13 @@ export default function SchoolPortal(){
      <div className="space-y-5">
        <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-sky-300/25 bg-slate-900/60 p-3">
          <span className="text-sm text-sky-100">Yetişkin hesabı: <strong>{email}</strong></span>
-         <button onClick={()=>void run(async()=>{await signOutAdult();setSignedIn(false);setSchools([]);setChildren([]);setClasses([]);},'Çıkış yapıldı')}
+         <button disabled={busy} onClick={()=>{if(busy)return;setBusy(true);setError('');
+           void signOutAdult().then(()=>{
+             setSignedIn(false);setSchools([]);setChildren([]);setClasses([]);setRoster([]);setIssuedInvite('');
+             setOtpSent(false);setCode('');setNotice('Oturum kapatıldı.');
+           }).catch(e=>setError(e instanceof Error?e.message:'Çıkış yapılamadı.'))
+             .finally(()=>setBusy(false));
+         }}
            className="min-h-11 rounded-xl border border-white/25 bg-slate-800 px-4 text-xs font-bold">Çıkış Yap</button>
        </div>
        {mode==='teacher'?<>

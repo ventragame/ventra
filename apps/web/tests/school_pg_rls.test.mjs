@@ -69,7 +69,11 @@ test('P6 real PostgreSQL RLS: owner-only school, parent-only enroll, teacher-onl
  assert.match(joined,/Ventra Private School/);
  const again=await db.query('SELECT public.ventra_enroll_child($1,$2) AS name',[child,code]);
  assert.match(again.rows[0].name,/3-A/);
+ // Direct SELECT from this private table is intentionally forbidden to parents.
+ await assert.rejects(db.query('SELECT used_count FROM public.ventra_class_invites WHERE code=$1',[code]),/permission denied/);
+ await db.exec('RESET ROLE;');
  const invitedCount=(await db.query('SELECT used_count FROM public.ventra_class_invites WHERE code=$1',[code])).rows[0].used_count;
+ await as(parent);
  assert.equal(Number(invitedCount),1);
  await as(stranger);
  assert.equal((await db.query('SELECT * FROM public.ventra_class_enrollments')).rows.length,0);

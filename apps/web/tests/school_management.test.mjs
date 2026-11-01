@@ -24,7 +24,7 @@ test('P6: authenticated adult and strict grade/name/id validation before RPC',as
  const log=[],db=stub(log);
  await assert.rejects(schoolClient(stub([],false)),/yetişkin/);
  await assert.rejects(createSchool('x','#123456',db),/3-90/);
- await assert.rejects(createSchool('Valid','#xyz',db),/renk/);
+ await assert.rejects(createSchool('Valid','#xyz',db),/rengi|renk/i);
  await assert.rejects(createClassroom(school,'3-A',0,db),/1–8/);
  await assert.rejects(issueClassInvite('fake-id',db),/Kimlik/);
  await assert.rejects(enrollChild(child,'123',db),/Kimlik/);
