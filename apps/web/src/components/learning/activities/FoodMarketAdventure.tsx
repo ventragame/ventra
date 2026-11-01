@@ -1,8 +1,8 @@
 'use client';
-import React,{useCallback,useEffect,useMemo,useRef,useState} from 'react';
+import React,{useCallback,useEffect,useRef,useState} from 'react';
 import type {FoodAnswerEvidence} from '@ventra/shared';
 import {getProgressRepository} from '@/lib/progress';
-import {resolveGradeAwarePolicy,type EnglishPlacement} from '@/lib/learning/gradeAwareLearningPolicy';
+import {type EnglishPlacement} from '@/lib/learning/gradeAwareLearningPolicy';
 import {MARKET_AISLES,MARKET_STAGES,MARKET_OFFSETS,
  marketWord,planMarketMission,eligibleMarketWords,type MarketAisle,type MarketStage,type MarketPlan} from '@/lib/learning/foodMarketEngine';
 import type {FoodMarketProgress} from '@/lib/progress/foodMarketProgress';
@@ -92,7 +92,6 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
  const locked=useRef(false);
  const dialog=useRef<HTMLDivElement>(null);
  const speechRun=useRef(0);
- const policy=useMemo(()=>resolveGradeAwarePolicy({domain:'animals',gradeLevel,englishLevel}),[gradeLevel,englishLevel]);
  const key=`${profileId}/${aisle}/${stage}/${gradeLevel}/${englishLevel}/${revision}`;
  const current=planKey===key&&plan?.stage===stage&&plan?.aisle===aisle?plan:null;
  const task=current?.questions[q];

@@ -495,7 +495,8 @@ export class IndexedDBProgressRepository implements IProgressRepository {
       });
     }
 
-    const gameTitle = payload.gameId === 'island_word_garden_numbers' ? 'Sayı Vadisi'
+    const gameTitle = payload.gameId === 'island_word_garden_food' ? 'Lezzet Pazarı'
+      : payload.gameId === 'island_word_garden_numbers' ? 'Sayı Vadisi'
       : payload.gameId === 'island_word_garden_colors' ? 'Renk Korusu'
       : payload.gameId === 'island_word_garden_steps' || payload.gameId === 'phaser_exploration_island'
       ? 'Hayvan Çayırı'
@@ -653,7 +654,7 @@ export class IndexedDBProgressRepository implements IProgressRepository {
     const profileId = await this.ensureActiveProfileId(targetProfileId);
     const result: Record<number, LevelProgressRecord> = {};
 
-    const maxLevel = gameId === 'island_word_garden_numbers' ? 15 : 10;
+    const maxLevel = gameId === 'island_word_garden_numbers' || gameId === 'island_word_garden_food' ? 15 : 10;
     for (let i = 1; i <= maxLevel; i++) {
       const key = `${profileId}:${gameId}:${i}`;
       const rec = await this.getRecord<LevelProgressRecord>(db, 'levels', key);
