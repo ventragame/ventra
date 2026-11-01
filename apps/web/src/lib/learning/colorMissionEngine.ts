@@ -1,5 +1,6 @@
 import { COLOR_GROVE_WORDS } from '../progress/colorGroveProgress.ts';
 import type { ColorAnswerEvidence } from '@ventra/shared';
+import { getLearningSnapshot, needsReview } from './adaptiveLearningEngine.ts';
 
 export type ColorId = (typeof COLOR_GROVE_WORDS)[number]['id'];
 export type ColorMissionId = 1 | 2 | 3;
@@ -94,6 +95,7 @@ export function planColorMission(args: {
   history: ColorAnswerEvidence[];
   seed: number;
   englishLevel: EnglishPlacement;
+  now?: string;
 }): PlannedColorMission {
   const rnd = random(args.seed);
   const all = COLOR_GROVE_WORDS.map((v) => v.id);
@@ -108,10 +110,17 @@ export function planColorMission(args: {
     attempts.push(attempt);
     attemptsByWord.set(attempt.wordId, attempts);
   }
+  const learning = getLearningSnapshot({
+    animalAnswers:[],colorAnswers:args.history,animalWords:[],colorWords:all,
+    now:args.now??new Date().toISOString()
+  });
+  const due = new Set<string>(all.filter(id=>
+    needsReview(learning,'colors',args.mission===3?'application':'recognition',id)));
   const priority = (id: string) => {
     const last = (attemptsByWord.get(id) ?? []).slice(-5);
     const recentMisses = last.reduce((sum, row) => sum + Math.max(0, row.mistakes), 0);
-    return weak.has(id) ? Math.min(12, 5 + recentMisses) : Math.max(0.75, 2 - last.length * 0.15);
+    return weak.has(id) ? Math.min(12, 5 + recentMisses) :
+      due.has(id) ? 6 : Math.max(0.75, 2 - last.length * 0.15);
   };
 
   if (args.mission === 1) {
@@ -129,8 +138,13 @@ export function planColorMission(args: {
   // Guarantee currently weak, previously seen words appear in the base
   // questions, rather than merely giving them a higher random probability.
   const review = weightedShuffle(allowed.filter(id => weak.has(id)), priority, rnd).slice(0, 2);
-  const otherTargets = weightedShuffle(allowed.filter(id => !review.includes(id)), priority, rnd)
-    .slice(0, Math.max(0, count - review.length));
+  const dueTargets = weightedShuffle(allowed.filter(id=>due.has(id)&&!review.includes(id)),priority,rnd)
+    .slice(0,Math.min(2,count-review.length));
+  const otherTargets = [
+    ...dueTargets,
+    ...weightedShuffle(allowed.filter(id=>!review.includes(id)&&!dueTargets.includes(id)),priority,rnd)
+      .slice(0,Math.max(0,count-review.length-dueTargets.length))
+  ];
   const targets = weightedShuffle([...review, ...otherTargets], priority, rnd);
   const sequence = [...targets];
   for (const target of review) {

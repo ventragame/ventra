@@ -1,4 +1,5 @@
 import type { AnimalAnswerEvidence } from '@ventra/shared';
+import { getLearningSnapshot, needsReview } from './adaptiveLearningEngine.ts';
 
 export const ANIMAL_MEADOW_WORDS = [
   { id: 'cat', tr: 'Kedi', emoji: '🐱', habitat: 'Yumuşak minder', place: 'Ev', audio: '/audio/en/animals/cat.wav', image: '/assets/animals/premium/cat.svg' },
@@ -73,6 +74,7 @@ export function planAnimalMission(input: {
   mission: AnimalMission;
   history: AnimalAnswerEvidence[];
   seed: number;
+  now?: string;
 }): PlannedAnimalMission {
   const rnd = rndGenerator(input.seed);
   const all: AnimalId[] = ANIMAL_MEADOW_WORDS.map(item => item.id);
@@ -82,7 +84,15 @@ export function planAnimalMission(input: {
   for (const row of input.history.filter(item => item.kind !== 'discovery').slice(-80)) {
     mistakes.set(row.wordId, (mistakes.get(row.wordId)||0)+Math.max(0,row.mistakes));
   }
-  const weight = (id: string) => weak.has(id) ? Math.min(12,5+(mistakes.get(id)||0)) : 2;
+  const learning = getLearningSnapshot({
+    animalAnswers:input.history,colorAnswers:[],animalWords:all,colorWords:[],
+    now:input.now??new Date().toISOString()
+  });
+  const targetSkill = input.mission===2?'recognition':
+    input.mission===3?'listening':input.mission===4?'command':'habitat';
+  const due = new Set(all.filter(id=>needsReview(learning,'animals',targetSkill,id)));
+  const weight = (id: string) => weak.has(id) ? Math.min(12,5+(mistakes.get(id)||0)) :
+    due.has(id)?6:2;
   if (input.mission === 1) {
     const pool = input.history.length === 0 ? STARTERS : all;
     // New animals are always available on replay, but new vocabulary cannot
@@ -97,8 +107,13 @@ export function planAnimalMission(input: {
   const allowed = encountered.length >= 3 ? encountered : STARTERS; // legacy players
   const count = Math.min(6, allowed.length);
   const review = shuffleWeighted(allowed.filter(id => weak.has(id)), weight, rnd).slice(0, 2);
-  const ordinary = shuffleWeighted(allowed.filter(id => !review.includes(id)), weight, rnd)
-    .slice(0, count-review.length);
+  const dueTargets = shuffleWeighted(allowed.filter(id => due.has(id) && !review.includes(id)),weight,rnd)
+    .slice(0,Math.min(2,count-review.length));
+  const ordinary = [
+    ...dueTargets,
+    ...shuffleWeighted(allowed.filter(id => !review.includes(id) && !dueTargets.includes(id)),weight,rnd)
+      .slice(0,count-review.length-dueTargets.length)
+  ];
   const sequence = shuffleWeighted([...review,...ordinary], weight, rnd);
   for (const target of review) {
     const original = sequence.indexOf(target);

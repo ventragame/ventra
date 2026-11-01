@@ -61,8 +61,8 @@ export const ProfileSelectorModal: React.FC<ProfileSelectorModalProps> = ({
     }
   }, [isOpen]);
 
-  const updatePlacement = async (updates: Partial<Pick<PlayerProfile, 'gradeLevel' | 'englishLevel'>>) => {
-    if (!activeProfile || isSubmitting) return;
+  const updatePlacement = async (updates: Partial<Pick<PlayerProfile, 'gradeLevel' | 'englishLevel'>>):Promise<boolean> => {
+    if (!activeProfile || isSubmitting) return false;
     setIsSubmitting(true);
     setErrorMessage(null);
     try {
@@ -70,9 +70,11 @@ export const ProfileSelectorModal: React.FC<ProfileSelectorModalProps> = ({
       setActiveProfile(updated);
       setProfiles((profiles) => profiles.map((p) => p.id === updated.id ? updated : p));
       onProfileSwitched(updated);
+      return true;
     } catch (error) {
       console.error(error);
       setErrorMessage('Öğrenme seviyesi güncellenemedi.');
+      return false;
     } finally {
       setIsSubmitting(false);
     }
@@ -353,7 +355,8 @@ export const ProfileSelectorModal: React.FC<ProfileSelectorModalProps> = ({
                 {isPlacementOpen && <div className="mt-4">
                   <StarterPlacementCheck saving={isSubmitting} onCancel={() => setIsPlacementOpen(false)}
                     onApply={async suggested => {
-                      await updatePlacement({englishLevel:suggested});
+                      const saved = await updatePlacement({englishLevel:suggested});
+                      if (!saved) throw new Error('Seviye tercihi kaydedilemedi.');
                       setIsPlacementOpen(false);
                     }}/>
                 </div>}
