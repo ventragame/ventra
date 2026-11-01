@@ -44,6 +44,7 @@ export interface IProgressRepository {
   getDeletedProfileIds?(): Promise<string[]>;
   // Evidence is read from persisted game sessions; supports offline and cloud sync.
   getColorAnswerHistory(profileId: string): Promise<import('@ventra/shared').ColorAnswerEvidence[]>;
+  getFoodAnswerHistory(profileId: string): Promise<import('@ventra/shared').FoodAnswerEvidence[]>;
   getNumberAnswerHistory(profileId: string): Promise<import('@ventra/shared').NumberAnswerEvidence[]>;
   getAnimalAnswerHistory(profileId: string): Promise<import('@ventra/shared').AnimalAnswerEvidence[]>;
 
