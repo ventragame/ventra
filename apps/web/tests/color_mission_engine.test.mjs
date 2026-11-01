@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { planColorMission, getColorInstruction, getActiveColorQuestion, getWeakColorIds } from '../src/lib/learning/colorMissionEngine.ts';
+import { planColorMission, eligibleColorWords, getColorInstruction, getActiveColorQuestion, getWeakColorIds } from '../src/lib/learning/colorMissionEngine.ts';
 import { COLOR_GROVE_WORDS } from '../src/lib/progress/colorGroveProgress.ts';
 import { GROVE_TREE_POSITIONS, getGroveTreeColors } from '../src/lib/learning/colorGroveSceneModel.ts';
 import { MemoryProgressRepository } from '../src/lib/progress/MemoryProgressRepository.ts';
@@ -146,4 +146,38 @@ test('Every painting answer colors a distinct tree, including answers five and s
   const six = getGroveTreeColors('painting', painted);
   assert.deepEqual(six, painted.map(id => COLOR_GROVE_WORDS.find(word => word.id === id).hex));
   assert.deepEqual(getGroveTreeColors('discovery', []), getGroveTreeColors('matching', []));
+});
+
+test('Color Grove offers thirty distinct named swatches without exposing advanced shades to young beginners', () => {
+  assert.equal(COLOR_GROVE_WORDS.length, 30);
+  assert.equal(new Set(COLOR_GROVE_WORDS.map(word => word.id)).size, 30);
+  assert.equal(new Set(COLOR_GROVE_WORDS.map(word => word.hex)).size, 30);
+  assert.equal(eligibleColorWords(1, 'Pre-A1').length, 10);
+  assert.equal(eligibleColorWords(3, 'A1').length, 21);
+  assert.equal(eligibleColorWords(7, 'A2').length, 30);
+  assert.equal(eligibleColorWords(null, 'Pre-A1').length, 10);
+});
+
+test('Repeated color expeditions eventually uncover every eligible color while tests never introduce unseen shades', () => {
+  for (const [grade, level] of [[1, 'Pre-A1'], [3, 'A1'], [7, 'A2']]) {
+    let history = [], previous = new Set();
+    const possible = eligibleColorWords(grade, level).map(x => x.id);
+    for (let round = 0; round < 15; round++) {
+      const plan = planColorMission({mission: 1, history, gradeLevel: grade, englishLevel: level, seed: 200 + round});
+      assert.equal(new Set(plan.colors).size, plan.colors.length);
+      assert.equal(plan.eligibleCount, possible.length);
+      assert.ok(plan.colors.every(id => possible.includes(id)));
+      const newIds = plan.colors.filter(id => !previous.has(id));
+      if (previous.size < possible.length && round > 0) assert.ok(newIds.length > 0);
+      history.push(...plan.colors.map(wordId => ({
+        wordId, kind: 'discovery', firstTryCorrect: false, mistakes: 0, timestamp: '2026-11-01T00:00:00Z'
+      })));
+      previous = new Set(history.map(e => e.wordId));
+    }
+    assert.equal(previous.size, possible.length);
+    for (let seed = 0; seed < 20; seed++) {
+      const quiz = planColorMission({mission: 3, history, gradeLevel: grade, englishLevel: level, seed});
+      assert.ok(quiz.questions.every(q => previous.has(q.target) && q.choices.every(id => previous.has(id))));
+    }
+  }
 });

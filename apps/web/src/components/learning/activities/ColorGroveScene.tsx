@@ -80,7 +80,17 @@ export function ColorGroveScene({
             <circle cy="-9" r="4" fill="#ffed94"/>
           </g>;
         })}
-        {mode === 'matching' && targetHex && (
+        {mode === 'matching' && targetHex && variant === 'butterfly' && (
+          <g className={highlight ? 'vg-correct-pop' : ''} filter="url(#vg-soft-shadow)">
+            <ellipse cx="385" cy="147" rx="43" ry="68" fill={targetHex} stroke="#fff" strokeWidth="5" transform="rotate(-27 385 147)" />
+            <ellipse cx="433" cy="147" rx="43" ry="68" fill={targetHex} stroke="#fff" strokeWidth="5" transform="rotate(27 433 147)" />
+            <ellipse cx="385" cy="217" rx="32" ry="45" fill={targetHex} stroke="#fff" strokeWidth="5" transform="rotate(22 385 217)" />
+            <ellipse cx="433" cy="217" rx="32" ry="45" fill={targetHex} stroke="#fff" strokeWidth="5" transform="rotate(-22 433 217)" />
+            <rect x="399" y="145" width="20" height="91" rx="10" fill="#60443c" />
+            <path d="M402 151 Q378 103 368 118 M416 151 Q441 104 453 119" fill="none" stroke="#60443c" strokeWidth="5" strokeLinecap="round"/>
+          </g>
+        )}
+        {mode === 'matching' && targetHex && variant !== 'butterfly' && (
           <g className={highlight ? 'vg-correct-pop' : ''} filter="url(#vg-soft-shadow)">
             <circle cx="409" cy="177" r="80" fill="#fff" opacity=".88"/>
             {Array.from({length:8},(_,i)=><ellipse key={i} cx="409" cy="118" rx="24" ry="52"

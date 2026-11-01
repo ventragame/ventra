@@ -47,7 +47,7 @@ export const TEMPLE_WORDS:readonly TempleWord[]=[
  ...ANIMAL_MEADOW_WORDS.map((w,i)=>({id:'animals:'+w.id,en:w.id,tr:w.tr,icon:w.emoji,image:w.image,domain:'animals' as const,
  tier:(i<12?0:i<28?1:2) as 0|1|2,context:`Find the ${w.id}.`})),
  ...COLOR_GROVE_WORDS.map((w,i)=>({id:'colors:'+w.id,en:w.id,tr:w.tr,icon:'◆',color:w.hex,domain:'colors' as const,
- tier:(i<6?0:i<9?1:2) as 0|1|2,context:`Find the ${w.id} crystal.`})),
+ tier:('tier' in w ? w.tier : 0) as 0|1|2,context:`Find the ${w.id} crystal.`})),
  ...numberWords,
  ...MARKET_WORDS.map(w=>({id:'food:'+w.id,en:w.id,tr:w.tr,icon:w.icon,domain:'food' as const,
  tier:w.tier,context:`Find the ${w.id}.`})),

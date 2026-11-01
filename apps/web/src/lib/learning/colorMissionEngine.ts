@@ -7,6 +7,15 @@ export type ColorId = (typeof COLOR_GROVE_WORDS)[number]['id'];
 export type ColorMissionId = 1 | 2 | 3;
 export type EnglishPlacement = 'Pre-A1' | 'A1' | 'A2';
 
+/** Advanced shade vocabulary is opt-in through English placement AND grade;
+ * a beginner never receives near-identical shades as first-time answers. */
+export function eligibleColorWords(gradeLevel: number | null | undefined, englishLevel: EnglishPlacement) {
+  const validGrade = Number.isInteger(gradeLevel) && (gradeLevel ?? 0) >= 1 && (gradeLevel ?? 0) <= 8;
+  const gradeTier = !validGrade ? 2 : gradeLevel! <= 2 ? 0 : gradeLevel! <= 4 ? 1 : 2;
+  const levelTier = englishLevel === 'Pre-A1' ? 0 : englishLevel === 'A1' ? 1 : 2;
+  return COLOR_GROVE_WORDS.filter((word, i) => (('tier' in word ? word.tier : 0) as number) <= Math.min(gradeTier, levelTier));
+}
+
 export interface ColorMissionQuestion {
   target: ColorId;
   choices: ColorId[];
@@ -19,6 +28,9 @@ export interface PlannedColorMission {
   questions: ColorMissionQuestion[];
   reviewColorIds: ColorId[];
   seed: number;
+  eligibleCount: number;
+  encounteredCount: number;
+  freshColorIds: ColorId[];
 }
 
 /**
@@ -101,8 +113,10 @@ export function planColorMission(args: {
 }): PlannedColorMission {
   const rnd = random(args.seed);
   const policy=resolveGradeAwarePolicy({domain:'colors',gradeLevel:args.gradeLevel,englishLevel:args.englishLevel});
-  const all = COLOR_GROVE_WORDS.map((v) => v.id);
-  const seen = new Set(args.history.filter(item => item.kind === 'discovery').map(item => item.wordId));
+  const all = eligibleColorWords(args.gradeLevel, args.englishLevel).map((v) => v.id);
+  const allSet = new Set<string>(all);
+  const seen = new Set(args.history.filter(item => item.kind === 'discovery' && allSet.has(item.wordId)).map(item => item.wordId));
+  const planMeta = { eligibleCount: all.length, encounteredCount: seen.size };
   // A learner can recover from an error: two later first-try recalls clear
   // its "needs review" status. Old cumulative mistakes must not trap the
   // child in the same extra questions forever.
@@ -129,9 +143,16 @@ export function planColorMission(args: {
   if (args.mission === 1) {
     // First visit exposes six accessible colors. Replays preferentially introduce unseen colors.
     const starters: ColorId[] = ['red', 'blue', 'yellow', 'green', 'purple', 'orange'];
-    const pool = args.history.length === 0 ? starters : all;
-    const selected = weightedShuffle(pool, id => seen.has(id) ? priority(id) : 4, rnd).slice(0, policy.discoveryCount);
-    return { mission: 1, colors: selected, questions: [], reviewColorIds: [], seed: args.seed };
+    const pool = seen.size === 0 ? starters : all;
+    // At least four unseen concepts per revisit while any remain: the entire
+    // tier-appropriate catalogue is reachable without changing level IDs.
+    const freshPool = pool.filter(id => !seen.has(id));
+    const fresh = weightedShuffle(freshPool, () => 1, rnd).slice(0, Math.min(freshPool.length, policy.discoveryCount === 4 ? 3 : 4));
+    const rest = weightedShuffle(pool.filter(id => !fresh.includes(id)), priority, rnd)
+      .slice(0, policy.discoveryCount - fresh.length);
+    const selected = weightedShuffle([...fresh, ...rest], () => 1, rnd);
+    return { mission: 1, colors: selected, questions: [], reviewColorIds: [], seed: args.seed,
+      ...planMeta, freshColorIds: fresh };
   }
 
   // A learner cannot be tested on words they have not encountered in the discovery mission.
@@ -172,7 +193,8 @@ export function planColorMission(args: {
     };
   });
   const reviewColorIds = review;
-  return { mission: args.mission, colors: [], questions, reviewColorIds, seed: args.seed };
+  return { mission: args.mission, colors: [], questions, reviewColorIds, seed: args.seed,
+    ...planMeta, freshColorIds: [] };
 }
 
 export function getColorInstruction(

@@ -14,7 +14,27 @@ export const COLOR_GROVE_WORDS = [
   { id: 'pink', tr: 'Pembe', hex: '#ec4899' },
   { id: 'black', tr: 'Siyah', hex: '#1f2937' },
   { id: 'white', tr: 'Beyaz', hex: '#f8fafc' },
-  { id: 'brown', tr: 'Kahverengi', hex: '#92400e' }
+  { id: 'brown', tr: 'Kahverengi', hex: '#92400e' },
+  { id: 'gray', tr: 'Gri', hex: '#808080', tier: 1 },
+  { id: 'gold', tr: 'Altın rengi', hex: '#d4a017', tier: 1 },
+  { id: 'silver', tr: 'Gümüş rengi', hex: '#aeb7c2', tier: 1 },
+  { id: 'violet', tr: 'Menekşe moru', hex: '#7c3aed', tier: 1 },
+  { id: 'beige', tr: 'Bej', hex: '#d6bd98', tier: 1 },
+  { id: 'turquoise', tr: 'Turkuaz', hex: '#24b8af', tier: 1 },
+  { id: 'navy blue', tr: 'Lacivert', hex: '#1e3a8a', tier: 1 },
+  { id: 'light blue', tr: 'Açık mavi', hex: '#7dd3fc', tier: 1 },
+  { id: 'dark blue', tr: 'Koyu mavi', hex: '#1d4ed8', tier: 1 },
+  { id: 'light green', tr: 'Açık yeşil', hex: '#86efac', tier: 1 },
+  { id: 'dark green', tr: 'Koyu yeşil', hex: '#166534', tier: 1 },
+  { id: 'indigo', tr: 'Çivit mavisi', hex: '#4338ca', tier: 2 },
+  { id: 'teal', tr: 'Camgöbeği', hex: '#0f766e', tier: 2 },
+  { id: 'coral', tr: 'Mercan rengi', hex: '#fb7185', tier: 2 },
+  { id: 'maroon', tr: 'Bordo', hex: '#800020', tier: 2 },
+  { id: 'olive green', tr: 'Zeytin yeşili', hex: '#708238', tier: 2 },
+  { id: 'mint green', tr: 'Nane yeşili', hex: '#6ee7b7', tier: 2 },
+  { id: 'lavender', tr: 'Lavanta rengi', hex: '#b4a3d9', tier: 2 },
+  { id: 'cream', tr: 'Krem', hex: '#fff3c8', tier: 2 },
+  { id: 'peach', tr: 'Şeftali rengi', hex: '#ffb59f', tier: 2 }
 ] as const;
 
 export interface ColorGroveProgress {

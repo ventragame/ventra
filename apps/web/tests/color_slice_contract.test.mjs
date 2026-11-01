@@ -69,5 +69,5 @@ test('Full Color Grove loop: discovery -> matching -> painting -> adaptive recov
     'full-slice-replay');
   assert.equal(await repo.getTotalStars(child.id), 9);
   assert.equal((await getColorGroveProgress(repo, child.id)).completedLevels, 3);
-  assert.equal(COLOR_GROVE_WORDS.length, 10, 'catalog remains intact');
+  assert.equal(COLOR_GROVE_WORDS.length, 30, 'expanded catalog remains intact');
 });

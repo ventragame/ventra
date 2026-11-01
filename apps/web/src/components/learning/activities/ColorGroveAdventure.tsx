@@ -264,7 +264,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
           <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-lime-200">Büyülü Renkler Hikâyesi · Bölüm {step}/3</p>
           <h1 ref={headingRef} tabIndex={-1} className="mt-2 text-3xl font-black tracking-tight outline-none sm:text-5xl">{names[step - 1]}</h1>
           <p className="mx-auto mt-2 max-w-xl text-sm leading-relaxed text-sky-100 sm:text-base">
-            {step === 1 ? 'Lumi’nin korusunu keşfet. Altı renk taşına dokun ve İngilizce adlarını dinle.' :
+            {step === 1 ? 'Lumi’nin korusunu keşfet. Her turda yeni renkleri bul; İngilizce adlarına dokun ve dinle.' :
             step === 2 ? 'Rengini kaybeden çiçeği kurtar! Gördüğün rengin İngilizce adını seç.' :
             'Koruya renkleri geri getir! İngilizce söylenen rengi boya paletinden bul.'}
           </p>
@@ -319,6 +319,9 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
             <button onClick={() => reset(step)} className="mt-3 w-full rounded-2xl border border-white/30 bg-white/10 px-5 py-3 text-sm font-bold text-white hover:bg-white/20">
               ↻ Bu Görevi Farklı Sorularla Tekrar Oyna
             </button>
+            <button onClick={() => reset(1)} className="mt-3 w-full rounded-2xl border border-sky-200/40 bg-sky-400/15 px-5 py-3 text-sm font-bold text-sky-50 hover:bg-sky-400/25">
+              🧭 Yeni Renk Keşif Turu · Kayıtlarım Korunsun
+            </button>
           </section>
         ) : !activePlan ? null : step === 1 ? (
           <section className="mx-auto max-w-4xl">
@@ -327,6 +330,10 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
               <span>🧭 Keşfedilen renkler</span>
               <span className="text-lime-200">{discovered.length} / {activePlan.colors.length}</span>
             </div>
+            <p className="mb-3 text-center text-sm font-semibold text-sky-100">
+              {activePlan.encounteredCount} / {activePlan.eligibleCount} renk daha önce keşfedildi ·
+              {activePlan.freshColorIds.length > 0 ? ` Bu tur ${activePlan.freshColorIds.length} yeni renk` : ' Pekiştirme turu'}
+            </p>
             <div className="grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
               {activePlan.colors.map((id) => getWord(id)).map((word) => (
                 <button key={word.id} onClick={() => explore(word.id)} disabled={saving}
@@ -338,6 +345,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
                   </div>
                   <div className="mt-3 text-base font-black tracking-wide">{word.id.toUpperCase()} {speechAvailable && !muted && <span aria-hidden="true">🔊</span>}</div>
                   <div className="text-sm text-white/80">{word.tr}</div>
+                  {activePlan.freshColorIds.includes(word.id) && <span className="mt-2 inline-block rounded-full border border-lime-200/50 bg-lime-400/20 px-3 py-1 text-[10px] font-black text-lime-100">YENİ KEŞİF</span>}
                 </button>
               ))}
             </div>
