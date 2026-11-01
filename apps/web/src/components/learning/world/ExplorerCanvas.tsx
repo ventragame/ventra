@@ -11,9 +11,10 @@ export interface ExplorerCanvasProps {
   onInspect?:(object:WorldObject)=>void;
   caption?:string;
   height?:number;
+  progress?:number;
 }
 export function ExplorerCanvas({
-  area,objects,onInteract,onInspect,caption,height=520
+  area,objects,onInteract,onInspect,caption,height=520,progress=0
 }:ExplorerCanvasProps) {
   const host=useRef<HTMLDivElement>(null);
   const game=useRef<Phaser.Game|null>(null);
@@ -54,6 +55,7 @@ export function ExplorerCanvas({
         }
       });
       scene.current=instance;
+      instance.setProgress(progress);
       game.current=new Phaser.Game({
         type:Phaser.AUTO,
         parent:host.current,
@@ -91,6 +93,9 @@ export function ExplorerCanvas({
   useEffect(()=>{
     scene.current?.setReducedMotion(reduced);
   },[reduced]);
+  useEffect(()=>{
+    scene.current?.setProgress(progress);
+  },[progress]);
   useEffect(()=>{
     scene.current?.setCallbacks(
       object=>{setHint(`${object.label}: keşfedildi!`);onInteractRef.current(object);},

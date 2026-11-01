@@ -385,7 +385,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
           <section className="mx-auto max-w-4xl">
             <ExplorerCanvas key={`meadow-discovery-${nonce}`} area="meadow"
               caption="Keşif Çayırı · Hayvanlara Dokun" objects={worldObjects}
-              onInteract={onWorldInteract} height={520}/>
+              onInteract={onWorldInteract} height={520} progress={discovered.length}/>
             <p className="mt-3 rounded-xl bg-emerald-950/65 p-3 text-center text-xs font-bold text-sky-100">Hayvanlara dokun, karakterin yanlarına yürüsün. Keşfettiklerin albüme eklenir. İstersen aşağıdaki erişilebilir listeyi de kullan.</p>
             <div className="my-4 flex items-center justify-between rounded-xl border border-white/20 bg-emerald-950/65 px-4 py-3 text-sm font-bold">
               <span>🌱 Keşfedilen Hayvanlar</span><span className="text-lime-200">{discovered.length}/{activePlan.animals.length}</span>
@@ -421,7 +421,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, progress, onSav
             </div>
             {(stage===4||stage===5)?<ExplorerCanvas key={`meadow-quest-${stage}-${nonce}`} area="meadow"
               caption={stage===5 ? rescueSelected?'Yuva Kurtarma · Uygun Yuvaya Yürü':'Kayıp Dostu Bul · Hayvana Yürü' : 'Görev Patikası · Söylenen Hayvanı Bul'}
-              objects={worldObjects} onInteract={onWorldInteract} height={510}/>:
+              objects={worldObjects} onInteract={onWorldInteract} height={510} progress={correctCount}/>:
               <MeadowScene stage={stage} word={target} blooms={correctCount}/>}
             {stage===5 && rescueSelected && <div className="am-rescue mt-2 flex items-center justify-center gap-3 rounded-xl bg-emerald-900/75 p-3">
               <AnimalPicture word={target}/>

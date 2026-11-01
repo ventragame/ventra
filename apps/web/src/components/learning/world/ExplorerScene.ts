@@ -24,6 +24,8 @@ export class ExplorerScene extends Phaser.Scene {
   private pendingTarget:string|null=null;
   private keys:Phaser.Input.Keyboard.Key[]=[];
   private ready=false;
+  private bloomLayer?:Phaser.GameObjects.Graphics;
+  private bloomProgress=0;
 
   constructor(args:{area:WorldArea;targets:WorldObject[];onInteract:ActivityCallback;
     onInspect:ActivityCallback;reducedMotion:boolean}){
@@ -35,6 +37,7 @@ export class ExplorerScene extends Phaser.Scene {
     this.reducedMotion=args.reducedMotion;
   }
   preload():void {
+    this.load.svg('p4_explorer','/assets/kids/explorer-avatar.svg',{width:112,height:131});
     for(const id of ANIMALS){
       this.load.svg('p4_'+id,`/assets/animals/premium/${id}.svg`,{width:116,height:116});
     }
@@ -43,6 +46,8 @@ export class ExplorerScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#83cfca');
     this.cameras.main.setBounds(0,0,WORLD_WIDTH,WORLD_HEIGHT);
     this.drawLandscape();
+    this.bloomLayer=this.add.graphics().setDepth(2);
+    this.renderRestoration();
     this.createExplorer();
     this.drawTargets();
     this.cameras.main.startFollow(this.player,true,0.12,0.12);
@@ -121,24 +126,34 @@ export class ExplorerScene extends Phaser.Scene {
   private createExplorer():void {
     const start=PLAYER_START[this.area];
     this.player=this.add.container(start.x,start.y);
-    const shadow=this.add.ellipse(0,28,55,19,0x173d43,.25);
-    const character=this.add.graphics();
-    character.fillStyle(0x4d5e8a);character.fillEllipse(0,13,34,50);
-    character.fillStyle(0xf1b874);character.fillCircle(0,-13,19);
-    character.fillStyle(0x174e7d);character.fillEllipse(0,-30,49,15);
-    character.fillStyle(0x316d9d);character.fillRoundedRect(-21,-41,42,13,6);
-    character.fillStyle(0x254454);character.fillCircle(-7,-15,2.3);character.fillCircle(7,-15,2.3);
-    character.lineStyle(2,0xb96f5a);character.beginPath();
-    character.arc(0,-8,6,.1,Math.PI-.1);character.strokePath();
-    character.fillStyle(0xe9b45f);character.fillRoundedRect(-26,0,12,31,5);
-    character.fillStyle(0xffd25b);character.fillRoundedRect(17,0,11,26,4);
-    character.fillStyle(0x194655);character.fillRoundedRect(-17,29,12,12,3);
-    character.fillRoundedRect(6,29,12,12,3);
+    const shadow=this.add.ellipse(0,42,70,18,0x1d4540,.28);
+    const character=this.add.image(0,-8,'p4_explorer').setDisplaySize(102,119);
     this.player.add([shadow,character]);
     this.player.setDepth(20);
     if(!this.reducedMotion){
-      this.tweens.add({targets:character,y:'-=3',duration:800,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
+      this.tweens.add({targets:character,y:'-=3',duration:920,
+        yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
     }
+  }
+  private renderRestoration():void {
+    if(!this.bloomLayer)return;
+    const g=this.bloomLayer;g.clear();
+    const count=Math.min(12,Math.max(0,this.bloomProgress));
+    for(let i=0;i<count;i++){
+      const x=135+(i%6)*216,y=475+Math.floor(i/6)*170;
+      g.fillStyle(0xfff5bd,.2);g.fillCircle(x,y,31);
+      g.fillStyle(i%2?0xffbce1:0xffe3a4,.94);
+      for(let j=0;j<5;j++){
+        const angle=Math.PI*2*j/5;
+        g.fillCircle(x+Math.cos(angle)*12,y+Math.sin(angle)*12,9);
+      }
+      g.fillStyle(0xffeb8f,1);g.fillCircle(x,y,7);
+    }
+  }
+  setProgress(value:number):void {
+    if(!Number.isFinite(value))return;
+    this.bloomProgress=Math.max(0,Math.min(12,Math.floor(value)));
+    this.renderRestoration();
   }
   private createTarget(object:WorldObject):Phaser.GameObjects.Container {
     const node=this.add.container(object.x,object.y);
@@ -194,7 +209,12 @@ export class ExplorerScene extends Phaser.Scene {
   setCallbacks(onInteract:ActivityCallback,onInspect:ActivityCallback):void{
     this.onInteract=onInteract;this.onInspect=onInspect;
   }
-  setReducedMotion(reduced:boolean):void{this.reducedMotion=reduced;}
+  setReducedMotion(reduced:boolean):void{
+    if(this.reducedMotion===reduced)return;
+    this.reducedMotion=reduced;
+    if(reduced)this.tweens.pauseAll();
+    else this.tweens.resumeAll();
+  }
   goToObject(id:string):void {
     const object=this.targets.find(x=>x.id===id);
     if(!object)return;
@@ -233,6 +253,11 @@ export class ExplorerScene extends Phaser.Scene {
         if(id){
           const object=this.targets.find(t=>t.id===id);
           if(object && distanceBetween(next,{x:object.x,y:object.y})<INTERACTION_DISTANCE+25){
+            if(!this.reducedMotion){
+              const pop=this.add.text(object.x,object.y-120,'✦',{fontSize:'38px',color:'#fff1a7'}).setDepth(950);
+              this.tweens.add({targets:pop,alpha:0,y:pop.y-55,duration:650,
+                onComplete:()=>pop.destroy()});
+            }
             this.onInteract(object);
           }
         }
