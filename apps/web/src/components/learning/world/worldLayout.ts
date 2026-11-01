@@ -10,6 +10,9 @@ export interface WorldObject {
   unlocked?: boolean;
   image?: string;
   tint?: number;
+  completed?:number;
+  total?:number;
+  stars?:number;
 }
 export interface Point { x: number; y: number }
 export const WORLD_WIDTH = 1400;

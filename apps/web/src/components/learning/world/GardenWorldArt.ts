@@ -68,7 +68,7 @@ function gem(g:Phaser.GameObjects.Graphics,x:number,y:number,size:number,color:n
  g.lineStyle(2,0xfff5da,1);g.strokeTriangle(x,y-size,x-size*.75,y,x+size*.75,y);
 }
 export function createGardenLandmark(scene:Phaser.Scene,object:WorldObject):Phaser.GameObjects.Container{
- const node=scene.add.container(object.x,object.y-69);
+ const node=scene.add.container(0,-69);
  const g=scene.add.graphics();
  const color=districtColors[object.id]??0xbde8d8;
  // lush stone platform, shadow and halo

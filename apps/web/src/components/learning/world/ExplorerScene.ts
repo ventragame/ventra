@@ -4,6 +4,7 @@ import {
   walkTowards,distanceBetween,clampToWorld,
   type WorldArea,type WorldObject,type Point
 } from './worldLayout';
+import {paintGardenWorld,createGardenLandmark,addGardenAmbient} from './GardenWorldArt';
 
 const ANIMALS=['cat','dog','bird','rabbit','cow','fish','horse','duck','sheep','frog','bee','butterfly','lion','elephant','monkey','penguin','turtle','fox','bear','owl','zebra','giraffe','panda','tiger','crocodile','hippo','rhino','kangaroo','koala','deer','wolf','hedgehog','squirrel','snake','dolphin','whale','shark','octopus','crab','parrot'];
 type ActivityCallback=(object:WorldObject)=>void;
@@ -46,12 +47,14 @@ export class ExplorerScene extends Phaser.Scene {
   create():void {
     this.cameras.main.setBackgroundColor('#83cfca');
     this.cameras.main.setBounds(0,0,WORLD_WIDTH,WORLD_HEIGHT);
-    this.drawLandscape();
+    if(this.area==='garden')paintGardenWorld(this);
+    else this.drawLandscape();
     this.bloomLayer=this.add.graphics().setDepth(2);
     this.renderRestoration();
     this.createExplorer();
     this.drawTargets();
-    this.cameras.main.startFollow(this.player,true,0.12,0.12);
+    if(this.area==='garden')addGardenAmbient(this,this.reducedMotion);
+    else this.cameras.main.startFollow(this.player,true,0.12,0.12);
     this.reframe();
     this.scale.on('resize',this.reframe,this);
     this.input.on('pointerdown',(pointer:Phaser.Input.Pointer)=>{
@@ -72,6 +75,17 @@ export class ExplorerScene extends Phaser.Scene {
   }
   private reframe():void {
     const w=this.scale.width;
+    const height=this.scale.height;
+    if(this.area==='garden'){
+      // All six districts visible at once on desktop; follow the explorer on phones.
+      const overview=w>=750&&height>=430;
+      const fit=Math.min(w/WORLD_WIDTH,height/WORLD_HEIGHT)*.965;
+      this.cameras.main.setZoom(overview?fit:Math.max(.45,Math.min(.85,w/740)));
+      this.cameras.main.setBounds(0,0,WORLD_WIDTH,WORLD_HEIGHT);
+      if(overview){this.cameras.main.stopFollow();this.cameras.main.centerOn(WORLD_WIDTH/2,WORLD_HEIGHT/2);}
+      else this.cameras.main.startFollow(this.player,true,.13,.13);
+      return;
+    }
     const zoom=Math.max(0.53,Math.min(1.35,w/(w<640?680:1050)));
     this.cameras.main.setZoom(zoom);
     this.cameras.main.setBounds(0,0,WORLD_WIDTH,WORLD_HEIGHT);
@@ -159,6 +173,38 @@ export class ExplorerScene extends Phaser.Scene {
   private createTarget(object:WorldObject):Phaser.GameObjects.Container {
     const node=this.add.container(object.x,object.y);
     const locked=object.unlocked===false;
+    if(this.area==='garden'&&object.kind==='district'){
+      const art=createGardenLandmark(this,object);
+      node.add(art);
+      const plate=this.add.graphics();
+      plate.fillStyle(0x183e52,.9);plate.fillRoundedRect(-104,55,208,65,14);
+      plate.lineStyle(2,locked?0x94aab0:0xf6e3ab,.95);plate.strokeRoundedRect(-104,55,208,65,14);
+      node.add(plate);
+      const title=this.add.text(0,69,object.label,{
+        fontFamily:'Arial, sans-serif',fontStyle:'bold',fontSize:'20px',color:'#fff7e8',
+        align:'center'
+      }).setOrigin(.5);
+      const n=object.completed??0,total=Math.max(1,object.total??1);
+      const subtitle=locked?'🔒 KİLİTLİ':n>=total?'★ TAMAMLANDI':n>0?`${n}/${total} · DEVAM ET`:'✦ KEŞFET';
+      const status=this.add.text(0,96,subtitle,{
+        fontFamily:'Arial, sans-serif',fontStyle:'bold',fontSize:'14px',
+        color:locked?'#d6d5df':n>=total?'#ffe7a2':'#bdf5d3'
+      }).setOrigin(.5);
+      node.add([title,status]);
+      if(n>0){
+        const progress=this.add.graphics();
+        progress.fillStyle(0x244052,1);progress.fillRoundedRect(-80,111,160,4,2);
+        progress.fillStyle(0xf6d589,1);progress.fillRoundedRect(-80,111,Math.max(3,160*Math.min(1,n/total)),4,2);
+        node.add(progress);
+      }
+      const hit=this.add.rectangle(0,-25,212,310,0xffffff,.001).setInteractive({useHandCursor:true});
+      node.add(hit);
+      hit.on('pointerdown',(_pointer:Phaser.Input.Pointer,_x:number,_y:number,event:any)=>{
+        event?.stopPropagation?.();this.goToObject(object.id);
+      });
+      node.setDepth(Math.round(object.y));
+      return node;
+    }
     const marker=this.add.graphics();
     marker.fillStyle(0x204e48,.23);marker.fillEllipse(0,30,155,40);
     marker.fillStyle(object.tint??tintById[object.id]??0xc8e9b1,.95);
