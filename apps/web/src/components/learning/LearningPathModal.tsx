@@ -6,11 +6,13 @@ import { AnimalMeadowAdventure } from './activities/AnimalMeadowAdventure';
 import { ColorGroveAdventure } from './activities/ColorGroveAdventure';
 import { NumberValleyAdventure } from './activities/NumberValleyAdventure';
 import { FoodMarketAdventure } from './activities/FoodMarketAdventure';
+import { FamilyVillageAdventure } from './activities/FamilyVillageAdventure';
 import { getProgressRepository } from '@/lib/progress';
 import { getWordGardenProgress, type WordGardenProgressSnapshot, type AnimalMissionTelemetry } from '@/lib/progress/wordGardenProgress';
 import { getColorGroveProgress, saveColorGroveMission, type ColorGroveProgress } from '@/lib/progress/colorGroveProgress';
 import {getNumberValleyProgress,saveNumberValleyMission,type NumberValleyProgress} from '@/lib/progress/numberValleyProgress';
-import type {NumberAnswerEvidence,FoodAnswerEvidence} from '@ventra/shared';
+import type {NumberAnswerEvidence,FoodAnswerEvidence,FamilyAnswerEvidence} from '@ventra/shared';
+import {getFamilyVillageProgress,saveFamilyVillageMission,type FamilyVillageProgress} from '@/lib/progress/familyVillageProgress';
 import {getFoodMarketProgress,saveFoodMarketMission,type FoodMarketProgress} from '@/lib/progress/foodMarketProgress';
 
 interface LearningPathModalProps {
@@ -20,6 +22,7 @@ interface LearningPathModalProps {
   onColorProgressSaved?: () => void;
   onNumberProgressSaved?: () => void;
   onFoodProgressSaved?: () => void;
+  onFamilyProgressSaved?: () => void;
   profileId: string;
   englishLevel?: 'Pre-A1' | 'A1' | 'A2';
   gradeLevel?:number|null;
@@ -28,7 +31,7 @@ interface LearningPathModalProps {
   onProgressUpdate: (completed: number, total: number, levelOrder: number, starsEarned: number, telemetry?: AnimalMissionTelemetry) => Promise<void>;
 }
 
-type District = 'overview' | 'animals' | 'colors' | 'numbers' | 'food';
+type District = 'overview' | 'animals' | 'colors' | 'numbers' | 'food' | 'family';
 
 /**
  * One active district at a time; the old static animal activities are no longer
@@ -44,6 +47,7 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
   onColorProgressSaved,
   onNumberProgressSaved,
   onFoodProgressSaved,
+  onFamilyProgressSaved,
   initialCompletedLevels = 0,
   initialStarsByLevel = {},
   onProgressUpdate
@@ -61,6 +65,9 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
   });
   const [numbers,setNumbers] = useState<NumberValleyProgress>({completedLevels:0,totalLevels:15,starsByLevel:{},completedByBand:{ones:0,tens:0,hundreds:0}});
   const [food,setFood]=useState<FoodMarketProgress>({completedLevels:0,totalLevels:15,completedByAisle:{orchard:0,bakery:0,cafe:0},starsByLevel:{}});
+  const [family,setFamily]=useState<FamilyVillageProgress>({completedLevels:0,totalLevels:20,completedByDistrict:{family:0,rooms:0,objects:0,routines:0},starsByLevel:{}});
+  const [familyError,setFamilyError]=useState(false);
+  const [familyLoaded,setFamilyLoaded]=useState(false);
   const [foodError,setFoodError]=useState(false);
   const [foodLoaded,setFoodLoaded]=useState(false);
   const [numberError,setNumberError]=useState(false);
@@ -75,6 +82,7 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
     setNumberError(false);
     setNumberLoaded(false);
     setFoodError(false);setFoodLoaded(false);
+    setFamilyError(false);setFamilyLoaded(false);
     const repo = getProgressRepository();
     void getWordGardenProgress(repo, profileId)
       .then(snapshot => { if (active) setAnimals(snapshot); })
@@ -89,6 +97,9 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
     void getFoodMarketProgress(repo,profileId).then(value=>{if(active){setFood(value);setFoodLoaded(true);}})
       .catch(err=>{console.error('Lezzet Pazarı ilerlemesi açılamadı:',err);
         if(active){setFoodError(true);setFoodLoaded(true);}});
+    void getFamilyVillageProgress(repo,profileId).then(value=>{if(active){setFamily(value);setFamilyLoaded(true);}})
+      .catch(err=>{console.error('Aile Köyü ilerlemesi açılamadı',err);
+        if(active){setFamilyError(true);setFamilyLoaded(true);}});
     return () => { active = false; };
   }, [profileId]);
 
@@ -150,6 +161,22 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
     />;
   }
 
+  if(district==='family'){
+    return familyError?(
+      <div role="alert" className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-slate-950 p-6 text-center text-white">
+        <p>Aile Köyü ilerlemesi okunamadı. Oyun kayıtlarını silmeden yeniden deneyebilirsin.</p>
+        <button onClick={()=>setDistrict('overview')} className="rounded-xl bg-lime-300 px-5 py-3 font-bold text-slate-950">Bölgelere Dön</button>
+      </div>
+    ):<FamilyVillageAdventure
+      key={profileId} profileId={profileId} gradeLevel={gradeLevel} englishLevel={englishLevel}
+      progress={family} onBack={()=>setDistrict('overview')}
+      onSave={async (part,stage,mistakes,duration,answers:FamilyAnswerEvidence[],sessionId)=>{
+        const updated=await saveFamilyVillageMission(getProgressRepository(),profileId,part,stage,mistakes,duration,answers,sessionId);
+        setFamily(updated);onFamilyProgressSaved?.();
+      }}
+    />;
+  }
+
   if(district==='food'){
     return foodError?(
       <div role="alert" className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-slate-950 p-6 text-center text-white">
@@ -200,6 +227,12 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
     foodAvailable={foodLoaded&&!foodError}
     foodError={foodError}
     onEnterFood={()=>setDistrict('food')}
+    familyCompleted={family.completedLevels}
+    familyTotal={family.totalLevels}
+    familyUnlocked={true}
+    familyAvailable={familyLoaded&&!familyError}
+    familyError={familyError}
+    onEnterFamily={()=>setDistrict('family')}
     gradeLevel={gradeLevel}
     colorsAvailable={!colorError}
     onEnterColors={() => setDistrict('colors')}

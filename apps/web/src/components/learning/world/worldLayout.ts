@@ -114,8 +114,9 @@ export function getHabitatObjects(ids:readonly string[],placeFor:(id:string)=>st
     id,kind:'habitat' as const,label:placeFor(id),...HABITAT_POSITIONS[id]
   }));
 }
-export function getDistrictObjects(colorsUnlocked:boolean,numbersUnlocked=false,foodUnlocked=false):WorldObject[]{
+export function getDistrictObjects(colorsUnlocked:boolean,numbersUnlocked=false,foodUnlocked=false,familyUnlocked=false):WorldObject[]{
   return DISTRICTS.map(d=>d.id==='colors'?{...d,unlocked:colorsUnlocked}:
     d.id==='numbers'?{...d,unlocked:colorsUnlocked&&numbersUnlocked}:
-    d.id==='food'?{...d,unlocked:foodUnlocked}:{...d});
+    d.id==='food'?{...d,unlocked:foodUnlocked}:
+    d.id==='family'?{...d,unlocked:familyUnlocked}:{...d});
 }

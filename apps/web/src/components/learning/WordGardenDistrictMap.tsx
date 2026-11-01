@@ -28,6 +28,12 @@ interface WordGardenDistrictMapProps {
   foodAvailable:boolean;
   foodError:boolean;
   onEnterFood:()=>void;
+  familyCompleted:number;
+  familyTotal:number;
+  familyUnlocked:boolean;
+  familyAvailable:boolean;
+  familyError:boolean;
+  onEnterFamily:()=>void;
   gradeLevel?:number|null;
   onBack:()=>void;
 }
@@ -36,23 +42,26 @@ const PLACES:Record<string,{title:string;description:string;icon:string}>={
   colors:{title:'Renk Korusu',description:'Renkleri keşfet, boya ve hafızanı güçlendir',icon:'🎨'},
   numbers:{title:'Sayı Vadisi',description:'İngilizce sayılar · 1–1000 · Düzeye uygun 15 görev',icon:'🔢'},
   food:{title:'Lezzet Pazarı',description:'45 İngilizce yiyecek/içecek · 3 sokak · 15 dil görevi',icon:'🍎'},
-  family:{title:'Aile Köyü',description:'Aile ve günlük yaşam macerası yakında',icon:'🏡'},
+  family:{title:'Aile Köyü',description:'60 İngilizce kelime & ifade · 4 mahalle · 20 dil görevi',icon:'🏡'},
   sanctuary:{title:'Keşif Tapınağı',description:'Büyük final bölgesi hazırlanıyor',icon:'✨'}
 };
 export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
   completedLevels,totalLevels,onEnterAnimals,onEnterColors,
   colorsUnlocked,colorsAvailable,colorCompleted,numberCompleted,numberTotal,numbersUnlocked,numbersAvailable,onEnterNumbers,
-  foodCompleted,foodTotal,foodUnlocked,foodAvailable,foodError,onEnterFood,gradeLevel=null,onBack
+  foodCompleted,foodTotal,foodUnlocked,foodAvailable,foodError,onEnterFood,
+  familyCompleted,familyTotal,familyUnlocked,familyAvailable,familyError,onEnterFamily,gradeLevel=null,onBack
 })=>{
   const [notice,setNotice]=useState('');
-  const journeyTotal=totalLevels+3+numberTotal+foodTotal;
-  const progress=journeyTotal>0?Math.min(100,Math.round(100*(completedLevels+colorCompleted+numberCompleted+foodCompleted)/journeyTotal)):0;
-  const objects=useMemo(()=>getDistrictObjects(colorsUnlocked&&colorsAvailable,numbersUnlocked&&numbersAvailable,foodUnlocked&&foodAvailable),[colorsUnlocked,colorsAvailable,numbersUnlocked,numbersAvailable,foodUnlocked,foodAvailable]);
+  const journeyTotal=totalLevels+3+numberTotal+foodTotal+familyTotal;
+  const progress=journeyTotal>0?Math.min(100,Math.round(100*(completedLevels+colorCompleted+numberCompleted+foodCompleted+familyCompleted)/journeyTotal)):0;
+  const objects=useMemo(()=>getDistrictObjects(colorsUnlocked&&colorsAvailable,numbersUnlocked&&numbersAvailable,foodUnlocked&&foodAvailable,familyUnlocked&&familyAvailable),[colorsUnlocked,colorsAvailable,numbersUnlocked,numbersAvailable,foodUnlocked,foodAvailable,familyUnlocked,familyAvailable]);
   const enter=(obj:WorldObject)=>{
     if(obj.id==='animals')onEnterAnimals();
     else if(obj.id==='colors'&&colorsUnlocked&&colorsAvailable)onEnterColors();
     else if(obj.id==='numbers'&&numbersUnlocked&&numbersAvailable)onEnterNumbers();
     else if(obj.id==='food'&&foodUnlocked&&foodAvailable)onEnterFood();
+    else if(obj.id==='family'&&familyUnlocked&&familyAvailable)onEnterFamily();
+    else if(obj.id==='family')setNotice(familyError?'Aile Köyü kayıtları yüklenemedi.':'Aile Köyü hazırlanıyor; yeniden dene.');
     else if(obj.id==='food')setNotice(foodError?'Lezzet Pazarı kayıtları yüklenemedi. Haritadan çıkıp yeniden deneyin.':'Lezzet Pazarı yükleniyor; biraz sonra yeniden seçin.');
     else setNotice(PLACES[obj.id]?.title+' bölgesi henüz açılmadı.');
   };
@@ -66,7 +75,7 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
           ← Takımadaya Dön
         </button>
         <div className="rounded-xl border border-lime-200/30 bg-[#073d4a]/80 px-4 py-3 text-xs font-bold text-lime-100 sm:text-sm">
-          🐾 {completedLevels}/{totalLevels} · 🎨 {colorCompleted}/3 · 🔢 {numberCompleted}/{numberTotal} · 🍎 {foodCompleted}/{foodTotal} · ⭐ Yolculuk %{progress}
+          🐾 {completedLevels}/{totalLevels} · 🎨 {colorCompleted}/3 · 🔢 {numberCompleted}/{numberTotal} · 🍎 {foodCompleted}/{foodTotal} · 🏡 {familyCompleted}/{familyTotal} · ⭐ Yolculuk %{progress}
         </div>
       </header>
       <div className="mb-4 text-center">
@@ -79,6 +88,7 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
       </div>
       <ExplorerCanvas key="garden" area="garden" objects={objects} caption="Gezilebilir Keşif Haritası"
         height={570} onInteract={enter} onInspect={obj=>setNotice(`${obj.label} henüz oynanabilir değil.`)}/>
+      {familyError&&<div role="alert" className="mb-3 rounded-xl border border-rose-300/50 bg-rose-950/75 px-4 py-3 text-sm font-semibold text-white">Aile Köyü ilerlemesi açılamadı; mevcut kayıtların korunuyor. Haritadan çıkıp yeniden deneyebilirsin.</div>}
       {foodError&&<div role="alert" className="mb-3 rounded-xl border border-rose-300/50 bg-rose-950/75 px-4 py-3 text-sm font-semibold text-white">Lezzet Pazarı ilerlemesi okunamadı. Kayıtların silinmedi; haritadan çıkıp tekrar açarak yeniden dene.</div>}
       {notice&&<div role="status" className="mt-3 rounded-xl border border-amber-300/40 bg-slate-950/65 px-4 py-3 text-sm font-semibold text-amber-100">
         {notice} <button onClick={()=>setNotice('')} className="ml-3 rounded-md underline">Kapat</button>
@@ -89,7 +99,8 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
           const playable=obj.unlocked===true;
           const status=playable?'OYNANABİLİR':obj.id==='food'
             ?(foodError?'YÜKLEME HATASI':'YÜKLENİYOR')
-            :obj.id==='family'||obj.id==='sanctuary'?'YAKINDA':'🔒 KİLİTLİ';
+            :obj.id==='family'?(familyError?'YÜKLEME HATASI':'YÜKLENİYOR')
+            :obj.id==='sanctuary'?'YAKINDA':'🔒 KİLİTLİ';
           return <button key={obj.id} type="button" disabled={!playable} onClick={()=>enter(obj)}
             aria-label={`${info.title} — ${playable?'oyna':'kilitli'}`}
             className={`min-h-28 rounded-2xl border px-3 py-4 text-left shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300
@@ -101,7 +112,7 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
           </button>;
         })}
       </div>
-      <p className="mt-5 text-center text-xs text-sky-100/80">Lezzet Pazarı oynanabilir bir İngilizce bölgesidir ve diğer dünyaları bitirmeden açılabilir. Sadece Aile Köyü ve Keşif Tapınağı henüz geliştirme planındadır.</p>
+      <p className="mt-5 text-center text-xs text-sky-100/80">Lezzet Pazarı oynanabilir bir İngilizce bölgesidir ve diğer dünyaları bitirmeden açılabilir. Yalnız Keşif Tapınağı henüz geliştirme planındadır.</p>
     </div>
   </div>;
 };
