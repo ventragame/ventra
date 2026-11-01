@@ -5,7 +5,8 @@ import type {NumberAnswerEvidence} from '@ventra/shared';
 import {EventBus} from '@/lib/game/EventBus';
 import {soundService} from '@/lib/audio/SoundService';
 import {getProgressRepository} from '@/lib/progress';
-import {englishNumber,planNumberMission,type NumberMissionPlan,type NumberStage} from '@/lib/learning/numberValleyEngine';
+import {englishNumber,planNumberMission,NUMBER_BANDS,unlockedNumberBands,type NumberBand,type NumberMissionPlan,type NumberStage} from '@/lib/learning/numberValleyEngine';
+import {NumberPlaceWorkshop,type PlaceValue} from './NumberPlaceWorkshop';
 import type {NumberValleyProgress} from '@/lib/progress/numberValleyProgress';
 import {resolveGradeAwarePolicy} from '@/lib/learning/gradeAwareLearningPolicy';
 import {NumberValleyScenery,ValleyMilestone} from './NumberValleyScenery';
@@ -42,6 +43,9 @@ function Gem({number,discovered=false}:{number:number;discovered?:boolean}){
   </span>;
 }
 export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,progress,onBack,onSave}:Props){
+  const [band,setBand]=useState<NumberBand>('ones');
+  const [unlockedBands,setUnlockedBands]=useState<NumberBand[]>(['ones']);
+  const [placeValue,setPlaceValue]=useState<PlaceValue>({hundreds:0,tens:0,ones:0});
   const [stage,setStage]=useState<NumberStage>(()=>Math.min(5,progress.completedLevels+1) as NumberStage);
   const [nonce,setNonce]=useState(0);
   const [plan,setPlan]=useState<NumberMissionPlan|null>(null);
@@ -51,6 +55,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
   const [answers,setAnswers]=useState<NumberAnswerEvidence[]>([]);
   const [question,setQuestion]=useState(0);
   const [selectedTokens,setSelectedTokens]=useState<number[]>([]);
+  const currentCount=placeValue.hundreds*100+placeValue.tens*10+placeValue.ones;
   const count=selectedTokens.length;
   const [portalPhase,setPortalPhase]=useState<'collect'|'decode'>('collect');
   const [mistakes,setMistakes]=useState(0);
@@ -72,7 +77,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
   const dialog=useRef<HTMLDivElement>(null);
   const heading=useRef<HTMLHeadingElement>(null);
   const policy=useMemo(()=>resolveGradeAwarePolicy({domain:'numbers',gradeLevel,englishLevel}),[gradeLevel,englishLevel]);
-  const key=`${profileId}:${gradeLevel??'unset'}:${englishLevel}:${stage}:${nonce}`;
+  const key=`${profileId}:${gradeLevel??'unset'}:${englishLevel}:${band}:${stage}:${nonce}`;
   const activePlan=planKey===key&&plan?.mission===stage?plan:null;
   const current=stage===1?null:activePlan?.questions[question]??null;
 
@@ -81,7 +86,8 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
     setLoadError(false);setPlan(null);setPlanKey('');
     getProgressRepository().getNumberAnswerHistory(profileId).then(history=>{
       if(!alive)return;
-      const next=planNumberMission({mission:stage,gradeLevel,englishLevel,history,
+      setUnlockedBands(unlockedNumberBands(policy.maxNumber,history));
+      const next=planNumberMission({mission:stage,gradeLevel,englishLevel,band,history,
         seed:Math.floor(Math.random()*4294967295)});
       setPlan(next);setPlanKey(key);
     }).catch(error=>{
@@ -89,7 +95,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
       if(alive)setLoadError(true);
     });
     return()=>{alive=false;};
-  },[key,profileId,gradeLevel,englishLevel,stage,nonce]);
+  },[key,profileId,gradeLevel,englishLevel,stage,nonce,band,policy.maxNumber]);
 
   useEffect(()=>{
     const cancel=()=>{audioRequest.current++;setHeardAudio(false);setSpeaking(false);
@@ -124,14 +130,14 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
       window.speechSynthesis.speak(line);
     }catch(error){console.warn('Sayı seslendirme kullanılamıyor',error);setSpeechAvailable(false);}
   }
-  function restart(next:NumberStage){
+  function restart(next:NumberStage,nextBand:NumberBand=band){
     if(saving)return;
     writeLock.current=false;
     start.current=Date.now();
     session.current=newSession(profileId,next);
-    setStage(next);setNonce(v=>v+1);setPlan(null);setPlanKey('');setLoadError(false);
+    setBand(nextBand);setStage(next);setNonce(v=>v+1);setPlan(null);setPlanKey('');setLoadError(false);
     audioRequest.current++;setHeardAudio(false);setSpeaking(false);
-    setVisited([]);setAnswers([]);setQuestion(0);setSelectedTokens([]);setPortalPhase('collect');
+    setVisited([]);setAnswers([]);setQuestion(0);setSelectedTokens([]);setPlaceValue({hundreds:0,tens:0,ones:0});setPortalPhase('collect');
     setMistakes(0);setPerQuestionMistakes(0);setHintUsed(false);setFeedback(null);
     setAwaitingNext(false);setSaving(false);setSaveError('');setCompleted(false);
   }
@@ -185,7 +191,8 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
   }
   function confirmCount(){
     if(!current||saving||awaitingNext||completed)return;
-    if(count!==current.target){mistake('Henüz doğru miktar değil. Yıldızları yeniden say.');return;}
+    const assembled=current.target>20?currentCount:count;
+    if(assembled!==current.target){mistake('Miktar henüz doğru değil. Nesneleri veya basamak bloklarını yeniden kontrol et.');return;}
     if(stage===5&&portalPhase==='collect'){
       setPortalPhase('decode');setFeedback({text:'Portal doldu! Şimdi İngilizce şifreyi bul.',good:true});
       soundService.playSfx('correct');
@@ -199,12 +206,13 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
     if(last){void finish(answers,answers.length);return;}
     audioRequest.current++;setHeardAudio(false);setSpeaking(false);
     if('speechSynthesis' in window)window.speechSynthesis.cancel();
-    setQuestion(v=>v+1);setSelectedTokens([]);setPortalPhase('collect');setPerQuestionMistakes(0);
+    setQuestion(v=>v+1);setSelectedTokens([]);setPlaceValue({hundreds:0,tens:0,ones:0});setPortalPhase('collect');setPerQuestionMistakes(0);
     setFeedback(null);setHintUsed(false);setAwaitingNext(false);
   }
   const total=stage===1?activePlan?.discoveries.length??0:activePlan?.questions.length??0;
   const done=stage===1?visited.length:question+Number(awaitingNext);
   const completeEnabled=stage===1&&activePlan&&visited.length===activePlan.discoveries.length&&visited.length>0;
+  const bandLabel=NUMBER_BANDS.find(x=>x.id===band)?.title??'Kristal Patikası';
   const buttonsDisabled=saving||awaitingNext||completed;
 
   return <div ref={dialog} role="dialog" aria-modal="true" aria-label="Sayı Vadisi macerası"
@@ -235,8 +243,23 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
         <h1 ref={heading} tabIndex={-1} className="mt-3 text-3xl font-black tracking-tight outline-none sm:text-5xl">
           {CHAPTERS[stage-1].icon} {CHAPTERS[stage-1].title}
         </h1>
-        <p className="mt-3 text-sm text-sky-100 sm:text-base">{CHAPTERS[stage-1].caption}</p>
+        <p className="mt-3 text-sm text-sky-100 sm:text-base">{CHAPTERS[stage-1].caption} · {bandLabel}</p>
       </div>
+      <nav aria-label="Sayı Vadisi sayı yolları" className="nv-bands mb-4 grid grid-cols-3 gap-2 sm:gap-3">
+        {NUMBER_BANDS.map((path,i)=>{
+          const open=unlockedBands.includes(path.id) && policy.maxNumber>=path.minimum;
+          return <button key={path.id} type="button" disabled={!open||saving}
+            aria-pressed={band===path.id}
+            aria-label={`${path.title}: ${path.range} ${open?'oynanabilir':'henüz kilitli'}`}
+            onClick={()=>restart(1,path.id)}
+            className={`nv-band-card rounded-2xl px-2 py-3 text-center text-xs font-black sm:px-4 sm:py-4 sm:text-sm
+              ${band===path.id?'nv-band-selected':''} disabled:cursor-not-allowed disabled:opacity-55`}>
+            <span className="block text-xl" aria-hidden="true">{open?['💎','🔟','🏔️'][i]:'🔒'}</span>
+            <span className="mt-1 block">{path.title}</span>
+            <span className="mt-1 block text-[10px] text-cyan-100 sm:text-xs">{path.range}</span>
+          </button>;
+        })}
+      </nav>
       <nav aria-label="Sayı Vadisi görevleri" className="mb-5 grid grid-cols-5 gap-1.5 sm:gap-3">
         {CHAPTERS.map((part,i)=>{
           const unlocked=i<progress.completedLevels+1;
@@ -299,27 +322,28 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
               {(stage===3||stage===5)&&<div className="nv-counting mt-5 rounded-[22px] p-3 sm:p-5">
                 <div className="mb-3 flex items-center justify-center gap-3">
                   <span className="text-sm font-extrabold text-sky-100">Topladığın {stage===3?'yıldız':'kristal'}:</span>
-                  <span className="text-3xl font-black tabular-nums text-amber-200">{count}</span>
+                  <span className="text-3xl font-black tabular-nums text-amber-200">{current.target>20?currentCount:count}</span>
                 </div>
-                <p className="mb-3 text-xs font-semibold text-sky-100">Nesnelere dokunarak topla. Tekrar dokunursan geri bırakırsın.</p>
-                <div role="group" aria-label={stage===3?'Yıldız toplama alanı':'Kristal toplama alanı'}
-                  className="nv-token-field mx-auto grid max-w-xl grid-cols-4 gap-2 sm:grid-cols-6 sm:gap-3">
-                  {Array.from({length:policy.maxNumber},(_,i)=>{
-                    const selected=selectedTokens.includes(i);
-                    return <button type="button" key={i} aria-pressed={selected}
-                      aria-label={`${i+1}. ${stage===3?'yıldız':'kristal'} ${selected?'geri bırak':'topla'}`}
-                      disabled={buttonsDisabled||portalPhase==='decode'}
-                      onClick={()=>{
-                        setSelectedTokens(old=>old.includes(i)?old.filter(v=>v!==i):[...old,i]);
-                        soundService.playSfx('tap');
-                      }}
-                      className={`nv-token min-h-14 rounded-xl text-3xl sm:min-h-16 ${selected?'nv-token-selected':''} disabled:opacity-50`}>
-                      <span aria-hidden="true">{stage===3?'★':'💎'}</span>
-                      <span className="block text-[10px] font-black">{selected?'✓':''}</span>
-                    </button>;
-                  })}
-                </div>
-                {stage===3&&<Stars count={count} active/>}
+                <p className="mb-3 text-xs font-semibold text-sky-100">{current.target>20?'100, 10 ve 1 değerli blokları kullanarak sayıyı inşa et.':'Nesnelere dokunarak topla. Tekrar dokunursan geri bırakırsın.'}</p>
+                {current.target<=20?<>
+                  <div role="group" aria-label="Tek tek toplanabilir yıldız ve kristaller"
+                    className="nv-token-field mx-auto grid max-w-xl grid-cols-4 gap-2 sm:grid-cols-6 sm:gap-3">
+                    {Array.from({length:20},(_,i)=>{
+                      const selected=selectedTokens.includes(i);
+                      return <button type="button" key={i} aria-pressed={selected}
+                        aria-label={`${i+1}. nesneyi ${selected?'geri bırak':'topla'}`}
+                        disabled={buttonsDisabled||portalPhase==='decode'}
+                        onClick={()=>{setSelectedTokens(old=>old.includes(i)?old.filter(v=>v!==i):[...old,i]);soundService.playSfx('tap');}}
+                        className={`nv-token min-h-14 rounded-xl text-3xl sm:min-h-16 ${selected?'nv-token-selected':''} disabled:opacity-50`}>
+                        <span aria-hidden="true">{stage===3?'★':'💎'}</span>
+                        <span className="block text-[10px] font-black">{selected?'✓':''}</span>
+                      </button>;
+                    })}
+                  </div>
+                  {stage===3&&<Stars count={count} active/>}
+                </>:<NumberPlaceWorkshop value={placeValue}
+                  onChange={value=>{setPlaceValue(value);soundService.playSfx('tap');}}
+                  disabled={buttonsDisabled||portalPhase==='decode'}/>}
                 {(stage===3||portalPhase==='collect')&&
                   <button onClick={confirmCount} disabled={buttonsDisabled}
                     className="nv-primary mt-4 min-h-12 rounded-xl px-7 py-3 text-sm font-black disabled:opacity-50">

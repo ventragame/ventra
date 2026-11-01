@@ -7,7 +7,11 @@ test('NV0 English numbers 1–20 are correct and zero is not a quiz objective',(
   assert.equal(NUMBER_WORDS.length,21);
   assert.equal(englishNumber(13),'thirteen');
   assert.equal(englishNumber(20),'twenty');
-  assert.throws(()=>englishNumber(21),RangeError);
+  assert.equal(englishNumber(21),'twenty-one');
+  assert.equal(englishNumber(105),'one hundred five');
+  assert.equal(englishNumber(999),'nine hundred ninety-nine');
+  assert.equal(englishNumber(1000),'one thousand');
+  assert.throws(()=>englishNumber(1001),RangeError);
 });
 test('NV0 first Pre-A1 expedition discovers only eight numbers, replay rotates fresh values',()=>{
   const intro=planNumberMission({mission:1,englishLevel:'Pre-A1',history:[],seed:3});
