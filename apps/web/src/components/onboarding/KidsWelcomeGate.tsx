@@ -83,7 +83,7 @@ export function KidsWelcomeGate({ onCreateProfile, onOpenParent, existingProfile
             {screen === 'choose' ? (existingProfile ? `${existingProfile.nickname}, yıldızların, avatarın ve görevlerin korunacak. Dilediğin zaman oyun yolunu değiştirebilirsin.` : 'İngilizce öğrenirken adalarını canlandır, yeni görevler keşfet. Başlamak için bir yol seç.') :
              screen === 'individual' ? 'Gerçek adını yazmana gerek yok. Takma ad ve ücretsiz bir avatar yeterli.' :
              screen === 'family' ? 'Ebeveyn hesabıyla bulut yedekleme ayarlarına eriş. Ailece aynı anda oyun modu henüz yok.' :
-             'Öğretmeninle aynı macera evreninde öğrenebilmen için okul erişimi hazırlanıyor.'}
+             'Okul sınıfları ve veli davet kodları yetişkin hesabı ile yönetilir.'}
           </p>
         </div>
 
@@ -115,8 +115,8 @@ export function KidsWelcomeGate({ onCreateProfile, onOpenParent, existingProfile
             <button onClick={() => setScreen('school')} className="group flex min-h-[270px] flex-col rounded-[2rem] border border-white/25 bg-gradient-to-br from-violet-800/80 to-slate-950 p-6 text-left transition hover:-translate-y-1 hover:border-violet-300 focus-visible:outline focus-visible:outline-4 focus-visible:outline-violet-300">
               <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/15"><GraduationCap size={34} /></span>
               <strong className="mt-6 text-xl font-black">Okulumla Oyna</strong>
-              <span className="mt-2 text-sm leading-relaxed text-white/80">Sınıf davetleri ve öğretmen görevleri için hazırlanıyor.</span>
-              <span className="mt-auto flex items-center gap-2 pt-5 text-sm font-bold text-violet-200">Geliştirme Aşamasında <ArrowRight size={18} /></span>
+              <span className="mt-2 text-sm leading-relaxed text-white/80">Öğretmen sınıf açabilir; veli davetiyle çocuğunu güvenle katabilir.</span>
+              <span className="mt-auto flex items-center gap-2 pt-5 text-sm font-bold text-violet-200">Okul Paneli <ArrowRight size={18} /></span>
             </button>
           </div>
         )}
@@ -166,17 +166,22 @@ export function KidsWelcomeGate({ onCreateProfile, onOpenParent, existingProfile
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-sky-400/15 text-sky-200">
               {screen === 'family' ? <ShieldCheck size={34} /> : <GraduationCap size={34} />}
             </div>
-            <h2 className="mt-5 text-xl font-extrabold">{screen === 'family' ? 'Ebeveyn alanı mevcut' : 'Okul erişimi hazırlanıyor'}</h2>
+            <h2 className="mt-5 text-xl font-extrabold">{screen === 'family' ? 'Ebeveyn alanı mevcut' : 'Okul ve sınıf yönetimi'}</h2>
             <p className="mt-3 text-sm leading-relaxed text-slate-300">
               {screen === 'family'
                 ? 'Yetişkin hesabı ve mevcut bulut eşitleme araçları açılabilir. Yeni cihazda aynı profilden kesintisiz devam etme ve profil bağlama işlemleri henüz doğrulanmadı; P2 kapsamında tamamlanacak.'
-                : 'Okul kodu, sınıf üyeliği ve öğretmen paneli henüz aktif değil. İstersen şimdi bireysel olarak oynamaya başlayabilirsin.'}
+                : 'Öğretmenler sınıf oluşturabilir; ebeveynler davet koduyla mevcut çocuk profillerini okula bağlayabilir. Bulut hesabı gerekir.'}
             </p>
             <div className="mt-6 flex flex-col gap-3">
               {screen === 'family' && (
                 <button onClick={onOpenParent} className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-sky-400 px-5 font-extrabold text-slate-950">
                   <ShieldCheck size={18} /> Ebeveyn Alanını Aç
                 </button>
+              )}
+              {screen === 'school' && (
+                <Link href="/school" className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-violet-300 px-5 font-extrabold text-slate-950">
+                  <GraduationCap size={18} /> Öğretmen / Ebeveyn Okul Paneli <ArrowRight size={18} />
+                </Link>
               )}
               <button onClick={() => { if (existingProfile && onContinue) onContinue(); else { setScreen('individual'); setError(null); } }} className="min-h-12 rounded-xl border border-white/20 bg-white/10 px-5 text-sm font-bold hover:bg-white/20">
                 {existingProfile ? 'Bireysel Oynamaya Dön' : 'Bireysel Profil Oluştur'}
