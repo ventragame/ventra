@@ -110,6 +110,18 @@ export function KidsPassport({profileId,nickname,avatarEmoji,gradeLevel,englishL
         </nav>
         {tab==='passport'&&<div className="space-y-4">
           <section className="grid gap-3 sm:grid-cols-3">
+            {[
+              {icon:'🐾',label:'Keşfedilen Hayvan',value:snapshot.learned.animals},
+              {icon:'🎨',label:'Keşfedilen Renk',value:snapshot.learned.colors},
+              {icon:'🔢',label:'Keşfedilen Sayı',value:snapshot.learned.numbers}
+            ].map(x=><div key={x.label} className="flex items-center gap-3 rounded-xl border border-cyan-100/20 bg-slate-900/60 px-4 py-3">
+              <span className="text-2xl">{x.icon}</span><div>
+                <strong className="block text-xl text-lime-200">{x.value}</strong>
+                <span className="text-xs font-semibold text-slate-300">{x.label}</span>
+              </div>
+            </div>)}
+          </section>
+          <section className="grid gap-3 sm:grid-cols-3">
             {snapshot.worldStats.map(world=><article key={world.id}
               className="rounded-2xl border border-sky-200/25 bg-slate-900/70 p-4">
               <div className="text-3xl">{world.icon}</div>

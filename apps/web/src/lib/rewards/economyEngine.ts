@@ -7,6 +7,17 @@ export const WORLD_GAMES = [
   {id:'island_word_garden_colors',label:'Renk Korusu',count:3,icon:'🎨'},
   {id:'island_word_garden_numbers',label:'Sayı Vadisi',count:15,icon:'🔢'}
 ] as const;
+/**
+ * Planning only. These SKU identifiers cannot initiate a transaction.
+ * Do not expose pack purchase buttons outside an authenticated parent area.
+ * Store prices are deliberately not hard-coded.
+ */
+export const PLANNED_COIN_PACKS=[
+  {id:'ventra.coins.100',coins:100,label:'Küçük Paket'},
+  {id:'ventra.coins.350',coins:350,label:'Macera Paketi'},
+  {id:'ventra.coins.800',coins:800,label:'Koleksiyon Paketi'}
+] as const;
+export const PAID_COINS_ENABLED=false as const;
 export const COSMETICS=[
   {id:'hat_sprout',name:'Filiz Şapka',icon:'🌱',price:20,group:'hat'},
   {id:'hat_crown',name:'Kristal Taç',icon:'👑',price:65,group:'hat'},

@@ -9,6 +9,7 @@ export type PassportSnapshot={
   economy:EconomyState;balance:number;totalStars:number;completed:number;
   worldStats:{id:string;label:string;icon:string;completed:number;total:number}[];
   daily:ReturnType<typeof dailyStatus>;day:string;plays:number;
+  learned:{animals:number;colors:number;numbers:number};
 };
 export interface EconomyStorage {
   mutate(profileId:string,fn:(state:EconomyState)=>EconomyState):Promise<EconomyState>;
@@ -108,12 +109,18 @@ async function playEvidence(repo:IProgressRepository,profileId:string,now:Date){
 }
 export async function getPassport(repo:IProgressRepository,profileId:string,
   storage:EconomyStorage=economyStorage(),now=new Date()):Promise<PassportSnapshot>{
-  const [world,activity,stars]=await Promise.all([
-    passportEvidence(repo,profileId),playEvidence(repo,profileId,now),repo.getTotalStars(profileId)
+  const [world,activity,stars,animalAnswers,colorAnswers,numberAnswers]=await Promise.all([
+    passportEvidence(repo,profileId),playEvidence(repo,profileId,now),repo.getTotalStars(profileId),
+    repo.getAnimalAnswerHistory(profileId),repo.getColorAnswerHistory(profileId),repo.getNumberAnswerHistory(profileId)
   ]);
   const economy=await storage.mutate(profileId,s=>reconcileRewards(s,world.evidence,now.toISOString()));
+  const learned={
+    animals:new Set(animalAnswers.filter(e=>e.kind==='discovery').map(e=>e.wordId)).size,
+    colors:new Set(colorAnswers.filter(e=>e.kind==='discovery').map(e=>e.wordId)).size,
+    numbers:new Set(numberAnswers.filter(e=>e.kind==='discovery').map(e=>e.value)).size
+  };
   return {economy,balance:economyBalance(economy),totalStars:stars,completed:world.evidence.length,
-    worldStats:world.worlds,daily:dailyStatus(economy,activity.day,activity.plays),...activity};
+    learned,worldStats:world.worlds,daily:dailyStatus(economy,activity.day,activity.plays),...activity};
 }
 export async function claimQuest(repo:IProgressRepository,profileId:string,goalId:DailyGoal['id'],
   storage:EconomyStorage=economyStorage(),now=new Date()):Promise<EconomyState>{

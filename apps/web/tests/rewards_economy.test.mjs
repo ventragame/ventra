@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {MemoryProgressRepository} from '../src/lib/progress/MemoryProgressRepository.ts';
 import {MemoryEconomyStorage,getPassport,claimQuest,purchaseCosmetic,setEquipped} from '../src/lib/rewards/economyRepository.ts';
-import {COSMETICS,economyBalance,initialEconomy,claimDaily,creditPaidCoins,localDay} from '../src/lib/rewards/economyEngine.ts';
+import {COSMETICS,PLANNED_COIN_PACKS,PAID_COINS_ENABLED,economyBalance,initialEconomy,claimDaily,creditPaidCoins,localDay} from '../src/lib/rewards/economyEngine.ts';
 const now=new Date('2026-11-01T12:00:00.000Z');
 test('P5 first-completion coins never mint on replay, earned and stars stay separate',async()=>{
  const repo=new MemoryProgressRepository(),storage=new MemoryEconomyStorage();
@@ -61,4 +61,10 @@ test('P5 never allows local paid-coin mint or unvalidated goal claims',()=>{
  assert.throws(()=>creditPaidCoins(),/verified server receipt/);
  assert.throws(()=>claimDaily(initialEconomy('kid'),'2026-11-01','quest_3',0,now.toISOString()),/Goal/);
  assert.match(localDay(now),/^\d{4}-\d{2}-\d{2}$/);
+});
+
+test('P5 planned paid SKUs remain fully disabled and do not touch child economy',()=>{
+ assert.equal(PAID_COINS_ENABLED,false);
+ assert.equal(new Set(PLANNED_COIN_PACKS.map(p=>p.id)).size,PLANNED_COIN_PACKS.length);
+ for(const pack of PLANNED_COIN_PACKS)assert.ok(pack.coins>0);
 });
