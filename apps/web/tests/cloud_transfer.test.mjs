@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import { uploadInBatches, mergeRemotePages, assertChildTombstoneAcknowledged } from '../src/lib/supabase/cloudTransfer.ts';
+import { uploadInBatches, mergeRemotePages, assertChildTombstoneAcknowledged, purgeCloudChild } from '../src/lib/supabase/cloudTransfer.ts';
 import { MemoryProgressRepository } from '../src/lib/progress/MemoryProgressRepository.ts';
 
 test('1,203 cloud events are downloaded without the Supabase 1,000-row truncation', async () => {
@@ -68,7 +68,7 @@ test('Cloud sync has ownership checks, explicit link and checked deletion respon
   const source = fs.readFileSync('src/lib/supabase/sync.ts', 'utf8');
   assert.match(source, /profile\.userId !== userId/);
   assert.match(source, /!profile\.userId && !options\.allowLink/);
-  assert.match(source, /\.is\('deleted_at', null\)\.select\('id'\)/);
+  assert.match(source, /\.rpc\('delete_child_profile'/);
   assert.match(source, /mergeRemotePages\(/);
   assert.match(source, /uploadInBatches\(/);
 });
@@ -116,4 +116,19 @@ test('Child tombstones cannot silently succeed when RLS matches zero rows', () =
   assert.throws(() => assertChildTombstoneAcknowledged(child, null), /doğrulamadı/);
   assert.throws(() => assertChildTombstoneAcknowledged(child, [{id:'another-child'}]), /doğrulamadı/);
   assert.throws(() => assertChildTombstoneAcknowledged(child, [{id:child},{id:child}]), /doğrulamadı/);
+});
+
+test('P2 repeated child deletion is safe only with parent-owned anonymized tombstone',async()=>{
+ const id='child-a',owner='parent-a';
+ await purgeCloudChild(id,owner,async()=>id,async()=>{throw Error('unnecessary read');});
+ const deleted={id,user_id:owner,nickname:'Silinmiş Profil',deleted_at:'2026-11-01T11:00:00Z'};
+ await purgeCloudChild(id,owner,async()=>{throw Error('already deleted');},async()=>deleted);
+ await assert.rejects(purgeCloudChild(id,owner,async()=>{throw Error('not authorized');},
+   async()=>({...deleted,user_id:'parent-b'})),/not authorized/);
+ await assert.rejects(purgeCloudChild(id,owner,async()=>{throw Error('not anonymised');},
+   async()=>({...deleted,nickname:'Child Original'})),/not anonymised/);
+ await assert.rejects(purgeCloudChild(id,owner,async()=>{throw Error('not deleted');},
+   async()=>({...deleted,deleted_at:null})),/not deleted/);
+ await assert.rejects(purgeCloudChild(id,owner,async()=>{throw Error('not found');},
+   async()=>null),/not found/);
 });

@@ -47,3 +47,28 @@ export function assertChildTombstoneAcknowledged(
     throw new Error('Bulut bu çocuk profilinin silindiğini doğrulamadı. Yerel silme kaydı korunuyor; tekrar deneyin.');
   }
 }
+
+/**
+ * P2: idempotent, privacy-preserving deletion.
+ * Server RPC must purge events and anonymise child; a repeat request can only
+ * be accepted after inspecting the authenticated parent's already-deleted row.
+ */
+export async function purgeCloudChild(
+  profileId:string,userId:string,
+  remove:()=>Promise<string>,
+  inspect:()=>Promise<{id:string;user_id:string;nickname:string;deleted_at:string|null}|null>
+):Promise<void>{
+  try{
+    const deleted=await remove();
+    if(deleted===profileId)return;
+    throw new Error('Silinen çocuk kimliği sunucudan doğrulanamadı.');
+  }catch(error){
+    // A failed RPC can mean it was already deleted on device A; verify the
+    // complete tombstone instead of swallowing all errors or fabricating success.
+    const row=await inspect();
+    if(row && row.id===profileId && row.user_id===userId &&
+      row.nickname==='Silinmiş Profil' && row.deleted_at &&
+      Number.isFinite(Date.parse(row.deleted_at)))return;
+    throw error;
+  }
+}

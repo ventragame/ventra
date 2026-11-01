@@ -1,7 +1,7 @@
 import { getSupabaseClient, isSupabaseConfigured } from './client.ts';
 import { getProgressRepository } from '../progress/index.ts';
 import type { SyncResult, PlayerProfile } from '@ventra/shared';
-import { uploadInBatches, mergeRemotePages, assertChildTombstoneAcknowledged } from './cloudTransfer.ts';
+import { uploadInBatches, mergeRemotePages, purgeCloudChild } from './cloudTransfer.ts';
 
 const cloudMetadataV2 = process.env.NEXT_PUBLIC_VENTRA_CLOUD_METADATA_V2 === 'true';
 
@@ -78,12 +78,17 @@ export class CloudSyncService {
     const deletedIds = (await repo.getDeletedProfileIds?.()) || [];
     if (deletedIds.includes(profileId)) {
       try {
-        const { data, error } = await client.from('player_profiles')
-          .update({ deleted_at: now })
-          .eq('id', profileId).eq('user_id', userId)
-          .is('deleted_at', null).select('id');
-        if (error) throw error;
-        assertChildTombstoneAcknowledged(profileId, data);
+        await purgeCloudChild(profileId,userId,async()=>{
+          const {data,error}=await client.rpc('delete_child_profile',{p_profile_id:profileId});
+          if(error)throw error;
+          return data as string;
+        },async()=>{
+          const {data,error}=await client.from('player_profiles')
+            .select('id,user_id,nickname,deleted_at')
+            .eq('id',profileId).eq('user_id',userId).maybeSingle();
+          if(error)throw error;
+          return data;
+        });
         return {
           success: true, syncedProfilesCount: 1,
           uploadedEventsCount: 0, downloadedEventsCount: 0, lastSyncedAt: now
@@ -289,15 +294,17 @@ export class CloudSyncService {
 
       // 2. Bu cihazda daha önce silinmişse buluta silme tombstone'u ilet
       if (deletedIds.includes(rp.id)) {
-        const { data, error: tombstoneError } = await client
-          .from('player_profiles')
-          .update({ deleted_at: new Date().toISOString() })
-          .eq('id', rp.id)
-          .eq('user_id', userId)
-          .is('deleted_at', null)
-          .select('id');
-        if (tombstoneError) throw new Error('Silinen profil buluta bildirilemedi: ' + tombstoneError.message);
-        assertChildTombstoneAcknowledged(rp.id, data);
+        await purgeCloudChild(rp.id,userId,async()=>{
+          const {data,error}=await client.rpc('delete_child_profile',{p_profile_id:rp.id});
+          if(error)throw error;
+          return data as string;
+        },async()=>{
+          const {data,error}=await client.from('player_profiles')
+            .select('id,user_id,nickname,deleted_at')
+            .eq('id',rp.id).eq('user_id',userId).maybeSingle();
+          if(error)throw error;
+          return data;
+        });
         continue;
       }
 
