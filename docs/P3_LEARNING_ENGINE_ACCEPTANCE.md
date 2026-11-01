@@ -32,3 +32,13 @@
 - P0/P2 security and real two-device sync acceptance remain open (see `P0_P2_KABUL_PLANI.md`).
 - P4 game quality, P5 rewards, P6 school panel and P7 payments are separate development phases.
 - Vercel Git deployments remain disabled. No publishing or signed store upload.
+
+### 2026-11-01 — P3 adaptif öğrenme motoru v1 teknik kabul
+
+- Saf/çevrimdışı/deterministik beceri modeli: 12 hayvan + 10 renk; ayrı tanıma, dinleme, komut, yaşam alanı ve renk uygulama kanıtları. Eski kayıtlar uyumlu.
+- Keşif, ipucu ve yazılı ses alternatifi bağımsız başarı sayılmaz. Cevaplardan ayrı aralıklı tekrar tarihi ve beceri önerisi hesaplanır. Her iki oyun P3 tekrar önceliğini görev planlarına aktarır.
+- Profil Ayarları'nda 8 soruluk **isteğe bağlı** kelime başlangıç kontrolü (yalnız Pre-A1/A1 önerisi; A2 veya resmî CEFR iddiası yok). Öneri ancak kullanıcı kaydederse profilde tutulur.
+- `/progress` içinde P3 İngilizce Öğrenme Karnesi görünür; eski matematik raporu arşiv altında tutulur. Raporu açmak yeni çocuk profili oluşturmaz.
+- GitHub Actions run: https://github.com/ventragame/ventra/actions/runs/41255893312 — kaynak SHA `1b4355f0b748e21b9e1021de8fe9ca63f31e2e4e`; **71/71 çevrimdışı test, TypeScript, Next.js production build, mobil statik export, Android API 36 debug APK + unsigned release AAB ve iOS Simulator derlemesi PASS**.
+- Gerçek çocuk, ebeveyn ve fiziksel cihaz kabul testleri henüz yapılmadı; kullanılan periyotlar/üst sınırlar pedagojik olarak doğrulanmış değildir. Bu nedenle **P3 v1 teknik olarak teslim**, tüm P3 ürün/pedagoji kabulü henüz kapanmadı.
+- P0/P2 gerçek iki cihaz senkronizasyonu ve P0 npm audit açık kalır. Kullanıcı onayı olmadan Vercel veya mağazaya yayın yok.
