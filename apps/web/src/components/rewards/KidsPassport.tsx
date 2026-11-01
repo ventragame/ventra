@@ -8,6 +8,7 @@ import {
   claimQuest,getPassport,purchaseCosmetic,setEquipped,type PassportSnapshot
 } from '@/lib/rewards/economyRepository';
 import {getProgressRepository} from '@/lib/progress';
+import {CosmeticArtwork} from './CosmeticArtwork';
 
 type Tab='passport'|'quests'|'shop';
 type Props={
@@ -76,9 +77,9 @@ export function KidsPassport({profileId,nickname,avatarEmoji,gradeLevel,englishL
             <div aria-label="Kişiselleştirilmiş maceracı avatarın"
               className={`relative flex h-24 w-24 shrink-0 items-center justify-center rounded-[26px] border-2 border-white/30 bg-gradient-to-br from-cyan-500/40 to-violet-500/40 text-5xl shadow-xl sm:h-28 sm:w-28 ${aura?'shadow-yellow-200/60':''}`}>
               <span aria-hidden="true">{avatarEmoji}</span>
-              {hat&&<span aria-label={hat.name} className="absolute -right-3 -top-4 text-4xl">{hat.icon}</span>}
-              {badge&&<span aria-label={badge.name} className="absolute -bottom-2 -right-2 text-3xl">{badge.icon}</span>}
-              {aura&&<span aria-label={aura.name} className="absolute -bottom-3 -left-3 text-3xl">{aura.icon}</span>}
+              {hat&&<span aria-label={hat.name} className="absolute -right-3 -top-4"><CosmeticArtwork id={hat.id} size={42}/></span>}
+              {badge&&<span aria-label={badge.name} className="absolute -bottom-2 -right-2"><CosmeticArtwork id={badge.id} size={35}/></span>}
+              {aura&&<span aria-label={aura.name} className="absolute -bottom-3 -left-3"><CosmeticArtwork id={aura.id} size={37}/></span>}
             </div>
             <div className="min-w-[160px] flex-1">
               <p className="text-xs font-black uppercase tracking-[.12em] text-cyan-200">Ventra Kaşifi</p>
@@ -180,7 +181,7 @@ export function KidsPassport({profileId,nickname,avatarEmoji,gradeLevel,englishL
             {COSMETICS.map(item=>{
               const owned=snapshot.economy.owned.includes(item.id),equipped=equipment[item.group]===item.id;
               return <article key={item.id} className="flex flex-col items-center rounded-2xl border border-sky-300/25 bg-gradient-to-b from-[#214c76] to-[#102641] p-3 text-center">
-                <div className="flex min-h-20 w-full items-center justify-center rounded-xl bg-white/10 text-5xl" aria-hidden="true">{item.icon}</div>
+                <div className="flex min-h-24 w-full items-center justify-center rounded-xl bg-gradient-to-br from-sky-300/15 to-indigo-300/10" aria-hidden="true"><CosmeticArtwork id={item.id} size={90}/></div>
                 <h4 className="mt-2 min-h-10 text-xs font-black sm:text-sm">{item.name}</h4>
                 <p className="mb-3 text-xs font-bold text-amber-200">{owned?'Koleksiyonda':`🪙 ${item.price}`}</p>
                 <button disabled={busy||equipped||(!owned&&snapshot.balance<item.price)}

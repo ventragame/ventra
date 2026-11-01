@@ -19,6 +19,7 @@ import { AdultAccountModal } from '../../components/profile/AdultAccountModal';
 import { CloudTransition } from '../../components/learning/CloudTransition';
 import { LearningPathModal } from '../../components/learning/LearningPathModal';
 import { KidsPassport } from '../../components/rewards/KidsPassport';
+import { CosmeticArtwork } from '../../components/rewards/CosmeticArtwork';
 import { getPassport } from '../../lib/rewards/economyRepository';
 import { COSMETICS,type CosmeticId } from '../../lib/rewards/economyEngine';
 import { soundService } from '../../lib/audio/SoundService';
@@ -372,7 +373,7 @@ export default function VentraKidsWorldPage() {
             >
               {currentAvatar.emoji}
               {avatarEquipment.hat&&<span aria-hidden="true" className="absolute -right-2 -top-2 text-sm">
-                {COSMETICS.find(x=>x.id===avatarEquipment.hat)?.icon}
+                {<CosmeticArtwork id={avatarEquipment.hat} size={25}/>}
               </span>}
             </div>
             <div className="text-left">
