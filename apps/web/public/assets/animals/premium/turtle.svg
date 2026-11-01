@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 320 320" role="img" aria-label="turtle">
+<defs><radialGradient id="sky"><stop stop-color="#fff9da"/><stop offset="1" stop-color="#d6f2e3"/></radialGradient><linearGradient id="coat" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#80b578"/><stop offset="1" stop-color="#456d69"/></linearGradient><filter id="shadow" x="-40%" y="-40%" width="180%" height="180%"><feDropShadow dx="0" dy="8" stdDeviation="5" flood-color="#204c52" flood-opacity=".22"/></filter></defs>
+<ellipse cx="160" cy="284" rx="102" ry="17" opacity=".14" fill="#184d58"/>
+<circle cx="160" cy="150" r="126" fill="url(#sky)" opacity=".7"/>
+<g filter="url(#shadow)"><ellipse cx="159" cy="184" rx="95" ry="95" fill="url(#coat)" stroke="#44635f" stroke-width="5"/>
+<ellipse cx="160" cy="214" rx="71" ry="54" fill="#fff1d5" opacity=".85"/>
+<text x="160" y="205" text-anchor="middle" font-size="152" font-family="Apple Color Emoji,Segoe UI Emoji,Noto Color Emoji,sans-serif">🐢</text>
+</g><g fill="#fff" opacity=".77"><circle cx="50" cy="93" r="5"/><circle cx="270" cy="86" r="7"/><circle cx="255" cy="244" r="4"/><circle cx="64" cy="233" r="3"/></g>
+<path d="M46 264 Q160 296 274 264" fill="none" stroke="#76bca5" stroke-width="5" opacity=".6"/>
+</svg>
