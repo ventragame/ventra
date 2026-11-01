@@ -6,6 +6,7 @@ import { sendAdultOtpEmail, verifyAdultOtp, getAdultAccount, signOutAdult, delet
 import { CloudSyncService } from '../../lib/supabase/sync';
 import { getProgressRepository } from '../../lib/progress';
 import type { AdultAccountInfo, PlayerProfile, SyncResult } from '@ventra/shared';
+import {PLANNED_COIN_PACKS,PAID_COINS_ENABLED} from '../../lib/rewards/economyEngine';
 
 interface AdultAccountModalProps {
   isOpen: boolean;
@@ -321,6 +322,29 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
                   : 'Bu cihazda henüz doğrulanmış bir bulut eşitlemesi yok.'}
               </div>
             </div>
+
+            <section aria-label="Planlanan ebeveyn coin satın alma sistemi"
+              style={{background:'linear-gradient(150deg,#122c4c,#1d2452)',border:'1px solid #64748b',
+                borderRadius:'14px',padding:'14px',display:'flex',flexDirection:'column',gap:'10px'}}>
+              <strong style={{color:'#fff',fontSize:'14px'}}>🪙 Ventra Coin — Ebeveyn Satın Alma Planı</strong>
+              <p style={{fontSize:'12px',color:'#cbd5e1',lineHeight:1.6}}>
+                Çocuğun öğrendikçe kazandığı coin sistemi çalışıyor. Gerçek para ile coin paketleri ise
+                mağaza içi ödeme, makbuz doğrulama, iade ve merkezi bakiye korumaları bitmeden açılmayacak.
+                Eğitim içerikleri coin ile kilitlenmez.
+              </p>
+              <div style={{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:'6px'}}>
+                {PLANNED_COIN_PACKS.map(pack=><div key={pack.id}
+                  style={{border:'1px solid #475569',borderRadius:'10px',padding:'10px 5px',textAlign:'center',
+                    background:'#0a1930',fontSize:'11px',color:'#e2e8f0'}}>
+                  <div style={{fontSize:'19px'}}>🪙</div>
+                  <strong style={{display:'block',fontSize:'17px',color:'#fde68a'}}>{pack.coins}</strong>
+                  <span>{pack.label}</span>
+                </div>)}
+              </div>
+              <p role="status" style={{fontSize:'11px',color:'#fde68a',lineHeight:1.5}}>
+                {PAID_COINS_ENABLED?'Ödeme sistemi hazır':'Henüz satışta değil · Kart bilgisi alınmıyor · Fiyatlandırma belirlenmedi'}
+              </p>
+            </section>
 
             <section aria-label="Çocuk profillerini aileye bağlama" style={{ display: 'flex', flexDirection: 'column', gap: '10px', border: '1px solid #334155', padding: '12px', borderRadius: '12px' }}>
               <strong style={{ fontSize: '13px', color: '#f8fafc' }}>Çocuk Profilleri</strong>

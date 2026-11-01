@@ -193,3 +193,12 @@ Kaynaklar:
 - 15 görev bölümü / 45 yıldız, eski 5 görev kaydının devamıdır; her düzey beş orijinal görev mekaniğinin uyarlanmış varyantıdır.
 - Günlük yaşam fiyat karşılaştırma ve yüzlük/onluk/birlik atölyesi eklendi.
 - CI ve fiziksel cihaz kalite kapıları başarı ölçütüdür; mağaza yayın kararı değildir.
+
+### 2026-11-01 — P5 ödül ve kişiselleştirme yerel MVP
+- P5.1 Maceracı Pasaportu: çocuk bazlı yıldızlar, öğrenilen sayı/renk/hayvan sayıları, üç dünya ilerlemesi ve rozetleri.
+- P5.2 Ventra Coin: ayrı ledger'da benzersiz bölüm başına ilk tamamlama +10; tekrar oynama coin üretmez. Gerçek paradan bağımsız earned-only v1.
+- P5.3 Koleksiyon: 8 kozmetik; satın alma/sahiplik/takma işlemleri atomik yerel IndexedDB işleminde. Öğrenme içeriği paywall'a bağlanmaz.
+- P5.4 Günlük hedef: 1/2/3 kayıtlı oyun için 5/8/12 coin, gün bazlı idempotent. Streak ve kaçırma cezası yok.
+- P5.5 Replay, profil izolasyonu, bakiye testleri. AÇIK: Ledger ve envanter buluta eşitlenmiyor; cihazda değiştirilebilir. **Ücretli coin için güvenilir değil**.
+- Ücretli coin 100/350/800 paketler yalnızca yetişkin hesabı alanında satış dışı taslaktır. Android Play Billing + iOS StoreKit, server-side makbuz doğrulama, iade, idempotent grant ve parental authorization olmadan aktif edilmez.
+- Gerçek cihaz, çocuk kabulü ve politikalar hâlâ açık; bu bir yayın onayı değildir.
