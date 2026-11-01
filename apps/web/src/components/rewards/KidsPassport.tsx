@@ -124,7 +124,8 @@ export function KidsPassport({profileId,nickname,avatarEmoji,gradeLevel,englishL
               {icon:'🐾',label:'Keşfedilen Hayvan',value:snapshot.learned.animals},
               {icon:'🎨',label:'Keşfedilen Renk',value:snapshot.learned.colors},
               {icon:'🔢',label:'Keşfedilen Sayı',value:snapshot.learned.numbers},
-              {icon:'🍎',label:'Keşfedilen Yiyecek',value:snapshot.learned.food}
+              {icon:'🍎',label:'Keşfedilen Yiyecek',value:snapshot.learned.food},
+              {icon:'🏡',label:'Aile & Ev Kelimeleri',value:snapshot.learned.family}
             ].map(x=><div key={x.label} className="flex items-center gap-3 rounded-xl border border-cyan-100/20 bg-slate-900/60 px-4 py-3">
               <span className="text-2xl">{x.icon}</span><div>
                 <strong className="block text-xl text-lime-200">{x.value}</strong>

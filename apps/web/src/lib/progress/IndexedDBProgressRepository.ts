@@ -495,7 +495,8 @@ export class IndexedDBProgressRepository implements IProgressRepository {
       });
     }
 
-    const gameTitle = payload.gameId === 'island_word_garden_food' ? 'Lezzet Pazarı'
+    const gameTitle = payload.gameId === 'island_word_garden_family' ? 'Aile Köyü'
+      : payload.gameId === 'island_word_garden_food' ? 'Lezzet Pazarı'
       : payload.gameId === 'island_word_garden_numbers' ? 'Sayı Vadisi'
       : payload.gameId === 'island_word_garden_colors' ? 'Renk Korusu'
       : payload.gameId === 'island_word_garden_steps' || payload.gameId === 'phaser_exploration_island'
@@ -654,7 +655,7 @@ export class IndexedDBProgressRepository implements IProgressRepository {
     const profileId = await this.ensureActiveProfileId(targetProfileId);
     const result: Record<number, LevelProgressRecord> = {};
 
-    const maxLevel = gameId === 'island_word_garden_numbers' || gameId === 'island_word_garden_food' ? 15 : 10;
+    const maxLevel = gameId === 'island_word_garden_family' ? 20 : gameId === 'island_word_garden_numbers' || gameId === 'island_word_garden_food' ? 15 : 10;
     for (let i = 1; i <= maxLevel; i++) {
       const key = `${profileId}:${gameId}:${i}`;
       const rec = await this.getRecord<LevelProgressRecord>(db, 'levels', key);
@@ -731,6 +732,17 @@ export class IndexedDBProgressRepository implements IProgressRepository {
       });
   }
 
+  public async getFamilyAnswerHistory(profileId: string): Promise<import('@ventra/shared').FamilyAnswerEvidence[]> {
+    const db=await this.getDB();
+    const sessions=await this.getRecordsByIndex<any>(db,'sessions','profileId',profileId);
+    return sessions.filter(x=>x.profileId===profileId&&x.data?.gameId==='island_word_garden_family')
+     .flatMap(x=>Array.isArray(x.data?.metrics?.familyAnswers)?
+       x.data.metrics.familyAnswers.filter((a:any)=>typeof a.wordId==='string'&&
+        ['discovery','recognition','listening','context','dialogue'].includes(a.kind)&&
+        typeof a.timestamp==='string'&&Number.isFinite(Date.parse(a.timestamp))&&
+        Number.isFinite(a.mistakes)&&typeof a.firstTryCorrect==='boolean'&&typeof a.hintUsed==='boolean'):[]);
+  }
+
   public async getFoodAnswerHistory(profileId: string): Promise<import('@ventra/shared').FoodAnswerEvidence[]> {
     const db = await this.getDB();
     const sessions = await this.getRecordsByIndex<any>(db, 'sessions', 'profileId', profileId);
@@ -751,7 +763,7 @@ export class IndexedDBProgressRepository implements IProgressRepository {
       const levels = await this.getAllLevelProgress(gameId, targetProfileId);
       return calculateTotalStars(levels);
     }
-    const [atolye, kopru, exploration, legacyIsland, wordSteps, colors, numbers, food] = await Promise.all([
+    const [atolye, kopru, exploration, legacyIsland, wordSteps, colors, numbers, food, family] = await Promise.all([
       this.getAllLevelProgress('kesir_atolyesi', targetProfileId),
       this.getAllLevelProgress('kesir_koprusu', targetProfileId),
       this.getAllLevelProgress('phaser_exploration_island', targetProfileId),
@@ -759,7 +771,8 @@ export class IndexedDBProgressRepository implements IProgressRepository {
       this.getAllLevelProgress('island_word_garden_steps', targetProfileId),
       this.getAllLevelProgress('island_word_garden_colors', targetProfileId),
       this.getAllLevelProgress('island_word_garden_numbers', targetProfileId),
-      this.getAllLevelProgress('island_word_garden_food', targetProfileId)
+      this.getAllLevelProgress('island_word_garden_food', targetProfileId),
+      this.getAllLevelProgress('island_word_garden_family', targetProfileId)
     ]);
     // Legacy island completion and the five modern steps represent the same
     // achievement: never count both awards for the same area.
@@ -769,7 +782,7 @@ export class IndexedDBProgressRepository implements IProgressRepository {
       calculateTotalStars(wordSteps)
     );
     return calculateTotalStars(atolye) + calculateTotalStars(kopru) +
-      animalStars + calculateTotalStars(colors) + calculateTotalStars(numbers) + calculateTotalStars(food);
+      animalStars + calculateTotalStars(colors) + calculateTotalStars(numbers) + calculateTotalStars(food) + calculateTotalStars(family);
   }
 
   // --- Bulut Eşitleme Desteği ---

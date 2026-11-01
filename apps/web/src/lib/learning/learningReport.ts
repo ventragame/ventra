@@ -1,5 +1,6 @@
 import type { IProgressRepository } from '../progress/types.ts';
 import { ANIMAL_MEADOW_WORDS } from './animalMissionEngine.ts';
+import { VILLAGE_WORDS } from './familyVillageEngine.ts';
 import { MARKET_WORDS } from './foodMarketEngine.ts';
 import { COLOR_GROVE_WORDS } from '../progress/colorGroveProgress.ts';
 import { getLearningSnapshot, type LearningSnapshot } from './adaptiveLearningEngine.ts';
@@ -12,14 +13,15 @@ import { getLearningSnapshot, type LearningSnapshot } from './adaptiveLearningEn
 export async function loadLearningReport(
   repo:IProgressRepository,profileId:string,now:string=new Date().toISOString()
 ):Promise<LearningSnapshot>{
-  const [animalAnswers,colorAnswers,numberAnswers,foodAnswers]=await Promise.all([
+  const [animalAnswers,colorAnswers,numberAnswers,foodAnswers,familyAnswers]=await Promise.all([
     repo.getAnimalAnswerHistory(profileId),repo.getColorAnswerHistory(profileId),
-    repo.getNumberAnswerHistory(profileId),repo.getFoodAnswerHistory(profileId)
+    repo.getNumberAnswerHistory(profileId),repo.getFoodAnswerHistory(profileId),repo.getFamilyAnswerHistory(profileId)
   ]);
   return getLearningSnapshot({
     animalAnswers,colorAnswers,
     animalWords:ANIMAL_MEADOW_WORDS.map(w=>w.id),
     colorWords:COLOR_GROVE_WORDS.map(w=>w.id),numberWords:[],numberAnswers,
-    foodWords:MARKET_WORDS.map(w=>w.id),foodAnswers,now
+    foodWords:MARKET_WORDS.map(w=>w.id),foodAnswers,
+    familyWords:VILLAGE_WORDS.map(w=>w.id),familyAnswers,now
   });
 }
