@@ -494,7 +494,8 @@ export class IndexedDBProgressRepository implements IProgressRepository {
       });
     }
 
-    const gameTitle = payload.gameId === 'island_word_garden_colors' ? 'Renk Korusu'
+    const gameTitle = payload.gameId === 'island_word_garden_numbers' ? 'Sayı Vadisi'
+      : payload.gameId === 'island_word_garden_colors' ? 'Renk Korusu'
       : payload.gameId === 'island_word_garden_steps' || payload.gameId === 'phaser_exploration_island'
       ? 'Hayvan Çayırı'
       : payload.gameId === 'kesir_koprusu' ? 'Kesir Köprüsü' : 'Kesir Atölyesi';
@@ -712,18 +713,34 @@ export class IndexedDBProgressRepository implements IProgressRepository {
     });
   }
 
+  public async getNumberAnswerHistory(profileId: string): Promise<import('@ventra/shared').NumberAnswerEvidence[]> {
+    const db = await this.getDB();
+    const sessions = await this.getRecordsByIndex<any>(db, 'sessions', 'profileId', profileId);
+    return sessions.filter(s => s.data?.gameId === 'island_word_garden_numbers')
+      .flatMap(s => {
+        const answers = s.data?.metrics?.numberAnswers;
+        return Array.isArray(answers) ? answers.filter(
+          (x: any) => Number.isInteger(x.value) && x.value>=1 && x.value<=20 &&
+            ['discovery','recognition','quantity','listening','application'].includes(x.kind) &&
+            typeof x.timestamp === 'string' && Number.isFinite(Date.parse(x.timestamp)) &&
+            Number.isFinite(x.mistakes) && typeof x.firstTryCorrect === 'boolean'
+        ) : [];
+      });
+  }
+
   public async getTotalStars(targetProfileId?: string, gameId?: string): Promise<number> {
     if (gameId) {
       const levels = await this.getAllLevelProgress(gameId, targetProfileId);
       return calculateTotalStars(levels);
     }
-    const [atolye, kopru, exploration, legacyIsland, wordSteps, colors] = await Promise.all([
+    const [atolye, kopru, exploration, legacyIsland, wordSteps, colors, numbers] = await Promise.all([
       this.getAllLevelProgress('kesir_atolyesi', targetProfileId),
       this.getAllLevelProgress('kesir_koprusu', targetProfileId),
       this.getAllLevelProgress('phaser_exploration_island', targetProfileId),
       this.getAllLevelProgress('island_word_garden', targetProfileId),
       this.getAllLevelProgress('island_word_garden_steps', targetProfileId),
-      this.getAllLevelProgress('island_word_garden_colors', targetProfileId)
+      this.getAllLevelProgress('island_word_garden_colors', targetProfileId),
+      this.getAllLevelProgress('island_word_garden_numbers', targetProfileId)
     ]);
     // Legacy island completion and the five modern steps represent the same
     // achievement: never count both awards for the same area.
@@ -733,7 +750,7 @@ export class IndexedDBProgressRepository implements IProgressRepository {
       calculateTotalStars(wordSteps)
     );
     return calculateTotalStars(atolye) + calculateTotalStars(kopru) +
-      animalStars + calculateTotalStars(colors);
+      animalStars + calculateTotalStars(colors) + calculateTotalStars(numbers);
   }
 
   // --- Bulut Eşitleme Desteği ---

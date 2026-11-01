@@ -2,6 +2,7 @@
  * Selected English level controls initial content, never claims measured mastery.
  * No quiz can use vocabulary absent from persisted discovery evidence.
  */
+import type { NumberAnswerEvidence } from '@ventra/shared';
 import {getLearningSnapshot,needsReview} from './adaptiveLearningEngine.ts';
 import {resolveGradeAwarePolicy,gradeAwareReviewPriority,type EnglishPlacement} from './gradeAwareLearningPolicy.ts';
 
@@ -12,14 +13,7 @@ export const NUMBER_WORDS = [
 ] as const;
 export type NumberStage = 1 | 2 | 3 | 4 | 5;
 export type NumberSkill = 'recognition' | 'quantity' | 'listening' | 'application';
-export type NumberEvidence = {
-  value: number;
-  kind: 'discovery' | NumberSkill;
-  mistakes: number;
-  firstTryCorrect: boolean;
-  timestamp: string;
-  hintUsed?: boolean;
-};
+export type NumberEvidence = NumberAnswerEvidence;
 export type NumberQuestion = {
   target: number;
   choices: number[];

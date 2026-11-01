@@ -46,6 +46,15 @@ export interface AnimalAnswerEvidence {
   timestamp: string;
 }
 
+export interface NumberAnswerEvidence {
+  value:number;
+  kind:'discovery' | 'recognition' | 'quantity' | 'listening' | 'application';
+  mistakes:number;
+  firstTryCorrect:boolean;
+  hintUsed?:boolean;
+  timestamp:string;
+}
+
 export interface GameMetrics {
   durationSeconds: number;
   attemptsCount: number;
@@ -54,6 +63,7 @@ export interface GameMetrics {
   hintsUsed?: number;
   colorAnswers?: ColorAnswerEvidence[];
   animalAnswers?: AnimalAnswerEvidence[];
+  numberAnswers?: NumberAnswerEvidence[];
 }
 
 export interface GameCompletedPayload {
