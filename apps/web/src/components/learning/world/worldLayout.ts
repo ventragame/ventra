@@ -117,5 +117,5 @@ export function getHabitatObjects(ids:readonly string[],placeFor:(id:string)=>st
 export function getDistrictObjects(colorsUnlocked:boolean,numbersUnlocked=false,foodUnlocked=false):WorldObject[]{
   return DISTRICTS.map(d=>d.id==='colors'?{...d,unlocked:colorsUnlocked}:
     d.id==='numbers'?{...d,unlocked:colorsUnlocked&&numbersUnlocked}:
-    d.id==='food'?{...d,unlocked:colorsUnlocked&&numbersUnlocked&&foodUnlocked}:{...d});
+    d.id==='food'?{...d,unlocked:foodUnlocked}:{...d});
 }

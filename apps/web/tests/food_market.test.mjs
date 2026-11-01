@@ -168,3 +168,18 @@ test('G1 entire 15-level path yields exactly 45 stars and 150 first-time earned 
  await saveFoodMarketMission(repo,p.id,'cafe',5,0,15,proof(5,'cafe'),'cafe-5');
  assert.equal((await getPassport(repo,p.id,storage,new Date())).balance,150);
 });
+
+test('G1 live map accessibility: food area is playable without completing Number Valley',()=>{
+ const modal=fs.readFileSync(new URL('../src/components/learning/LearningPathModal.tsx',import.meta.url),'utf8');
+ const map=fs.readFileSync(new URL('../src/components/learning/WordGardenDistrictMap.tsx',import.meta.url),'utf8');
+ const layout=fs.readFileSync(new URL('../src/components/learning/world/worldLayout.ts',import.meta.url),'utf8');
+ assert.match(modal,/foodUnlocked=\{true\}/);
+ assert.match(modal,/foodAvailable=\{foodLoaded&&!foodError\}/);
+ assert.doesNotMatch(modal,/foodUnlocked=\{[^}]*completedByBand/);
+ assert.match(layout,/d\.id==='food'\?\{\.\.\.d,unlocked:foodUnlocked\}/);
+ assert.match(map,/obj\.id==='food'&&foodUnlocked&&foodAvailable/);
+ assert.match(map,/YÜKLEME HATASI/);
+ assert.match(map,/YÜKLENİYOR/);
+ assert.match(map,/YAKINDA/);
+ assert.match(map,/OYNANABİLİR/);
+});

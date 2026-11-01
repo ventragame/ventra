@@ -26,6 +26,7 @@ interface WordGardenDistrictMapProps {
   foodTotal:number;
   foodUnlocked:boolean;
   foodAvailable:boolean;
+  foodError:boolean;
   onEnterFood:()=>void;
   gradeLevel?:number|null;
   onBack:()=>void;
@@ -41,7 +42,7 @@ const PLACES:Record<string,{title:string;description:string;icon:string}>={
 export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
   completedLevels,totalLevels,onEnterAnimals,onEnterColors,
   colorsUnlocked,colorsAvailable,colorCompleted,numberCompleted,numberTotal,numbersUnlocked,numbersAvailable,onEnterNumbers,
-  foodCompleted,foodTotal,foodUnlocked,foodAvailable,onEnterFood,gradeLevel=null,onBack
+  foodCompleted,foodTotal,foodUnlocked,foodAvailable,foodError,onEnterFood,gradeLevel=null,onBack
 })=>{
   const [notice,setNotice]=useState('');
   const journeyTotal=totalLevels+3+numberTotal+foodTotal;
@@ -52,6 +53,7 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
     else if(obj.id==='colors'&&colorsUnlocked&&colorsAvailable)onEnterColors();
     else if(obj.id==='numbers'&&numbersUnlocked&&numbersAvailable)onEnterNumbers();
     else if(obj.id==='food'&&foodUnlocked&&foodAvailable)onEnterFood();
+    else if(obj.id==='food')setNotice(foodError?'Lezzet Pazarı kayıtları yüklenemedi. Haritadan çıkıp yeniden deneyin.':'Lezzet Pazarı yükleniyor; biraz sonra yeniden seçin.');
     else setNotice(PLACES[obj.id]?.title+' bölgesi henüz açılmadı.');
   };
   return <div role="dialog" aria-modal="true" aria-labelledby="wg-world-title"
@@ -77,6 +79,7 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
       </div>
       <ExplorerCanvas key="garden" area="garden" objects={objects} caption="Gezilebilir Keşif Haritası"
         height={570} onInteract={enter} onInspect={obj=>setNotice(`${obj.label} henüz oynanabilir değil.`)}/>
+      {foodError&&<div role="alert" className="mb-3 rounded-xl border border-rose-300/50 bg-rose-950/75 px-4 py-3 text-sm font-semibold text-white">Lezzet Pazarı ilerlemesi okunamadı. Kayıtların silinmedi; haritadan çıkıp tekrar açarak yeniden dene.</div>}
       {notice&&<div role="status" className="mt-3 rounded-xl border border-amber-300/40 bg-slate-950/65 px-4 py-3 text-sm font-semibold text-amber-100">
         {notice} <button onClick={()=>setNotice('')} className="ml-3 rounded-md underline">Kapat</button>
       </div>}
@@ -84,18 +87,21 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
         {objects.map(obj=>{
           const info=PLACES[obj.id];
           const playable=obj.unlocked===true;
+          const status=playable?'OYNANABİLİR':obj.id==='food'
+            ?(foodError?'YÜKLEME HATASI':'YÜKLENİYOR')
+            :obj.id==='family'||obj.id==='sanctuary'?'YAKINDA':'🔒 KİLİTLİ';
           return <button key={obj.id} type="button" disabled={!playable} onClick={()=>enter(obj)}
             aria-label={`${info.title} — ${playable?'oyna':'kilitli'}`}
             className={`min-h-28 rounded-2xl border px-3 py-4 text-left shadow-md focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-300
               ${playable?'border-lime-200/60 bg-emerald-900/65 hover:bg-emerald-800/75':'border-white/15 bg-slate-950/30 text-white/65'}`}>
             <div className="flex items-center justify-between gap-2"><span aria-hidden="true" className="text-2xl">{info.icon}</span>
-              <span className="text-[10px] font-black">{playable?'OYNANABİLİR':'🔒 PLANLANIYOR'}</span></div>
+              <span className="text-[10px] font-black">{status}</span></div>
             <h2 className="mt-2 text-sm font-black sm:text-base">{info.title}</h2>
             <p className="mt-1 text-[11px] leading-snug text-white/75">{info.description}</p>
           </button>;
         })}
       </div>
-      <p className="mt-5 text-center text-xs text-sky-100/80">Kilitli bölgelerde henüz görev yoktur. Mevcut kazanımlar ve yıldızlar korunur.</p>
+      <p className="mt-5 text-center text-xs text-sky-100/80">Lezzet Pazarı oynanabilir bir İngilizce bölgesidir ve diğer dünyaları bitirmeden açılabilir. Sadece Aile Köyü ve Keşif Tapınağı henüz geliştirme planındadır.</p>
     </div>
   </div>;
 };

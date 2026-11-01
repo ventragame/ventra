@@ -196,8 +196,9 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
     onEnterNumbers={()=>setDistrict('numbers')}
     foodCompleted={food.completedLevels}
     foodTotal={food.totalLevels}
-    foodUnlocked={!numberError&&numbers.completedByBand.ones===5}
+    foodUnlocked={true}
     foodAvailable={foodLoaded&&!foodError}
+    foodError={foodError}
     onEnterFood={()=>setDistrict('food')}
     gradeLevel={gradeLevel}
     colorsAvailable={!colorError}

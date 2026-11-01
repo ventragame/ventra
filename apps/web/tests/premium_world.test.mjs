@@ -71,3 +71,13 @@ test('P4 mission IDs still match existing persisted P3 five-stage contract',()=>
   assert.equal(getAnimalObjects(mission.questions[0].choices,()=>undefined).length,3);
   assert.equal(getHabitatObjects(mission.questions[0].choices,id=>id).length,3);
 });
+
+test('G1 Lezzet Pazarı can open independently from other worlds; future regions stay locked',()=>{
+ const separate=getDistrictObjects(false,false,true);
+ assert.equal(separate.find(x=>x.id==='food')?.unlocked,true);
+ assert.equal(separate.find(x=>x.id==='colors')?.unlocked,false);
+ assert.equal(separate.find(x=>x.id==='numbers')?.unlocked,false);
+ assert.equal(separate.find(x=>x.id==='family')?.unlocked,false);
+ assert.equal(separate.find(x=>x.id==='sanctuary')?.unlocked,false);
+ assert.equal(getDistrictObjects(true,true,true).find(x=>x.id==='food')?.unlocked,true);
+});
