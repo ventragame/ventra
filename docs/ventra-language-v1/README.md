@@ -1,3 +1,5 @@
+> **GÜNCEL KAPSAM REFERANSI (01.11.2026):** Ventra'nın değişmez ürün amacı için [VENTRA_PRODUCT_CHARTER.md](../VENTRA_PRODUCT_CHARTER.md), güncel iş sırası için [PRODUCT_ROADMAP.md](../PRODUCT_ROADMAP.md) esas alınır. Bu 30 Ekim belgesi **tarihsel vizyon/GDD arşividir**; içindeki "kod öncesi" ifadeleri, sürümler ve eski statüler bugün geçerli kabul raporu değildir.
+
 # VENTRA — DİL ÖĞRENME PLATFORMU V1
 ## Dokümantasyon Dizini ve Proje Kılavuzu
 

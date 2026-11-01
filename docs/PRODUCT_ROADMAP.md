@@ -1,5 +1,7 @@
 # VENTRA — Canonical Product Roadmap v1.0
 
+> **KAPSAM KİLİDİ — 01.11.2026:** Ventra, yalnızca **dil öğrenimi** hedefli bir ürün olarak geliştirilir (ilk dil İngilizce). Matematik/STEM/ekonomi dünyasına kayma kararı **reddedildi**. Yeni oyun açmadan önce [VENTRA_PRODUCT_CHARTER.md](./VENTRA_PRODUCT_CHARTER.md) okunmalıdır. Bu dosyanın ilk faz tablosu tarihsel durum kaydıdır; aşağıdaki tarihli kararlar önceliklidir.
+
 **Tarih:** 31 Ekim 2026  
 **Durum:** Aktif ürün planı; sprintler kanıtlanan kabul kriterleriyle tamamlanır.  
 **Kapsam:** Kids World (7–12), B2C bireysel/aile ve B2B okul erişimi.  
@@ -202,3 +204,15 @@ Kaynaklar:
 - P5.5 Replay, profil izolasyonu, bakiye testleri. AÇIK: Ledger ve envanter buluta eşitlenmiyor; cihazda değiştirilebilir. **Ücretli coin için güvenilir değil**.
 - Ücretli coin 100/350/800 paketler yalnızca yetişkin hesabı alanında satış dışı taslaktır. Android Play Billing + iOS StoreKit, server-side makbuz doğrulama, iade, idempotent grant ve parental authorization olmadan aktif edilmez.
 - Gerçek cihaz, çocuk kabulü ve politikalar hâlâ açık; bu bir yayın onayı değildir.
+
+
+### 2026-11-01 — ADR-LANG-002: Dil öğrenimi odağı ve yeni içerik önceliği (ÜRÜN SAHİBİ KARARI)
+
+- **Ürün vizyonu tekrar onaylandı:** Ventra, etkileşimli **İngilizce/dil öğrenme uygulamasıdır**, tüm derslere yönelik genel oyunlaştırılmış eğitim platformu değildir. Önceki matematik, mühendislik, ekonomi oyunu genişleme önerileri reddedildi.
+- **KANONİK kapsam:** [VENTRA_PRODUCT_CHARTER.md](./VENTRA_PRODUCT_CHARTER.md). Genel ürün önerileri, GDD'ler ve kodlama ajanları bu kapsama uymalıdır. Bu yeni karar, üstteki 31 Ekim faz tablosundaki eski durum etiketlerinden daha yenidir.
+- **Mevcut içerik:** Hayvan Çayırı = İngilizce hayvan adları; Renk Korusu = İngilizce renkler; Sayı Vadisi = İngilizce sayılar (düzeye göre 1–1000). Üçü de aynı P3 dil öğrenme motorunun dünyalarıdır.
+- **Sıradaki G1:** **Lezzet Pazarı (Food & Drinks)**. İlgili İngilizce kelimeleri görsel, ses, tanıma, dinleme, basit ürün seçme ve kısa alışveriş ifadeleri üzerinden öğretir. **Zorunlu para hesaplama, bütçe, fiyat/para üstü, kâr/zarar ve mağaza işletme mekaniği YOK.** Beş tema-özel dil oyunu/etkileşimi GDD'de belirlenecek. Daha önce telaffuz edilen “50–60 ürün/20–25 görev” yalnızca öneri; onaylanmış içerik veya geliştirilmiş özellik değildir.
+- **Sonraki içerik:** Aile Köyü (family/home/daily English), Keşif Tapınağı (birikmiş İngilizce kazanımlarını tekrarlama). Başka yabancı diller/13+ ileride, ayrı kapsam kararıyla.
+- **Okul fazı:** P6.1 okul ve sınıf kodları yazıldı ve kullanıcı veli-bağlama akışını denedi; ileri öğretmen ödevi/raporlama **erteledi**. Kod ve canlı kabul farkı korunur.
+- **Ücretli coin:** Ebeveyn tarafı Play Billing/StoreKit + doğrulanmış sunucu ledger ileride; çocuklara ödeme baskısı yok, satış şu anda kapalı.
+- **Kalite kapıları:** Her yeni dünya önce hedef **İngilizce kelimeler/ifadeler, pedagojik akış, yanlış/ipuçları, P3 kanıtı, cihaz ve çocuk kabulü** ile tanımlanır; ardından kodlanır.
