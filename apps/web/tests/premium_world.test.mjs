@@ -81,3 +81,79 @@ test('G1 Lezzet Pazarı can open independently from other worlds; future regions
  assert.equal(separate.find(x=>x.id==='sanctuary')?.unlocked,false);
  assert.equal(getDistrictObjects(true,true,true).find(x=>x.id==='food')?.unlocked,true);
 });
+
+import fs from 'node:fs';
+import {
+ GARDEN_THEMES,GARDEN_ORDER,districtStatus,districtStatusLabel,districtPercent,mapProgress,
+ decorateWorldObjects
+} from '../src/components/learning/world/gardenTheme.ts';
+
+test('M1 six authored landmarks and status metadata remain linked to all existing game IDs',()=>{
+ assert.deepEqual([...GARDEN_ORDER],['animals','colors','numbers','food','family','sanctuary']);
+ assert.equal(Object.keys(GARDEN_THEMES).length,6);
+ assert.equal(new Set(Object.keys(GARDEN_THEMES).map(x=>GARDEN_THEMES[x].art)).size,6);
+ const objects=getDistrictObjects(true,true,true,true,true);
+ assert.equal(objects.length,6);
+ for(const id of GARDEN_ORDER){
+   const world=objects.find(x=>x.id===id);
+   assert.ok(world?.unlocked);
+   assert.ok(GARDEN_THEMES[id].name&&GARDEN_THEMES[id].accent&&GARDEN_THEMES[id].words);
+ }
+});
+test('M1 map milestones derive from real child data without invented stars and clamp invalid totals',()=>{
+ const progress=GARDEN_ORDER.map((id,i)=>({
+   id,completed:i,stars:i*3,total:5,unlocked:true,available:true
+ }));
+ assert.deepEqual(mapProgress(progress),{done:15,total:30,stars:45,percent:50,finished:1});
+ assert.equal(districtPercent(5,5),100);
+ assert.equal(districtPercent(-1,5),0);
+ assert.equal(districtPercent(25,5),100);
+ assert.equal(districtPercent(1,0),0);
+ const decorated=decorateWorldObjects(getDistrictObjects(true,true,true,true,true),progress);
+ assert.equal(decorated[0].stars,0);
+ assert.equal(decorated[5].completed,5);
+ assert.equal(decorated[5].total,5);
+ assert.deepEqual(getDistrictObjects(true,true,true,true,true)[0].completed,undefined,
+  'world layout contract must not be mutated by map view state');
+});
+test('M1 ready, continue, completed, loading, gated and failure states remain distinct',()=>{
+ const entry={id:'food',completed:0,total:15,stars:0,unlocked:true,available:true};
+ const expected=[
+  ['ready',entry],['continue',{...entry,completed:4}],['complete',{...entry,completed:15}],
+  ['loading',{...entry,available:false}],['locked',{...entry,unlocked:false}],
+  ['error',{...entry,error:true}]
+ ];
+ for(const [status,data] of expected){
+   assert.equal(districtStatus(data),status);
+   assert.ok(districtStatusLabel(status).length>3);
+ }
+ assert.equal(districtStatus({...entry,completed:15,unlocked:false}),'locked');
+ assert.equal(districtStatus({...entry,completed:0,available:false,error:true}),'error');
+});
+test('M1 premium Phaser world fits six landmarks on desktop and still follows explorer on mobile',()=>{
+ const scene=fs.readFileSync(new URL('../src/components/learning/world/ExplorerScene.ts',import.meta.url),'utf8');
+ const theme=fs.readFileSync(new URL('../src/components/learning/world/GardenWorldArt.ts',import.meta.url),'utf8');
+ assert.match(scene,/const overview=w>=750&&height>=430/);
+ assert.match(scene,/Math\.min\(w\/WORLD_WIDTH,height\/WORLD_HEIGHT\)/);
+ assert.match(scene,/this\.cameras\.main\.stopFollow\(\)/);
+ assert.match(scene,/this\.cameras\.main\.startFollow\(this\.player/);
+ assert.match(scene,/paintGardenWorld\(this\)/);
+ assert.match(scene,/createGardenLandmark\(this,object\)/);
+ assert.match(theme,/object\.id==='sanctuary'/);
+ assert.match(theme,/object\.id==='animals'/);
+ assert.match(theme,/object\.id==='family'/);
+});
+test('M1 illustrated district cards and passport/guidance controls open real actions',()=>{
+ const map=fs.readFileSync(new URL('../src/components/learning/WordGardenDistrictMap.tsx',import.meta.url),'utf8');
+ const modal=fs.readFileSync(new URL('../src/components/learning/LearningPathModal.tsx',import.meta.url),'utf8');
+ const kids=fs.readFileSync(new URL('../src/app/kids/page.tsx',import.meta.url),'utf8');
+ const cards=fs.readFileSync(new URL('../src/components/learning/DistrictPreviewArt.tsx',import.meta.url),'utf8');
+ assert.match(map,/DistrictPreviewArt id=\{id\}/);
+ assert.match(map,/role="dialog"/);
+ assert.match(map,/onClick=\{onOpenPassport\}/);
+ assert.match(map,/aria-label=/);
+ assert.match(map,/onClick=\{\(\)=>setMapTips\(x=>!x\)\}/);
+ assert.match(modal,/starsByDistrict=\{\{/);
+ assert.match(kids,/onOpenPassport=\{\(\)=>\{handleCloseLearningPath\(\);setIsPassportOpen\(true\);\}\}/);
+ for(const id of GARDEN_ORDER)assert.match(cards,new RegExp("id==='"+id+"'"));
+});
