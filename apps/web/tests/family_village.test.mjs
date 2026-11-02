@@ -117,7 +117,7 @@ test('G2 child-friendly interface includes authored house SVG, accessible voice 
  const ui=fs.readFileSync(new URL('../src/components/learning/activities/FamilyVillageAdventure.tsx',import.meta.url),'utf8');
  const map=fs.readFileSync(new URL('../src/components/learning/WordGardenDistrictMap.tsx',import.meta.url),'utf8');
  assert.match(scene,/MY HOME/);assert.match(scene,/viewBox="0 0 1000 350"/);
- assert.match(ui,/utterance\.onend/);
+ assert.match(ui,/soundService\.speakEnglish\(text/);\n assert.match(ui,/onEnd:.*setHeard\(true\)/);
  assert.match(ui,/if\(requireFullAudio\)setHeard\(true\)/);
  assert.match(ui,/stage===3&&!heard&&!hint/);
  assert.match(ui,/current\.words\.map/);

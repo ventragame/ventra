@@ -203,8 +203,8 @@ test('G1.5: every eligible food item becomes discoverable through repeated stage
 });
 test('G1.6: listening choices unlock only after completed voice or explicit assisted fallback',()=>{
  const code=fs.readFileSync(new URL('../src/components/learning/activities/FoodMarketAdventure.tsx',import.meta.url),'utf8');
- assert.match(code,/voice\.onend=\(\)=>\{if\(token===speechRun\.current\)\{setSpeaking\(false\);if\(listenGate\)setHeard\(true\)/);
- assert.match(code,/voice\.onerror=\(\)=>\{if\(token!==speechRun\.current\)return;setSpeaking\(false\);/);
+ assert.match(code,/soundService\.speakEnglish\(text/);\n assert.match(code,/onEnd:.*if\(listenGate\)setHeard\(true\)/);
+ assert.match(code,/onError:.*if\(token===speechRun\.current\).*setSpeaking\(false\)/);
  assert.match(code,/if\(stage===3&&!heard&&!hint\)return/);
  assert.match(code,/hint\|\|\(stage===3&&!heard\)/);
  assert.match(code,/aria-label=\{showEnglish\?/);

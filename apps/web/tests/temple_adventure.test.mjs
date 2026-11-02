@@ -132,7 +132,7 @@ test('G3: accessible active map, all five temple challenges, audio completion an
  const modal=fs.readFileSync(new URL('../src/components/learning/LearningPathModal.tsx',import.meta.url),'utf8');
  const scene=fs.readFileSync(new URL('../src/components/learning/activities/TempleScenery.tsx',import.meta.url),'utf8');
  assert.match(ui,/stage===4/);assert.match(ui,/chooseToken/);assert.match(ui,/current.words:task.options/);
- assert.match(ui,/utterance\.onend/);assert.match(ui,/setHeard\(true\)/);
+ assert.match(ui,/soundService\.speakEnglish\(text/);assert.match(ui,/onEnd:.*setHeard\(true\)/);
  assert.match(ui,/aria-label="Oluşturulan İngilizce cümle"/);
  assert.match(ui,/role="progressbar"/);
  assert.match(map,/onEnterTemple/);
