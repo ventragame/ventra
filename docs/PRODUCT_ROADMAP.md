@@ -288,3 +288,6 @@ Kaynaklar:
 - Ses için ayrı plaza bestesi, mevcut opt-in/mute/ducking yönetimi. WebP olan büyük-ada ana sanat varlığı korundu; bölümün canlı sahnesi yüksek çözünürlüklü ölçeklenebilir SVG'dir.
 - **Açık:** Dil öğretmeni/çocuk kabul testi, gerçek cihaz görsel ve ses testi, 4 ek bölge ve tüm büyük ada tamamlanma kriteri.
 - [CM1 GDD ve kabul](./CM1_UYANAN_MEYDAN_GDD_ACCEPTANCE.md).
+
+### CM1 v2 · sentence diversity & grade/placement safety
+See [CM1 acceptance and implemented grammatical families](./CM1_UYANAN_MEYDAN_GDD_ACCEPTANCE.md). Teacher review, child studies, 4 later sentence regions not completed.

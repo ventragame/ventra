@@ -7,7 +7,7 @@ interface Props{
  chapter:number;
  onInteract?:()=>void;
 }
-const COLOR_MAP:Record<string,string>={red:'#fa6f78',blue:'#64d3fa',green:'#75e6a1',yellow:'#ffdb68'};
+const COLOR_MAP:Record<string,string>={red:'#fa6f78',blue:'#64d3fa',green:'#75e6a1',yellow:'#ffdb68',purple:'#c6a1fc',orange:'#f9ab65'};
 /** Original scalable art drawn as semantic SVG layers. Meaningful mutations
  * are driven ONLY by a verified constructed sentence, not by correct-choice CSS. */
 export function SentencePlazaScene({effect,awaken,chapter,onInteract}:Props){
@@ -99,8 +99,10 @@ export function SentencePlazaScene({effect,awaken,chapter,onInteract}:Props){
   </g>}
   {awaken&&effect?.actor==='balloon'&&<g className="sp-effect-float"><path d="M738 310q6-66 0-113" fill="none" stroke="#e8deeb" strokeWidth="2"/><ellipse cx="738" cy="188" rx="34" ry="45" fill={color} stroke="#fff5d9" strokeWidth="5"/></g>}
   {/* Actor shows up or reacts only when the built English has been checked. */}
-  {showAnimal&&<g className={`sp-actor sp-actor-${animal} sp-actor-${motion||'idle'}`}
-   transform={effect?.place?.includes('under')?'translate(310 365)':effect?.place?.includes('behind')?'translate(170 340)':effect?.place?.includes('fountain')?'translate(523 384)':'translate(526 348)'}>
+  {showAnimal&&Array.from({length:Math.max(1,Math.min(3,effect?.count??1))},(_,index)=>
+   <g key={index} className={`sp-actor sp-actor-${animal} sp-actor-${motion||'idle'}`}
+   transform={(effect?.place?.includes('under')?'translate(310 365)':effect?.place?.includes('behind')?'translate(170 340)':effect?.place?.includes('fountain')?'translate(523 384)':'translate(526 348)')
+     + ' translate(' + ((effect?.count??1)>1?index*66-33:0) + ',0)'}>
    <ellipse cx="0" cy="25" rx="35" ry="9" fill="#2f6573" opacity=".35"/>
    {animal==='bird'?<>
     <ellipse cx="0" cy="-16" rx="29" ry="22" fill={effect?.color&&COLOR_MAP[effect.color]||'#87cced'} stroke="#f6f2df" strokeWidth="3"/>
@@ -114,10 +116,13 @@ export function SentencePlazaScene({effect,awaken,chapter,onInteract}:Props){
     <circle cx="-2" cy="-23" r="4" fill="#925a64"/>
     <path d="M-23 16v12M19 16v12" stroke="#f6e9d8" strokeWidth="8" strokeLinecap="round"/>
    </>}
-  </g>}
+  </g>)}
   {awaken&&effect?.actor==='apple'&&<g className="sp-effect-bloom" transform="translate(722 383)">
     <ellipse rx="73" ry="22" fill="#e4bd8d" stroke="#fff0c7" strokeWidth="4"/>
-    {Array.from({length:5},(_,i)=>{
+    {effect?.action==='remove'?
+     <g><path d="M-23-23L23 23M23-23L-23 23" stroke="#ffd0b3" strokeWidth="8" strokeLinecap="round"/>
+      <circle cx="0" cy="0" r="30" fill="none" stroke="#ffd0b3" strokeWidth="5"/></g>
+    :Array.from({length:5},(_,i)=>{
      const fruit=effect.food??'apples',x=(i-2)*22,y=i%2?-6:-16;
      const isOrange=fruit==='oranges'||fruit==='peaches',isBanana=fruit==='bananas';
      const isCarrot=fruit==='carrots',isGrape=fruit==='grapes',isStrawberry=fruit==='strawberries';

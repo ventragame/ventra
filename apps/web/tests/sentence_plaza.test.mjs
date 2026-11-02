@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
-import {planPlazaMission,plazaWordTiles,validatePlazaEvidence,plazaQuestionsForGrade,
+import {planPlazaMission,plazaWordTiles,validatePlazaEvidence,plazaQuestionsForGrade,plazaCurriculumPool,evaluatePlazaSentence,
  SENTENCE_PLAZA_MISSIONS,SENTENCE_PLAZA_GAME_ID} from '../src/lib/learning/sentencePlazaEngine.ts';
 import {MemoryProgressRepository} from '../src/lib/progress/MemoryProgressRepository.ts';
 import {getSentencePlazaProgress,saveSentencePlazaMission} from '../src/lib/progress/sentencePlazaProgress.ts';
@@ -45,7 +45,7 @@ test('Grade size and English grammar are independently controlled at every level
     for(const q of plan.questions){
      assert.equal(q.englishLevel,level);
      assert.ok(q.tokens.length>=3);
-     assert.ok(q.sentence.endsWith('.'));
+     assert.match(q.sentence,/[.?]$/);
      assert.ok(q.cue.length>=12);
      assert.ok(q.explanation.length>=12);
      assert.ok(q.vocabulary.length>=1);
@@ -63,7 +63,8 @@ test('Grade size and English grammar are independently controlled at every level
 test('A2 sentences contain contextual clauses while beginners get short scaffolded sentences',()=>{
  const a2=planPlazaMission({mission:4,grade:7,englishLevel:'A2',seed:11});
  const pre=planPlazaMission({mission:4,grade:7,englishLevel:'Pre-A1',seed:11});
- assert.ok(a2.questions.every(q=>q.sentence.includes('because')));
+ assert.ok(a2.questions.some(q=>q.kind==='reason'));
+ assert.ok(a2.questions.some(q=>q.kind==='question'));
  assert.ok(pre.questions.every(q=>q.sentence.includes('can')));
  const place=planPlazaMission({mission:3,grade:4,englishLevel:'A1',seed:7});
  assert.ok(place.questions.every(q=>q.scene.place&&q.sentence.includes(q.scene.place)));
@@ -130,4 +131,78 @@ test('Designed production scene is animated, original, accessible, supports mute
  assert.match(ui,/setHintUsed\(true\)/);
  assert.match(ui,/setModelHeard\(true\)/);
  assert.match(ui,/soundService.speakEnglish\(task.sentence/);
+});
+
+test('CM1 v2: six missions cover genuine different sentence types rather than synonyms of a single pattern',()=>{
+ const kinds=new Set(),modes=new Set();
+ for(const level of ['Pre-A1','A1','A2'])for(let mission=1;mission<=6;mission++){
+  const pool=plazaCurriculumPool(mission,level);
+  assert.ok(pool.length>=15,'Every level+mission has 15+ authentic sentence challenges');
+  assert.equal(new Set(pool.map(q=>q.id)).size,pool.length);
+  assert.equal(new Set(pool.map(q=>q.sentence)).size,pool.length);
+  for(const q of pool){
+   kinds.add(q.kind);modes.add(q.mode);
+   assert.equal(q.englishLevel,level);
+   assert.match(q.id,/^plaza:v2:/);
+   assert.ok(q.tokens.length>=3);
+   assert.match(q.sentence,/[.?]$/);
+   if(q.mode==='scene'){
+    assert.ok(q.sceneChoices.some(c=>c.id===q.correctSceneChoice),
+      'Every scene-choice must actually have a correct answer');
+    assert.equal(new Set(q.sceneChoices.map(c=>c.id)).size,q.sceneChoices.length);
+   }
+   if(q.mode==='repair'){
+    const words=q.brokenSentence.replace(/[.,!?]/g,'').split(' ');
+    assert.equal(words.length,q.tokens.length);
+    assert.equal(words.filter((w,i)=>w!==q.tokens[i]).length,1,
+      'Repair task must contain exactly one wrong token');
+   }
+   if(q.scene.count===2)assert.match(q.sentence,/There are two/);
+   if(q.scene.action==='remove')assert.match(q.sentence,/not want/);
+  }
+  for(let seed=1;seed<=5;seed++){
+   const deck=planPlazaMission({mission,grade:8,englishLevel:level,seed});
+   assert.equal(deck.questions.length,5);
+   assert.ok(new Set(deck.questions.map(q=>q.sentence)).size===5);
+  }
+ }
+ assert.deepEqual([...modes].sort(),['construct','repair','scene']);
+ for(const kind of ['statement','question','negative','instruction','reason','contrast','preference','request'])
+  assert.ok(kinds.has(kind),'Missing communicative function '+kind);
+});
+test('Grade AND English placement independently constrain cognitive and linguistic difficulty',()=>{
+ for(const grade of [1,2,3,4,5,6,7,8,null])
+  for(const level of ['Pre-A1','A1','A2'])
+   for(let mission=1;mission<=6;mission++){
+    const deck=planPlazaMission({mission,grade,englishLevel:level,seed:9123});
+    assert.equal(deck.questions.length,plazaQuestionsForGrade(grade));
+    assert.ok(deck.questions.every(q=>q.englishLevel===level));
+    if(grade!==null&&grade<=2)assert.ok(deck.questions.every(q=>q.tokens.length<=10),
+      'Young children must not receive cognitively oversized English sentences');
+    if(grade!==null&&grade>=3&&grade<=4)assert.ok(deck.questions.every(q=>q.tokens.length<=13));
+   }
+ const earlyAdvanced=planPlazaMission({mission:6,grade:1,englishLevel:'A2',seed:7});
+ const oldBeginner=planPlazaMission({mission:6,grade:8,englishLevel:'Pre-A1',seed:7});
+ assert.equal(earlyAdvanced.questions.length,3);
+ assert.equal(oldBeginner.questions.length,5);
+ assert.ok(oldBeginner.questions.every(q=>!q.sentence.includes('because')));
+});
+test('Commit-to-answer is grammatical and does not reveal the correct word after each tap',()=>{
+ for(let mission=1;mission<=6;mission++){
+  const plan=planPlazaMission({mission,grade:8,englishLevel:'A2',seed:55});
+  for(const q of plan.questions){
+   assert.equal(evaluatePlazaSentence(q,q.tokens).correct,true);
+   assert.equal(evaluatePlazaSentence(q,q.tokens.slice(0,-1)).correct,false);
+   const bad=[...q.tokens];bad[1]='wrong';
+   const check=evaluatePlazaSentence(q,bad);
+   assert.equal(check.correct,false);assert.equal(check.incorrectIndex,1);
+  }
+ }
+ const ui=fs.readFileSync(new URL('../src/components/learning/sentence/SentencePlazaAdventure.tsx',import.meta.url),'utf8');
+ assert.match(ui,/onClick=\{submitSentence\}/);
+ assert.match(ui,/setPicked\(old=>\[\.\.\.old,id\]\)/);
+ assert.match(ui,/selectRepair\(i\)/);
+ assert.match(ui,/selectScene\(choice\.id\)/);
+ assert.match(ui,/task\.explanation/);
+ assert.doesNotMatch(ui,/if\(tile\.word!==task\.tokens\[chosenCount\]\)/);
 });

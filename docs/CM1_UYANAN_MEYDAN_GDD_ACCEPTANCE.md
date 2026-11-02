@@ -62,3 +62,15 @@ Human/device and pedagogical gates **remain open**:
 - CM4 = **Soru İstasyonu**, build interrogatives and negatives based on characters' information goals.
 - CM5 = **Gökyüzü Köprüsü**, solve multi-step English semantic missions blending all earlier sentence structures.
 - After pedagogical and product acceptance, next region can be built. Do not unlock future regions prematurely.
+
+## CM1 v2 — Sentence variety and active language evidence (2026-11-02)
+- Existing **6 missions and all saved progress remain compatible**; do not reset profiles or rename `island_sentence_square_plaza`.
+- Grade 1–2: 3 prompts/session and maximum **10 English word tokens**; grades 3–4: 4 prompts and max 13 tokens; grades 5–8: 5 prompts and max 22 tokens; missing grade: 4 prompts. These limits only adapt cognitive load, **not automatically change placement**.
+- English level independently controls grammatical construction: Pre-A1 supported short descriptions, seeing and wanting, location and can; A1 adds `is ... ?`, `There is / There are`, location instructions, present continuous, negation, polite requests; A2 adds `because` and `but` reasoning/contrast and longer instructions. Formal CEFR proficiency is **not claimed**.
+- Three true challenge modes: **construct** (build a full English sentence, submit as a whole), **repair** (first identify a grammatical error in a corrupted sentence, then rebuild), **scene** (select the object, color, location or action that matches meaning, then build).
+- More than one communicative form per session when placement/content permits: positive statements, questions, negatives, instructions, reasons, contrasts, wants, preferences. Explicit curated Turkish cues align with English meaning; do not use word-shuffle grammatically invalid content.
+- True assessment after full sentence submission: errors are not revealed token-by-token while selecting; wrong word/order prompts explanation and correction. Hint and full-sentence model audio explicitly lower independence evidence. Answer records include optional **sentenceKind** and **challengeMode** for future learning reports.
+- Profile's Word Garden animal, color and food evidence prioritizes known vocabulary when scheduling new sentence challenges. New words remain supported by vocabulary notes; unfamiliar words do not block a session.
+- More varied interactive visuals: six colors including purple and orange, animal count with `There are two`, empty fruit tray when saying `do not want`, distinct color-choice swatches and scene reactions.
+- Tests: all mission/placement combinations, 1–8 grades, unique patterns, three modes, repaired sentence semantics, correct scene options, grade ceilings, replay/star/child separation and grammar correctness.
+- **Not done:** independently authored voice recordings, review by an English teacher, real children and device interaction testing, real writing or open dialogue, four future Cümle Meydanı regions.

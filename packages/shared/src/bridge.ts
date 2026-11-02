@@ -76,6 +76,9 @@ export interface TempleAnswerEvidence {
 }
 /** Independently verifiable sentence-construction evidence from the sentence island. */
 export interface SentenceAnswerEvidence {
+ /** Communicative intent, not a CEFR test score. Optional for v1 history. */
+ sentenceKind?:'statement'|'question'|'negative'|'instruction'|'reason'|'contrast'|'preference'|'request';
+ challengeMode?:'construct'|'repair'|'scene';
  questionId:string;
  skill:'describing'|'introducing'|'location'|'action'|'preference'|'transfer';
  placement:'Pre-A1'|'A1'|'A2';

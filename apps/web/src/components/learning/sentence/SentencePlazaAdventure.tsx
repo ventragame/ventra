@@ -5,7 +5,7 @@ import type {EnglishPlacement} from '@/lib/learning/gradeAwareLearningPolicy';
 import {getProgressRepository} from '@/lib/progress';
 import {getSentencePlazaProgress,saveSentencePlazaMission,type SentencePlazaProgress}
  from '@/lib/progress/sentencePlazaProgress';
-import {SENTENCE_PLAZA_MISSIONS,planPlazaMission,plazaWordTiles,
+import {SENTENCE_PLAZA_MISSIONS,planPlazaMission,plazaWordTiles,evaluatePlazaSentence,
  type PlazaMission,type PlazaDeck,type PlazaQuestion} from '@/lib/learning/sentencePlazaEngine';
 import {soundService} from '@/lib/audio/SoundService';
 import {SentencePlazaScene} from './SentencePlazaScene';
@@ -24,6 +24,7 @@ function sessionId(profileId:string,mission:PlazaMission):string{
 export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack,onSaved}:Props){
  const [progress,setProgress]=useState<SentencePlazaProgress>(EMPTY);
  const [history,setHistory]=useState<SentenceAnswerEvidence[]>([]);
+ const [knownWords,setKnownWords]=useState<string[]>([]);
  const [loading,setLoading]=useState(true);
  const [loadError,setLoadError]=useState('');
  const [screen,setScreen]=useState<Screen>('map');
@@ -31,6 +32,9 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
  const [deck,setDeck]=useState<PlazaDeck|null>(null);
  const [step,setStep]=useState(0);
  const [picked,setPicked]=useState<string[]>([]);
+ const [selectedScene,setSelectedScene]=useState<string|null>(null);
+ const [repairMarked,setRepairMarked]=useState(false);
+ const [wrongSlot,setWrongSlot]=useState(-1);
  const [mistakes,setMistakes]=useState(0);
  const [roundMistakes,setRoundMistakes]=useState(0);
  const [hintUsed,setHintUsed]=useState(false);
@@ -53,6 +57,19 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
  const tiles=useMemo(()=>task?plazaWordTiles(task,(deck?.seed??0)+step*173):[],[task,deck?.seed,step]);
  const selectedWords=picked.map(id=>tiles.find(t=>t.id===id)?.word??'');
  const chosenCount=picked.length;
+ const taskReady=task?.mode==='scene'?selectedScene===task.correctSceneChoice:
+    task?.mode==='repair'?repairMarked:true;
+ const sceneColorMap:Record<string,string>={
+  red:'#f77075',blue:'#6ac7f1',yellow:'#ffd86a',green:'#73dfa7',
+  purple:'#b49beb',orange:'#f3a65d'
+ };
+ const sentenceKindLabels:Record<string,string>={
+  statement:'Anlatım',question:'Soru',negative:'Olumsuz cümle',
+  instruction:'Yönerge',reason:'Neden-sonuç',contrast:'Karşılaştırma',
+  preference:'Tercih',request:'İstek'
+ };
+ const repairWords=task?.brokenSentence?.replace(/[.,!?]/g,'').split(/\s+/).filter(Boolean)??[];
+ const repairBadIndex=task?.mode==='repair'?repairWords.findIndex((word,i)=>word!==task.tokens[i]):-1;
  const totalQuestions=deck?.questions.length??0;
  const rule=SENTENCE_PLAZA_MISSIONS[mission-1];
  const starsTotal=Object.values(progress.starsByLevel).reduce((n,v)=>n+v,0);
@@ -61,8 +78,17 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
   let live=true;
   setLoading(true);setLoadError('');
   const repo=getProgressRepository();
-  Promise.all([getSentencePlazaProgress(repo,profileId),repo.getSentenceAnswerHistory(profileId)])
-    .then(([p,h])=>{if(!live)return;setProgress(p);setHistory(h);setLoading(false);})
+  Promise.all([getSentencePlazaProgress(repo,profileId),repo.getSentenceAnswerHistory(profileId),
+    Promise.all([
+     repo.getAnimalAnswerHistory(profileId).catch(()=>[]),
+     repo.getColorAnswerHistory(profileId).catch(()=>[]),
+     repo.getFoodAnswerHistory(profileId).catch(()=>[])
+    ])])
+    .then(([p,h,garden])=>{if(!live)return;
+      setProgress(p);setHistory(h);
+      setKnownWords([...new Set(garden.flat().map(item=>item.wordId))]);
+      setLoading(false);
+    })
     .catch(error=>{console.error('Cümle Meydanı ilerlemesi okunamadı',error);
       if(live){setLoadError('Oyuncu ilerlemesi okunamadı. Kaydını korumak için bölümler açılmadı.');setLoading(false);}});
   return()=>{live=false;clearTimer();soundService.cancelSpeech();};
@@ -78,33 +104,33 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
   if(screen==='map'){onBack();return;}
   if(screen==='reward'){setScreen('map');return;}
   // Never award half-finished attempts; a complete mission saves atomically.
-  setScreen('map');setAwakened(false);setPicked([]);setFeedback('');
+  setScreen('map');setAwakened(false);setPicked([]);setSelectedScene(null);setRepairMarked(false);setFeedback('');
  }
  function openMission(m:PlazaMission){
   if(loading||loadError||savingLock.current||m>progress.completedLevels+1)return;
   clearTimer();soundService.cancelSpeech();
   setMission(m);setScreen('lesson');setDeck(null);setFeedback('');setSaveError('');
   setAwakened(false);setCompletedStars(0);setAnswers([]);completedAnswers.current=[];
-  setStep(0);setPicked([]);setMistakes(0);setRoundMistakes(0);setHintUsed(false);setModelHeard(false);
+  setStep(0);setPicked([]);setSelectedScene(null);setRepairMarked(false);setWrongSlot(-1);setMistakes(0);setRoundMistakes(0);setHintUsed(false);setModelHeard(false);
  }
  function beginMission(){
   const now=Date.now(),seed=(now^Math.floor(Math.random()*0xffffffff))>>>0;
-  const next=planPlazaMission({mission,grade:gradeLevel,englishLevel,seed,history});
+  const next=planPlazaMission({mission,grade:gradeLevel,englishLevel,seed,history,knownWords});
   if(!next.questions.length){setLoadError('Bu bölüm için İngilizce görev oluşturulamadı.');return;}
   currentSession.current=sessionId(profileId,mission);
   startedAt.current=now;
   awaitingTransition.current=false;savingLock.current=false;
   setDeck(next);setStep(0);setAnswers([]);completedAnswers.current=[];
-  setPicked([]);setMistakes(0);setRoundMistakes(0);setHintUsed(false);setModelHeard(false);
+  setPicked([]);setSelectedScene(null);setRepairMarked(false);setWrongSlot(-1);setMistakes(0);setRoundMistakes(0);setHintUsed(false);setModelHeard(false);
   setAwakened(false);setFeedback('');setFeedbackError(false);setSaveError('');
   setScreen('play');
   soundService.playSfx('whoosh',.5);
  }
- function incorrect(){
+ function incorrect(detail?:string){
   if(awaitingTransition.current)return;
   setMistakes(n=>n+1);setRoundMistakes(n=>n+1);setFeedbackError(true);
   soundService.playSfx('gentle_retry',.7);
-  setFeedback('Bu sözcük burada doğru sırada değil. Önce cümlenin kimi veya neyi anlattığını düşün.');
+  setFeedback(detail??'Bir sözcüğün yeri veya anlamı doğru değil. Cümleyi tekrar düzenle.');
  }
  function listenModel(){
   soundService.unlockAudio();
@@ -145,7 +171,7 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
   setAwakened(true);setFeedbackError(false);
   setFeedback(`✦ ${task.sentence} — Cümleyi kurdun! Sahne canlanıyor.`);
   const evidence:SentenceAnswerEvidence={
-   questionId:task.id,skill:task.skill,placement:englishLevel,mistakes:roundMistakes,
+   questionId:task.id,skill:task.skill,placement:englishLevel,sentenceKind:task.kind,challengeMode:task.mode,mistakes:roundMistakes,
    hintUsed,modelHeard,firstTryCorrect:roundMistakes===0&&!hintUsed&&!modelHeard,
    timestamp:new Date().toISOString()
   };
@@ -160,22 +186,52 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
    nextTimer.current=null;awaitingTransition.current=false;
    if(step+1>=deck.questions.length){void finish(rows);return;}
    soundService.cancelSpeech();
-   setStep(n=>n+1);setPicked([]);setRoundMistakes(0);setHintUsed(false);
+   setStep(n=>n+1);setPicked([]);setSelectedScene(null);setRepairMarked(false);setWrongSlot(-1);setRoundMistakes(0);setHintUsed(false);
    setModelHeard(false);setAwakened(false);setFeedback('');setFeedbackError(false);
   },duration);
  }
  function pickWord(id:string){
-  if(!task||!deck||screen!=='play'||awaitingTransition.current||busy||saveError)return;
-  if(picked.includes(id))return;
+  if(!task||!deck||screen!=='play'||awaitingTransition.current||busy||saveError||!taskReady)return;
+  if(picked.includes(id)||picked.length>=task.tokens.length)return;
   const tile=tiles.find(x=>x.id===id);
   if(!tile)return;
-  // Compare meaning-bearing English token in its grammatical position. Never
-  // accept a correct set of words in a grammatically incorrect order.
-  if(tile.word!==task.tokens[chosenCount]){incorrect();return;}
   soundService.playSfx('tap',.37);
-  const next=[...picked,id];
-  if(next.length===task.tokens.length)completeQuestion(next);
-  else{setPicked(next);setFeedback('');setFeedbackError(false);}
+  setPicked(old=>[...old,id]);setWrongSlot(-1);setFeedback('');setFeedbackError(false);
+ }
+ function selectScene(id:string){
+  if(!task||task.mode!=='scene'||awaitingTransition.current||busy||selectedScene)return;
+  if(id!==task.correctSceneChoice){
+   incorrect('Sahnedeki bu seçenek yönergenin anlamıyla eşleşmiyor. Nesneyi veya yeri yeniden düşün.');
+   return;
+  }
+  soundService.playSfx('tap',.5);
+  setSelectedScene(id);setFeedback('Anlamı eşleştirdin. Şimdi İngilizce cümleyi kendi sözcüklerinle kur.');
+  setFeedbackError(false);
+ }
+ function selectRepair(index:number){
+  if(!task||task.mode!=='repair'||awaitingTransition.current||busy||repairMarked)return;
+  if(index!==repairBadIndex){
+   incorrect('Seçtiğin sözcük yanlış olan değil. Cümledeki dil bilgisi ve sözcük sırasını incele.');
+   return;
+  }
+  soundService.playSfx('correct',.35);
+  setRepairMarked(true);setFeedback('Hatalı sözcüğü buldun. Şimdi doğru İngilizce cümleyi baştan kur.');
+  setFeedbackError(false);
+ }
+ function submitSentence(){
+  if(!task||!deck||!taskReady||awaitingTransition.current||busy||saveError)return;
+  const result=evaluatePlazaSentence(task,selectedWords);
+  if(!result.correct){
+   if(picked.length<task.tokens.length){
+    setFeedback('Cümlede eksik sözcük var. Sonra cümleyi kontrol et.');
+    setFeedbackError(true);
+    return;
+   }
+   setWrongSlot(result.incorrectIndex);
+   incorrect(result.explanation);
+   return;
+  }
+  completeQuestion(picked);
  }
  const sceneEffect=screen==='play'&&awakened?task?.scene??null:null;
  const chapterTotal=6;
@@ -277,31 +333,66 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
         onInteract={awakened?()=>soundService.speakEnglish(task.sentence,{rate:.82}):undefined}/>
       <div className="sp-side" style={{marginTop:13}}>
        <div className="sp-side-label">🎓 İNGİLİZCE YAPI</div>
-       <p>{rule.rule}</p><p className="sp-caption">Gördüğün sahne, kurduğun cümlenin anlamıyla değişir.
+       <p>{task.explanation}</p><p className="sp-caption">Gördüğün sahne, kurduğun cümlenin anlamıyla değişir.
         Yanlış seçimlerde kelimeyi yeniden düşün; tahmin ederek geçilmez.</p>
       </div>
      </div>
      <section className="sp-workshop" aria-label="İngilizce cümle oluşturma atölyesi">
-      <div className="sp-step"><span>✦ SİHİRLİ CÜMLE</span>
+      <div className="sp-step"><span>✦ {sentenceKindLabels[task.kind]} · {task.mode==='repair'?'Hata avı':task.mode==='scene'?'Sahneyi eşleştir':'Cümle inşa et'}</span>
        <span>{step+1} / {totalQuestions}</span></div>
       <div className="sp-meter" role="progressbar" aria-label="Bölümde tamamlanan cümleler"
        aria-valuemin={0} aria-valuemax={totalQuestions} aria-valuenow={step+(awakened?1:0)}>
        <span style={{width:`${100*(step+(awakened?1:0))/totalQuestions}%`}}/></div>
       <h3 tabIndex={-1} className="sp-cue">{task.cue}</h3>
-      <p className="sp-caption" style={{marginTop:10}}>Bu anlamı veren İngilizce cümleyi oluştur.
-       Sözcükleri doğru sırayla yerleştir.</p>
+      <p className="sp-caption" style={{marginTop:10}}>
+       {task.mode==='repair'?'Önce aşağıdaki İngilizce cümledeki yanlış sözcüğü bul. Sonra düzelterek yeniden kur.':
+        task.mode==='scene'?'Önce yönergede anlatılan doğru sahne ögesini seç; ardından İngilizce cümleyi kur.':
+        'Bu anlamı İngilizce ifade et. Kelimeleri sırala, ardından cümleyi kontrol et.'}
+      </p>
+      {task.mode==='scene'&&task.sceneChoices&&
+       <div className="sp-interaction" role="group" aria-label="Anlamla eşleşen görsel sahne seçimi">
+        <strong>🧭 Doğru sahne ögesini seç</strong>
+        <div className="sp-scene-choices">
+         {task.sceneChoices.map(choice=><button type="button" key={choice.id}
+          disabled={selectedScene!==null||awakened||busy}
+          aria-pressed={selectedScene===choice.id}
+          className="sp-scene-choice" data-selected={selectedScene===choice.id}
+          onClick={()=>selectScene(choice.id)}>
+          {choice.icon==='🎨'?<span className="sp-color-swatch" aria-hidden="true"
+           style={{backgroundColor:sceneColorMap[choice.id]??'#9ad3df'}}>✦</span>:
+           <span aria-hidden="true">{choice.icon}</span>}<small>{choice.label}</small>
+         </button>)}
+        </div>
+       </div>}
+      {task.mode==='repair'&&task.brokenSentence&&
+       <div className="sp-interaction" role="group" aria-label="Yanlış sözcüğü bul ve onar">
+        <strong>🔎 Hatalı cümlede bir kelime yanlış. Hangisi?</strong>
+        <div className="sp-repair-words">{repairWords.map((word,i)=><button type="button"
+         key={i} disabled={repairMarked||awakened||busy}
+         data-selected={repairMarked&&i===repairBadIndex}
+         className="sp-repair-word" onClick={()=>selectRepair(i)}>{word}</button>)}</div>
+       </div>}
+      {!taskReady&&<p className="sp-caption" style={{marginTop:10}}>
+       {task.mode==='repair'?'Cümleyi düzeltmeye yanlış sözcüğü bularak başla.':'İngilizce cümleden önce sahneyi doğru eşleştir.'}
+      </p>}
       <div className="sp-vocab" aria-label="İngilizce kelime desteği">
        {task.vocabulary.map((w,i)=><span key={i}>{w.en} · {w.tr}</span>)}</div>
       <div className="sp-slots" role="group" aria-live="polite" aria-label="Oluşturduğun İngilizce cümle">
-       {task.tokens.map((word,i)=><span key={i} className={`sp-slot ${selectedWords[i]?'sp-slot-filled':''}`}>
-        {selectedWords[i]??'✧'}</span>)}</div>
+       {task.tokens.map((word,i)=><button type="button" key={i} disabled={!selectedWords[i]||awakened||busy}
+        aria-label={selectedWords[i]?'“'+selectedWords[i]+'” kelimesini kaldır':'Boş kelime yuvası'}
+        onClick={()=>{setPicked(old=>old.filter((_,index)=>index!==i));setWrongSlot(-1);}}
+        data-error={wrongSlot===i}
+        className={`sp-slot ${selectedWords[i]?'sp-slot-filled':''}`}>
+        {selectedWords[i]??'✧'}</button>)}</div>
       <div className="sp-tiles" role="group" aria-label="Cümle için kullanılabilecek İngilizce kelimeler">
        {tiles.map(t=><button type="button" key={t.id} className="sp-tile"
-        disabled={picked.includes(t.id)||awakened||busy||Boolean(saveError)}
+        disabled={!taskReady||picked.includes(t.id)||picked.length>=task.tokens.length||awakened||busy||Boolean(saveError)}
         onClick={()=>pickWord(t.id)} aria-label={`“${t.word}” kelimesini cümleye ekle`}>{t.word}</button>)}</div>
+      <button type="button" className="sp-primary sp-check" disabled={awakened||busy||!taskReady||picked.length!==task.tokens.length||Boolean(saveError)}
+       onClick={submitSentence}>✨ İngilizce Cümleyi Canlandır</button>
       <div className="sp-tools">
        <button type="button" className="sp-secondary" disabled={awakened||busy||!picked.length}
-        onClick={()=>setPicked(old=>old.slice(0,-1))}>↶ Son Kelimeyi Geri Al</button>
+        onClick={()=>{setPicked(old=>old.slice(0,-1));setWrongSlot(-1);}}>↶ Son Kelimeyi Geri Al</button>
        <button type="button" className="sp-secondary" disabled={awakened||busy}
         onClick={listenTask}>🔊 Cümleyi Dinle</button>
        <button type="button" className="sp-secondary" disabled={awakened||busy}
