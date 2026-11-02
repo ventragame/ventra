@@ -103,10 +103,10 @@ test('Archipelago V2: Six-Island World Catalog Integrity & Asset Physical Presen
 
   const expectedIds = [
     'word_garden',
+    'story_castle',
     'listening_forest',
     'speaking_harbor',
     'sentence_workshop',
-    'story_castle',
     'language_academy'
   ];
 
@@ -115,10 +115,10 @@ test('Archipelago V2: Six-Island World Catalog Integrity & Asset Physical Presen
 
   const expectedNames = [
     'Kelime Bahçesi',
-    'Dinleme Ormanı',
-    'Konuşma Limanı',
-    'Yazı Atölyesi',
     'Cümle Meydanı',
+    'Hikâye Ormanı',
+    'Diyalog Limanı',
+    'Yazı Atölyesi',
     'Keşif Akademisi'
   ];
   const actualNames = islands.map(i => i.nameTr);

@@ -1,3 +1,5 @@
+> **GÜNCELLEME — 02.11.2026:** Bu dokümandaki ilk NV1 sınırları tarihsel bilgidir; güncel çalışan kod `gradeAwareLearningPolicy.ts`, `learningJourney.ts` ve [English Learning Journey v2](./VENTRA_ENGLISH_LEARNING_JOURNEY_V2.md) belgesindedir. Sayı tavanları artık Pre-A1: 10, A1: 100, A2: 1000; sınıf tavanı seçilmemişte 20, 1–2'de 20, 3–4'te 100, 5–8'de 1000; **ikisi arasındaki minimum** kullanılır. Tüm 5 sözlük kataloğu için daha düşük sınıf/İngilizce tier'i geçerlidir. Resmî müfredat eşlemesi ve çocuk kabulü tamamlanmadı.
+
 # Ventra Kids — Ortak Sınıf Duyarlı Öğrenme Politikası (P3.1)
 
 ## Sözleşme / mimari
