@@ -8,6 +8,7 @@ import { EventBus } from '@/lib/game/EventBus';
 interface PhaserGameProps {
   wordGardenStatus: 'dormant' | 'blooming';
   wordGardenCompletedLevels?: number;
+  wordGardenTotalLevels?: number;
   onOpenLearningPath: (regionId: string) => void;
   onToast: (msg: string) => void;
 }
@@ -15,6 +16,7 @@ interface PhaserGameProps {
 const PhaserGameComponent: React.FC<PhaserGameProps> = ({
   wordGardenStatus,
   wordGardenCompletedLevels = 0,
+  wordGardenTotalLevels = 73,
   onOpenLearningPath,
   onToast
 }) => {
@@ -88,7 +90,7 @@ const PhaserGameComponent: React.FC<PhaserGameProps> = ({
         (window as any).__EVENT_BUS__ = EventBus;
       }
 
-      game.scene.start('WorldScene', { wordGardenStatus, wordGardenCompletedLevels });
+      game.scene.start('WorldScene', { wordGardenStatus, wordGardenCompletedLevels,wordGardenTotalLevels });
       applyFrameBudget();
     }, 16);
 
@@ -131,10 +133,10 @@ const PhaserGameComponent: React.FC<PhaserGameProps> = ({
       EventBus.emit('UPDATE_ISLAND_PROGRESS', {
         islandId: 'word_garden',
         completed: wordGardenCompletedLevels,
-        total: 5
+        total: wordGardenTotalLevels
       });
     }
-  }, [wordGardenCompletedLevels]);
+  }, [wordGardenCompletedLevels,wordGardenTotalLevels]);
 
   return (
     <div
@@ -158,7 +160,8 @@ const PhaserGameComponent: React.FC<PhaserGameProps> = ({
 export const PhaserGame = memo(PhaserGameComponent, (prev, next) => {
   return (
     prev.wordGardenStatus === next.wordGardenStatus &&
-    prev.wordGardenCompletedLevels === next.wordGardenCompletedLevels
+    prev.wordGardenCompletedLevels === next.wordGardenCompletedLevels &&
+    prev.wordGardenTotalLevels === next.wordGardenTotalLevels
   );
 });
 

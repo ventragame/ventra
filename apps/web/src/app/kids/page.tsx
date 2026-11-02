@@ -12,7 +12,8 @@ import {
 } from '@ventra/shared';
 import { getProgressRepository, type CreateProfileInput } from '../../lib/progress';
 import { KidsWelcomeGate } from '../../components/onboarding/KidsWelcomeGate';
-import { getWordGardenProgress, saveWordGardenLevelCompletion } from '../../lib/progress/wordGardenProgress';
+import { saveWordGardenLevelCompletion } from '../../lib/progress/wordGardenProgress';
+import {getGardenOverallProgress,type GardenOverallProgress} from '../../lib/progress/gardenOverallProgress';
 import { ProfileSelectorModal } from '../../components/profile/ProfileSelectorModal';
 import { ParentalGateModal } from '../../components/profile/ParentalGateModal';
 import { AdultAccountModal } from '../../components/profile/AdultAccountModal';
@@ -55,6 +56,7 @@ export default function VentraKidsWorldPage() {
   // Oyun ve Bölge Durumu
   const [wordGardenStatus, setWordGardenStatus] = useState<'dormant' | 'blooming'>('dormant');
   const [wordGardenCompletedLevels, setWordGardenCompletedLevels] = useState<number>(0);
+  const [gardenOverall,setGardenOverall]=useState<GardenOverallProgress|null>(null);
   const [wordGardenStarsByLevel, setWordGardenStarsByLevel] = useState<Record<number, number>>({});
   const [totalStars, setTotalStars] = useState<number>(0);
   const [isPassportOpen,setIsPassportOpen]=useState(false);
@@ -110,9 +112,10 @@ export default function VentraKidsWorldPage() {
   // 1. Profil ve İlerleme Yükleme
   const loadProfileAndProgress = useCallback(async (profile: PlayerProfile) => {
     try {
-      const progress = await getWordGardenProgress(getProgressRepository(), profile.id);
-      setWordGardenCompletedLevels(progress.completedLevels);
-      setWordGardenStarsByLevel(progress.starsByLevel);
+      const overview=await getGardenOverallProgress(getProgressRepository(),profile.id,profile.gradeLevel??null,profile.englishLevel??'Pre-A1');
+      setGardenOverall(overview);
+      setWordGardenCompletedLevels(overview.animals.completedLevels);
+      setWordGardenStarsByLevel(overview.animals.starsByLevel);
       setTotalStars(await getProgressRepository().getTotalStars(profile.id));
       try {
         const passport=await getPassport(getProgressRepository(),profile.id);
@@ -121,9 +124,10 @@ export default function VentraKidsWorldPage() {
       }catch(err){console.warn('P5 rewards could not be read',err);
         setCoinBalance(null);setAvatarEquipment({});
       }
-      setWordGardenStatus(progress.completedLevels === progress.totalLevels ? 'blooming' : 'dormant');
+      setWordGardenStatus(overview.completedWorlds===6?'blooming':'dormant');
     } catch (error) {
       console.error('Kelime Bahçesi ilerlemesi yüklenemedi:', error);
+      setGardenOverall(null);
       showToast('İlerleme yüklenemedi. Lütfen tekrar deneyin.');
     }
   }, [showToast]);
@@ -313,7 +317,7 @@ export default function VentraKidsWorldPage() {
   }
 
   const currentAvatar = getAvatarById(activeProfile?.avatarId || 'avatar_explorer');
-  const wordGardenProgressPercent = Math.round((wordGardenCompletedLevels / 5) * 100);
+  const wordGardenProgressPercent = gardenOverall?.percent ?? 0;
   const currentIslandDef = ARCHIPELAGO_ISLANDS_CATALOG[focusedIsland];
 
   return (
@@ -479,7 +483,8 @@ export default function VentraKidsWorldPage() {
       >
         <DynamicPhaserGame
           wordGardenStatus={wordGardenStatus}
-          wordGardenCompletedLevels={wordGardenCompletedLevels}
+          wordGardenCompletedLevels={gardenOverall?.completed??0}
+          wordGardenTotalLevels={gardenOverall?.total??73}
           onOpenLearningPath={handleOpenLearningPath}
           onToast={showToast}
         />
@@ -535,7 +540,7 @@ export default function VentraKidsWorldPage() {
               <>
                 <div className="space-y-1">
                   <div className="flex justify-between text-[10px] font-bold text-slate-400">
-                    <span>İlerleme: {wordGardenCompletedLevels}/5 Seviye</span>
+                    <span>İlerleme: {gardenOverall?`${gardenOverall.completed}/${gardenOverall.total} görev`:'Yüklenemedi'}</span>
                     <span className={wordGardenCompletedLevels > 0 ? 'text-emerald-400' : 'text-slate-400'}>
                       %{wordGardenProgressPercent}
                     </span>
@@ -553,7 +558,7 @@ export default function VentraKidsWorldPage() {
                   className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-md shadow-emerald-950/40 transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
                 >
                   <span>
-                    {wordGardenCompletedLevels === 5
+                    {gardenOverall?.completedWorlds===6
                       ? '🌸 Bahçe Canlandı! Tekrar Oyna'
                       : '✨ Seviye Haritasını Aç'}
                   </span>
@@ -600,8 +605,8 @@ export default function VentraKidsWorldPage() {
           const isSelected = focusedIsland === island.id;
           const isUnlocked = island.isUnlockedDefault;
           const isWordGarden = island.id === 'word_garden';
-          const completedCount = isWordGarden ? wordGardenCompletedLevels : 0;
-          const isCompleted = isWordGarden && wordGardenCompletedLevels === 5;
+          const completedCount = isWordGarden ? (gardenOverall?.completed??0) : 0;
+          const isCompleted = isWordGarden && gardenOverall?.completedWorlds===6;
 
           return (
             <button
@@ -625,7 +630,7 @@ export default function VentraKidsWorldPage() {
               <span>{island.nameTr}</span>
               {isCompleted ? (
                 <span className="text-[9px] md:text-[10px] bg-emerald-400/25 text-emerald-300 px-1.5 py-0.2 rounded-full border border-emerald-400/40 font-bold">
-                  ✓ 5/5
+                  ✓ 6/6
                 </span>
               ) : isUnlocked ? (
                 <span className="text-[9px] md:text-[10px] bg-sky-400/20 text-sky-300 px-1.5 py-0.2 rounded-full border border-sky-400/30 font-semibold">
@@ -675,7 +680,7 @@ export default function VentraKidsWorldPage() {
             setWordGardenCompletedLevels(result.completedLevels);
             setWordGardenStarsByLevel(result.starsByLevel);
             setTotalStars(await getProgressRepository().getTotalStars(activeProfile.id));
-            setWordGardenStatus(result.completedLevels === result.totalLevels ? 'blooming' : 'dormant');
+            await loadProfileAndProgress(activeProfile);
           }}
         />
       )}

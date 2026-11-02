@@ -12,6 +12,7 @@ import { getProgressRepository } from '@/lib/progress';
 import { getWordGardenProgress, type WordGardenProgressSnapshot, type AnimalMissionTelemetry } from '@/lib/progress/wordGardenProgress';
 import { getColorGroveProgress, saveColorGroveMission, type ColorGroveProgress } from '@/lib/progress/colorGroveProgress';
 import {getNumberValleyProgress,saveNumberValleyMission,type NumberValleyProgress} from '@/lib/progress/numberValleyProgress';
+import {accessibleNumberLevels} from '@/lib/progress/gardenOverallProgress';
 import type {NumberAnswerEvidence,FoodAnswerEvidence,FamilyAnswerEvidence,TempleAnswerEvidence} from '@ventra/shared';
 import {getTempleProgress,saveTempleMission,type TempleProgress} from '@/lib/progress/templeProgress';
 import {getFamilyVillageProgress,saveFamilyVillageMission,type FamilyVillageProgress} from '@/lib/progress/familyVillageProgress';
@@ -259,8 +260,7 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
     colorsUnlocked={animals.completedLevels === animals.totalLevels}
     colorCompleted={colors.completedLevels}
     numberCompleted={numbers.completedLevels}
-    numberTotal={englishLevel==='Pre-A1'||gradeLevel===null||gradeLevel<=2?5:
-      (gradeLevel<=4||englishLevel==='A1')?10:15}
+    numberTotal={accessibleNumberLevels(gradeLevel,englishLevel)}
     numbersUnlocked={!colorError && colors.completedLevels===colors.totalLevels}
     numbersAvailable={numberLoaded&&!numberError}
     onEnterNumbers={()=>setDistrict('numbers')}

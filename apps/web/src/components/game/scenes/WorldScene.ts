@@ -11,6 +11,7 @@ import {
 export interface WorldSceneConfig {
   wordGardenStatus: 'dormant' | 'blooming';
   wordGardenCompletedLevels?: number;
+  wordGardenTotalLevels?: number;
 }
 
 interface IslandEntity {
@@ -59,6 +60,7 @@ export class WorldScene extends Phaser.Scene {
   // Durumlar
   private wordGardenStatus: 'dormant' | 'blooming' = 'dormant';
   private wordGardenCompletedLevels: number = 0;
+  private wordGardenTotalLevels: number = 73;
   private isTransitioning: boolean = false;
   private isOverviewMode: boolean = false;
   private isInputLocked: boolean = false;
@@ -96,6 +98,7 @@ export class WorldScene extends Phaser.Scene {
     if (typeof data.wordGardenCompletedLevels === 'number') {
       this.wordGardenCompletedLevels = data.wordGardenCompletedLevels;
     }
+    if(typeof data.wordGardenTotalLevels==='number'&&data.wordGardenTotalLevels>0) this.wordGardenTotalLevels=data.wordGardenTotalLevels;
     this.isTransitioning = false;
     this.isInputLocked = false;
   }
@@ -447,7 +450,7 @@ export class WorldScene extends Phaser.Scene {
         progressFill,
         progressText,
         completedLevels: initialCompleted,
-        totalLevels: 5,
+        totalLevels: def.id==='word_garden'?this.wordGardenTotalLevels:5,
         floatTween,
         worldX,
         worldY,
