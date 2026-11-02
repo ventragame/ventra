@@ -13,6 +13,7 @@ export interface WorldSceneConfig {
   wordGardenStatus: 'dormant' | 'blooming';
   wordGardenCompletedLevels?: number;
   wordGardenTotalLevels?: number;
+  plazaCompletedLevels?: number;
 }
 
 interface IslandEntity {
@@ -63,6 +64,7 @@ export class WorldScene extends Phaser.Scene {
   private wordGardenStatus: 'dormant' | 'blooming' = 'dormant';
   private wordGardenCompletedLevels: number = 0;
   private wordGardenTotalLevels: number = 73;
+  private plazaCompletedLevels:number=0;
   private isTransitioning: boolean = false;
   private isOverviewMode: boolean = false;
   private isInputLocked: boolean = false;
@@ -101,6 +103,7 @@ export class WorldScene extends Phaser.Scene {
       this.wordGardenCompletedLevels = data.wordGardenCompletedLevels;
     }
     if(typeof data.wordGardenTotalLevels==='number'&&data.wordGardenTotalLevels>0) this.wordGardenTotalLevels=data.wordGardenTotalLevels;
+    if(typeof data.plazaCompletedLevels==='number')this.plazaCompletedLevels=data.plazaCompletedLevels;
     this.isTransitioning = false;
     this.isInputLocked = false;
   }
@@ -485,7 +488,7 @@ export class WorldScene extends Phaser.Scene {
 
       container.add(badgeContainer);
 
-      const initialCompleted = def.id === 'word_garden' ? this.wordGardenCompletedLevels : 0;
+      const initialCompleted = def.id==='word_garden'?this.wordGardenCompletedLevels:def.id==='story_castle'?this.plazaCompletedLevels:0;
 
       const entity: IslandEntity = {
         id: def.id,
@@ -501,7 +504,7 @@ export class WorldScene extends Phaser.Scene {
         progressFill,
         progressText,
         completedLevels: initialCompleted,
-        totalLevels: def.id==='word_garden'?this.wordGardenTotalLevels:5,
+        totalLevels: def.id==='word_garden'?this.wordGardenTotalLevels:def.id==='story_castle'?6:5,
         floatTween,
         worldX,
         worldY,
@@ -512,7 +515,7 @@ export class WorldScene extends Phaser.Scene {
       };
 
       this.renderIslandBadgeProgress(entity);
-      if(def.id==='word_garden'&&!reducedMotion){
+      if((def.id==='word_garden'||def.id==='story_castle')&&!reducedMotion){
         this.tweens.add({targets:focusHalo,alpha:0.21,scaleX:1.045,scaleY:1.06,
           duration:3500,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
       }

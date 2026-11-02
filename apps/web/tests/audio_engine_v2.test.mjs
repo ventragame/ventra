@@ -4,10 +4,11 @@ import fs from 'node:fs';
 import {MusicDirector,MUSIC_SCENES,musicSceneForDistrict} from '../src/lib/audio/MusicDirector.ts';
 
 test('Original score provides a unique music state per English learning world and map',()=>{
- assert.deepEqual(MUSIC_SCENES,['archipelago','garden','animals','colors','numbers','food','family','sanctuary']);
+ assert.deepEqual(MUSIC_SCENES,['archipelago','garden','animals','colors','numbers','food','family','sanctuary','plaza']);
  for(const area of ['animals','colors','numbers','food','family','sanctuary'])
   assert.equal(musicSceneForDistrict(area),area);
  assert.equal(musicSceneForDistrict('overview'),'garden');
+ assert.equal(musicSceneForDistrict('story_castle'),'plaza');
  assert.equal(musicSceneForDistrict(null),'archipelago');
  const m=new MusicDirector();
  assert.equal(m.getEnabled(),false); // Never auto-play to a child.

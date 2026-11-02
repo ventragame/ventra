@@ -143,15 +143,15 @@ export const ARCHIPELAGO_ISLANDS_CATALOG: Record<IslandId, IslandDefinition> = {
     badgeText: 'Pre-A1 · A1 · A2',
     descriptionTr: 'Bildik kelimelerle cümle kur, nesneleri tarif et ve kısa sorulara cevap ver.',
     cefrLevel: 'Pre-A1–A2',
-    totalPublishedRequiredLevels: 0,
+    totalPublishedRequiredLevels: 6,
     desktopAsset: '/assets/kids-islands/story_castle.webp',
     mobileAsset: '/assets/kids-islands/story_castle_mobile.webp',
     defaultWorldPos: { x: 1240, y: 430 }, // Alt orta
     hitRadius: 210,
     order: 2,
-    isUnlockedDefault: false,
-    contentPublished: false,
-    unlockRequirementNotice: 'Cümle görevleri henüz geliştirme aşamasında.'
+    isUnlockedDefault: true,
+    contentPublished: true,
+    unlockRequirementNotice: 'Uyanan Meydan oynanabilir. Diğer dört şehir bölgesi geliştirme aşamasındadır.'
   },
   language_academy: {
     id: 'language_academy',

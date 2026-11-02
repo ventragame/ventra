@@ -152,7 +152,11 @@ test('Archipelago V2: State & Publication Separation (unlocked vs contentPublish
   assert.equal(wg.contentPublished, true, 'Kelime Bahçesi 5 seviyeli ders içeriğine sahip olmalıdır');
   assert.equal(wg.totalPublishedRequiredLevels, 5);
 
-  const lockedIslands = ARCHIPELAGO_ISLANDS_ORDERED.slice(1);
+  const plaza = ARCHIPELAGO_ISLANDS_CATALOG.story_castle;
+  assert.equal(plaza.isUnlockedDefault,true,'Uyanan Meydan ilk alt bölge artık gerçek oynanabilirdir');
+  assert.equal(plaza.contentPublished,true);
+  assert.equal(plaza.totalPublishedRequiredLevels,6);
+  const lockedIslands = ARCHIPELAGO_ISLANDS_ORDERED.slice(2);
   for (const island of lockedIslands) {
     assert.equal(island.isUnlockedDefault, false, `${island.id} başlangıçta kilitli olmalıdır`);
     assert.equal(island.contentPublished, false, `${island.id} henüz içerik yayımlanmamış olmalıdır (sahte oyun açılamaz)`);
@@ -335,7 +339,7 @@ test('Game Level Map Progression: Activity 1 Complete -> 20% Progress -> Island 
 test('Archipelago Progress Bar: Active vs Unpublished Island Level Display Invariants', () => {
   // 1. Kelime Bahçesi (Aktif Yayımlanmış Ada)
   const wg = ARCHIPELAGO_ISLANDS_CATALOG.word_garden;
-  assert.equal(wg.contentPublished, true, 'Kelime Bahçesi içerik yayımlanmış tek ada olmalıdır');
+  assert.equal(wg.contentPublished, true, 'Kelime Bahçesi öğrenme içeriği yayımlanmıştır');
   assert.equal(wg.totalPublishedRequiredLevels, 5, 'Kelime Bahçesi toplam 5 seviyeye sahip olmalıdır');
 
   const formatWordGardenProgress = (completed) => {
@@ -348,9 +352,13 @@ test('Archipelago Progress Bar: Active vs Unpublished Island Level Display Invar
   assert.equal(formatWordGardenProgress(1), '1/5 Tamamlandı (%20)');
   assert.equal(formatWordGardenProgress(5), '5/5 Tamamlandı (%100)');
 
-  // 2. Diğer 5 Ada için Sahte 0/5 Barının Bastırılması (Suppression) Kuralı
-  const otherIslands = ARCHIPELAGO_ISLANDS_ORDERED.filter(i => i.id !== 'word_garden');
-  assert.equal(otherIslands.length, 5, 'Geriye kalan 5 ada bulunmalıdır');
+  // 2. Published Sentence Plaza uses real six-mission progress, four future islands remain locked.
+  const plaza=ARCHIPELAGO_ISLANDS_CATALOG.story_castle;
+  assert.equal(plaza.totalPublishedRequiredLevels,6);
+  assert.equal(plaza.contentPublished,true);
+  const otherIslands = ARCHIPELAGO_ISLANDS_ORDERED.filter(i =>
+    i.id !== 'word_garden'&&i.id!=='story_castle');
+  assert.equal(otherIslands.length, 4, 'Geriye dört geliştirilmemiş ada kalmalıdır');
 
   for (const island of otherIslands) {
     assert.equal(island.contentPublished, false, `${island.id} adası henüz yayımlanmamış olmalıdır`);

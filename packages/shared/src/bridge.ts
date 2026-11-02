@@ -74,6 +74,17 @@ export interface TempleAnswerEvidence {
   kind:'discovery'|'recognition'|'listening'|'sentence'|'sequence';
   mistakes:number;firstTryCorrect:boolean;hintUsed:boolean;timestamp:string;
 }
+/** Independently verifiable sentence-construction evidence from the sentence island. */
+export interface SentenceAnswerEvidence {
+ questionId:string;
+ skill:'describing'|'introducing'|'location'|'action'|'preference'|'transfer';
+ placement:'Pre-A1'|'A1'|'A2';
+ mistakes:number;
+ hintUsed:boolean;
+ modelHeard:boolean;
+ firstTryCorrect:boolean;
+ timestamp:string;
+}
 export interface GameMetrics {
   durationSeconds: number;
   attemptsCount: number;
@@ -86,6 +97,7 @@ export interface GameMetrics {
   foodAnswers?: FoodAnswerEvidence[];
   familyAnswers?: FamilyAnswerEvidence[];
   templeAnswers?: TempleAnswerEvidence[];
+  sentenceAnswers?: SentenceAnswerEvidence[];
 }
 
 export interface GameCompletedPayload {

@@ -23,7 +23,7 @@ export const ENGLISH_JOURNEY:readonly LearningIslandPlan[]=[
   },
   futureMechanics:['Görsel keşif ve etkileşim','Kelimelerle dinle-seç','Bağlamlı kısa görevler'],
   evidence:['discovery','recognition','listening','application']},
- {id:'story_castle',title:'Cümle Meydanı',goal:'sentence-building',order:2,playable:false,prerequisites:['vocabulary'],
+ {id:'story_castle',title:'Cümle Meydanı',goal:'sentence-building',order:2,playable:true,prerequisites:['vocabulary'],
   atLevel:{
    'Pre-A1':['This is a…','It is red.','I like…'],
    'A1':['There is / There are','The cat is under the table.','Do you like…?'],

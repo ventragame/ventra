@@ -1,6 +1,6 @@
 # VENTRA — English Learning Journey v2 (canonical, 2026-11-02)
 
-**Status:** Island concepts and manifest implemented; Word Garden grade/placement curriculum foundation implemented. Only Word Garden is currently playable. Five new big-island games are **not** implemented or unlocked. No claim of CEFR certification or official MEB outcome mapping.
+**Status (updated 2026-11-02):** Word Garden and the FIRST region of Cümle Meydanı (Uyanan Meydan) are playable. Other four sentence regions and four other big islands remain unpublished. No formal MEB/CEFR certification claim.
 
 ## Non-negotiable product direction
 - Ages approximately 7–12; grades 1–8 and English starting placements **Pre-A1, A1, A2** are **different variables**.
@@ -14,7 +14,7 @@
 | Journey order | Stable ID | Visible name | Real outcome, beyond merely selecting answers | Status |
 | --- | --- | --- | --- | --- |
 | 1 | `word_garden` | **Kelime Bahçesi** | Recognize, hear and apply English vocabulary across 6 existing worlds | Playable |
-| 2 | `story_castle` | **Cümle Meydanı** | Build meaningful English sentences with known words and increasing independence | Planned |
+| 2 | `story_castle` | **Cümle Meydanı** | Build meaningful English sentences with known words and increasing independence | **Uyanan Meydan (1/5) playable** |
 | 3 | `listening_forest` | **Hikâye Ormanı** | Follow and sequence English stories, explain events, infer meanings in context | Planned |
 | 4 | `speaking_harbor` | **Diyalog Limanı** | Use English in character dialogues and context-appropriate turns | Planned |
 | 5 | `sentence_workshop` | **Yazı Atölyesi** | Write/spell English from guided phrases to short original texts | Planned |
@@ -56,7 +56,7 @@
 4. **Reliability:** Physical Android/iPhone audio, touch, offline sync conflicts, parent/teacher boundaries and device-to-device restoration require hands-on acceptance. CI alone is insufficient.
 5. **Audio/art:** Much content remains platform TTS and existing illustrations. Studio-recorded native English and reviewed SFX mastering are open.
 6. **Learning measurement:** Need longitudinal retention checks, real children and linguistic/pedagogical evaluation; a completion star is not evidence of mastery.
-7. **Cross-world launch:** Only `word_garden.contentPublished=true`. Locked islands do not become playable merely when Word Garden is completed; each needs a separate actual game, save flow, validation and launch gate.
+7. **Cross-world launch:** Only `word_garden` and the first region of `story_castle` have playable content. Locked islands do not become playable merely when Word Garden is completed; each needs a separate actual game, save flow, validation and launch gate.
 
 ## Phased development after Word Garden baseline
 
@@ -74,7 +74,7 @@
 - [ ] Expand language-use tasks and validate adaptive recall without false mastery.
 - [ ] Teacher review of every word/phrase, English pronunciation, pictures and sentence grammar.
 
-### L2 — Cümle Meydanı [NEXT BIG ISLAND; not implemented]
+### L2 — Cümle Meydanı [Uyanan Meydan playable; 4 other regions still planned]
 - GDD: language objectives, Pre-A1/A1/A2 sentence templates, grade cognitive scaffolds, verbs/nouns, safe distractors, meaningful context.
 - Gameplay: physically assemble sentence parts on a scene, respond to an event, drag objects based on English instructions, correct sentence semantics rather than merely order.
 - Reuse learned Word Garden vocabulary; preserve novel sentence evidence per learner/domain. Offline, P3, stars, replay, classroom progress.
@@ -94,3 +94,10 @@
 
 ### Release gates (all future phases)
 TypeScript, automated unit/integration tests, production web build, Android and iOS CI, device QA, child/teacher pedagogy acceptance, RLS/cross-profile isolation, offline/sync, audio accessibility, documented rollback. No production deployment or schema migrations as part of this learning-contract update.
+
+#### CM1, implemented independently
+- First six consecutive missions: Renklerin Uyanışı, Yeni Dostlar, Gizli Yerler, Hareket Büyüsü, İstekler Meydanı, Fener Festivali.
+- 3/4/5 meaningful questions depending on selected grade; language templates selected by separate Pre-A1/A1/A2 placement. No language grade conflation.
+- Full visible on-screen explanation, pronunciation/model support, semantic world effect after English sentence construction; hints, mistakes, and independent recall recorded separately.
+- Same repository offline event/session persistence, 3 stars per unique level, retry-safe session ID, P5 coin compatibility.
+- [CM1 full GDD](./CM1_UYANAN_MEYDAN_GDD_ACCEPTANCE.md).

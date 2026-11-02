@@ -499,6 +499,16 @@ export class MemoryProgressRepository implements IProgressRepository {
     return summary.recommendedReview;
   }
 
+  public async getSentenceAnswerHistory(profileId:string):Promise<import('@ventra/shared').SentenceAnswerEvidence[]>{
+    return Array.from(this.sessions.values())
+      .filter(s=>s.profileId===profileId&&s.data?.gameId==='island_sentence_square_plaza')
+      .flatMap(s=>Array.isArray(s.data?.metrics?.sentenceAnswers)?
+        s.data.metrics.sentenceAnswers.filter((x:any)=>typeof x.questionId==='string'&&
+          typeof x.skill==='string'&&typeof x.timestamp==='string'&&
+          Number.isFinite(x.mistakes)&&typeof x.hintUsed==='boolean'&&
+          typeof x.firstTryCorrect==='boolean') : []);
+  }
+
   public async getAnimalAnswerHistory(profileId: string): Promise<import('@ventra/shared').AnimalAnswerEvidence[]> {
     return Array.from(this.sessions.values())
       .filter(session => session.profileId === profileId && session.data?.gameId === 'island_word_garden_steps')
@@ -576,7 +586,7 @@ export class MemoryProgressRepository implements IProgressRepository {
       const levels = await this.getAllLevelProgress(gameId, targetProfileId);
       return calculateTotalStars(levels);
     }
-    const [atolye, kopru, exploration, legacyIsland, wordSteps, colors, numbers, food, family, temple] = await Promise.all([
+    const [atolye, kopru, exploration, legacyIsland, wordSteps, colors, numbers, food, family, temple, plaza] = await Promise.all([
       this.getAllLevelProgress('kesir_atolyesi', targetProfileId),
       this.getAllLevelProgress('kesir_koprusu', targetProfileId),
       this.getAllLevelProgress('phaser_exploration_island', targetProfileId),
@@ -586,7 +596,8 @@ export class MemoryProgressRepository implements IProgressRepository {
       this.getAllLevelProgress('island_word_garden_numbers', targetProfileId),
       this.getAllLevelProgress('island_word_garden_food', targetProfileId),
       this.getAllLevelProgress('island_word_garden_family', targetProfileId),
-      this.getAllLevelProgress('island_word_garden_temple', targetProfileId)
+      this.getAllLevelProgress('island_word_garden_temple', targetProfileId),
+      this.getAllLevelProgress('island_sentence_square_plaza', targetProfileId)
     ]);
     // Legacy island completion and the five modern steps represent the same
     // achievement: never count both awards for the same area.
@@ -596,7 +607,7 @@ export class MemoryProgressRepository implements IProgressRepository {
       calculateTotalStars(wordSteps)
     );
     return calculateTotalStars(atolye) + calculateTotalStars(kopru) +
-      animalStars + calculateTotalStars(colors) + calculateTotalStars(numbers) + calculateTotalStars(food) + calculateTotalStars(family) + calculateTotalStars(temple);
+      animalStars + calculateTotalStars(colors) + calculateTotalStars(numbers) + calculateTotalStars(food) + calculateTotalStars(family) + calculateTotalStars(temple) + calculateTotalStars(plaza);
   }
 
   // --- Bulut Senkronizasyon Metodları ---

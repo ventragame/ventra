@@ -8,7 +8,8 @@ export const WORLD_GAMES = [
   {id:'island_word_garden_numbers',label:'Sayı Vadisi',count:15,icon:'🔢'},
   {id:'island_word_garden_food',label:'Lezzet Pazarı',count:15,icon:'🍎'},
   {id:'island_word_garden_family',label:'Aile Köyü',count:20,icon:'🏡'},
-  {id:'island_word_garden_temple',label:'Keşif Tapınağı',count:25,icon:'✨'}
+  {id:'island_word_garden_temple',label:'Keşif Tapınağı',count:25,icon:'✨'},
+  {id:'island_sentence_square_plaza',label:'Uyanan Meydan',count:6,icon:'🏰'}
 ] as const;
 /**
  * Planning only. These SKU identifiers cannot initiate a transaction.

@@ -280,3 +280,11 @@ Kaynaklar:
 - **Acceptance:** automatic cross-product tests added; physical-device and teacher/child pedagogy acceptance pending. Curriculum is Ventra internal heuristics, NOT formal MEB/CEFR validation.
 - **Next implementation:** L2 Cümle Meydanı — meaningful independent English sentence construction, not duplicated multiple-choice vocab games.
 - [**Canonical vision, phase plan, grade matrix and outstanding quality gates**](./VENTRA_ENGLISH_LEARNING_JOURNEY_V2.md).
+
+### 2026-11-02 — CM1 Uyanan Meydan — Cümle Meydanı'nın ilk oynanabilir bölgesi
+- `story_castle` büyük adasında **yalnızca 1/5 bölge** oynanabilir. Uyanan Meydan, 6 görev × sınıfa göre 3/4/5 soru; Pre-A1/A1/A2 için değişen İngilizce dil kalıpları. Gör → Dinle → Kur → Canlandır sırası.
+- Orijinal vektör/SVG 2.5D meydan, renk ve hayvan tepkileri, büyülü atölye; aynı görev farklı oturumlarda farklı anlamlı cümlelerden seçilir.
+- Bağımsız kurma, model dinleme, yanlış sıralama ve ipuçları ayrı `sentenceAnswers` kanıtı olarak saklanır. Profile ait IndexedDB/Memory, bulut event sözleşmesi, yıldız/coin idempotence; eski profil/senkronizasyon şeması korunur.
+- Ses için ayrı plaza bestesi, mevcut opt-in/mute/ducking yönetimi. WebP olan büyük-ada ana sanat varlığı korundu; bölümün canlı sahnesi yüksek çözünürlüklü ölçeklenebilir SVG'dir.
+- **Açık:** Dil öğretmeni/çocuk kabul testi, gerçek cihaz görsel ve ses testi, 4 ek bölge ve tüm büyük ada tamamlanma kriteri.
+- [CM1 GDD ve kabul](./CM1_UYANAN_MEYDAN_GDD_ACCEPTANCE.md).

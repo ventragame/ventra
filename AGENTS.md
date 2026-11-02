@@ -32,3 +32,9 @@ This instruction file does not itself establish a new delivery/deployment author
 - Legacy IDs are permanent: `word_garden, story_castle, listening_forest, speaking_harbor, sentence_workshop, language_academy`. The visible name/art/route may change; do not migrate or silently rename progress keys.
 - Every Word Garden mission must use BOTH profile grade and English placement; follow `gradeAwareLearningPolicy.ts` and `learningJourney.ts`. Do not equate grade to CEFR. New vocabulary needs an explicit tier, evidence/correct speech, first-discovery gating, age-appropriate content and tests.
 - Upcoming five big islands require new actual mechanics and offline learner evidence; NEVER claim they are playable merely because labels have been renamed.
+
+## CM1 / Uyanan Meydan playable (2026-11-02)
+- `story_castle` now has **only its first production region**, Uyanan Meydan, containing 6 sequential saved English sentence missions. The other four planned Cümle Meydanı regions are still **locked**; do not report the entire island as finished.
+- Canonical curriculum, art and acceptance: [docs/CM1_UYANAN_MEYDAN_GDD_ACCEPTANCE.md](docs/CM1_UYANAN_MEYDAN_GDD_ACCEPTANCE.md).
+- Game ID `island_sentence_square_plaza` is permanent, 6 levels, session-idempotent, offline first. Sentence answer evidence distinguishes independent construction from listening and hint assistance; no auto CEFR upgrade.
+- Always open published world through `/kids` and its existing profile, never create synthetic child profile. No release claim before real device and language-teacher testing.

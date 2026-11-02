@@ -74,3 +74,6 @@ Altı büyük adanın yeni öğrenme sırası: **Kelime Bahçesi → Cümle Meyd
 Kelime Bahçesi'nde çocuk profili sınıfı ve İngilizce seviyesi bağımsız uygulanır. Sınıf ve seviye aynı şey değildir. Kataloglar sınıf düzeyi+Pre-A1/A1/A2 filtresiyle sınırlandırılır, P3 tekrar ve ilerleme kayıtları korunur.
 
 > **Her yeni sprint öncesi:** [English Learning Journey v2 — Canonical GDD, fazlar ve kalite kapıları](docs/VENTRA_ENGLISH_LEARNING_JOURNEY_V2.md) belgesini oku. Resmî müfredat eşleşmesi ve gerçek çocuk testleri henüz doğrulanmadı.
+
+### CM1 — Cümle Meydanı / Uyanan Meydan (02.11.2026)
+Cümle Meydanı'nın **ilk bölgesi** kullanıma açıldı: 6 sıralı İngilizce cümle görevi, özgün etkileşimli SVG şehir sahnesi, sınıf/Pre-A1/A1/A2 duyarlı cümle şablonları, isteğe bağlı ses ve ipuçları, yanlışları ayrı kaydetme, otomatik soru akışı, profil bazlı kalıcı ilerleme ve tekrar oynanabilirlik. Sadece ilk bölge; diğer dört bölge açık değil. [GDD, müfredat ve kabul](docs/CM1_UYANAN_MEYDAN_GDD_ACCEPTANCE.md).
