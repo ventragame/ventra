@@ -270,7 +270,7 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
               Sesi dinle veya destek aç. Ses oynatılmadan bağımsız dinleme başarısı kaydedilmez.</p>}
             {answered&&!saveError&&<p role="status" aria-live="polite" className="fv-notice">
               ✨ {question+1===current.questions.length?'Bölüm sonucu kaydediliyor…':'Sıradaki İngilizce soruya geçiliyor…'}
-            </p>
+            </p>}
           </>:<p role="alert">Görev içeriği bulunamadı. <button onClick={()=>start(stage)}>Yeniden Aç</button></p>}
           {notice&&<p role="status" className="fv-notice">{notice}</p>}
           {saveError&&<div role="alert" className="fv-error">{saveError}

@@ -314,7 +314,7 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
        </div>}
        {correct&&!saveError&&<p role="status" aria-live="polite" className="tp-notice">
         ✨ {question+1===current.questions.length?'Mühür kaydediliyor…':'Yeni İngilizce mühür açılıyor…'}
-       </p>
+       </p>}
       </>:<div className="tp-error">Soru yüklenemedi. <button onClick={()=>enter(chamber,stage)}>Yenile</button></div>}
       {notice&&<p role="status" className="tp-notice">{notice}</p>}
       {saveError&&<div role="alert" className="tp-error">{saveError}
