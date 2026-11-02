@@ -270,7 +270,7 @@ function buildV2(mission:PlazaMission,level:EnglishPlacement):PlazaQuestion[]{
    const words=v({en:act.id,tr:act.tr},{en:act.verb,tr:act.trVerb},place);
    const choices=actions.map(o=>({id:o.verb,label:o.trVerb,icon:o.effect==='fly'?'🪽':'✨'}));
    push({key:'ability:'+act.id+':'+place.en,kind:'statement',
-    sentence:'The '+act.id+' can '+act.verb+'.',cue:act.tr+' '+act.trVerb+' yapabilir.',scene,
+    sentence:'The '+act.id+' can '+act.verb+' '+place.en+'.',cue:act.tr+' '+place.tr+' '+act.trVerb+' yapabilir.',scene,
     explanation:'Can + fiilin yalın hâli yeteneği anlatır.',vocabulary:words,
     mode:'scene',choices,choice:act.verb});
    if(a1){
