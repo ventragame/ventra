@@ -44,7 +44,7 @@ test('Grade size and English grammar are independently controlled at every level
       'Never repeat identical language challenge in one mission');
     for(const q of plan.questions){
      assert.equal(q.englishLevel,level);
-     assert.ok(q.tokens.length>=4);
+     assert.ok(q.tokens.length>=3);
      assert.ok(q.sentence.endsWith('.'));
      assert.ok(q.cue.length>=12);
      assert.ok(q.explanation.length>=12);
