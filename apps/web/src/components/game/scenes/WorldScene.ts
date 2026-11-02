@@ -23,7 +23,7 @@ interface IslandEntity {
   mistFront: Phaser.GameObjects.Image;
   hitZone: Phaser.GameObjects.Arc;
   badgeContainer?: Phaser.GameObjects.Container;
-  focusHalo?: Phaser.GameObjects.Arc;
+  focusHalo?: Phaser.GameObjects.Ellipse;
   plateBg?: Phaser.GameObjects.Graphics;
   progressFill?: Phaser.GameObjects.Graphics;
   progressText?: Phaser.GameObjects.Text;
