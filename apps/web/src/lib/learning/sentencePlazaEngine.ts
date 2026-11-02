@@ -60,7 +60,9 @@ function create(mission:PlazaMission,level:EnglishPlacement,index:number):PlazaQ
   const color=COLORS[index%COLORS.length];
   const actor=(['lantern','flower','house','balloon'] as const)[Math.floor(index/4)%4];
   const label={lantern:'fener',flower:'çiçek',house:'ev',balloon:'balon'}[actor];
-  sentence=advanced?`The ${actor} is ${color.name}, and the square looks bright.`:intermediate?`The ${actor} is ${color.name}.`:`It is ${color.name}.`;
+  sentence=advanced?`The ${actor} is ${color.name}, and the square looks bright.`:
+    intermediate?`The ${actor} is ${color.name}.`:
+    Math.floor(index/4)===0?`It is ${color.name}.`:`The ${actor} is ${color.name}.`;
   cue=`${label[0].toUpperCase()+label.slice(1)} ${color.tr} olsun.`;
   explanation=advanced?'And iki düşünceyi bağlar.':'Is, özneyi renkle bağlar.';
   scene={actor,color:color.name,action:'glow'};vocabulary=[{en:actor,tr:label},{en:color.name,tr:color.tr}];
@@ -99,7 +101,7 @@ function create(mission:PlazaMission,level:EnglishPlacement,index:number):PlazaQ
    `I enjoy ${f.en} because they are ${f.why}.`][occasion]:
    intermediate?[
     `I like ${f.en}, but I do not like lemons.`,
-    `I like ${f.en} and I like oranges.`,
+    `I like ${f.en} and I like fruit.`,
     `I like ${f.en} in the morning.`][occasion]:
     [`I like ${f.en}.`,`I really like ${f.en}.`,`I like ${f.en} today.`][occasion];
   cue=`Festivalde ${f.tr} sevdiğini söyle.`;
