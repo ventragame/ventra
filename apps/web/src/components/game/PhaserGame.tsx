@@ -151,7 +151,7 @@ const PhaserGameComponent: React.FC<PhaserGameProps> = ({
         overflow: 'hidden',
         touchAction: 'none',
         userSelect: 'none',
-        background: 'linear-gradient(180deg, #3b98ea 0%, #68bdfa 38%, #aee1fc 72%, #dcf2fe 100%)'
+        background: 'transparent' // CSS cinematic sky lives below this transparent Phaser canvas
       }}
     />
   );

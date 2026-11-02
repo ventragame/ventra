@@ -25,6 +25,7 @@ import { getPassport } from '../../lib/rewards/economyRepository';
 import { COSMETICS,type CosmeticId } from '../../lib/rewards/economyEngine';
 import { soundService } from '../../lib/audio/SoundService';
 import { EventBus } from '../../lib/game/EventBus';
+import './kids-world-premium.css';
 
 // PhaserGame dinamik olarak yüklenir (SSR hydration hatalarını önler)
 const DynamicPhaserGame = dynamic(
@@ -322,43 +323,33 @@ export default function VentraKidsWorldPage() {
 
   return (
     <div
-      className="relative w-screen h-screen overflow-hidden bg-[#050914] flex flex-col select-none font-sans"
+      className="kids-world-root relative w-screen h-screen overflow-hidden flex flex-col select-none"
       style={{
         position: 'fixed',
         inset: 0,
         width: '100vw',
         height: '100vh',
         overflow: 'hidden',
-        backgroundColor: '#050914'
+        backgroundColor: '#79c7ef'
       }}
     >
+      <div className="kids-world-atmosphere" aria-hidden="true" />
+
       {/* 1. ÜST GEZİNME VE PROFİL ÇUBUĞU */}
       <header
         aria-hidden={isWorldLocked}
-        className={`absolute top-0 left-0 right-0 z-30 px-3 py-2 md:px-6 md:py-3 flex items-center justify-between bg-gradient-to-b from-slate-950/90 via-slate-950/60 to-transparent transition-all duration-300 ${
+        className={`kids-world-hud transition-all duration-300 ${
           isWorldLocked
             ? 'pointer-events-none opacity-0 invisible -translate-y-4'
             : 'pointer-events-auto opacity-100 visible translate-y-0'
         }`}
-        style={{
-          position: 'absolute',
-          top: 0,
-          left: 0,
-          right: 0,
-          zIndex: 30,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          padding: '10px 16px',
-          background:
-            'linear-gradient(to bottom, rgba(2, 6, 23, 0.92) 0%, rgba(2, 6, 23, 0.6) 70%, transparent 100%)'
-        }}
+
       >
         {/* Sol: Ana Sayfa Bağlantısı & Profil Seçici */}
-        <div className="flex items-center gap-2">
+        <div className="kids-hud-left">
           <Link
             href="/"
-            className="flex items-center justify-center w-8 h-8 md:w-9 md:h-9 rounded-2xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 text-slate-300 hover:text-white transition-all shadow-md cursor-pointer"
+            className="kids-hud-icon" aria-label="Ana sayfaya dön"
             title="Ana Sayfaya Dön"
           >
             <span className="text-sm">🏠</span>
@@ -369,10 +360,10 @@ export default function VentraKidsWorldPage() {
               soundService.playSfx('tap');
               setIsProfileModalOpen(true);
             }}
-            className="flex items-center gap-2 md:gap-3 bg-slate-900/80 hover:bg-slate-800 border border-slate-700/80 rounded-2xl px-2.5 py-1 md:px-3 md:py-1.5 shadow-lg transition-all active:scale-95 cursor-pointer"
+            className="kids-hud-glass kids-hud-profile"
           >
             <div
-              className="w-7 h-7 md:w-9 md:h-9 rounded-xl flex items-center justify-center text-base md:text-xl shadow-inner"
+              className="kids-profile-avatar"
               style={{ backgroundColor: currentAvatar.bgColor }}
             >
               {currentAvatar.emoji}
@@ -381,10 +372,10 @@ export default function VentraKidsWorldPage() {
               </span>}
             </div>
             <div className="text-left">
-              <div className="text-xs md:text-sm font-extrabold text-white leading-tight">
+              <div className="kids-profile-name text-sm font-extrabold text-white leading-tight">
                 {activeProfile?.nickname || 'Kaşif'}
               </div>
-              <div className="text-[10px] text-sky-400 font-semibold leading-none">
+              <div className="kids-profile-label">
                 Profil Değiştir ▾
               </div>
             </div>
@@ -392,17 +383,12 @@ export default function VentraKidsWorldPage() {
         </div>
 
         {/* Orta: Dünya Başlığı & Genel Harita Butonu */}
-        <div className="hidden sm:flex items-center gap-2.5 bg-slate-900/80 border border-slate-700/80 rounded-2xl px-3.5 py-1.5 shadow-lg">
-          <span className="text-base">🏝️</span>
-          <span className="text-xs md:text-sm font-extrabold text-white tracking-wide">
-            VENTRA ADALAR EVRENİ
-          </span>
-          <span className="text-[10px] bg-sky-500/20 text-sky-300 font-semibold px-2 py-0.5 rounded-full border border-sky-500/30">
-            6 Ada (V2)
-          </span>
+        <div className="kids-hud-glass kids-hud-title hidden lg:flex">
+          <span className="text-2xl" aria-hidden="true">🏝️</span>
+          <div className="flex flex-col gap-0.5"><strong>VENTRA ADALAR EVRENİ</strong><span className="kids-world-name">6 ADA · BÜYÜLÜ KEŞİF</span></div>
           <button
             onClick={handleShowWorldOverview}
-            className="flex items-center gap-1 ml-1 px-2.5 py-1 rounded-xl bg-slate-800/80 hover:bg-slate-700 border border-slate-600/60 text-slate-200 hover:text-white text-[11px] font-bold transition-all cursor-pointer shadow-sm"
+            className="kids-hud-map-button"
             title="Tüm Adaları Gör (Genel Harita)"
           >
             <span>🗺️</span>
@@ -411,27 +397,27 @@ export default function VentraKidsWorldPage() {
         </div>
 
         {/* Sağ: Yıldızlar, Ses & Ebeveyn Butonu */}
-        <div className="flex items-center gap-2 md:gap-3">
+        <div className="kids-hud-actions">
           {/* Mobilde Genel Harita Butonu */}
           <button
             onClick={handleShowWorldOverview}
-            className="sm:hidden w-8 h-8 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700 flex items-center justify-center text-xs text-slate-200 cursor-pointer shadow-md"
+            className="kids-hud-icon lg:hidden" aria-label="Genel haritayı göster"
             title="Genel Harita"
           >
             🗺️
           </button>
 
           {/* Yıldız Bakiyesi */}
-          <div className="flex items-center gap-1.5 bg-slate-900/80 border border-amber-500/40 rounded-2xl px-2.5 py-1 md:px-3 md:py-1.5 shadow-md">
-            <span className="text-amber-400 text-sm md:text-base">⭐</span>
-            <span className="text-xs md:text-sm font-black text-amber-300">
+          <div className="kids-hud-glass kids-hud-stat kids-hud-stars" aria-label={`${totalStars} yıldız`}>
+            <span className="kids-stat-icon">⭐</span>
+            <span className="font-black">
               {totalStars}
             </span>
           </div>
           <button onClick={()=>{soundService.playSfx('tap');setIsPassportOpen(true);}}
-            className="flex min-h-9 items-center gap-1 rounded-xl border border-cyan-300/40 bg-slate-950/80 px-2.5 text-xs font-extrabold text-cyan-100 hover:bg-cyan-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-300"
+            className="kids-hud-glass kids-hud-stat kids-hud-coins"
             title="Maceracı Pasaportu, görevler ve kozmetik koleksiyonu">
-            🪙 <span>{coinBalance??'—'}</span> <span className="hidden md:inline">Pasaport</span>
+            <span className="kids-stat-icon" aria-hidden="true">🪙</span><span>{coinBalance??'—'}</span><span className="hidden xl:inline">Pasaport</span>
           </button>
 
           {/* Ses Aç/Kapat */}
@@ -441,7 +427,7 @@ export default function VentraKidsWorldPage() {
               setIsMuted(muted);
               soundService.playSfx('tap');
             }}
-            className="w-8 h-8 md:w-9 md:h-9 rounded-xl bg-slate-900/80 hover:bg-slate-800 border border-slate-700 flex items-center justify-center text-sm md:text-base text-slate-300 cursor-pointer shadow-md"
+            className="kids-hud-icon" aria-label={isMuted ? 'Sesi aç' : 'Sesi kapat'}
             title={isMuted ? 'Sesi Aç' : 'Sesi Kapat'}
           >
             {isMuted ? '🔇' : '🔊'}
@@ -449,7 +435,7 @@ export default function VentraKidsWorldPage() {
 
           <button
             onClick={() => { soundService.unlockAudio(); setIsModeGateOpen(true); }}
-            className="flex items-center gap-1.5 rounded-xl border border-emerald-400/40 bg-emerald-950/85 px-2.5 py-2 text-xs font-bold text-emerald-100 hover:bg-emerald-900 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-300"
+            className="kids-hud-glass kids-hud-simple"
             title="Oyun yolunu değiştir"
             aria-label="Oyun yolunu değiştir">
             <span>🧭</span><span className="hidden md:inline">Oyun Yolum</span>
@@ -462,7 +448,7 @@ export default function VentraKidsWorldPage() {
               soundService.playSfx('tap');
               setIsParentGateOpen(true);
             }}
-            className="hidden sm:flex items-center gap-1.5 bg-indigo-950/80 hover:bg-indigo-900 border border-indigo-500/40 text-indigo-200 rounded-2xl px-3 py-1.5 text-xs font-bold shadow-md transition-all active:scale-95 cursor-pointer"
+            className="kids-hud-glass kids-hud-simple kids-hud-adult hidden sm:flex items-center gap-1.5"
           >
             <span>🛡️</span>
             <span>Ebeveyn & Bulut</span>
@@ -470,9 +456,11 @@ export default function VentraKidsWorldPage() {
         </div>
       </header>
 
+      <div className="kids-world-caption" aria-hidden="true">Altı ada, sonsuz İngilizce macerası</div>
+
       {/* 2. ANA OYUN ALANI (PHASER ADALAR EVRENİ CANVAS) */}
       <main
-        className="w-full h-full flex-1 relative overflow-hidden"
+        className="kids-world-canvas w-full h-full flex-1 relative overflow-hidden"
         style={{
           position: 'absolute',
           inset: 0,
@@ -490,159 +478,71 @@ export default function VentraKidsWorldPage() {
         />
       </main>
 
-      {/* 3. DİNAMİK SEÇİLİ ADA DETAY KARTI (MASAÜSTÜ VE MOBİL İÇİN KOMPAKT, TEK KART) */}
-      <div
+      {/* 3. Selected island: meaningful status, child-readable text and one primary action. */}
+      <aside
         aria-hidden={isWorldLocked}
-        className={`absolute bottom-20 md:bottom-20 left-4 md:left-6 z-20 max-w-[340px] w-[calc(100vw-32px)] md:w-auto transition-all duration-300 ${
-          isWorldLocked
-            ? 'pointer-events-none opacity-0 translate-y-6 invisible'
-            : 'pointer-events-none opacity-100 translate-y-0 visible'
-        }`}
+        aria-label="Seçili ada bilgisi"
+        className={`kids-island-detail ${isWorldLocked
+          ? 'pointer-events-none opacity-0 invisible translate-y-6'
+          : 'opacity-100 visible translate-y-0'}`}
       >
-        <div
-          className={`bg-slate-950/85 backdrop-blur-md border rounded-2xl p-3.5 shadow-2xl transition-all duration-300 ${
-            isWorldLocked ? 'pointer-events-none' : 'pointer-events-auto'
-          }`}
-          style={{
-            borderColor: currentIslandDef.accentBorder || '#38bdf8',
-            boxShadow: `0 10px 25px -5px ${currentIslandDef.glowColor || 'rgba(0,0,0,0.5)'}`
-          }}
-        >
-          {/* Kart Başlık ve Rozet */}
-          <div className="flex items-center justify-between mb-1.5">
-            <span className="text-xs md:text-sm font-black text-white flex items-center gap-1.5">
-              <span>{currentIslandDef.emoji}</span>
-              <span>{currentIslandDef.nameTr}</span>
-            </span>
-            <span
-              className="text-[10px] font-semibold px-2 py-0.5 rounded-full border"
-              style={{
-                backgroundColor: `${currentIslandDef.themeColor}25`,
-                color: currentIslandDef.accentBorder,
-                borderColor: `${currentIslandDef.accentBorder}40`
-              }}
-            >
-              {currentIslandDef.badgeText}
-            </span>
+        <div className="kids-island-detail-inner" style={{borderColor:currentIslandDef.accentBorder}}>
+          <div className="kids-island-eyebrow">
+            <span>✦ SEÇİLİ MACERA ADASI</span>
+            <span className="kids-island-state">{currentIslandDef.contentPublished?'● OYNANABİLİR':'◇ YAKINDA'}</span>
           </div>
-
-          {/* Amaç ve Açıklama */}
-          <div className="text-[11px] font-bold text-sky-400 mb-0.5">
-            {currentIslandDef.subtitleTr}
+          <div className="kids-island-heading">
+            <span className="kids-island-emoji" aria-hidden="true">{currentIslandDef.emoji}</span>
+            <div>
+              <h2>{currentIslandDef.nameTr}</h2>
+              <small>{currentIslandDef.subtitleTr}</small>
+            </div>
           </div>
-          <p className="text-[11px] text-slate-300 leading-tight mb-2.5">
-            {currentIslandDef.descriptionTr}
-          </p>
-
-          {/* Duruma Göre Eylem ve İlerleme Alanı */}
-          <div className="space-y-2">
-            {currentIslandDef.contentPublished ? (
-              <>
-                <div className="space-y-1">
-                  <div className="flex justify-between text-[10px] font-bold text-slate-400">
-                    <span>İlerleme: {gardenOverall?`${gardenOverall.completed}/${gardenOverall.total} görev`:'Yüklenemedi'}</span>
-                    <span className={wordGardenCompletedLevels > 0 ? 'text-emerald-400' : 'text-slate-400'}>
-                      %{wordGardenProgressPercent}
-                    </span>
-                  </div>
-                  <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden border border-slate-700">
-                    <div
-                      className="h-full bg-gradient-to-r from-emerald-500 to-teal-400 rounded-full transition-all duration-500"
-                      style={{ width: `${wordGardenProgressPercent}%` }}
-                    />
-                  </div>
-                </div>
-
-                <button
-                  onClick={() => handleOpenLearningPath('word_garden')}
-                  className="w-full py-2 px-3 rounded-xl bg-gradient-to-r from-emerald-600 to-teal-600 hover:from-emerald-500 hover:to-teal-500 text-white text-xs font-bold shadow-md shadow-emerald-950/40 transition-all active:scale-95 cursor-pointer flex items-center justify-center gap-1.5"
-                >
-                  <span>
-                    {gardenOverall?.completedWorlds===6
-                      ? '🌸 Bahçe Canlandı! Tekrar Oyna'
-                      : '✨ Seviye Haritasını Aç'}
-                  </span>
-                  <span>→</span>
-                </button>
-              </>
-            ) : (
-              <>
-                {!currentIslandDef.isUnlockedDefault ? (
-                  <div className="flex items-center gap-1.5 text-[10px] font-semibold text-amber-300 bg-amber-500/15 px-3 py-2 rounded-xl border border-amber-500/30">
-                    <span className="text-sm">🔒</span>
-                    <span>{currentIslandDef.unlockRequirementNotice || 'Önceki adaları tamamlayınca açılır'}</span>
-                  </div>
-                ) : (
-                  <div className="flex items-center gap-1.5 text-[10px] font-semibold text-sky-300 bg-sky-500/15 px-3 py-2 rounded-xl border border-sky-500/30">
-                    <span className="text-sm">✨</span>
-                    <span>Ada keşfedildi! Maceralar çok yakında eklenecektir.</span>
-                  </div>
-                )}
-                <div className="flex items-center justify-between text-[9px] font-medium text-slate-400 px-1 pt-0.5">
-                  <span>İçerik Durumu:</span>
-                  <span className="text-amber-400/90 font-semibold">Pek Yakında (Hazırlanıyor)</span>
-                </div>
-              </>
-            )}
-          </div>
+          <p className="kids-island-description">{currentIslandDef.descriptionTr}</p>
+          {currentIslandDef.contentPublished ? (
+            <>
+              <div className="kids-island-meter-label">
+                <span>{gardenOverall?`${gardenOverall.completed} / ${gardenOverall.total} görev tamamlandı`:'İlerleme okunamadı'}</span>
+                <strong>%{wordGardenProgressPercent}</strong>
+              </div>
+              <div className="kids-island-meter" role="progressbar" aria-label="Kelime Bahçesi toplam ilerlemesi"
+                aria-valuemin={0} aria-valuemax={100} aria-valuenow={wordGardenProgressPercent}>
+                <div style={{width:`${wordGardenProgressPercent}%`}}/>
+              </div>
+              <button className="kids-island-action" onClick={()=>handleOpenLearningPath('word_garden')}>
+                <span>{gardenOverall?.completedWorlds===6?'🌸 Yeniden Keşfet':'✨ Kelime Bahçesi’ne Gir'}</span>
+                <span aria-hidden="true">→</span>
+              </button>
+            </>
+          ) : (
+            <div className="kids-island-locked" role="status">
+              {currentIslandDef.isUnlockedDefault?'✨ Bu adanın maceraları hazırlanıyor.':
+                '🔒 Bu adanın maceraları henüz açılmadı.'}
+            </div>
+          )}
         </div>
-      </div>
+      </aside>
 
-      {/* 4. ALT HIZLI TAKIMADA NAVİGASYON ŞERİDİ (6 ADANIN TAMAMI) */}
-      <nav
-        aria-label="Takımada Gezinme Çubuğu"
-        aria-hidden={isWorldLocked}
-        className={`absolute bottom-3 md:bottom-4 left-1/2 transform -translate-x-1/2 z-30 flex items-center gap-1.5 md:gap-2 bg-slate-950/92 backdrop-blur-md border border-slate-800 rounded-2xl px-2.5 py-1.5 md:px-3.5 md:py-1.5 shadow-2xl max-w-[95vw] overflow-x-auto scrollbar-none transition-all duration-300 ${
-          isWorldLocked
-            ? 'pointer-events-none opacity-0 translate-y-6 invisible'
-            : 'pointer-events-auto opacity-100 translate-y-0 visible'
-        }`}
-      >
-        <span className="text-[11px] font-bold text-slate-400 hidden lg:inline mr-1">
-          Adalar:
-        </span>
-        {ARCHIPELAGO_ISLANDS_ORDERED.map((island) => {
-          const isSelected = focusedIsland === island.id;
-          const isUnlocked = island.isUnlockedDefault;
-          const isWordGarden = island.id === 'word_garden';
-          const completedCount = isWordGarden ? (gardenOverall?.completed??0) : 0;
-          const isCompleted = isWordGarden && gardenOverall?.completedWorlds===6;
-
-          return (
-            <button
-              key={island.id}
-              onClick={() => handleFocusIsland(island.id)}
-              className={`flex items-center gap-1 md:gap-1.5 px-2.5 py-1.5 md:px-3 md:py-1.5 rounded-xl text-[11px] md:text-xs font-bold transition-all cursor-pointer whitespace-nowrap ${
-                isSelected
-                  ? 'text-white shadow-md'
-                  : 'bg-slate-900/70 text-slate-300 hover:bg-slate-800 hover:text-white'
-              }`}
-              style={
-                isSelected
-                  ? {
-                      backgroundColor: island.themeColor,
-                      boxShadow: `0 4px 14px ${island.glowColor}`
-                    }
-                  : undefined
-              }
-            >
-              <span>{island.emoji}</span>
-              <span>{island.nameTr}</span>
-              {isCompleted ? (
-                <span className="text-[9px] md:text-[10px] bg-emerald-400/25 text-emerald-300 px-1.5 py-0.2 rounded-full border border-emerald-400/40 font-bold">
-                  ✓ 6/6
-                </span>
-              ) : isUnlocked ? (
-                <span className="text-[9px] md:text-[10px] bg-sky-400/20 text-sky-300 px-1.5 py-0.2 rounded-full border border-sky-400/30 font-semibold">
-                  Açık
-                </span>
-              ) : (
-                <span className="text-[9px] md:text-[10px] bg-slate-800 text-slate-400 px-1.5 py-0.2 rounded-full">
-                  🔒 Kilitli
-                </span>
-              )}
-            </button>
-          );
+      {/* 4. Compact island dock: preserves all six selectable camera destinations. */}
+      <nav aria-label="Altı ada arasında gezin" aria-hidden={isWorldLocked}
+        className={`kids-world-dock ${isWorldLocked?'pointer-events-none opacity-0 invisible translate-y-6':'opacity-100 visible translate-y-0'}`}>
+        {ARCHIPELAGO_ISLANDS_ORDERED.map(island=>{
+          const selected=focusedIsland===island.id;
+          const playable=island.contentPublished;
+          const completed=playable&&gardenOverall?.completedWorlds===6;
+          return <button key={island.id} type="button"
+            onClick={()=>handleFocusIsland(island.id)}
+            aria-pressed={selected}
+            title={`${island.nameTr}: ${playable?'oynanabilir':'kilitli, yakında'}`}
+            data-selected={selected}
+            data-available={playable}
+            className="kids-dock-island">
+            <span className="kids-dock-icon" aria-hidden="true">{island.emoji}</span>
+            <span className="kids-dock-copy">
+              <span className="kids-dock-title">{island.nameTr}</span>
+              <span className="kids-dock-status">{completed?'✓ Tamamlandı':playable?'✦ Maceraya Gir':'🔒 Yakında'}</span>
+            </span>
+          </button>;
         })}
       </nav>
 

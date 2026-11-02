@@ -23,6 +23,7 @@ interface IslandEntity {
   mistFront: Phaser.GameObjects.Image;
   hitZone: Phaser.GameObjects.Arc;
   badgeContainer?: Phaser.GameObjects.Container;
+  focusHalo?: Phaser.GameObjects.Arc;
   plateBg?: Phaser.GameObjects.Graphics;
   progressFill?: Phaser.GameObjects.Graphics;
   progressText?: Phaser.GameObjects.Text;
@@ -123,6 +124,9 @@ export class WorldScene extends Phaser.Scene {
     // 1. Kamera Sınırlarını Kompakt Takımada Çevresine Ayarla
     this.cameras.main.setBounds(-200, -200, this.WORLD_WIDTH + 400, this.WORLD_HEIGHT + 400);
 
+    // Multi-depth atmosphere is decorative and never intercepts island input.
+    this.createSkyDetails();
+
     // 2. Arka Plan Masalsı Bulutlar
     this.createAtmosphericClouds(true);
 
@@ -174,9 +178,43 @@ export class WorldScene extends Phaser.Scene {
     );
   }
 
+  private isReducedMotion():boolean {
+    return typeof window !== 'undefined' && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  }
+
+  /** Low-overdraw light shafts and distant motes; no external textures or GPU-heavy filters. */
+  private createSkyDetails():void {
+    const lowPower=this.isMobileDevice();
+    const reduced=this.isReducedMotion();
+    const rays=this.add.graphics().setDepth(-21).setScrollFactor(0.76);
+    const sun={x:350,y:45};
+    for(let i=0;i<5;i++){
+      const offset=-280+i*144;
+      rays.fillStyle(0xfff9d8,0.014+(i%2)*0.009);
+      rays.fillTriangle(sun.x,sun.y,sun.x+offset-85,1620,sun.x+offset+105,1620);
+    }
+    const haze=this.add.graphics().setDepth(-19).setScrollFactor(0.8);
+    for(let i=0;i<5;i++){
+      const x=340+(i%3)*720,y=275+(i%2)*540;
+      haze.fillStyle(0xf3faff,0.025);
+      haze.fillEllipse(x,y,780,255);
+    }
+    const count=lowPower?12:28;
+    for(let i=0;i<count;i++){
+      const x=95+((i*179+47)%2150), y=90+((i*263+101)%1390);
+      const radius=(i%5===0?4:2)+(i%3)*0.4;
+      const sparkle=this.add.circle(x,y,radius,i%4===0?0xffebae:0xf1ffff,i%4===0?0.46:0.31)
+        .setDepth(-8).setScrollFactor(0.92);
+      if(!reduced&&i%4===0){
+        this.tweens.add({targets:sparkle,alpha:0.08,scale:1.65,duration:2400+i*115,
+          yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
+      }
+    }
+  }
+
   // --- 1. ORTAM BULUTLARI (ATMOSPHERIC CLOUDS) ---
   private createAtmosphericClouds(isBackground: boolean): void {
-    const cloudCount = isBackground ? 6 : 3;
+    const cloudCount = this.isMobileDevice() ? (isBackground?4:2) : (isBackground?8:4);
     const depth = isBackground ? -10 : 35;
     const baseAlpha = isBackground ? 0.32 : 0.42;
 
@@ -199,7 +237,8 @@ export class WorldScene extends Phaser.Scene {
         this.foregroundClouds.push(cloud);
       }
 
-      const duration = 50000 + i * 12000;
+      const duration = 62000 + i * 13000;
+      if(this.isReducedMotion())continue;
       this.tweens.add({
         targets: cloud,
         x: this.WORLD_WIDTH + 300,
@@ -259,8 +298,20 @@ export class WorldScene extends Phaser.Scene {
       }
     ];
 
-    curveDefinitions.forEach((curve, i) => {
-      const nodeCount = 6;
+    curveDefinitions.forEach((curve) => {
+      // A quiet constellation-like route joins the islands, behind the art.
+      const route=this.add.graphics().setDepth(9);
+      for(let k=0;k<40;k++){
+        const t=k/40, t2=(k+0.53)/40;
+        const at=(u:number)=>({
+          x:(1-u)*(1-u)*curve.p0.x+2*(1-u)*u*curve.ctrl.x+u*u*curve.p1.x,
+          y:(1-u)*(1-u)*curve.p0.y+2*(1-u)*u*curve.ctrl.y+u*u*curve.p1.y
+        });
+        const p=at(t),q=at(t2);
+        route.lineStyle(curve.isActive?2.6:1.5,curve.isActive?0xfff2b7:0xc9e2ee,curve.isActive?0.58:0.23);
+        route.lineBetween(p.x,p.y,q.x,q.y);
+      }
+      const nodeCount = 7;
       for (let step = 1; step <= nodeCount; step++) {
         const t = step / (nodeCount + 1);
 
@@ -322,6 +373,12 @@ export class WorldScene extends Phaser.Scene {
       const worldY = def.defaultWorldPos.y;
 
       const container = this.add.container(worldX, worldY).setDepth(20);
+      const focusHalo=this.add.ellipse(0,38,460,320,def.id==='word_garden'?0xfff0b4:0xd8eafb,
+        def.id==='word_garden'?0.14:0.055);
+      const haloStroke=this.add.ellipse(0,38,470,330,0xffffff,0)
+        .setStrokeStyle(def.id==='word_garden'?3:2,def.id==='word_garden'?0xffefb7:0xaeddec,
+          def.id==='word_garden'?0.38:0.14);
+      container.add([focusHalo,haloStroke]);
 
       // Ada Altı Doğal Şelale Sisi / Bulut Halesi (Arka Katman)
       const mistColor = def.id === 'word_garden' ? 0xe0f2fe : 0xf1f5f9;
@@ -350,7 +407,7 @@ export class WorldScene extends Phaser.Scene {
         .setTint(0xffffff);
       container.add(mistFront);
 
-      this.tweens.add({
+      if(!reducedMotion)this.tweens.add({
         targets: [mistBack, mistFront],
         scaleX: '+=0.04',
         alpha: '+=0.06',
@@ -392,21 +449,23 @@ export class WorldScene extends Phaser.Scene {
       }
 
       // Dinamik Ada Seviye & İlerleme Kartı (Container Y: +175)
-      const badgeContainer = this.add.container(0, 175);
+      const badgeContainer = this.add.container(0, 222);
 
-      // Kart Arka Plan Plakası (Genişlik: 172, Yükseklik: 48)
+      // Large illustrated nameplate: legible even after auto-fit camera zoom.
       const plateBg = this.add.graphics();
-      const borderColor = def.id === 'word_garden' ? 0x10b981 : def.isUnlockedDefault ? 0x38bdf8 : 0x475569;
-      plateBg.fillStyle(0x030712, 0.90);
-      plateBg.fillRoundedRect(-86, -24, 172, 48, 12);
-      plateBg.lineStyle(1.5, borderColor, 0.85);
-      plateBg.strokeRoundedRect(-86, -24, 172, 48, 12);
+      const borderColor=def.contentPublished?0xf3d898:0xb7cee3;
+      plateBg.fillStyle(def.contentPublished?0x103950:0x152f46,0.96);
+      plateBg.fillRoundedRect(-127,-35,254,78,17);
+      plateBg.lineStyle(def.contentPublished?3:2,borderColor,def.contentPublished?0.95:0.67);
+      plateBg.strokeRoundedRect(-127,-35,254,78,17);
+      plateBg.lineStyle(1,0xffffff,0.14);
+      plateBg.strokeRoundedRect(-122,-30,244,68,14);
       badgeContainer.add(plateBg);
 
       // Ada Başlığı (Emoji + Ad)
-      const titleText = this.add.text(0, -13, `${def.emoji} ${def.nameTr}`, {
+      const titleText = this.add.text(0, -15, `${def.emoji}  ${def.nameTr}`, {
         fontFamily: 'system-ui, -apple-system, sans-serif',
-        fontSize: '11px',
+        fontSize: '21px',
         fontStyle: 'bold',
         color: '#ffffff',
         align: 'center'
@@ -416,7 +475,7 @@ export class WorldScene extends Phaser.Scene {
       // İlerleme / Durum Metni (örn: "0/5 Seviye (%0)" veya "✓ Tamamlandı (%100)" veya "🔒 Kilitli")
       const progressText = this.add.text(0, -1, '', {
         fontFamily: 'system-ui, -apple-system, sans-serif',
-        fontSize: '9.5px',
+        fontSize: '15px',
         fontStyle: 'bold',
         color: '#94a3b8',
         align: 'center'
@@ -426,12 +485,21 @@ export class WorldScene extends Phaser.Scene {
       // İlerleme Barı Rayı (Track)
       const barTrack = this.add.graphics();
       barTrack.fillStyle(0x1e293b, 0.95);
-      barTrack.fillRoundedRect(-70, 11, 140, 5, 2.5);
+      barTrack.fillRoundedRect(-99, 22, 198, 7, 3.5);
       badgeContainer.add(barTrack);
 
       // İlerleme Barı Dolgusu (Fill)
       const progressFill = this.add.graphics();
       badgeContainer.add(progressFill);
+      // Make the illustrated label a touch/click target too; not only the island sprite.
+      const badgeHit=this.add.zone(0,4,254,78).setInteractive({useHandCursor:true});
+      badgeContainer.add(badgeHit);
+      badgeHit.on('pointerup',()=>{
+        if(this.isInputLocked||this.hasDragged||this.isTransitioning)return;
+        this.handleSelectIsland(def.id);
+      });
+      badgeHit.on('pointerover',()=>this.setIslandHoverState(entity,true));
+      badgeHit.on('pointerout',()=>this.setIslandHoverState(entity,false));
 
       container.add(badgeContainer);
 
@@ -446,6 +514,7 @@ export class WorldScene extends Phaser.Scene {
         mistFront,
         hitZone,
         badgeContainer,
+        focusHalo,
         plateBg,
         progressFill,
         progressText,
@@ -461,6 +530,10 @@ export class WorldScene extends Phaser.Scene {
       };
 
       this.renderIslandBadgeProgress(entity);
+      if(def.id==='word_garden'&&!reducedMotion){
+        this.tweens.add({targets:focusHalo,alpha:0.21,scaleX:1.045,scaleY:1.06,
+          duration:3500,yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
+      }
 
       // KUSURSUZ HOVER ETKİLEŞİMİ (KESİNLİKLE BÜYÜME BİRİKMESİ YAPMAZ)
       hitZone.on('pointerover', () => {
@@ -501,28 +574,24 @@ export class WorldScene extends Phaser.Scene {
 
     // HEDEF ÖLÇEK HER ZAMAN baseScale * factor İLE MUTLAK OLARAK HESAPLANIR
     // Asla mevcut scale ile çarpılmaz; bu sayede birikme matematiksel olarak imkânsızdır!
-    const targetScale = hovered ? entity.baseScale * 1.025 : entity.baseScale;
+    const targetScale = hovered ? entity.baseScale * 1.055 : entity.baseScale;
 
     if (hovered && entity.definition.isUnlockedDefault) {
       soundService.playSfx('tap', 0.2);
     }
 
     // Ada plakasında yumuşak sınır aydınlatması (Soft Glow)
-    if (entity.plateBg) {
-      const borderColor = hovered
-        ? 0x38bdf8
-        : entity.id === 'word_garden'
-        ? 0x10b981
-        : entity.isUnlocked
-        ? 0x38bdf8
-        : 0x475569;
+    if(entity.plateBg){
       entity.plateBg.clear();
-      entity.plateBg.fillStyle(0x030712, hovered ? 0.96 : 0.90);
-      entity.plateBg.fillRoundedRect(-86, -24, 172, 48, 12);
-      entity.plateBg.lineStyle(hovered ? 2 : 1.5, borderColor, hovered ? 1 : 0.85);
-      entity.plateBg.strokeRoundedRect(-86, -24, 172, 48, 12);
+      entity.plateBg.fillStyle(hovered?0x174c61:entity.contentPublished?0x103950:0x152f46,0.97);
+      entity.plateBg.fillRoundedRect(-127,-35,254,78,17);
+      entity.plateBg.lineStyle(hovered?3.5:entity.contentPublished?3:2,
+        hovered?0xfff0b5:entity.contentPublished?0xf3d898:0xb7cee3,hovered?1:0.8);
+      entity.plateBg.strokeRoundedRect(-127,-35,254,78,17);
     }
+    if(entity.focusHalo&&entity.id!=='word_garden')entity.focusHalo.setAlpha(hovered?0.19:0.055);
 
+    if(this.isReducedMotion()){entity.sprite.setScale(targetScale);return;}
     entity.scaleTween = this.tweens.add({
       targets: entity.sprite,
       scale: targetScale,
@@ -543,10 +612,10 @@ export class WorldScene extends Phaser.Scene {
     // Yayımlanmış içeriği bulunmayan adalar için sahte 0/5 gösterilmez
     if (!entity.contentPublished) {
       if (!entity.isUnlocked) {
-        entity.progressText.setText('🔒 Kilitli • Pek Yakında');
+        entity.progressText.setText('🔒  YAKINDA');
         entity.progressText.setColor('#94a3b8');
       } else {
-        entity.progressText.setText('✨ Keşfedildi • Pek Yakında');
+        entity.progressText.setText('✨  YAKINDA');
         entity.progressText.setColor('#38bdf8');
       }
       entity.progressFill.clear();
@@ -560,20 +629,20 @@ export class WorldScene extends Phaser.Scene {
 
     // Metin ve renk güncelle
     if (isCompleted) {
-      entity.progressText.setText(`✓ ${completed}/${total} Tamamlandı (%100)`);
+      entity.progressText.setText(`✓  ${completed}/${total} GÖREV  ·  TAMAMLANDI`);
       entity.progressText.setColor('#34d399');
     } else {
-      entity.progressText.setText(`${completed}/${total} Seviye (%${percent})`);
+      entity.progressText.setText(`✦  ${completed}/${total} GÖREV  ·  %${percent}`);
       entity.progressText.setColor('#38bdf8');
     }
 
     // Dolgu grafiğini yeniden çiz
     entity.progressFill.clear();
     if (completed > 0) {
-      const fillWidth = Math.max(6, Math.round(140 * (completed / total)));
+      const fillWidth = Math.max(6, Math.round(198 * (completed / total)));
       const fillColor = isCompleted ? 0x34d399 : 0x10b981;
       entity.progressFill.fillStyle(fillColor, 1);
-      entity.progressFill.fillRoundedRect(-70, 11, fillWidth, 5, 2.5);
+      entity.progressFill.fillRoundedRect(-99, 22, fillWidth, 7, 3.5);
     }
   }
 
@@ -721,8 +790,9 @@ export class WorldScene extends Phaser.Scene {
     const targetY = isPortrait ? entity.worldY + 20 : entity.worldY;
     const targetZoom = isPortrait ? Math.min(width / 520, 0.72) : Math.min(width / 1300, 1.05);
 
-    this.cameras.main.pan(targetX, targetY, duration, 'Cubic.easeInOut');
-    this.cameras.main.zoomTo(targetZoom, duration, 'Cubic.easeInOut');
+    if(duration<=0){this.cameras.main.centerOn(targetX,targetY);this.cameras.main.setZoom(targetZoom);}
+    else {this.cameras.main.pan(targetX, targetY, duration, 'Cubic.easeInOut');
+      this.cameras.main.zoomTo(targetZoom, duration, 'Cubic.easeInOut');}
   }
 
   // --- 7. BİRLEŞİK TAKIMADA SINIRLARI (COMBINED ISLAND BOUNDS HESAPLAMASI) ---
@@ -816,7 +886,7 @@ export class WorldScene extends Phaser.Scene {
   public showWorldOverview(duration = 600): void {
     this.isOverviewMode = true;
     this.cameras.main.useBounds = false;
-    this.fitCameraToViewport(duration);
+    this.fitCameraToViewport(this.isReducedMotion()?0:duration);
   }
 
   private handleResize(): void {
@@ -915,7 +985,7 @@ export class WorldScene extends Phaser.Scene {
           if (this.bloomDecorations.length === 0) {
             this.attachBloomingFlowers(wg.container);
           }
-          this.updateIslandProgress('word_garden', 5, 5);
+          // Completion is computed from all six worlds, never overwritten as 5/5.
         }
       }
     };
@@ -930,7 +1000,10 @@ export class WorldScene extends Phaser.Scene {
 
     this.focusIslandListener = (islandId: IslandId) => {
       this.activeFocusedIslandId = islandId;
-      this.focusCameraOnIsland(islandId, 550);
+      this.islands.forEach((item,id)=>{
+        if(item.focusHalo&&id!=='word_garden')item.focusHalo.setAlpha(id===islandId?0.19:0.055);
+      });
+      this.focusCameraOnIsland(islandId,this.isReducedMotion()?0:550);
     };
     EventBus.on('FOCUS_ISLAND', this.focusIslandListener);
 
