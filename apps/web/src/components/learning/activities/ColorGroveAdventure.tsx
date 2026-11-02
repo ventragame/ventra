@@ -5,6 +5,7 @@ import { COLOR_GROVE_WORDS, type ColorGroveProgress } from '@/lib/progress/color
 import { planColorMission, getColorInstruction, getActiveColorQuestion, type PlannedColorMission, type EnglishPlacement } from '@/lib/learning/colorMissionEngine';
 import type { ColorAnswerEvidence } from '@ventra/shared';
 import { soundService } from '@/lib/audio/SoundService';
+import {useAutoQuestionAdvance} from '@/lib/learning/useAutoQuestionAdvance';
 import { EventBus } from '@/lib/game/EventBus';
 import { ColorGroveScene } from './ColorGroveScene';
 
@@ -212,6 +213,8 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
       setAwaitingAdvance(false);
     }
   };
+  useAutoQuestionAdvance({ready:awaitingAdvance,blocked:saving||complete||Boolean(saveError)||!activePlan,
+    delayMs:1100,onAdvance:advance});
   const explore = (id: string) => {
     if (saving || complete) return;
     if (!muted) pronounce(id);
@@ -412,12 +415,10 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
                 className={`rounded-xl px-4 py-3 ${awaitingAdvance ? 'text-lime-100' : 'text-amber-100'}`}>
                 {feedback}
               </p>}
-              {awaitingAdvance && (
-                <button onClick={advance} disabled={saving}
-                  className="vg-answer-card mt-2 min-h-12 w-full rounded-xl bg-lime-300 px-5 py-3 font-black text-emerald-950 disabled:opacity-50 sm:w-auto">
-                  {saving ? 'Kaydediliyor…' : question + 1 === activePlan.questions.length ? 'Görevi Tamamla →' : 'Sonraki Renk →'}
-                </button>
-              )}
+              {awaitingAdvance&&!saveError&&<p role="status" aria-live="polite"
+                className="mt-2 rounded-xl border border-lime-300/40 bg-emerald-900/40 px-5 py-3 text-sm font-black text-lime-100">
+                ✨ {question+1===activePlan.questions.length?'Görev sonucu kaydediliyor…':'Yeni renk geliyor…'}
+              </p>}
             </div>
           </section>
         ) : null)}

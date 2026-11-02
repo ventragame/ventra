@@ -7,6 +7,7 @@ import {MARKET_AISLES,MARKET_STAGES,MARKET_OFFSETS,
  marketWord,marketNounPhrase,marketResumePoint,planMarketMission,type MarketAisle,type MarketStage,type MarketPlan} from '@/lib/learning/foodMarketEngine';
 import type {FoodMarketProgress} from '@/lib/progress/foodMarketProgress';
 import {soundService} from '@/lib/audio/SoundService';
+import {useAutoQuestionAdvance} from '@/lib/learning/useAutoQuestionAdvance';
 import './food-market.css';
 
 type Props={
@@ -163,7 +164,8 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
    locked.current=true;setBusy(true);setSaveError('');
    try{
      await onSave(aisle,stage,wrong,(Date.now()-started.current)/1000,result,session.current);
-     setFinished(true);setFeedback('Görev kaydedildi! Pazar biraz daha canlandı.');
+     setFinished(true);soundService.playSfx('fanfare',0.8);
+     setFeedback('Görev kaydedildi! Pazar biraz daha canlandı.');
    }catch(err){console.error('Pazar görevi kaydedilemedi',err);
      setSaveError('İlerleme kaydedilemedi. Tekrar deneyebilirsin.');
      locked.current=false;
@@ -185,6 +187,7 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
   if(stage===3&&!heard&&!hint)return;
   if(id!==task.target){
     setWrong(x=>x+1);setRoundWrong(x=>x+1);
+    soundService.playSfx('gentle_retry',0.65);
     setFeedback('Bir kez daha dene. İngilizce kelimeyi veya sesi tekrar incele.');
     return;
   }
@@ -192,6 +195,7 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
   const proof=record(id,kind,roundWrong,hint||(stage===3&&!heard));
   const next=[...answers,proof];
   setAnswers(next);setSelected(id);setSuccess(true);
+  soundService.playSfx('correct',0.75);
   setFeedback(`✓ ${marketWord(id).id.toUpperCase()} — doğru seçim!`);
   if(stage!==3)speak(stage===4?`Thank you! ${id}.`:id);
  }
@@ -201,6 +205,8 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
   cancelVoice();setQ(n=>n+1);setSuccess(false);setSelected(null);
   setHint(false);setHeard(false);setFeedback('');setRoundWrong(0);
  }
+ useAutoQuestionAdvance({ready:success,blocked:busy||finished||Boolean(saveError)||!current,
+   onAdvance:advance,delayMs:1350,speaking});
  const allowedAisle=(i:number)=>i===0||(i===1?progress.completedByAisle.orchard===5:progress.completedByAisle.bakery===5);
  const stageEnabled=(n:number)=>n<=usedStage+1;
  return <div ref={dialog} role="dialog" aria-modal="true" aria-label="Lezzet Pazarı İngilizce macerası"
@@ -327,9 +333,9 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
          </div>}
        {stage===3&&!heard&&!hint&&<p className="fm-instruction">Önce sesi dinle. Cihazda ses yoksa “Yazılı yardım” seçeneğiyle devam et.</p>}
        {stage===5&&<p className="fm-basket">🛒 Sepette: {answers.filter(x=>x.kind==='application').map(x=>marketWord(x.wordId).icon).join(' ')||'Henüz ürün yok'}</p>}
-       {success&&<button className="fm-cta" onClick={advance} disabled={busy}>
-         {q+1===current.questions.length?'Görevi Tamamla ✓':'Sonraki Ürün →'}
-       </button>}
+       {success&&!saveError&&<p role="status" aria-live="polite" className="fm-feedback">
+         ✨ {q+1===current.questions.length?'Görev sonucu kaydediliyor…':'Yeni İngilizce ürün geliyor…'}
+       </p>}
       </>:<div role="alert">Görev içeriği eksik. <button onClick={()=>changeStage(stage)}>Yenile</button></div>}
       {feedback&&<div role="status" className="fm-feedback">{feedback}</div>}
       {saveError&&<div role="alert" className="fm-error">{saveError}

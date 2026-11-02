@@ -4,6 +4,7 @@ import type {TempleAnswerEvidence} from '@ventra/shared';
 import type {EnglishPlacement} from '@/lib/learning/gradeAwareLearningPolicy';
 import {getProgressRepository} from '@/lib/progress';
 import {soundService} from '@/lib/audio/SoundService';
+import {useAutoQuestionAdvance} from '@/lib/learning/useAutoQuestionAdvance';
 import {TEMPLE_CHAMBERS,TEMPLE_STAGES,TEMPLE_OFFSETS,TEMPLE_TOTAL,
  templeWord,templeResumePoint,planTempleMission,templeWeakWords,
  type TemplePlan,type TempleChamber,type TempleStage} from '@/lib/learning/templeEngine';
@@ -138,6 +139,7 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
   if(!current||!task||correct||busy||locked.current)return;
   setAnswers(v=>[...v,record(id,kind,roundMistakes,hint||(stage===3&&!heard))]);
   setSelected(id);setCorrect(true);
+  soundService.playSfx('correct',0.75);
   setNotice('✓ '+templeWord(id).en+' — doğru!');
   if(stage!==3)speak(templeWord(id).en);
  }
@@ -146,6 +148,7 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
   if(stage===3&&!heard&&!hint)return;
   if(id!==task.target){
    setMistakes(v=>v+1);setRoundMistakes(v=>v+1);
+   soundService.playSfx('gentle_retry',0.65);
    setNotice('Bu mühür değil. Yeniden dene veya ipucunu aç.');
    return;
   }
@@ -159,7 +162,8 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
    setChosenTokens(next);markCorrect(task.target,'sentence');
   }else{
    setMistakes(n=>n+1);setRoundMistakes(n=>n+1);
-   setChosenTokens([]);setNotice('Cümlenin sırası henüz doğru değil. Yeniden kur!');
+   setChosenTokens([]);soundService.playSfx('gentle_retry',0.65);
+   setNotice('Cümlenin sırası henüz doğru değil. Yeniden kur!');
   }
  }
  async function complete(result:TempleAnswerEvidence[]){
@@ -167,7 +171,8 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
   locked.current=true;setBusy(true);setSaveError('');
   try{
    await onSave(chamber,stage,mistakes,(Date.now()-started.current)/1000,result,session.current);
-   setFinished(true);setNotice('Tapınak mührü kaydedildi!');
+   setFinished(true);soundService.playSfx('fanfare',0.8);
+   setNotice('Tapınak mührü kaydedildi!');
   }catch(err){
    console.error('Tapınak görevi kaydedilemedi',err);
    setSaveError('Görev kaydedilemedi. İnternet/cihaz depolamasını kontrol edip tekrar dene.');
@@ -180,6 +185,8 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
   stopAudio();setQuestion(x=>x+1);setCorrect(false);setSelected(null);
   setChosenTokens([]);setHint(false);setHeard(false);setRoundMistakes(0);setNotice('');
  }
+ useAutoQuestionAdvance({ready:correct,blocked:busy||finished||Boolean(saveError)||!current,
+   onAdvance:advance,delayMs:1450,speaking});
  const canEnter=(i:number)=>i===0||progress.completedByChamber[TEMPLE_CHAMBERS[i-1].id]===5;
  const pairQuestions=stage===5&&current?current.questions.slice(Math.floor(question/2)*2,Math.floor(question/2)*2+2):[];
  return <div className="tp-screen" role="dialog" aria-modal="true"
@@ -305,8 +312,9 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
         <span>🔐</span><strong>Toplanan mühürler</strong>
         <span>{answers.filter(x=>x.kind==='sequence').map(e=>templeWord(e.wordId).icon).join('  ')||'Henüz mühür yok'}</span>
        </div>}
-       {correct&&<button className="tp-primary" onClick={advance} disabled={busy}>
-        {question+1===current.questions.length?'Mührü Aç ✓':'Devam Et →'}</button>}
+       {correct&&!saveError&&<p role="status" aria-live="polite" className="tp-notice">
+        ✨ {question+1===current.questions.length?'Mühür kaydediliyor…':'Yeni İngilizce mühür açılıyor…'}
+       </p>
       </>:<div className="tp-error">Soru yüklenemedi. <button onClick={()=>enter(chamber,stage)}>Yenile</button></div>}
       {notice&&<p role="status" className="tp-notice">{notice}</p>}
       {saveError&&<div role="alert" className="tp-error">{saveError}

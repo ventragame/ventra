@@ -4,6 +4,7 @@ import type {FamilyAnswerEvidence} from '@ventra/shared';
 import {getProgressRepository} from '@/lib/progress';
 import type {EnglishPlacement} from '@/lib/learning/gradeAwareLearningPolicy';
 import {soundService} from '@/lib/audio/SoundService';
+import {useAutoQuestionAdvance} from '@/lib/learning/useAutoQuestionAdvance';
 import {VILLAGE_DISTRICTS,VILLAGE_STAGES,VILLAGE_OFFSETS,
  villageWord,villageResumePoint,planVillageMission,type VillageDistrict,type VillageStage,type VillagePlan
 } from '@/lib/learning/familyVillageEngine';
@@ -127,12 +128,14 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
    if(stage===3&&!heard&&!hint)return;
    if(id!==task.target){
      setMistakes(m=>m+1);setRoundMistakes(m=>m+1);
-     setNotice('Bir daha dene! İstersen İngilizce sesi veya ipucunu kullan.');
+     soundService.playSfx('gentle_retry',0.65);
+   setNotice('Bir daha dene! İstersen İngilizce sesi veya ipucunu kullan.');
      return;
    }
    const kind=VILLAGE_STAGES[stage-1].kind;
    const next=[...answers,record(id,kind,roundMistakes,hint||(stage===3&&!heard))];
    setAnswers(next);setSelected(id);setAnswered(true);
+   soundService.playSfx('correct',0.75);
    setNotice('Doğru! '+villageWord(id).id+' — '+villageWord(id).tr);
    if(stage!==3)speak(stage===5?villageWord(id).phrase:id);
  }
@@ -141,7 +144,8 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
    locked.current=true;setBusy(true);setSaveError('');
    try{
     await onSave(district,stage,mistakes,(Date.now()-started.current)/1000,proof,currentSession.current);
-    setSaved(true);setNotice('Görev başarıyla kaydedildi.');
+    setSaved(true);soundService.playSfx('fanfare',0.8);
+    setNotice('Görev başarıyla kaydedildi.');
    }catch(err){
     console.error('Aile Köyü kaydı başarısız',err);
     setSaveError('Görevin kaydı tamamlanamadı. İlerlemen silinmedi; tekrar deneyebilirsin.');
@@ -154,6 +158,8 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
    cancelSpeech();setQuestion(x=>x+1);setRoundMistakes(0);
    setHint(false);setHeard(false);setAnswered(false);setSelected(null);setNotice('');
  }
+ useAutoQuestionAdvance({ready:answered,blocked:busy||saved||Boolean(saveError)||!current,
+   onAdvance:advance,delayMs:1350,speaking});
  const access=(index:number)=>index===0||(index===1?progress.completedByDistrict.family===5:
    index===2?progress.completedByDistrict.rooms===5:progress.completedByDistrict.objects===5);
  return <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Aile Köyü İngilizce öğrenme dünyası"
@@ -262,9 +268,9 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
             </div>
             {stage===3&&!heard&&!hint&&<p className="fv-instruction">
               Sesi dinle veya destek aç. Ses oynatılmadan bağımsız dinleme başarısı kaydedilmez.</p>}
-            {answered&&<button className="fv-primary" onClick={advance} disabled={busy}>
-              {question+1===current.questions.length?'Görevi Tamamla ✓':'Sonraki Soru →'}
-            </button>}
+            {answered&&!saveError&&<p role="status" aria-live="polite" className="fv-notice">
+              ✨ {question+1===current.questions.length?'Bölüm sonucu kaydediliyor…':'Sıradaki İngilizce soruya geçiliyor…'}
+            </p>
           </>:<p role="alert">Görev içeriği bulunamadı. <button onClick={()=>start(stage)}>Yeniden Aç</button></p>}
           {notice&&<p role="status" className="fv-notice">{notice}</p>}
           {saveError&&<div role="alert" className="fv-error">{saveError}

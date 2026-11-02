@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useRef, useState } from 'react';
 import dynamic from 'next/dynamic';
 import type { AnimalAnswerEvidence } from '@ventra/shared';
 import { soundService } from '@/lib/audio/SoundService';
+import {useAutoQuestionAdvance} from '@/lib/learning/useAutoQuestionAdvance';
 import { EventBus } from '@/lib/game/EventBus';
 import { getProgressRepository } from '@/lib/progress';
 import type { WordGardenProgressSnapshot } from '@/lib/progress/wordGardenProgress';
@@ -299,6 +300,8 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
     if(stage===4){choose(word.id);return;}
     if(stage===5){if(rescueSelected)chooseHabitat(word.id);else choose(word.id);}
   };
+  useAutoQuestionAdvance({ready:awaiting,blocked:saving||completed||Boolean(saveError)||!activePlan,
+    delayMs:1250,onAdvance:advance});
   const stars=Object.values(localProgress.starsByLevel).reduce((s,n)=>s+n,0);
   const valid = activePlan && (stage===1?activePlan.animals.length>0:Boolean(currentQuestion && target));
   const completedCount=stage===1?discovered.length:correctCount;
@@ -489,9 +492,9 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
             </div>
             <div className="mt-4 min-h-16 text-center">
               {feedback && <p role="status" aria-live="polite" className={`rounded-xl px-3 py-3 text-sm font-semibold ${feedback.good?'bg-lime-500/15 text-lime-100':'bg-amber-500/20 text-amber-100'}`}>{feedback.text}</p>}
-              {awaiting && <button onClick={advance} disabled={saving} className="am-cta mt-2 w-full sm:w-auto">
-                {saving?'Kaydediliyor…':questionIndex+1===activePlan.questions.length?'Görevi Kaydet →':'Sonraki Hayvan →'}
-              </button>}
+              {awaiting&&!saveError&&<p role="status" aria-live="polite" className="mt-2 rounded-xl border border-lime-200/30 bg-emerald-700/20 px-4 py-3 text-sm font-bold text-lime-100">
+                ✨ {questionIndex+1===activePlan.questions.length?'Bölüm sonu kaydediliyor…':'Sıradaki hayvan keşfediliyor…'}
+              </p>}
             </div>
           </section>
         ):null)}
