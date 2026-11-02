@@ -1,177 +1,240 @@
 /**
- * VENTRA — Ses Yönetim Servisi (SoundService)
- * 
- * Özellikler:
- * - Çevrimdışı yerel WAV sesleri
- * - Havuzlanmış ses önbelleği (DOM Audio yeniden kullanım, sıfır GC baskısı)
- * - Mobil tarayıcı / Capacitor AudioContext kilit açma (user gesture)
- * - SFX ve Konuşma kanalları
- * - Global sessize alma (mute) durumu senkronizasyonu ve kalıcılığı (localStorage)
- * - Tüm aktif sesleri tek hamlede durdurma (Mute anında anında sessizlik)
+ * Ventra Audio v2 — one consistent mixer for game UI, music and English speech.
+ * Local sound settings only (no child audio or microphone data leaves the device).
+ * Music is explicit opt-in; the audio context unlocks only after user interaction.
  */
-
 import { EventBus } from '@/lib/game/EventBus';
+import { MusicDirector, type MusicScene } from './MusicDirector';
 
-// 1-örnekli geçerli sessiz WAV data URI (Tarayıcı NotSupportedError hatasını engeller)
-const SILENT_WAV = 'data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
-const STORAGE_KEY_MUTED = 'ventra_sound_muted';
-
-class SoundService {
-  private audioPool: Map<string, HTMLAudioElement[]> = new Map();
-  private isUnlocked: boolean = false;
-  private isMuted: boolean = false;
-  private gestureListenerAttached: boolean = false;
-
-  constructor() {
-    if (typeof window !== 'undefined') {
-      try {
-        const savedMuted = localStorage.getItem(STORAGE_KEY_MUTED);
-        this.isMuted = savedMuted === 'true';
-      } catch {
-        this.isMuted = false;
-      }
-      this.attachGlobalGestureUnlock();
-    }
-  }
-
-  /**
-   * İlk kullanıcı etkileşiminde (dokunma/tıklama/tuş) AudioContext ve HTMLAudio kilidini açar.
-   */
-  private attachGlobalGestureUnlock(): void {
-    if (this.gestureListenerAttached || typeof window === 'undefined') return;
-    this.gestureListenerAttached = true;
-
-    const unlockHandler = () => {
-      this.unlockAudio();
-      window.removeEventListener('pointerdown', unlockHandler);
-      window.removeEventListener('touchstart', unlockHandler);
-      window.removeEventListener('keydown', unlockHandler);
-    };
-
-    window.addEventListener('pointerdown', unlockHandler, { passive: true, once: true });
-    window.addEventListener('touchstart', unlockHandler, { passive: true, once: true });
-    window.addEventListener('keydown', unlockHandler, { passive: true, once: true });
-  }
-
-  unlockAudio(): void {
-    if (this.isUnlocked || typeof window === 'undefined') return;
-
-    try {
-      // 1. DOM Audio nesnesini sessiz WAV ile kilit aç
-      const silent = new Audio(SILENT_WAV);
-      silent.play().then(() => {
-        this.isUnlocked = true;
-      }).catch(() => {
-        // İlk kullanıcı hareketinde tekrar tetiklenecektir
-      });
-
-      // 2. Web Audio AudioContext varsa kilidini aç
-      const AudioCtx = window.AudioContext || (window as any).webkitAudioContext;
-      if (AudioCtx) {
-        const ctx = (window as any).__ventra_audio_ctx || new AudioCtx();
-        (window as any).__ventra_audio_ctx = ctx;
-        if (ctx.state === 'suspended') {
-          ctx.resume().catch(() => {});
-        }
-      }
-    } catch {
-      // Sessizce geç
-    }
-  }
-
-  private getAudioInstance(url: string): HTMLAudioElement {
-    if (!this.audioPool.has(url)) {
-      this.audioPool.set(url, []);
-    }
-    const pool = this.audioPool.get(url)!;
-
-    // Havuzda boşta (paused veya ended) bir ses varsa onu yeniden kullan
-    const available = pool.find(a => a.paused || a.ended);
-    if (available) {
-      available.currentTime = 0;
-      return available;
-    }
-
-    // Maksimum 4 kopya havuzla, aşarsa en eski olanı başa sar
-    if (pool.length >= 4) {
-      const oldest = pool[0];
-      oldest.currentTime = 0;
-      return oldest;
-    }
-
-    const audio = new Audio(url);
-    pool.push(audio);
-    return audio;
-  }
-
-  play(url: string, volume: number = 1.0): HTMLAudioElement | null {
-    if (typeof window === 'undefined' || this.isMuted) return null;
-
-    try {
-      this.unlockAudio();
-      const audio = this.getAudioInstance(url);
-      audio.volume = Math.max(0, Math.min(1, volume));
-      audio.play().catch((err) => {
-        // Otomatik oynatma engellendiyse kullanıcı hareketini bekle
-        if (err.name !== 'NotAllowedError') {
-          console.warn(`[SoundService] Ses oynatılamadı (${url}):`, err.message);
-        }
-      });
-      return audio;
-    } catch (e) {
-      console.warn(`[SoundService] Ses başlatma hatası:`, e);
-      return null;
-    }
-  }
-
-  playSfx(name: 'tap' | 'correct' | 'fanfare' | 'whoosh' | 'gentle_retry', volume: number = 0.8): void {
-    this.play(`/audio/sfx/${name}.wav`, volume);
-  }
-
-  playSpeech(path: string, volume: number = 1.0): void {
-    this.play(path, volume);
-  }
-
-  toggleMute(): boolean {
-    return this.setMuted(!this.isMuted);
-  }
-
-  setMuted(muted: boolean): boolean {
-    this.isMuted = muted;
-
-    if (typeof window !== 'undefined') {
-      try {
-        localStorage.setItem(STORAGE_KEY_MUTED, String(this.isMuted));
-      } catch {}
-    }
-
-    // Sessize alındığında tüm aktif sesleri durdur
-    if (this.isMuted) {
-      this.stopAllAudio();
-    }
-
-    // Tüm UI bileşenlerine bildir
-    EventBus.emit('MUTE_STATE_CHANGED', this.isMuted);
-    return this.isMuted;
-  }
-
-  getMuted(): boolean {
-    return this.isMuted;
-  }
-
-  /**
-   * Havuzdaki tüm aktif sesleri anında durdurur ve başa sarar.
-   */
-  stopAllAudio(): void {
-    this.audioPool.forEach((instances) => {
-      instances.forEach((audio) => {
-        try {
-          audio.pause();
-          audio.currentTime = 0;
-        } catch {}
-      });
-    });
-  }
+const SILENT_WAV='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
+const STORAGE_KEY_MUTED='ventra_sound_muted';
+export const STORAGE_KEY_AUDIO_V2='ventra_audio_mix_v2';
+export type AudioChannel='music'|'effects'|'voice';
+export type SfxName='tap'|'correct'|'fanfare'|'whoosh'|'gentle_retry';
+export interface AudioSettings{
+ muted:boolean;
+ musicEnabled:boolean;
+ music:number;
+ effects:number;
+ voice:number;
+}
+export const DEFAULT_AUDIO_SETTINGS:Readonly<AudioSettings>=Object.freeze({
+ muted:false,musicEnabled:false,music:0.4,effects:0.7,voice:1
+});
+const clamp=(v:number):number=>Number.isFinite(v)?Math.max(0,Math.min(1,v)):0;
+export function normalizeAudioSettings(value:unknown):AudioSettings{
+ const v=value&&typeof value==='object'?value as Partial<AudioSettings>:{};
+ return {
+  muted:typeof v.muted==='boolean'?v.muted:DEFAULT_AUDIO_SETTINGS.muted,
+  musicEnabled:typeof v.musicEnabled==='boolean'?v.musicEnabled:DEFAULT_AUDIO_SETTINGS.musicEnabled,
+  music:typeof v.music==='number'?clamp(v.music):DEFAULT_AUDIO_SETTINGS.music,
+  effects:typeof v.effects==='number'?clamp(v.effects):DEFAULT_AUDIO_SETTINGS.effects,
+  voice:typeof v.voice==='number'?clamp(v.voice):DEFAULT_AUDIO_SETTINGS.voice
+ };
+}
+export function chooseEnglishVoice(voices:SpeechSynthesisVoice[]):SpeechSynthesisVoice|null{
+ const english=voices.filter(v=>/^en(?:-|_)/i.test(v.lang)||v.lang.toLowerCase()==='en');
+ const us=english.filter(v=>/^en[-_]us$/i.test(v.lang));
+ // Prefer installed voices for offline play; never send child voice or text to a third party ourselves.
+ return us.find(v=>v.localService)??us[0]??english.find(v=>v.localService)??english[0]??null;
+}
+export interface EnglishSpeechOptions{
+ rate?:number;pitch?:number;
+ onStart?:()=>void;onEnd?:()=>void;onError?:()=>void;
 }
 
-export const soundService = new SoundService();
+class SoundService {
+ private audioPool=new Map<string,HTMLAudioElement[]>();
+ private isUnlocked=false;
+ private isMuted=false;
+ private music=new MusicDirector();
+ private settings:AudioSettings={...DEFAULT_AUDIO_SETTINGS};
+ private context:AudioContext|null=null;
+ private voiceActive=false;
+ private speechGeneration=0;
+ private gestureListenerAttached=false;
+ private lastSfx=new Map<SfxName,number>();
+ private sfxCooldown:Readonly<Record<SfxName,number>>={
+  tap:38,correct:90,fanfare:550,whoosh:130,gentle_retry:150
+ };
+ constructor(){
+  if(typeof window!=='undefined'){
+   try{
+    const legacy=window.localStorage.getItem(STORAGE_KEY_MUTED)==='true';
+    const saved=window.localStorage.getItem(STORAGE_KEY_AUDIO_V2);
+    this.settings=normalizeAudioSettings(saved?JSON.parse(saved):{muted:legacy});
+    this.isMuted=this.settings.muted;
+   }catch{this.settings={...DEFAULT_AUDIO_SETTINGS};}
+   this.music.setVolume(this.settings.music);
+   this.music.setEnabled(this.settings.musicEnabled);
+   this.music.setPaused(true);
+   this.attachGlobalGestureUnlock();
+   document.addEventListener('visibilitychange',()=>{
+    if(document.hidden){this.cancelSpeech();this.music.setPaused(true);this.stopAllAudio();}
+    else this.refreshMusic();
+   });
+   window.addEventListener('pagehide',()=>{this.cancelSpeech();this.music.setPaused(true);});
+   window.addEventListener('pageshow',()=>this.refreshMusic());
+  }
+ }
+ private persist(){
+  if(typeof window==='undefined')return;
+  try{
+   window.localStorage.setItem(STORAGE_KEY_AUDIO_V2,JSON.stringify(this.settings));
+   window.localStorage.setItem(STORAGE_KEY_MUTED,String(this.settings.muted));
+  }catch{}
+  EventBus.emit('AUDIO_SETTINGS_CHANGED',this.getSettings());
+ }
+ private attachGlobalGestureUnlock(){
+  if(this.gestureListenerAttached||typeof window==='undefined')return;
+  this.gestureListenerAttached=true;
+  const unlock=()=>{this.unlockAudio();};
+  // Keep a once-only handler for each input; audio can still be resumed on
+  // direct button actions if a browser rejected the very first gesture.
+  window.addEventListener('pointerdown',unlock,{once:true,passive:true});
+  window.addEventListener('touchstart',unlock,{once:true,passive:true});
+  window.addEventListener('keydown',unlock,{once:true,passive:true});
+ }
+ unlockAudio():void{
+  if(typeof window==='undefined')return;
+  try{
+   if(!this.context){
+    const Ctor=window.AudioContext||(window as any).webkitAudioContext;
+    if(Ctor)this.context=new Ctor({latencyHint:'interactive'});
+   }
+   const ctx=this.context;
+   if(ctx&&ctx.state==='suspended')void ctx.resume().then(()=>{
+    this.isUnlocked=true;this.refreshMusic();
+   }).catch(()=>{});
+   else if(ctx?.state==='running'){this.isUnlocked=true;this.refreshMusic();}
+   else if(!ctx&&!this.isUnlocked){
+    const silent=new Audio(SILENT_WAV);
+    void silent.play().then(()=>{this.isUnlocked=true;}).catch(()=>{});
+   }
+  }catch{}
+ }
+ private refreshMusic():void{
+  if(typeof window==='undefined')return;
+  const playable=this.settings.musicEnabled&&!this.isMuted&&!document.hidden;
+  this.music.setEnabled(this.settings.musicEnabled);
+  this.music.setVolume(this.settings.music);
+  this.music.setDucked(this.voiceActive);
+  this.music.setPaused(!playable);
+  if(playable&&this.context?.state==='running')this.music.start(this.context);
+ }
+ setMusicScene(scene:MusicScene):void{this.music.setScene(scene);this.refreshMusic();}
+ getMusicScene():MusicScene{return this.music.getScene();}
+ getSettings():AudioSettings{return {...this.settings};}
+ getMuted():boolean{return this.isMuted;}
+ toggleMute():boolean{return this.setMuted(!this.isMuted);}
+ setMuted(muted:boolean):boolean{
+  this.isMuted=Boolean(muted);this.settings.muted=this.isMuted;
+  if(this.isMuted){this.cancelSpeech();this.stopAllAudio();}
+  else this.unlockAudio();
+  this.refreshMusic();this.persist();
+  EventBus.emit('MUTE_STATE_CHANGED',this.isMuted);return this.isMuted;
+ }
+ setMusicEnabled(enabled:boolean):void{
+  this.settings.musicEnabled=Boolean(enabled);
+  // Must be invoked by a real user action before starting the score.
+  if(enabled&&!this.isMuted)this.unlockAudio();
+  this.refreshMusic();this.persist();
+ }
+ setChannelVolume(channel:AudioChannel,volume:number):void{
+  this.settings[channel]=clamp(volume);
+  if(channel==='effects'||channel==='voice')this.updatePooledVolumes();
+  this.refreshMusic();this.persist();
+ }
+ private updatePooledVolumes():void{
+  for(const [url,items] of this.audioPool){
+   const channel:AudioChannel=url.startsWith('/audio/sfx/')?'effects':'voice';
+   for(const audio of items){
+    const desired=Number(audio.dataset.requestVolume??'1');
+    audio.volume=this.isMuted?0:clamp(desired*this.settings[channel]);
+   }
+  }
+ }
+ private getAudioInstance(url:string):HTMLAudioElement{
+  const pool=this.audioPool.get(url)??[];
+  if(!this.audioPool.has(url))this.audioPool.set(url,pool);
+  const available=pool.find(x=>x.paused||x.ended);
+  if(available){try{available.currentTime=0;}catch{}return available;}
+  if(pool.length>=4){const old=pool[0];old.pause();old.currentTime=0;return old;}
+  const audio=new Audio(url);audio.preload='auto';pool.push(audio);return audio;
+ }
+ private playChannel(url:string,volume:number,channel:'effects'|'voice'):HTMLAudioElement|null{
+  if(typeof window==='undefined'||this.isMuted||document.hidden||this.settings[channel]<=0)return null;
+  try{
+   this.unlockAudio();
+   const audio=this.getAudioInstance(url);
+   audio.dataset.requestVolume=String(clamp(volume));
+   audio.volume=clamp(volume*this.settings[channel]);
+   // Recorded speech ducker is tied to the actual onplay/ended lifecycle.
+   if(channel==='voice'){
+    const restore=()=>{if(this.voiceActive){this.voiceActive=false;this.refreshMusic();}};
+    audio.onplay=()=>{this.voiceActive=true;this.refreshMusic();};
+    audio.onended=restore;audio.onpause=restore;audio.onerror=restore;
+   }
+   void audio.play().catch(error=>{
+    if(error?.name!=='NotAllowedError')console.warn('[Ventra audio] Ses dosyası açılamadı',url);
+   });
+   return audio;
+  }catch{return null;}
+ }
+ play(url:string,volume=1):HTMLAudioElement|null{
+  return this.playChannel(url,volume,url.startsWith('/audio/sfx/')?'effects':'voice');
+ }
+ playSfx(name:SfxName,volume=0.8):void{
+  if(this.settings.effects<=0||this.isMuted)return;
+  const now=typeof performance!=='undefined'?performance.now():Date.now();
+  const last=this.lastSfx.get(name)??-10000;
+  if(now-last<this.sfxCooldown[name])return;
+  this.lastSfx.set(name,now);
+  this.playChannel(`/audio/sfx/${name}.wav`,volume,'effects');
+ }
+ playSpeech(path:string,volume=1):void{this.playChannel(path,volume,'voice');}
+ cancelSpeech():void{
+  this.speechGeneration++;
+  if(typeof window!=='undefined'&&'speechSynthesis' in window){
+   try{window.speechSynthesis.cancel();}catch{}
+  }
+  this.voiceActive=false;this.refreshMusic();
+ }
+ speakEnglish(text:string,options:EnglishSpeechOptions={}):boolean{
+  this.cancelSpeech();
+  if(!text.trim()||this.isMuted||this.settings.voice<=0||typeof window==='undefined'
+   ||document.hidden||!('speechSynthesis' in window)
+   ||typeof SpeechSynthesisUtterance==='undefined')return false;
+  const id=this.speechGeneration;
+  try{
+   const utterance=new SpeechSynthesisUtterance(text);
+   utterance.lang='en-US';
+   utterance.rate=Math.max(0.65,Math.min(1.1,options.rate??0.83));
+   utterance.pitch=Math.max(0.8,Math.min(1.15,options.pitch??1));
+   utterance.volume=this.settings.voice;
+   const voice=chooseEnglishVoice(window.speechSynthesis.getVoices());
+   if(voice)utterance.voice=voice;
+   utterance.onstart=()=>{
+    if(this.speechGeneration!==id||this.isMuted)return;
+    this.voiceActive=true;this.refreshMusic();options.onStart?.();
+   };
+   utterance.onend=()=>{
+    if(this.speechGeneration!==id)return;
+    this.voiceActive=false;this.refreshMusic();options.onEnd?.();
+   };
+   utterance.onerror=()=>{
+    if(this.speechGeneration!==id)return;
+    this.voiceActive=false;this.refreshMusic();options.onError?.();
+   };
+   window.speechSynthesis.speak(utterance);
+   return true;
+  }catch{options.onError?.();return false;}
+ }
+ stopAllAudio():void{
+  for(const pool of this.audioPool.values())for(const audio of pool){
+   try{audio.pause();audio.currentTime=0;}catch{}
+  }
+  this.voiceActive=false;this.refreshMusic();
+ }
+}
+export const soundService=new SoundService();

@@ -260,3 +260,10 @@ Kaynaklar:
 - **CI regresyonları:** [41336066393](https://github.com/ventragame/ventra/actions/runs/41336066393) üzerinden 145/145 test, TypeScript, web, Android debug ve iOS Simulator. Son küçük locked/loading durum mantığı düzeltmesinin teyidi: [41336429385](https://github.com/ventragame/ventra/actions/runs/41336429385).
 - **Açık:** gerçek cihaz ekran görüntüsü, 30 FPS performans, mobil yatay/dikey ekran ve çocuklarla kullanılabilirlik kabulü. Yeni SQL, oyun verisi migration veya yayın yapılmadı.
 - [M1 Premium Map GDD ve kabul](./M1_WORD_GARDEN_PREMIUM_MAP_ACCEPTANCE.md).
+
+### 2026-11-02 — P4 Audio v2 / özgün ses deneyimi (teknik geliştirme)
+- Sıradaki mantıklı iş: dünya atmosferi ve İngilizce dinleme kalite kapısı. Ayrı müzik/efekt/telaffuz kanalları; çocuk istemeden müzik çalmaması; İngilizce ses sırasında müzik ducking; güvenli mute/visibility.
+- Dünya başına özgün WebAudio müzik paletleri ve çocuk dostu ses ayarı paneli. Bu sentez müzik, profesyonel bestelenmiş/master edilmiş kayıtlı ses paketi yerine geçmez.
+- TTS ortak servis entegrasyonu altı mevcut dünya için; dinleme ustalığı yalnız başarılı ses bitişiyle onaylanır.
+- **Açık:** yüzlerce İngilizce ifade için profesyonel offline ses, tüm SFX ses yüksekliği mastering, gerçek mobil ve çocuk kabul testleri. SQL veya production deployment yok.
+- [Audio v2 kabul planı](./AUDIO_V2_ACCEPTANCE.md).

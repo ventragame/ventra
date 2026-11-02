@@ -67,7 +67,7 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
  const progressSteps=stage===1?visited.length:question+Number(answered);
  const cancelSpeech=useCallback(()=>{
    speechRun.current++;
-   if(typeof window!=='undefined'&&'speechSynthesis' in window)window.speechSynthesis.cancel();
+   if(typeof window!=='undefined'&&'speechSynthesis' in window)soundService.cancelSpeech();
    setSpeaking(false);
  },[]);
  useEffect(()=>{
@@ -79,7 +79,7 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
   }).catch(err=>{console.error('Aile Köyü içeriği açılamadı',err);if(alive)setLoadError(true)});
   return()=>{alive=false;};
  },[key,profileId,district,stage,englishLevel,gradeLevel]);
- useEffect(()=>()=>{speechRun.current++;if(typeof window!=='undefined'&&'speechSynthesis' in window)window.speechSynthesis.cancel()},[]);
+ useEffect(()=>()=>{speechRun.current++;if(typeof window!=='undefined'&&'speechSynthesis' in window)soundService.cancelSpeech()},[]);
  useEffect(()=>{
   dialogRef.current?.scrollTo({top:0,behavior:'instant'});
   setHeard(false);setSpeaking(false);
@@ -93,16 +93,16 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
      return;
    }
    const run=speechRun.current;
-   try{
-     const utterance=new SpeechSynthesisUtterance(text);
-     utterance.lang='en-US';utterance.rate=.77;
-     utterance.onstart=()=>{if(run===speechRun.current)setSpeaking(true);};
-     utterance.onend=()=>{if(run===speechRun.current){setSpeaking(false);if(requireFullAudio)setHeard(true);}};
-     utterance.onerror=()=>{if(run===speechRun.current){setSpeaking(false);if(requireFullAudio){setHeard(false);setHint(true);setNotice('Ses tamamlanamadı. Yazılı destek açıldı.');}}};
-     window.speechSynthesis.speak(utterance);
-   }catch{
-     if(requireFullAudio){setHint(true);setNotice('Ses açılamadı. Yazılı destek etkin.');}
-   }
+   const started=soundService.speakEnglish(text,{
+     rate:0.8,
+     onStart:()=>{if(run===speechRun.current)setSpeaking(true);},
+     onEnd:()=>{if(run===speechRun.current){setSpeaking(false);if(requireFullAudio)setHeard(true);}},
+     onError:()=>{if(run===speechRun.current){setSpeaking(false);if(requireFullAudio){
+       setHeard(false);setHint(true);setNotice('Ses tamamlanamadı. Yazılı destek açıldı.');
+     }}}
+   });
+   if(!started&&requireFullAudio){setHint(true);setNotice('Ses açılamadı. Yazılı destek etkin.');}
+
  }
  function start(nextStage:VillageStage,nextDistrict:VillageDistrict=district){
    if(busy)return;cancelSpeech();locked.current=false;

@@ -24,6 +24,7 @@ import { CosmeticArtwork } from '../../components/rewards/CosmeticArtwork';
 import { getPassport } from '../../lib/rewards/economyRepository';
 import { COSMETICS,type CosmeticId } from '../../lib/rewards/economyEngine';
 import { soundService } from '../../lib/audio/SoundService';
+import {AudioSettingsPanel} from '../../components/audio/AudioSettingsPanel';
 import { EventBus } from '../../lib/game/EventBus';
 import './kids-world-premium.css';
 
@@ -64,6 +65,7 @@ export default function VentraKidsWorldPage() {
   const [coinBalance,setCoinBalance]=useState<number|null>(null);
   const [avatarEquipment,setAvatarEquipment]=useState<Partial<Record<'hat'|'badge'|'aura',CosmeticId>>>({});
   const [isMuted, setIsMuted] = useState<boolean>(() => soundService.getMuted());
+  const [isAudioSettingsOpen,setIsAudioSettingsOpen]=useState(false);
 
   // Aktif Seçili / Odaklanılan Ada (Navigasyon ve Detay Kartı İçin)
   const [focusedIsland, setFocusedIsland] = useState<IslandId>('word_garden');
@@ -81,6 +83,7 @@ export default function VentraKidsWorldPage() {
     isParentGateOpen ||
     isAdultAccountModalOpen ||
     isPassportOpen ||
+    isAudioSettingsOpen ||
     isTransitionActive
   );
 
@@ -98,6 +101,10 @@ export default function VentraKidsWorldPage() {
       EventBus.off('MUTE_STATE_CHANGED', handleMuteChange);
     };
   }, []);
+
+  useEffect(()=>{
+    soundService.setMusicScene(activeRegion?'garden':'archipelago');
+  },[activeRegion]);
 
   // Toast Bildirimi
   const [toastMessage, setToastMessage] = useState<string | null>(null);
@@ -420,17 +427,13 @@ export default function VentraKidsWorldPage() {
             <span className="kids-stat-icon" aria-hidden="true">🪙</span><span>{coinBalance??'—'}</span><span className="hidden xl:inline">Pasaport</span>
           </button>
 
-          {/* Ses Aç/Kapat */}
+          {/* Ses stüdyosu: kullanıcı isteği olmadan müzik başlamaz. */}
           <button
-            onClick={() => {
-              const muted = soundService.toggleMute();
-              setIsMuted(muted);
-              soundService.playSfx('tap');
-            }}
-            className="kids-hud-icon" aria-label={isMuted ? 'Sesi aç' : 'Sesi kapat'}
-            title={isMuted ? 'Sesi Aç' : 'Sesi Kapat'}
+            onClick={()=>{soundService.unlockAudio();setIsAudioSettingsOpen(true);}}
+            className="kids-hud-icon" aria-label="Ses ve müzik ayarlarını aç"
+            title="Ses ve Müzik Ayarları"
           >
-            {isMuted ? '🔇' : '🔊'}
+            {isMuted?'🔇':'🎚️'}
           </button>
 
           <button
@@ -584,6 +587,8 @@ export default function VentraKidsWorldPage() {
           }}
         />
       )}
+
+      {isAudioSettingsOpen&&<AudioSettingsPanel onClose={()=>setIsAudioSettingsOpen(false)}/>}
 
       {isPassportOpen&&activeProfile&&<KidsPassport
         key={activeProfile.id}

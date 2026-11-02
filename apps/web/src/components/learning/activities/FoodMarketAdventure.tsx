@@ -113,7 +113,7 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
  const cancelVoice=useCallback(()=>{
    speechRun.current++;
    setSpeaking(false);
-   if(typeof window!=='undefined'&&'speechSynthesis' in window)window.speechSynthesis.cancel();
+   if(typeof window!=='undefined'&&'speechSynthesis' in window)soundService.cancelSpeech();
  },[]);
  useEffect(()=>{
   let alive=true;
@@ -125,7 +125,7 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
   }).catch(err=>{console.error('Pazar görevi planlanamadı',err);if(alive)setLoadError(true)});
   return()=>{alive=false};
  },[key,profileId,aisle,stage,englishLevel,gradeLevel]);
- useEffect(()=>()=>{speechRun.current++;if(typeof window!=='undefined'&&'speechSynthesis' in window)window.speechSynthesis.cancel()},[]);
+ useEffect(()=>()=>{speechRun.current++;if(typeof window!=='undefined'&&'speechSynthesis' in window)soundService.cancelSpeech()},[]);
  useEffect(()=>{
   dialog.current?.scrollTo({top:0,behavior:'instant'});
   setHeard(false);setSpeaking(false);
@@ -138,14 +138,15 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
     return;
   }
   const token=speechRun.current;
-  try{
-    const voice=new SpeechSynthesisUtterance(text);voice.lang='en-US';voice.rate=.78;
-    voice.onstart=()=>{if(token!==speechRun.current)return;setSpeaking(true);};
-    voice.onend=()=>{if(token===speechRun.current){setSpeaking(false);if(listenGate)setHeard(true);}};
-    voice.onerror=()=>{if(token!==speechRun.current)return;setSpeaking(false);
-      if(listenGate){setHeard(false);setHint(true);setFeedback('Ses tamamlanamadı; yazılı destek açıldı.');}};
-    window.speechSynthesis.speak(voice);
-  }catch{if(listenGate){setHint(true);setFeedback('Ses açılamadı. Yazılı destekle devam et.');}}
+  const started=soundService.speakEnglish(text,{
+    rate:0.81,
+    onStart:()=>{if(token===speechRun.current)setSpeaking(true);},
+    onEnd:()=>{if(token===speechRun.current){setSpeaking(false);if(listenGate)setHeard(true);}},
+    onError:()=>{if(token===speechRun.current){setSpeaking(false);
+      if(listenGate){setHeard(false);setHint(true);setFeedback('Ses tamamlanamadı; yazılı destek açıldı.');}}}
+  });
+  if(!started&&listenGate){setHint(true);setFeedback('Ses açılamadı. Yazılı destekle devam et.');}
+
  }
  function changeStage(next:MarketStage,nextAisle:MarketAisle=aisle){
    if(busy)return;

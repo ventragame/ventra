@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { WordGardenDistrictMap } from './WordGardenDistrictMap';
+import {soundService} from '@/lib/audio/SoundService';
+import {musicSceneForDistrict} from '@/lib/audio/MusicDirector';
 import {FirstPlayGuide} from './FirstPlayGuide';
 import type {TutorialWorld} from '@/lib/learning/firstPlayTutorial';
 import { AnimalMeadowAdventure } from './activities/AnimalMeadowAdventure';
@@ -66,6 +68,10 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
   onProgressUpdate
 }) => {
   const [district, setDistrict] = useState<District>('overview');
+  useEffect(()=>{
+    soundService.setMusicScene(musicSceneForDistrict(district));
+    return ()=>soundService.setMusicScene('archipelago');
+  },[district]);
   const [animals, setAnimals] = useState<WordGardenProgressSnapshot>(() => ({
     completedLevels: initialCompletedLevels, totalLevels: 5,
     progressPercent: initialCompletedLevels * 20,

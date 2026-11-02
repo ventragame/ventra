@@ -11,21 +11,10 @@ import { ColorGroveScene } from './ColorGroveScene';
 type Word = (typeof COLOR_GROVE_WORDS)[number];
 type Step = 1 | 2 | 3;
 
-function pronounce(text: string): void {
-  if (typeof window === 'undefined' || !('speechSynthesis' in window) ||
-      typeof SpeechSynthesisUtterance === 'undefined') return;
-  try {
-    window.speechSynthesis.cancel();
-    const voice = new SpeechSynthesisUtterance(text);
-    voice.lang = 'en-US';
-    voice.rate = 0.78;
-    window.speechSynthesis.speak(voice);
-  } catch (error) {
-    // Some Android/iOS WebViews expose speech APIs but cannot instantiate them.
-    // Never crash a lesson when a speech engine is unavailable.
-    console.warn('Cihazda sesli telaffuz kullanılamıyor:', error);
-  }
+function pronounce(text:string):void {
+  soundService.speakEnglish(text,{rate:0.81});
 }
+
 function getWord(id: string): Word {
   const word = COLOR_GROVE_WORDS.find((item) => item.id === id);
   if (!word) throw new Error('Unknown color: ' + id);
@@ -116,20 +105,20 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
   useEffect(() => {
     const onMute = (next: boolean) => {
       setMuted(next);
-      if (next && typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+      if (next && typeof window !== 'undefined' && 'speechSynthesis' in window) soundService.cancelSpeech();
     };
     setMuted(soundService.getMuted());
     EventBus.on('MUTE_STATE_CHANGED', onMute);
     return () => {
       EventBus.off('MUTE_STATE_CHANGED', onMute);
-      if (typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+      if (typeof window !== 'undefined' && 'speechSynthesis' in window) soundService.cancelSpeech();
     };
   }, []);
 
   const toggleSound = () => {
     const next = soundService.toggleMute();
     setMuted(next);
-    if (next && typeof window !== 'undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+    if (next && typeof window !== 'undefined' && 'speechSynthesis' in window) soundService.cancelSpeech();
     if (!next) soundService.playSfx('tap');
   };
 

@@ -166,7 +166,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
   useEffect(()=>{
     setVoiceAvailable(typeof window!=='undefined' && 'speechSynthesis' in window && typeof SpeechSynthesisUtterance!=='undefined');
     const cancelSpeech=()=>{
-      if(typeof window!=='undefined' && 'speechSynthesis' in window) window.speechSynthesis.cancel();
+      if(typeof window!=='undefined' && 'speechSynthesis' in window) soundService.cancelSpeech();
     };
     const listen=(next:boolean)=>{ setMuted(next); if(next)cancelSpeech(); };
     const onVisibility=()=>{if(document.hidden)cancelSpeech();};
@@ -199,25 +199,13 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
     soundService.unlockAudio();
     if((!sentence || !voiceAvailable) && word.audio){soundService.playSpeech(word.audio);return;}
     if(!voiceAvailable || typeof window==='undefined' || document.hidden)return;
-    try {
-      window.speechSynthesis.cancel();
-      const say=new SpeechSynthesisUtterance(sentence?`Find the ${word.id}`:word.id);
-      say.lang='en-US';
-      // Prefer a real English voice when the platform exposes one; device voices
-      // remain a fallback until the remaining licensed offline recordings exist.
-      const voices=window.speechSynthesis.getVoices();
-      const english=voices.find(voice=>voice.lang.toLowerCase()==='en-us')
-        ??voices.find(voice=>voice.lang.toLowerCase().startsWith('en'));
-      if(english)say.voice=english;
-      say.rate=.77;
-      window.speechSynthesis.speak(say);
-    }catch(err){console.warn('Speech not available',err);}
+    soundService.speakEnglish(sentence?`Find the ${word.id}`:word.id,{rate:0.8});
   }
   const canSpeak = (word:AnimalWord|null) => !muted && Boolean(word && (word.audio || voiceAvailable));
   function toggleMute(){
     const next=soundService.toggleMute();
     setMuted(next);
-    if(next && typeof window!=='undefined' && 'speechSynthesis' in window)window.speechSynthesis.cancel();
+    if(next && typeof window!=='undefined' && 'speechSynthesis' in window)soundService.cancelSpeech();
   }
   function reset(next:Stage){
     if(busy.current)return;

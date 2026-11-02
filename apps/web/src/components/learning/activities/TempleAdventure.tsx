@@ -69,7 +69,7 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
  const stepCount=stage===1?visited.length:question+Number(correct);
  const stopAudio=useCallback(()=>{
   run.current++;setSpeaking(false);
-  if(typeof window!=='undefined'&&'speechSynthesis' in window)window.speechSynthesis.cancel();
+  if(typeof window!=='undefined'&&'speechSynthesis' in window)soundService.cancelSpeech();
  },[]);
  useEffect(()=>{
   let alive=true;
@@ -87,7 +87,7 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
   }).catch(err=>{console.error('Keşif Tapınağı planı oluşturulamadı',err);if(alive)setLoadError(true);});
   return()=>{alive=false};
  },[key,profileId,gradeLevel,englishLevel,chamber,stage]);
- useEffect(()=>()=>{run.current++;if(typeof window!=='undefined'&&'speechSynthesis' in window)window.speechSynthesis.cancel()},[]);
+ useEffect(()=>()=>{run.current++;if(typeof window!=='undefined'&&'speechSynthesis' in window)soundService.cancelSpeech()},[]);
  useEffect(()=>{
   scrollRef.current?.scrollTo({top:0,behavior:'instant'});
   setHeard(false);setSpeaking(false);
@@ -100,15 +100,16 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
    return;
   }
   const token=run.current;
-  try{
-   const utterance=new SpeechSynthesisUtterance(text);
-   utterance.lang='en-US';utterance.rate=.76;utterance.pitch=1.04;
-   utterance.onstart=()=>{if(token===run.current)setSpeaking(true)};
-   utterance.onend=()=>{if(token===run.current){setSpeaking(false);if(requireFullAudio)setHeard(true)}};
-   utterance.onerror=()=>{if(token===run.current){setSpeaking(false);
-    if(requireFullAudio){setHeard(false);setHint(true);setNotice('Ses oynatılamadı; yazılı yardım açıldı.')}}};
-   window.speechSynthesis.speak(utterance);
-  }catch{if(requireFullAudio){setHint(true);setNotice('Ses açılamadı; yazılı yardım açık.');}}
+  const started=soundService.speakEnglish(text,{
+   rate:0.79,pitch:1.04,
+   onStart:()=>{if(token===run.current)setSpeaking(true);},
+   onEnd:()=>{if(token===run.current){setSpeaking(false);if(requireFullAudio)setHeard(true);}},
+   onError:()=>{if(token===run.current){setSpeaking(false);if(requireFullAudio){
+     setHeard(false);setHint(true);setNotice('Ses oynatılamadı; yazılı yardım açıldı.');
+   }}}
+  });
+  if(!started&&requireFullAudio){setHint(true);setNotice('Ses açılamadı; yazılı yardım açık.');}
+
  }
  function enter(nextChamber:TempleChamber,nextStage:TempleStage){
   if(busy)return;

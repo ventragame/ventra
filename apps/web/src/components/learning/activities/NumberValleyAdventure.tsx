@@ -102,7 +102,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
 
   useEffect(()=>{
     const cancel=()=>{audioRequest.current++;setHeardAudio(false);setSpeaking(false);
-      if(typeof window!=='undefined'&&'speechSynthesis' in window)window.speechSynthesis.cancel();};
+      if(typeof window!=='undefined'&&'speechSynthesis' in window)soundService.cancelSpeech();};
     const onMute=(next:boolean)=>{setMuted(next);if(next)cancel();};
     const visibility=()=>{if(document.hidden)cancel();};
     setSpeechAvailable(typeof window!=='undefined'&&'speechSynthesis' in window&&
@@ -118,20 +118,16 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
 
   function speak(value:number,phrase=false){
     if(muted||!speechAvailable)return;
-    try{
-      window.speechSynthesis.cancel();
-      const request=++audioRequest.current;
-      setHeardAudio(false);setSpeaking(false);
-      const line=new SpeechSynthesisUtterance(phrase?`Collect ${englishNumber(value)} stars`:englishNumber(value));
-      line.onstart=()=>{if(request===audioRequest.current){setHeardAudio(true);setSpeaking(true);}};
-      line.onend=()=>{if(request===audioRequest.current)setSpeaking(false);};
-      line.onerror=()=>{if(request===audioRequest.current){setHeardAudio(false);setSpeaking(false);setSpeechAvailable(false);}};
-      line.lang='en-US';line.rate=.79;
-      const voices=window.speechSynthesis.getVoices();
-      line.voice=voices.find(x=>x.lang.toLowerCase()==='en-us')??
-        voices.find(x=>x.lang.toLowerCase().startsWith('en'))??null;
-      window.speechSynthesis.speak(line);
-    }catch(error){console.warn('Sayı seslendirme kullanılamıyor',error);setSpeechAvailable(false);}
+    const request=++audioRequest.current;
+    setHeardAudio(false);setSpeaking(false);
+    const started=soundService.speakEnglish(phrase?`Collect ${englishNumber(value)} stars`:englishNumber(value),{
+      rate:0.8,
+      onStart:()=>{if(request===audioRequest.current)setSpeaking(true);},
+      onEnd:()=>{if(request===audioRequest.current){setHeardAudio(true);setSpeaking(false);}},
+      onError:()=>{if(request===audioRequest.current){setHeardAudio(false);setSpeaking(false);setSpeechAvailable(false);}}
+    });
+    if(!started){setSpeechAvailable(false);}
+
   }
   function restart(next:NumberStage,nextBand:NumberBand=band){
     if(saving)return;
@@ -220,7 +216,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
     const last=question+1>=activePlan.questions.length;
     if(last){void finish(answers,answers.length);return;}
     audioRequest.current++;setHeardAudio(false);setSpeaking(false);
-    if('speechSynthesis' in window)window.speechSynthesis.cancel();
+    if('speechSynthesis' in window)soundService.cancelSpeech();
     setQuestion(v=>v+1);setSelectedTokens([]);setPlaceValue({hundreds:0,tens:0,ones:0});setPortalPhase('collect');setPerQuestionMistakes(0);
     setFeedback(null);setHintUsed(false);setAwaitingNext(false);
   }
