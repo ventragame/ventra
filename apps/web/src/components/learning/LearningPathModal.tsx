@@ -299,6 +299,7 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
     templeError={templeError}
     onEnterTemple={()=>setDistrict('sanctuary')}
     gradeLevel={gradeLevel}
+    englishLevel={englishLevel}
     colorsAvailable={!colorError}
     onEnterColors={() => setDistrict('colors')}
     onBack={onClose}

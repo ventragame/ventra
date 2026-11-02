@@ -273,3 +273,10 @@ Kaynaklar:
 - Doğru cevap sonrası otomatik sonraki soru, bölüm sonu kutlama korunur. Sesli İngilizce ve metin yardımı kalır.
 - Özgün daha hareketli müzik, düşük yoğunluklu ritim ve yeni WebAudio doğru/yanlış/tamamlama motifleri; yerel WAV fallback. Gerçek mobil/çocuk kabulü ve stüdyo kayıtları açık.
 - [GDD ve kabul](./NUMBER_VALLEY_ENGLISH_REDESIGN_AND_AUDIO_V3.md).
+
+### 2026-11-02 — English Learning Journey v2 / Word Garden graded curriculum foundation
+- **Approved six-island direction:** Kelime Bahçesi → Cümle Meydanı → Hikâye Ormanı → Diyalog Limanı → Yazı Atölyesi → Keşif Akademisi. Old IDs and art kept for backward compatibility; only first playable. Internal journey contract: `src/lib/learning/learningJourney.ts`.
+- **Grade + placement:** 1–8 grade and Pre-A1/A1/A2 remain independent. Shared vocabulary-tier filter across animal/color/food/family/temple. 40 animals now have explicit tier metadata; no automatic A2 animal vocabulary for a beginner. Garden HUD shows grade, English level and objective. No SQL migration.
+- **Acceptance:** automatic cross-product tests added; physical-device and teacher/child pedagogy acceptance pending. Curriculum is Ventra internal heuristics, NOT formal MEB/CEFR validation.
+- **Next implementation:** L2 Cümle Meydanı — meaningful independent English sentence construction, not duplicated multiple-choice vocab games.
+- [**Canonical vision, phase plan, grade matrix and outstanding quality gates**](./VENTRA_ENGLISH_LEARNING_JOURNEY_V2.md).

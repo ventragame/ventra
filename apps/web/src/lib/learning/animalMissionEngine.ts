@@ -1,6 +1,6 @@
 import type { AnimalAnswerEvidence } from '@ventra/shared';
 import { getLearningSnapshot, needsReview } from './adaptiveLearningEngine.ts';
-import { resolveGradeAwarePolicy, gradeAwareReviewPriority, type EnglishPlacement } from './gradeAwareLearningPolicy.ts';
+import { resolveGradeAwarePolicy, resolveVocabularyTier, gradeAwareReviewPriority, type EnglishPlacement, type VocabularyTier } from './gradeAwareLearningPolicy.ts';
 
 export const ANIMAL_MEADOW_WORDS = [
   { id: 'cat', tr: 'Kedi', emoji: '🐱', habitat: 'Yumuşak minder', place: 'Ev', audio: '/audio/en/animals/cat.wav', image: '/assets/animals/premium/cat.svg' },
@@ -61,6 +61,22 @@ export interface PlannedAnimalMission {
   seed: number;
 }
 
+/** Every vocabulary item receives an explicit pedagogical tier; adding a new
+ * animal requires a deliberate tier classification rather than falling into
+ * Pre-A1 by default. These are Ventra's tiers, not formal CEFR approvals. */
+export const ANIMAL_VOCAB_TIERS:Readonly<Record<AnimalId,VocabularyTier>>={
+ cat:0,dog:0,bird:0,rabbit:0,cow:0,fish:0,horse:0,duck:0,sheep:0,frog:0,
+ bee:0,butterfly:0,lion:0,elephant:0,monkey:0,penguin:0,
+ turtle:1,fox:1,bear:1,owl:1,zebra:1,giraffe:1,panda:1,tiger:1,
+ crocodile:1,hippo:1,rhino:1,kangaroo:1,koala:1,deer:1,
+ wolf:2,hedgehog:2,squirrel:2,snake:2,dolphin:2,whale:2,shark:2,
+ octopus:2,crab:2,parrot:2
+};
+export function eligibleAnimalWords(gradeLevel:number|null|undefined,englishLevel:EnglishPlacement):AnimalWord[]{
+ const tier=resolveVocabularyTier(gradeLevel,englishLevel);
+ return ANIMAL_MEADOW_WORDS.filter(word=>ANIMAL_VOCAB_TIERS[word.id]<=tier);
+}
+
 const STARTERS: AnimalId[] = ['cat', 'dog', 'bird', 'rabbit', 'cow', 'fish', 'horse', 'duck'];
 
 export function findAnimal(id: string): AnimalWord | null {
@@ -109,9 +125,9 @@ export function planAnimalMission(input: {
 }): PlannedAnimalMission {
   const rnd = rndGenerator(input.seed);
   const policy=resolveGradeAwarePolicy({domain:'animals',gradeLevel:input.gradeLevel,englishLevel:input.englishLevel??'Pre-A1'});
-  const all: AnimalId[] = ANIMAL_MEADOW_WORDS.map(item => item.id);
+  const all: AnimalId[] = eligibleAnimalWords(input.gradeLevel,input.englishLevel??'Pre-A1').map(item => item.id);
   const seen = new Set(input.history.filter(item => item.kind === 'discovery').map(item => item.wordId));
-  const weak = new Set<string>(getWeakAnimalIds(input.history));
+  const weak = new Set<string>(getWeakAnimalIds(input.history).filter(id=>all.includes(id)));
   const mistakes = new Map<string,number>();
   for (const row of input.history.filter(item => item.kind !== 'discovery').slice(-80)) {
     mistakes.set(row.wordId, (mistakes.get(row.wordId)||0)+Math.max(0,row.mistakes));

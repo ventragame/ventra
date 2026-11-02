@@ -1,5 +1,5 @@
 import type {FamilyAnswerEvidence} from '@ventra/shared';
-import type {EnglishPlacement} from './gradeAwareLearningPolicy.ts';
+import {resolveVocabularyTier,type EnglishPlacement} from './gradeAwareLearningPolicy.ts';
 
 export type VillageDistrict='family'|'rooms'|'objects'|'routines';
 export type VillageStage=1|2|3|4|5;
@@ -114,8 +114,7 @@ export function villageWord(id:string):VillageWord{
  return word;
 }
 export function eligibleVillageWords(district:VillageDistrict,grade:number|null|undefined,level:EnglishPlacement):VillageWord[]{
- const tier=level==='Pre-A1'||(grade!=null&&grade<=2)?0:
-   level==='A1'||(grade!=null&&grade<=4)?1:2;
+ const tier=resolveVocabularyTier(grade,level);
  return VILLAGE_WORDS.filter(w=>w.district===district&&w.tier<=tier);
 }
 export function villageResumePoint(completed:Record<VillageDistrict,number>){

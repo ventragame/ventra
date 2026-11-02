@@ -5,10 +5,10 @@ import type { IslandId } from '@ventra/shared';
 export interface ArchipelagoBadgeAnchor { x:number; y:number; }
 export const ARCHIPELAGO_DESKTOP_BADGES:Readonly<Record<IslandId,ArchipelagoBadgeAnchor>>=Object.freeze({
   word_garden:       {x:252,y:174}, // right of waterfall, clear of Academy
-  listening_forest:  {x:0,y:242},
-  speaking_harbor:   {x:265,y:140}, // right of harbor, clear of Workshop
-  sentence_workshop: {x:252,y:105}, // right of lower island, clear of dock
-  story_castle:      {x:0,y:-253},  // above castle; below Forest plaque
+  listening_forest:  {x:265,y:140},
+  speaking_harbor:   {x:252,y:105}, // right of harbor, clear of Workshop
+  sentence_workshop: {x:0,y:-253}, // right of lower island, clear of dock
+  story_castle:      {x:0,y:242},  // above castle; below Forest plaque
   language_academy:  {x:0,y:236}
 });
 export function archipelagoBadgeAnchor(id:IslandId,portrait:boolean):ArchipelagoBadgeAnchor {

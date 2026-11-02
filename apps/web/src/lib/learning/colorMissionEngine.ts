@@ -1,7 +1,7 @@
 import { COLOR_GROVE_WORDS } from '../progress/colorGroveProgress.ts';
 import type { ColorAnswerEvidence } from '@ventra/shared';
 import { getLearningSnapshot, needsReview } from './adaptiveLearningEngine.ts';
-import { resolveGradeAwarePolicy, gradeAwareReviewPriority } from './gradeAwareLearningPolicy.ts';
+import { resolveGradeAwarePolicy, resolveVocabularyTier, gradeAwareReviewPriority } from './gradeAwareLearningPolicy.ts';
 
 export type ColorId = (typeof COLOR_GROVE_WORDS)[number]['id'];
 export type ColorMissionId = 1 | 2 | 3;
@@ -10,10 +10,8 @@ export type EnglishPlacement = 'Pre-A1' | 'A1' | 'A2';
 /** Advanced shade vocabulary is opt-in through English placement AND grade;
  * a beginner never receives near-identical shades as first-time answers. */
 export function eligibleColorWords(gradeLevel: number | null | undefined, englishLevel: EnglishPlacement) {
-  const validGrade = Number.isInteger(gradeLevel) && (gradeLevel ?? 0) >= 1 && (gradeLevel ?? 0) <= 8;
-  const gradeTier = !validGrade ? 2 : gradeLevel! <= 2 ? 0 : gradeLevel! <= 4 ? 1 : 2;
-  const levelTier = englishLevel === 'Pre-A1' ? 0 : englishLevel === 'A1' ? 1 : 2;
-  return COLOR_GROVE_WORDS.filter((word, i) => (('tier' in word ? word.tier : 0) as number) <= Math.min(gradeTier, levelTier));
+  const tier=resolveVocabularyTier(gradeLevel,englishLevel);
+  return COLOR_GROVE_WORDS.filter(word => (('tier' in word ? word.tier : 0) as number) <= tier);
 }
 
 export interface ColorMissionQuestion {

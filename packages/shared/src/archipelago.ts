@@ -1,5 +1,5 @@
 /**
- * VENTRA KIDS — Adalar Evreni (Archipelago) Veri Modeli V2 (Compact Oval Layout)
+ * VENTRA KIDS — English Learning Journey v2: stable island IDs, new learning roles
  * 
  * 6 Bağımsız Fantastik Ada Manifestosu ve Kompakt Takımada Sözleşmesi.
  */
@@ -52,14 +52,14 @@ export const ARCHIPELAGO_ISLANDS_CATALOG: Record<IslandId, IslandDefinition> = {
   word_garden: {
     id: 'word_garden',
     nameTr: 'Kelime Bahçesi',
-    subtitleTr: 'Kelime öğrenme',
+    subtitleTr: 'Kelimeleri keşfet, dinle ve hatırla',
     emoji: '🌸',
     themeColor: '#059669',
     accentBorder: '#34d399',
     glowColor: 'rgba(52, 211, 153, 0.45)',
-    badgeText: '7–12 Yaş • A1.1',
-    descriptionTr: 'Başlangıç kelimeleri, hayvanlar ve renklerle adayı canlandır.',
-    cefrLevel: 'A1.1',
+    badgeText: 'Pre-A1 · A1 · A2',
+    descriptionTr: 'Hayvanlar, renkler, sayılar, yiyecekler ve günlük ifadelerle İngilizce temelini kur.',
+    cefrLevel: 'Pre-A1–A2',
     totalPublishedRequiredLevels: 5,
     desktopAsset: '/assets/kids-islands/word_garden.webp',
     mobileAsset: '/assets/kids-islands/word_garden_mobile.webp',
@@ -71,99 +71,99 @@ export const ARCHIPELAGO_ISLANDS_CATALOG: Record<IslandId, IslandDefinition> = {
   },
   listening_forest: {
     id: 'listening_forest',
-    nameTr: 'Dinleme Ormanı',
-    subtitleTr: 'Dinleme ve anlama',
-    emoji: '🎧',
+    nameTr: 'Hikâye Ormanı',
+    subtitleTr: 'Hikâye ve bağlam içinde anlama',
+    emoji: '📖',
     themeColor: '#4f46e5',
     accentBorder: '#818cf8',
     glowColor: 'rgba(129, 140, 248, 0.45)',
-    badgeText: '7–12 Yaş • A1.2',
-    descriptionTr: 'Müzikli ağaç kovanları ve ses portallarıyla duyduğunu anla.',
-    cefrLevel: 'A1.2',
+    badgeText: 'Pre-A1 · A1 · A2',
+    descriptionTr: 'Karakterleri takip et, olayları sırala ve hikâyenin devamını İngilizce seç.',
+    cefrLevel: 'Pre-A1–A2',
     totalPublishedRequiredLevels: 0,
     desktopAsset: '/assets/kids-islands/listening_forest.webp',
     mobileAsset: '/assets/kids-islands/listening_forest_mobile.webp',
-    defaultWorldPos: { x: 1240, y: 430 }, // Üst orta
-    hitRadius: 210,
-    order: 2,
-    isUnlockedDefault: false,
-    contentPublished: false,
-    unlockRequirementNotice: 'Kelime Bahçesi tamamlandığında açılır'
-  },
-  speaking_harbor: {
-    id: 'speaking_harbor',
-    nameTr: 'Konuşma Limanı',
-    subtitleTr: 'Konuşma ve telaffuz',
-    emoji: '⚓',
-    themeColor: '#0284c7',
-    accentBorder: '#38bdf8',
-    glowColor: 'rgba(56, 189, 248, 0.45)',
-    badgeText: '7–12 Yaş • A1.2',
-    descriptionTr: 'Liman ve gemilerde günlük selamlaşma ve sesli diyaloglar.',
-    cefrLevel: 'A1.2',
-    totalPublishedRequiredLevels: 0,
-    desktopAsset: '/assets/kids-islands/speaking_harbor.webp',
-    mobileAsset: '/assets/kids-islands/speaking_harbor_mobile.webp',
-    defaultWorldPos: { x: 1800, y: 590 }, // Sağ üst
+    defaultWorldPos: { x: 1800, y: 590 }, // Üst orta
     hitRadius: 210,
     order: 3,
     isUnlockedDefault: false,
     contentPublished: false,
-    unlockRequirementNotice: 'Dinleme Ormanı tamamlandığında açılır'
+    unlockRequirementNotice: 'Hikâye maceraları henüz geliştirme aşamasında.'
   },
-  sentence_workshop: {
-    id: 'sentence_workshop',
-    nameTr: 'Yazı Atölyesi',
-    subtitleTr: 'Yazma ve dil üretimi',
-    emoji: '📜',
-    themeColor: '#d97706',
-    accentBorder: '#fbbf24',
-    glowColor: 'rgba(251, 191, 36, 0.45)',
-    badgeText: '7–12 Yaş • A2.1',
-    descriptionTr: 'Tüy kalemler ve parşömenlerle ilk İngilizce kelimeleri ve cümleleri yaz.',
-    cefrLevel: 'A2.1',
+  speaking_harbor: {
+    id: 'speaking_harbor',
+    nameTr: 'Diyalog Limanı',
+    subtitleTr: 'Karşılıklı konuşma ve iletişim',
+    emoji: '⚓',
+    themeColor: '#0284c7',
+    accentBorder: '#38bdf8',
+    glowColor: 'rgba(56, 189, 248, 0.45)',
+    badgeText: 'Pre-A1 · A1 · A2',
+    descriptionTr: 'Karakterlerle selamlaş, soru sor, istekte bulun ve uygun İngilizce yanıtı seç.',
+    cefrLevel: 'Pre-A1–A2',
     totalPublishedRequiredLevels: 0,
-    desktopAsset: '/assets/kids-islands/sentence_workshop.webp',
-    mobileAsset: '/assets/kids-islands/sentence_workshop_mobile.webp',
-    defaultWorldPos: { x: 1750, y: 1000 }, // Sağ alt
+    desktopAsset: '/assets/kids-islands/speaking_harbor.webp',
+    mobileAsset: '/assets/kids-islands/speaking_harbor_mobile.webp',
+    defaultWorldPos: { x: 1750, y: 1000 }, // Sağ üst
     hitRadius: 210,
     order: 4,
     isUnlockedDefault: false,
     contentPublished: false,
-    unlockRequirementNotice: 'Konuşma Limanı tamamlandığında açılır'
+    unlockRequirementNotice: 'Diyalog görevleri henüz geliştirme aşamasında.'
   },
-  story_castle: {
-    id: 'story_castle',
-    nameTr: 'Cümle Meydanı',
-    subtitleTr: 'Cümle yapıları',
-    emoji: '🏰',
-    themeColor: '#7c3aed',
-    accentBorder: '#c084fc',
-    glowColor: 'rgba(192, 132, 252, 0.45)',
-    badgeText: '7–12 Yaş • A2.2',
-    descriptionTr: 'Büyülü kulelerde ve dev masal kitaplarında doğru cümle kalıplarını keşfet.',
-    cefrLevel: 'A2.2',
+  sentence_workshop: {
+    id: 'sentence_workshop',
+    nameTr: 'Yazı Atölyesi',
+    subtitleTr: 'Okuma, yazma ve kendini ifade etme',
+    emoji: '📜',
+    themeColor: '#d97706',
+    accentBorder: '#fbbf24',
+    glowColor: 'rgba(251, 191, 36, 0.45)',
+    badgeText: 'Pre-A1 · A1 · A2',
+    descriptionTr: 'Kelime kartlarından kısa notlara ve yaratıcı metinlere uzanan İngilizce yazılar üret.',
+    cefrLevel: 'Pre-A1–A2',
     totalPublishedRequiredLevels: 0,
-    desktopAsset: '/assets/kids-islands/story_castle.webp',
-    mobileAsset: '/assets/kids-islands/story_castle_mobile.webp',
-    defaultWorldPos: { x: 1160, y: 1090 }, // Alt orta
+    desktopAsset: '/assets/kids-islands/sentence_workshop.webp',
+    mobileAsset: '/assets/kids-islands/sentence_workshop_mobile.webp',
+    defaultWorldPos: { x: 1160, y: 1090 }, // Sağ alt
     hitRadius: 210,
     order: 5,
     isUnlockedDefault: false,
     contentPublished: false,
-    unlockRequirementNotice: 'Yazı Atölyesi tamamlandığında açılır'
+    unlockRequirementNotice: 'Yazma görevleri henüz geliştirme aşamasında.'
+  },
+  story_castle: {
+    id: 'story_castle',
+    nameTr: 'Cümle Meydanı',
+    subtitleTr: 'Kelimeden anlamlı cümleye',
+    emoji: '🏰',
+    themeColor: '#7c3aed',
+    accentBorder: '#c084fc',
+    glowColor: 'rgba(192, 132, 252, 0.45)',
+    badgeText: 'Pre-A1 · A1 · A2',
+    descriptionTr: 'Bildik kelimelerle cümle kur, nesneleri tarif et ve kısa sorulara cevap ver.',
+    cefrLevel: 'Pre-A1–A2',
+    totalPublishedRequiredLevels: 0,
+    desktopAsset: '/assets/kids-islands/story_castle.webp',
+    mobileAsset: '/assets/kids-islands/story_castle_mobile.webp',
+    defaultWorldPos: { x: 1240, y: 430 }, // Alt orta
+    hitRadius: 210,
+    order: 2,
+    isUnlockedDefault: false,
+    contentPublished: false,
+    unlockRequirementNotice: 'Cümle görevleri henüz geliştirme aşamasında.'
   },
   language_academy: {
     id: 'language_academy',
     nameTr: 'Keşif Akademisi',
-    subtitleTr: 'Bütünleşik dil becerileri',
+    subtitleTr: 'İngilizce ustalık ve birleşik görevler',
     emoji: '🌐',
     themeColor: '#2563eb',
     accentBorder: '#60a5fa',
     glowColor: 'rgba(96, 165, 250, 0.45)',
-    badgeText: '7–12 Yaş • A2+',
-    descriptionTr: 'Altın küre anıtında tüm dil becerilerini birleştiren büyük takımada finali.',
-    cefrLevel: 'A2+',
+    badgeText: 'Pre-A1 · A1 · A2',
+    descriptionTr: 'Önceki adaların kelime, cümle, hikâye ve diyaloglarını macerada birleştir.',
+    cefrLevel: 'Pre-A1–A2',
     totalPublishedRequiredLevels: 0,
     desktopAsset: '/assets/kids-islands/language_academy.webp',
     mobileAsset: '/assets/kids-islands/language_academy_mobile.webp',
@@ -172,7 +172,7 @@ export const ARCHIPELAGO_ISLANDS_CATALOG: Record<IslandId, IslandDefinition> = {
     order: 6,
     isUnlockedDefault: false,
     contentPublished: false,
-    unlockRequirementNotice: 'Tüm adalar tamamlandığında açılır'
+    unlockRequirementNotice: 'Bütünleşik ustalık görevleri henüz geliştirme aşamasında.'
   }
 };
 

@@ -7,6 +7,8 @@ import {DistrictPreviewArt} from './DistrictPreviewArt';
 import {GARDEN_ORDER,GARDEN_THEMES,decorateWorldObjects,districtPercent,districtStatus,
  districtStatusLabel,mapProgress,type GardenDistrictId,type GardenDistrictProgress} from './world/gardenTheme';
 import './word-garden-premium.css';
+import {describeLearnerRoute} from '@/lib/learning/learningJourney';
+import type {EnglishPlacement} from '@/lib/learning/gradeAwareLearningPolicy';
 
 const ExplorerCanvas=dynamic(()=>import('./world/ExplorerCanvas').then(x=>x.ExplorerCanvas),{
  ssr:false,loading:()=> <div role="status" className="wg-map-loading">Haritanın büyülü dünyası hazırlanıyor…</div>
@@ -20,7 +22,7 @@ interface WordGardenDistrictMapProps {
  templeCompleted:number;templeTotal:number;templeUnlocked:boolean;templeAvailable:boolean;templeError:boolean;onEnterTemple:()=>void;
  starsByDistrict?:Partial<Record<GardenDistrictId,number>>;
  coinBalance?:number|null;playerName?:string;onOpenPassport?:()=>void;
- gradeLevel?:number|null;onBack:()=>void;
+ gradeLevel?:number|null;englishLevel?:EnglishPlacement;onBack:()=>void;
 }
 export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
  completedLevels,totalLevels,onEnterAnimals,onEnterColors,
@@ -28,11 +30,12 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
  foodCompleted,foodTotal,foodUnlocked,foodAvailable,foodError,onEnterFood,
  familyCompleted,familyTotal,familyUnlocked,familyAvailable,familyError,onEnterFamily,
  templeCompleted,templeTotal,templeUnlocked,templeAvailable,templeError,onEnterTemple,
- starsByDistrict={},coinBalance=null,playerName,onOpenPassport,gradeLevel=null,onBack
+ starsByDistrict={},coinBalance=null,playerName,onOpenPassport,gradeLevel=null,englishLevel='Pre-A1',onBack
 })=>{
  const [notice,setNotice]=useState('');
  const [selected,setSelected]=useState<GardenDistrictId|null>(null);
  const [mapTips,setMapTips]=useState(false);
+ const route=useMemo(()=>describeLearnerRoute(gradeLevel,englishLevel),[gradeLevel,englishLevel]);
  const all=useMemo<GardenDistrictProgress[]>(()=>[
   {id:'animals',completed:completedLevels,total:totalLevels,stars:starsByDistrict.animals??0,unlocked:true,available:true},
   {id:'colors',completed:colorCompleted,total:3,stars:starsByDistrict.colors??0,unlocked:colorsUnlocked,available:colorsAvailable},
@@ -86,6 +89,8 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
       <strong>{playerName?playerName+'’ın Macerası':'Maceranın Haritası'}</strong></div>
     </div>
     <div className="wg-hud-items">
+     <span className="wg-hud-chip" title="Profilde seçilen İngilizce düzeyi; seviye sınavı sonucu değildir">
+      📗 {englishLevel}</span>
      {gradeLevel!=null&&gradeLevel>=1&&gradeLevel<=8&&
       <span className="wg-hud-chip"><span aria-hidden="true">🎓</span> {gradeLevel}. Sınıf</span>}
      <span className="wg-hud-chip wg-star-chip" title="Bu dünyanın altı bölgesinde kazanılan toplam yıldız">
@@ -102,6 +107,10 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
      <div className="wg-eyebrow"><span className="wg-eyebrow-star">✧</span> SIX WORLDS. ONE ENGLISH ADVENTURE.</div>
      <h1 id="wg-world-title"><span className="wg-flower" aria-hidden="true">✿</span> Kelime Bahçesi</h1>
      <p>Her yeni kelime bir kapı açar. Büyülü dünyaları keşfet, İngilizce öğren ve kendi maceranı tamamla.</p>
+     <div className="wg-route-summary" role="note" aria-label="Profiline göre İngilizce öğrenme hedefleri">
+      <span className="wg-route-label">🎓 {route.gradeLabel} · İngilizce {route.englishLevel}</span>
+      <span className="wg-route-goal">Bugünkü hedef: {route.goals[0]}</span>
+     </div>
      <div className="wg-hero-actions">
       <button type="button" className="wg-hero-primary"
        onClick={()=>{const obj=objects.find(o=>o.id===featured.id);if(obj)enter(obj);}}>

@@ -45,3 +45,12 @@
 }
 @media(max-width:380px){.wg-world-grid{grid-template-columns:1fr}.wg-progress-orb{display:none}.wg-hud-identity{min-width:115px}}
 @media(prefers-reduced-motion:reduce){.wg-world-card,.wg-card-progress span{transition:none}.wg-sky-orb{filter:none}}
+
+/* Grade and English placement are independent inputs to the active vocabulary map. */
+.wg-route-summary{display:flex;flex-wrap:wrap;align-items:center;gap:7px;margin-top:12px}
+.wg-route-label,.wg-route-goal{display:inline-flex;align-items:center;min-height:30px;border-radius:999px;
+ padding:6px 12px;font-size:11px;font-weight:900;line-height:1.35}
+.wg-route-label{background:#dcffb71b;border:1px solid #d5f7b576;color:#ecffd7}
+.wg-route-goal{background:#b8e8f518;border:1px solid #b8e8f55c;color:#e1f4ff}
+@media(max-width:610px){.wg-route-summary{margin-top:9px;gap:5px}
+ .wg-route-label,.wg-route-goal{min-height:28px;font-size:10px;padding:5px 9px}}

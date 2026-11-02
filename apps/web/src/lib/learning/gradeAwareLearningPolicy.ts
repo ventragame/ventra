@@ -41,6 +41,18 @@ export function resolveGradeAwarePolicy(input:{
       band==='upper'?'independent':'guided'};
 }
 /**
+ * Select the permitted vocabulary tier across ALL six Word Garden worlds.
+ * Grade and English placement are independent ceilings; the more conservative
+ * of the two wins. Missing grade keeps legacy language-level behavior.
+ */
+export type VocabularyTier=0|1|2;
+export function resolveVocabularyTier(gradeLevel:number|null|undefined,englishLevel:EnglishPlacement):VocabularyTier {
+  const valid=Number.isInteger(gradeLevel)&&gradeLevel!>=1&&gradeLevel!<=8;
+  const gradeTier:VocabularyTier=!valid?2:gradeLevel!<=2?0:gradeLevel!<=4?1:2;
+  const englishTier:VocabularyTier=englishLevel==='Pre-A1'?0:englishLevel==='A1'?1:2;
+  return Math.min(gradeTier,englishTier) as VocabularyTier;
+}
+/**
  * P3 sorting remains domain/skill-specific, without turning discovery or
  * hints into proficiency. Used as a common selector before seeded sampling.
  */

@@ -1,5 +1,5 @@
 import type {FoodAnswerEvidence} from '@ventra/shared';
-import type {EnglishPlacement} from './gradeAwareLearningPolicy.ts';
+import {resolveVocabularyTier,type EnglishPlacement} from './gradeAwareLearningPolicy.ts';
 
 export type MarketAisle='orchard'|'bakery'|'cafe';
 export type MarketStage=1|2|3|4|5;
@@ -70,9 +70,8 @@ function shuffled<T>(values:readonly T[],random:()=>number):T[]{
  return copy;
 }
 export function eligibleMarketWords(aisle:MarketAisle,gradeLevel:number|null|undefined,englishLevel:EnglishPlacement):FoodWord[]{
- const grade=gradeLevel??0;
- const maxTier=englishLevel==='Pre-A1'||grade>0&&grade<=2?0:englishLevel==='A1'||grade>0&&grade<=4?1:2;
- return MARKET_WORDS.filter(x=>x.aisle===aisle&&x.tier<=maxTier);
+ const tier=resolveVocabularyTier(gradeLevel,englishLevel);
+ return MARKET_WORDS.filter(x=>x.aisle===aisle&&x.tier<=tier);
 }
 const PLURAL_MARKET=new Set(['grapes','cherries','pancakes','beans']);
 const MASS_MARKET=new Set(['bread','cheese','butter','honey','milk','water','juice','tea','lemonade','soup','rice','fish','smoothie','coffee','pasta','chicken','cereal','salt']);

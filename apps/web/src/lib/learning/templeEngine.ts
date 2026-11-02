@@ -1,6 +1,6 @@
 import type {TempleAnswerEvidence,AnimalAnswerEvidence,ColorAnswerEvidence,FoodAnswerEvidence,FamilyAnswerEvidence,NumberAnswerEvidence} from '@ventra/shared';
-import type {EnglishPlacement} from './gradeAwareLearningPolicy.ts';
-import {ANIMAL_MEADOW_WORDS} from './animalMissionEngine.ts';
+import {resolveVocabularyTier,type EnglishPlacement} from './gradeAwareLearningPolicy.ts';
+import {ANIMAL_MEADOW_WORDS,ANIMAL_VOCAB_TIERS} from './animalMissionEngine.ts';
 import {COLOR_GROVE_WORDS} from '../progress/colorGroveProgress.ts';
 import {MARKET_WORDS,marketNounPhrase} from './foodMarketEngine.ts';
 import {VILLAGE_WORDS} from './familyVillageEngine.ts';
@@ -45,7 +45,7 @@ const numberWords:TempleWord[]=numAnchors.map((n,i)=>({
 }));
 export const TEMPLE_WORDS:readonly TempleWord[]=[
  ...ANIMAL_MEADOW_WORDS.map((w,i)=>({id:'animals:'+w.id,en:w.id,tr:w.tr,icon:w.emoji,image:w.image,domain:'animals' as const,
- tier:(i<12?0:i<28?1:2) as 0|1|2,context:`Find the ${w.id}.`})),
+ tier:ANIMAL_VOCAB_TIERS[w.id],context:`Find the ${w.id}.`})),
  ...COLOR_GROVE_WORDS.map((w,i)=>({id:'colors:'+w.id,en:w.id,tr:w.tr,icon:'◆',color:w.hex,domain:'colors' as const,
  tier:('tier' in w ? w.tier : 0) as 0|1|2,context:`Find the ${w.id} crystal.`})),
  ...numberWords,
@@ -64,8 +64,7 @@ const CHAMBER_DOMAINS:Record<TempleChamber,readonly TempleDomain[]>={
  home:['family','animals'],crown:['animals','colors','numbers','food','family']
 };
 export function templeAllowedWords(chamber:TempleChamber,gradeLevel:number|null|undefined,englishLevel:EnglishPlacement):TempleWord[]{
- const max=englishLevel==='Pre-A1'||(gradeLevel!=null&&gradeLevel>=1&&gradeLevel<=2)?0:
-  englishLevel==='A1'||(gradeLevel!=null&&gradeLevel<=4)?1:2;
+ const max=resolveVocabularyTier(gradeLevel,englishLevel);
  return TEMPLE_WORDS.filter(w=>CHAMBER_DOMAINS[chamber].includes(w.domain)&&w.tier<=max);
 }
 export function templeResumePoint(completed:Record<TempleChamber,number>){

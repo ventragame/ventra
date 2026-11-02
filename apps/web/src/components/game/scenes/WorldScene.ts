@@ -256,11 +256,8 @@ export class WorldScene extends Phaser.Scene {
   // --- 2. ADALAR ARASI İLERLEME YOLU (CIRCULAR/OVAL PROGRESSION PATH) ---
   private createProgressionPaths(): void {
     // 6 Ada arasındaki 5 bağlantı eğrisi (Dairesel çember boyunca adaların içinden GEÇMEYEN kavisler)
-    // 1: Word Garden (640, 530) -> 2: Listening Forest (1240, 430)
-    // 2: Listening Forest (1240, 430) -> 3: Speaking Harbor (1800, 590)
-    // 3: Speaking Harbor (1800, 590) -> 4: Sentence Workshop (1750, 1000)
-    // 4: Sentence Workshop (1750, 1000) -> 5: Story Castle (1160, 1090)
-    // 5: Story Castle (1160, 1090) -> 6: Language Academy (620, 930)
+    // Word Garden → Sentence Square → Story Forest → Dialogue Harbor → Writing Workshop → Academy.
+    // Stable asset IDs are intentionally independent of pedagogy/visual placement.
     const curveDefinitions = [
       {
         from: 'word_garden',
@@ -270,28 +267,28 @@ export class WorldScene extends Phaser.Scene {
         isActive: true // 1 -> 2 rotası açık
       },
       {
-        from: 'listening_forest',
+        from: 'story_castle',
         p0: { x: 1370, y: 465 },
         p1: { x: 1670, y: 550 },
         ctrl: { x: 1530, y: 425 },
         isActive: false
       },
       {
-        from: 'speaking_harbor',
+        from: 'listening_forest',
         p0: { x: 1810, y: 710 },
         p1: { x: 1780, y: 880 },
         ctrl: { x: 1910, y: 795 },
         isActive: false
       },
       {
-        from: 'sentence_workshop',
+        from: 'speaking_harbor',
         p0: { x: 1620, y: 1030 },
         p1: { x: 1290, y: 1080 },
         ctrl: { x: 1450, y: 1145 },
         isActive: false
       },
       {
-        from: 'story_castle',
+        from: 'sentence_workshop',
         p0: { x: 1030, y: 1060 },
         p1: { x: 740, y: 960 },
         ctrl: { x: 880, y: 1105 },

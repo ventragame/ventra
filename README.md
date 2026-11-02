@@ -67,3 +67,10 @@ Daha ayrıntılı kurallar: [VENTRA_PRODUCT_CHARTER.md](docs/VENTRA_PRODUCT_CHAR
 - Altı ayrı orijinal Phaser landmark girişi ve responsive SVG dünya kartları; parıltılı, katmanlı dünya yüzeyi, masaüstü tüm-dünya görünümü, mobil karakter takibi, hover/kamera yaklaşması.
 - Gerçek çocuk profili görev/yıldız ilerlemesi ve mevcut coin bakiyesi; Maceracı Pasaportu/günlük görev erişimi. `GardenWorldArt.ts` ve `gardenTheme.ts` görsel ve durum sözleşmeleridir.
 - [M1 harita kabul ve kontrol rehberi](docs/M1_WORD_GARDEN_PREMIUM_MAP_ACCEPTANCE.md). Yeni SQL yok, mağaza dağıtımı yok. Fiziksel cihaz görsel kabulü açık.
+
+### English Learning Journey v2 (02.11.2026)
+Altı büyük adanın yeni öğrenme sırası: **Kelime Bahçesi → Cümle Meydanı → Hikâye Ormanı → Diyalog Limanı → Yazı Atölyesi → Keşif Akademisi**. Sadece Kelime Bahçesi oynanabilir; sonraki beşi konsept ve müfredat sözleşmesi olarak belirlendi. Kayıt/görsel asset ID'leri değişmedi.
+
+Kelime Bahçesi'nde çocuk profili sınıfı ve İngilizce seviyesi bağımsız uygulanır. Sınıf ve seviye aynı şey değildir. Kataloglar sınıf düzeyi+Pre-A1/A1/A2 filtresiyle sınırlandırılır, P3 tekrar ve ilerleme kayıtları korunur.
+
+> **Her yeni sprint öncesi:** [English Learning Journey v2 — Canonical GDD, fazlar ve kalite kapıları](docs/VENTRA_ENGLISH_LEARNING_JOURNEY_V2.md) belgesini oku. Resmî müfredat eşleşmesi ve gerçek çocuk testleri henüz doğrulanmadı.

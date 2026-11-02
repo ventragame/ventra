@@ -3,6 +3,7 @@
 ## Mandatory context — read first
 - [docs/VENTRA_PRODUCT_CHARTER.md](docs/VENTRA_PRODUCT_CHARTER.md) defines the product's canonical scope and explicit exclusions.
 - [docs/PRODUCT_ROADMAP.md](docs/PRODUCT_ROADMAP.md) tracks work priority and acceptance gates.
+- [docs/VENTRA_ENGLISH_LEARNING_JOURNEY_V2.md](docs/VENTRA_ENGLISH_LEARNING_JOURNEY_V2.md) is the **canonical six-island learning path, level policy and future island GDD backlog**.
 - [docs/ventra-language-v1/01-PRODUCT-VISION-AND-PRD.md](docs/ventra-language-v1/01-PRODUCT-VISION-AND-PRD.md) and [docs/ventra-language-v1/03-GAME-DESIGN-DOCUMENT.md](docs/ventra-language-v1/03-GAME-DESIGN-DOCUMENT.md) are historical language-learning pedagogy/design references, not current implementation status.
 
 ## Product constraints: do not deviate
@@ -25,3 +26,9 @@
 This instruction file does not itself establish a new delivery/deployment authorization.
 
 - **G3 English Temple** is playable: five chambers and 25 English transfer/review missions; it remixes earlier animal, color, number, food and family English concepts. Do not replace the English learning outcomes with generic puzzles, money/math mechanics or unrelated domains. See [G3 GDD](docs/G3_TEMPLE_PREMIUM_GDD_AND_ACCEPTANCE.md).
+
+## Learning Journey v2: preserve forever
+- Six large islands: Kelime Bahçesi → Cümle Meydanı → Hikâye Ormanı → Diyalog Limanı → Yazı Atölyesi → Keşif Akademisi. **Only the first is published**.
+- Legacy IDs are permanent: `word_garden, story_castle, listening_forest, speaking_harbor, sentence_workshop, language_academy`. The visible name/art/route may change; do not migrate or silently rename progress keys.
+- Every Word Garden mission must use BOTH profile grade and English placement; follow `gradeAwareLearningPolicy.ts` and `learningJourney.ts`. Do not equate grade to CEFR. New vocabulary needs an explicit tier, evidence/correct speech, first-discovery gating, age-appropriate content and tests.
+- Upcoming five big islands require new actual mechanics and offline learner evidence; NEVER claim they are playable merely because labels have been renamed.
