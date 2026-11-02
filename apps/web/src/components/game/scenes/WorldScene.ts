@@ -1,6 +1,7 @@
 import Phaser from 'phaser';
 import { EventBus } from '@/lib/game/EventBus';
 import { soundService } from '@/lib/audio/SoundService';
+import {archipelagoBadgeAnchor,archipelagoOpticalShiftPixels} from '@/lib/game/archipelagoPresentation';
 import {
   ARCHIPELAGO_ISLANDS_CATALOG,
   ARCHIPELAGO_ISLANDS_ORDERED,
@@ -41,7 +42,7 @@ interface IslandEntity {
 
 interface ProgressionBubble {
   halo: Phaser.GameObjects.Arc;
-  core: Phaser.GameObjects.Arc;
+  core: Phaser.GameObjects.Rectangle;
   x: number;
   y: number;
 }
@@ -298,65 +299,48 @@ export class WorldScene extends Phaser.Scene {
       }
     ];
 
-    curveDefinitions.forEach((curve) => {
-      // A quiet constellation-like route joins the islands, behind the art.
-      const route=this.add.graphics().setDepth(9);
-      for(let k=0;k<40;k++){
-        const t=k/40, t2=(k+0.53)/40;
-        const at=(u:number)=>({
-          x:(1-u)*(1-u)*curve.p0.x+2*(1-u)*u*curve.ctrl.x+u*u*curve.p1.x,
-          y:(1-u)*(1-u)*curve.p0.y+2*(1-u)*u*curve.ctrl.y+u*u*curve.p1.y
-        });
-        const p=at(t),q=at(t2);
-        route.lineStyle(curve.isActive?2.6:1.5,curve.isActive?0xfff2b7:0xc9e2ee,curve.isActive?0.58:0.23);
-        route.lineBetween(p.x,p.y,q.x,q.y);
-      }
-      const nodeCount = 7;
-      for (let step = 1; step <= nodeCount; step++) {
-        const t = step / (nodeCount + 1);
-
-        // Quadratic Bézier Formülü
-        const bx = Math.round(
-          (1 - t) * (1 - t) * curve.p0.x + 2 * (1 - t) * t * curve.ctrl.x + t * t * curve.p1.x
-        );
-        const by = Math.round(
-          (1 - t) * (1 - t) * curve.p0.y + 2 * (1 - t) * t * curve.ctrl.y + t * t * curve.p1.y
-        );
-
-        const coreRadius = curve.isActive ? 4 + (step % 2) * 1.5 : 3.5;
-        const haloRadius = coreRadius * 2.2;
-
-        const haloColor = curve.isActive ? 0x38bdf8 : 0x94a3b8;
-        const coreColor = curve.isActive ? 0xfef08a : 0xe2e8f0;
-        const baseAlpha = curve.isActive ? 0.35 : 0.18;
-        const coreAlpha = curve.isActive ? 0.85 : 0.45;
-
-        // Dış Hale ve İç Çekirdek
-        const halo = this.add.circle(bx, by, haloRadius, haloColor, baseAlpha).setDepth(12);
-        const core = this.add.circle(bx, by, coreRadius, coreColor, coreAlpha).setDepth(13);
-
-        this.progressionBubbles.push({ halo, core, x: bx, y: by });
-
-        if (curve.isActive) {
-          this.tweens.add({
-            targets: halo,
-            scale: 1.35,
-            alpha: baseAlpha * 0.4,
-            duration: 1800 + step * 220,
-            yoyo: true,
-            repeat: -1,
-            ease: 'Sine.easeInOut'
-          });
-
-          this.tweens.add({
-            targets: core,
-            alpha: 1.0,
-            duration: 1800 + step * 220,
-            yoyo: true,
-            repeat: -1,
-            ease: 'Sine.easeInOut'
-          });
+    curveDefinitions.forEach((curve,routeIndex) => {
+      const at=(t:number)=>({
+        x:(1-t)*(1-t)*curve.p0.x+2*(1-t)*t*curve.ctrl.x+t*t*curve.p1.x,
+        y:(1-t)*(1-t)*curve.p0.y+2*(1-t)*t*curve.ctrl.y+t*t*curve.p1.y
+      });
+      // A connected fairy-dust trail: wide soft glow, narrow illuminated core
+      // and tiny four-point diamonds instead of the previous large beads.
+      const ribbon=this.add.graphics().setDepth(9);
+      for(let k=0;k<46;k++){
+        const from=at(k/46),to=at((k+0.85)/46);
+        if(curve.isActive){
+          ribbon.lineStyle(11,0xffefaf,0.095);
+          ribbon.lineBetween(from.x,from.y,to.x,to.y);
+          ribbon.lineStyle(2.7,0xfff4cc,0.62);
+          ribbon.lineBetween(from.x,from.y,to.x,to.y);
+        }else if(k%5!==4){
+          ribbon.lineStyle(2,0xd1e8f8,0.25);
+          ribbon.lineBetween(from.x,from.y,to.x,to.y);
         }
+      }
+      const sparkCount=curve.isActive?11:7;
+      for(let i=0;i<sparkCount;i++){
+        const t=(i+0.6)/(sparkCount+0.2);
+        const pos=at(t);
+        const bright=curve.isActive||i%3===0;
+        const halo=this.add.circle(pos.x,pos.y,bright?7:4,bright?0xfff0b4:0xd1e9fa,
+          curve.isActive?0.21:0.09).setDepth(11);
+        const core=this.add.rectangle(pos.x,pos.y,bright?5.6:3.5,bright?5.6:3.5,
+          bright?0xffe8a2:0xe2f3ff,bright?0.93:0.48).setAngle(45).setDepth(12);
+        this.progressionBubbles.push({halo,core,x:pos.x,y:pos.y});
+        if(curve.isActive&&!this.isReducedMotion()&&i%3===0){
+          this.tweens.add({targets:halo,scale:1.85,alpha:0.06,duration:2100+i*160,
+            yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
+          this.tweens.add({targets:core,alpha:0.5,duration:2100+i*160,
+            yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
+        }
+      }
+      // Only one traveling glint on the currently playable route.
+      if(curve.isActive&&!this.isReducedMotion()&&!this.isMobileDevice()){
+        const glint=this.add.circle(curve.p0.x,curve.p0.y,5.5,0xffffff,0.94).setDepth(13);
+        this.tweens.addCounter({from:0,to:1,duration:4900,delay:routeIndex*190,repeat:-1,
+          onUpdate:(tween)=>{const p=at(tween.getValue()??0);glint.setPosition(p.x,p.y);}});
       }
     });
   }
@@ -449,21 +433,22 @@ export class WorldScene extends Phaser.Scene {
       }
 
       // Dinamik Ada Seviye & İlerleme Kartı (Container Y: +175)
-      const badgeContainer = this.add.container(0, 222);
+      const badgeAnchor=archipelagoBadgeAnchor(def.id,this.scale.height>this.scale.width);
+      const badgeContainer = this.add.container(badgeAnchor.x,badgeAnchor.y);
 
       // Large illustrated nameplate: legible even after auto-fit camera zoom.
       const plateBg = this.add.graphics();
       const borderColor=def.contentPublished?0xf3d898:0xb7cee3;
       plateBg.fillStyle(def.contentPublished?0x103950:0x152f46,0.96);
-      plateBg.fillRoundedRect(-127,-35,254,78,17);
+      plateBg.fillRoundedRect(-127,-43,254,94,17);
       plateBg.lineStyle(def.contentPublished?3:2,borderColor,def.contentPublished?0.95:0.67);
-      plateBg.strokeRoundedRect(-127,-35,254,78,17);
+      plateBg.strokeRoundedRect(-127,-43,254,94,17);
       plateBg.lineStyle(1,0xffffff,0.14);
-      plateBg.strokeRoundedRect(-122,-30,244,68,14);
+      plateBg.strokeRoundedRect(-122,-38,244,84,14);
       badgeContainer.add(plateBg);
 
       // Ada Başlığı (Emoji + Ad)
-      const titleText = this.add.text(0, -15, `${def.emoji}  ${def.nameTr}`, {
+      const titleText = this.add.text(0, -19, `${def.emoji}  ${def.nameTr}`, {
         fontFamily: 'system-ui, -apple-system, sans-serif',
         fontSize: '21px',
         fontStyle: 'bold',
@@ -473,7 +458,7 @@ export class WorldScene extends Phaser.Scene {
       badgeContainer.add(titleText);
 
       // İlerleme / Durum Metni (örn: "0/5 Seviye (%0)" veya "✓ Tamamlandı (%100)" veya "🔒 Kilitli")
-      const progressText = this.add.text(0, -1, '', {
+      const progressText = this.add.text(0, 10, '', {
         fontFamily: 'system-ui, -apple-system, sans-serif',
         fontSize: '15px',
         fontStyle: 'bold',
@@ -485,14 +470,14 @@ export class WorldScene extends Phaser.Scene {
       // İlerleme Barı Rayı (Track)
       const barTrack = this.add.graphics();
       barTrack.fillStyle(0x1e293b, 0.95);
-      barTrack.fillRoundedRect(-99, 22, 198, 7, 3.5);
+      barTrack.fillRoundedRect(-99, 32, 198, 7, 3.5);
       badgeContainer.add(barTrack);
 
       // İlerleme Barı Dolgusu (Fill)
       const progressFill = this.add.graphics();
       badgeContainer.add(progressFill);
       // Make the illustrated label a touch/click target too; not only the island sprite.
-      const badgeHit=this.add.zone(0,4,254,78).setInteractive({useHandCursor:true});
+      const badgeHit=this.add.zone(0,4,254,94).setInteractive({useHandCursor:true});
       badgeContainer.add(badgeHit);
       badgeHit.on('pointerup',()=>{
         if(this.isInputLocked||this.hasDragged||this.isTransitioning)return;
@@ -584,10 +569,10 @@ export class WorldScene extends Phaser.Scene {
     if(entity.plateBg){
       entity.plateBg.clear();
       entity.plateBg.fillStyle(hovered?0x174c61:entity.contentPublished?0x103950:0x152f46,0.97);
-      entity.plateBg.fillRoundedRect(-127,-35,254,78,17);
+      entity.plateBg.fillRoundedRect(-127,-43,254,94,17);
       entity.plateBg.lineStyle(hovered?3.5:entity.contentPublished?3:2,
         hovered?0xfff0b5:entity.contentPublished?0xf3d898:0xb7cee3,hovered?1:0.8);
-      entity.plateBg.strokeRoundedRect(-127,-35,254,78,17);
+      entity.plateBg.strokeRoundedRect(-127,-43,254,94,17);
     }
     if(entity.focusHalo&&entity.id!=='word_garden')entity.focusHalo.setAlpha(hovered?0.19:0.055);
 
@@ -642,7 +627,7 @@ export class WorldScene extends Phaser.Scene {
       const fillWidth = Math.max(6, Math.round(198 * (completed / total)));
       const fillColor = isCompleted ? 0x34d399 : 0x10b981;
       entity.progressFill.fillStyle(fillColor, 1);
-      entity.progressFill.fillRoundedRect(-99, 22, fillWidth, 7, 3.5);
+      entity.progressFill.fillRoundedRect(-99, 32, fillWidth, 7, 3.5);
     }
   }
 
@@ -863,7 +848,7 @@ export class WorldScene extends Phaser.Scene {
 
     // Üst Header (~70px) ve Alt Gezinme/Detay Kartı (~130px) Güvenli Alanlarını Düş
     const availableWidth = Math.max(width - 160, 400); // 80px sağ/sol kenar boşluğu
-    const availableHeight = Math.max(height - 230, 300); // 70px üst, 130px alt, 30px marj
+    const availableHeight = Math.max(height - 240, 300); // 70px üst, 130px alt, 30px marj
 
     const zoomX = availableWidth / bounds.width;
     const zoomY = availableHeight / bounds.height;
@@ -871,7 +856,7 @@ export class WorldScene extends Phaser.Scene {
 
     // Dikeyde Header ile Alt Kart arasındaki görsel optik merkezi hizala
     const opticalCenterY = bounds.centerY - 30 / fitZoom;
-    const targetCenterX = bounds.centerX;
+    const targetCenterX = bounds.centerX - archipelagoOpticalShiftPixels(width)/fitZoom;
 
     if (duration > 0) {
       this.cameras.main.pan(targetCenterX, opticalCenterY, duration, 'Cubic.easeOut');
@@ -890,6 +875,11 @@ export class WorldScene extends Phaser.Scene {
   }
 
   private handleResize(): void {
+    const portrait=this.scale.height>this.scale.width;
+    this.islands.forEach((entity,id)=>{
+      if(entity.badgeContainer){const pos=archipelagoBadgeAnchor(id,portrait);
+        entity.badgeContainer.setPosition(pos.x,pos.y);}
+    });
     if (this.isOverviewMode) {
       this.showWorldOverview(0);
     } else {

@@ -44,3 +44,41 @@ test('Touch-screen dock and island panel retain accessible semantics with no fab
  assert.match(style,/min-height:5[012]px/);
  assert.doesNotMatch(page,/Seviye Haritasını Aç/);
 });
+
+test('R2 island nameplates have explicit anchors instead of overlapping the next artwork',async()=>{
+ const {ARCHIPELAGO_DESKTOP_BADGES,archipelagoBadgeAnchor,archipelagoOpticalShiftPixels}=
+   await import('../src/lib/game/archipelagoPresentation.ts');
+ const {ARCHIPELAGO_ISLANDS_ORDERED}=await import('../../../packages/shared/src/archipelago.ts');
+ assert.equal(Object.keys(ARCHIPELAGO_DESKTOP_BADGES).length,6);
+ const positions=ARCHIPELAGO_ISLANDS_ORDERED;
+ // Screen-space affine camera transforms retain relative intersections.
+ const boxes=positions.map(isl=>{
+   const anchor=archipelagoBadgeAnchor(isl.id,false);
+   return {id:isl.id,x:isl.defaultWorldPos.x+anchor.x,y:isl.defaultWorldPos.y+anchor.y};
+ });
+ for(let i=0;i<boxes.length;i++)for(let j=i+1;j<boxes.length;j++){
+   const a=boxes[i],b=boxes[j];
+   assert.ok(Math.abs(a.x-b.x)>=254||Math.abs(a.y-b.y)>=94,
+     'island plaques must not overlap: '+a.id+' vs '+b.id);
+ }
+ assert.deepEqual(archipelagoBadgeAnchor('word_garden',true),{x:0,y:223});
+ assert.equal(archipelagoOpticalShiftPixels(390),0);
+ assert.equal(archipelagoOpticalShiftPixels(960),0);
+ assert.ok(archipelagoOpticalShiftPixels(1773)>=80);
+ assert.ok(archipelagoOpticalShiftPixels(1440)<archipelagoOpticalShiftPixels(1773));
+ assert.ok(archipelagoOpticalShiftPixels(3440)<=86);
+});
+test('R2 independent islands use responsive labels, revised plaques and subtle fairy-dust routes',()=>{
+ const map=fs.readFileSync(new URL('../src/lib/game/archipelagoPresentation.ts',import.meta.url),'utf8');
+ assert.match(scene,/archipelagoBadgeAnchor\(def.id/);
+ assert.match(scene,/archipelagoBadgeAnchor\(id,portrait\)/);
+ assert.match(scene,/archipelagoOpticalShiftPixels\(width\)\/fitZoom/);
+ assert.match(scene,/const badgeContainer = this.add.container\(badgeAnchor.x,badgeAnchor.y\)/);
+ assert.match(scene,/fillRoundedRect\(-127,-43,254,94/);
+ assert.match(scene,/this.add.rectangle\(pos.x,pos.y/);
+ assert.match(scene,/this.tweens.addCounter/);
+ assert.match(scene,/this.isReducedMotion\(\)/);
+ assert.match(map,/sentence_workshop/);
+ assert.match(style,/kids-world-dock/);
+ assert.match(style,/min-height:48px/);
+});
