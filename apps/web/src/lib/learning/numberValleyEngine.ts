@@ -119,8 +119,9 @@ export function planNumberMission(input:{
       Number(weak.has(y))-Number(weak.has(x))),rand).slice(0,policy.discoveryCount-first.length);
     return {mission,band,seed,discoveries:shuffle([...first,...rest],rand),questions:[],reviewValues:[]};
   }
-  const skill:NumberSkill=mission===2?'recognition':mission===3?'quantity':
-    mission===4?'listening':'application';
+  // Stage 3 is a written English word-building application now, never
+  // a mathematics quantity task. Earlier persisted evidence remains readable.
+  const skill:NumberSkill=mission===2?'recognition':mission===4?'listening':'application';
   const available=all.filter(n=>encountered.has(n));
   if(available.length<3)return {mission,band,seed,discoveries:[],questions:[],reviewValues:[]};
   const learning=getLearningSnapshot({

@@ -5,6 +5,7 @@
  */
 import { EventBus } from '@/lib/game/EventBus';
 import { MusicDirector, type MusicScene } from './MusicDirector';
+import {playRewardSound,type RewardEvent} from './RewardSounds';
 
 const SILENT_WAV='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhYAQACABAAZGF0YQAAAAA=';
 const STORAGE_KEY_MUTED='ventra_sound_muted';
@@ -190,6 +191,13 @@ class SoundService {
   const last=this.lastSfx.get(name)??-10000;
   if(now-last<this.sfxCooldown[name])return;
   this.lastSfx.set(name,now);
+  // Custom major arpeggio / soft recovery / celebratory fanfare. Keep the
+  // existing local WAV as an offline fallback when WebAudio is unavailable.
+  if(name==='correct'||name==='gentle_retry'||name==='fanfare'){
+   this.unlockAudio();
+   const ctx=this.context;
+   if(ctx&&playRewardSound(ctx,name as RewardEvent,clamp(volume)*this.settings.effects))return;
+  }
   this.playChannel(`/audio/sfx/${name}.wav`,volume,'effects');
  }
  playSpeech(path:string,volume=1):void{this.playChannel(path,volume,'voice');}

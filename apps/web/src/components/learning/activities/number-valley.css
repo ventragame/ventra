@@ -85,3 +85,52 @@ color:#fff2ad!important;box-shadow:0 0 16px #fff7a366,inset 0 0 14px #f8ffc63d!i
 .nv-place-button:hover:enabled{background:#3a8fa4}
 .nv-place-button:focus-visible,.nv-band-card:focus-visible{outline:3px solid #fff9a3;outline-offset:3px}
 @media(prefers-reduced-motion:reduce){.nv-band-card{transition:none!important}}
+
+/* NV English Star Forge: tap/assemble words rather than perform arithmetic. */
+.nv-word-forge,.nv-portal-language{
+ background:linear-gradient(145deg,rgba(12,49,91,.95),rgba(27,83,120,.94));
+ border:1px solid rgba(194,243,255,.56);
+ box-shadow:0 12px 30px rgba(4,27,51,.28),inset 0 1px rgba(255,255,255,.18);
+ position:relative;overflow:hidden;
+}
+.nv-word-forge::before,.nv-portal-language::before{
+ content:'';position:absolute;inset:0;pointer-events:none;
+ background:radial-gradient(ellipse at 23% 15%,rgba(255,245,173,.13),transparent 50%);
+}
+.nv-forge-number{
+ background:linear-gradient(135deg,rgba(53,134,179,.86),rgba(31,74,130,.95));
+ border:2px solid rgba(242,237,171,.8);
+ text-shadow:0 0 22px rgba(186,244,255,.7);
+ box-shadow:0 0 26px rgba(159,234,242,.25);
+}
+.nv-forge-output{background:rgba(4,31,57,.65);border:1px solid rgba(184,243,247,.32);}
+.nv-forge-slot{
+ display:inline-flex;min-width:36px;min-height:43px;align-items:center;justify-content:center;
+ padding:6px 10px;border:1px dashed rgba(206,237,255,.5);border-radius:12px;
+ background:rgba(78,127,164,.33);font-size:clamp(12px,3vw,20px);font-weight:900;color:#defbfa;
+}
+.nv-forge-filled{
+ background:linear-gradient(145deg,#e1ffba,#75e6d2);color:#184657;
+ border:1px solid #fff4b2;box-shadow:0 0 17px rgba(183,253,194,.27);
+ animation:nv-star-reveal .34s cubic-bezier(.2,1.4,.4,1) both;
+}
+.nv-forge-tile{
+ border:2px solid rgba(244,234,164,.77);
+ background:linear-gradient(155deg,#2c779b,#19527e);
+ box-shadow:0 5px 0 rgba(5,30,65,.53),0 0 20px rgba(120,211,239,.17);
+ color:#f5fcff;transition:transform .17s,filter .17s;
+ animation:nv-star-float 2.6s ease-in-out infinite alternate;
+}
+.nv-forge-tile:hover:enabled{transform:translateY(-3px) scale(1.035);filter:brightness(1.13)}
+.nv-forge-tile:active:enabled{transform:translateY(2px)}
+.nv-forge-tile:focus-visible{outline:4px solid #fff5b4;outline-offset:3px}
+.nv-auto-next{
+ background:linear-gradient(100deg,rgba(31,112,113,.78),rgba(34,115,92,.74));
+ border:1px solid rgba(195,255,177,.67);color:#f3ffde;
+ animation:nv-star-reveal .32s ease-out;
+}
+@keyframes nv-star-float{from{translate:0 0}to{translate:0 -4px}}
+@keyframes nv-star-reveal{from{opacity:.7;transform:scale(.92)}to{opacity:1;transform:scale(1)}}
+@media(prefers-reduced-motion:reduce){
+ .nv-forge-filled,.nv-forge-tile,.nv-auto-next{animation:none!important;transition:none!important}
+}

@@ -267,3 +267,9 @@ Kaynaklar:
 - TTS ortak servis entegrasyonu altı mevcut dünya için; dinleme ustalığı yalnız başarılı ses bitişiyle onaylanır.
 - **Açık:** yüzlerce İngilizce ifade için profesyonel offline ses, tüm SFX ses yüksekliği mastering, gerçek mobil ve çocuk kabul testleri. SQL veya production deployment yok.
 - [Audio v2 kabul planı](./AUDIO_V2_ACCEPTANCE.md).
+
+### 2026-11-02 — NV English play redesign + Audio V3
+- NV3: yıldız sayma yerine İngilizce sayı adını yıldız-harf parçalarıyla kurma; NV5: ucuz-fiyat/pazar oyunu yerine İngilizce kelime ve cümle kurma. Mevcut P3 ilerleme kayıtları/ödüller korunur.
+- Doğru cevap sonrası otomatik sonraki soru, bölüm sonu kutlama korunur. Sesli İngilizce ve metin yardımı kalır.
+- Özgün daha hareketli müzik, düşük yoğunluklu ritim ve yeni WebAudio doğru/yanlış/tamamlama motifleri; yerel WAV fallback. Gerçek mobil/çocuk kabulü ve stüdyo kayıtları açık.
+- [GDD ve kabul](./NUMBER_VALLEY_ENGLISH_REDESIGN_AND_AUDIO_V3.md).

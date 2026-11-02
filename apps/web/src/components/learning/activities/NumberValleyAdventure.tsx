@@ -6,7 +6,7 @@ import {EventBus} from '@/lib/game/EventBus';
 import {soundService} from '@/lib/audio/SoundService';
 import {getProgressRepository} from '@/lib/progress';
 import {englishNumber,planNumberMission,NUMBER_BANDS,unlockedNumberBands,type NumberBand,type NumberMissionPlan,type NumberStage} from '@/lib/learning/numberValleyEngine';
-import {NumberPlaceWorkshop,type PlaceValue} from './NumberPlaceWorkshop';
+import {numberWordParts,numberWordTiles,portalSentence} from '@/lib/learning/numberWordQuest';
 import type {NumberValleyProgress} from '@/lib/progress/numberValleyProgress';
 import {resolveGradeAwarePolicy} from '@/lib/learning/gradeAwareLearningPolicy';
 import {NumberValleyScenery,ValleyMilestone} from './NumberValleyScenery';
@@ -15,9 +15,9 @@ import './number-valley.css';
 const CHAPTERS=[
   {icon:'💎',title:'Kristal Keşfi',caption:'Kayıp sayı kristallerini keşfet'},
   {icon:'🌉',title:'Işık Köprüsü',caption:'Doğru kelimeyle köprü kur'},
-  {icon:'⭐',title:'Yıldız Hasadı',caption:'İstenen miktarda yıldız topla'},
+  {icon:'⭐',title:'Yıldız Kelime Avı',caption:'Yıldız harfleriyle İngilizce sayı kelimesini oluştur'},
   {icon:'🔊',title:'Yankı Kanyonu',caption:'Duyduğun sayıyı bul'},
-  {icon:'🌀',title:'Portal Onarımı',caption:'Kristal say, doğru şifreyi seç'}
+  {icon:'🌀',title:'Portalın Şifresi',caption:'İngilizce sözcükleri kullanarak cümle kur'}
 ] as const;
 interface Props {
   profileId:string;
@@ -30,13 +30,6 @@ interface Props {
 function newSession(profileId:string,stage:number):string{
   return `nv_${profileId}_${stage}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 }
-function Stars({count,active=false}:{count:number;active?:boolean}){
-  return <div className="nv-stars" aria-label={`${count} adet yıldız`}>
-    {Array.from({length:count},(_,i)=><span key={i} aria-hidden="true"
-      className={active?'nv-star nv-star-active':'nv-star'}
-      style={{animationDelay:`${(i%7)*110}ms`}}>★</span>)}
-  </div>;
-}
 function Gem({number,discovered=false}:{number:number;discovered?:boolean}){
   return <span className={`nv-gem ${discovered?'nv-gem-found':''}`} aria-hidden="true">
     <span className="nv-gem-facet"/><span className="nv-gem-number">{number}</span>
@@ -45,7 +38,6 @@ function Gem({number,discovered=false}:{number:number;discovered?:boolean}){
 export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,progress,onBack,onSave}:Props){
   const [band,setBand]=useState<NumberBand>('ones');
   const [unlockedBands,setUnlockedBands]=useState<NumberBand[]>(['ones']);
-  const [placeValue,setPlaceValue]=useState<PlaceValue>({hundreds:0,tens:0,ones:0});
   const [stage,setStage]=useState<NumberStage>(()=>Math.min(5,progress.completedByBand.ones+1) as NumberStage);
   const [nonce,setNonce]=useState(0);
   const [plan,setPlan]=useState<NumberMissionPlan|null>(null);
@@ -54,10 +46,9 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
   const [visited,setVisited]=useState<number[]>([]);
   const [answers,setAnswers]=useState<NumberAnswerEvidence[]>([]);
   const [question,setQuestion]=useState(0);
-  const [selectedTokens,setSelectedTokens]=useState<number[]>([]);
-  const currentCount=placeValue.hundreds*100+placeValue.tens*10+placeValue.ones;
-  const count=selectedTokens.length;
-  const [portalPhase,setPortalPhase]=useState<'collect'|'decode'|'market'>('collect');
+  const [selectedWordTiles,setSelectedWordTiles]=useState<number[]>([]);
+  const [selectedPortalTokens,setSelectedPortalTokens]=useState<number[]>([]);
+  const [portalPhase,setPortalPhase]=useState<'collect'|'decode'|'seal'>('collect');
   const [mistakes,setMistakes]=useState(0);
   const [perQuestionMistakes,setPerQuestionMistakes]=useState(0);
   const [hintUsed,setHintUsed]=useState(false);
@@ -80,9 +71,10 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
   const key=`${profileId}:${gradeLevel??'unset'}:${englishLevel}:${band}:${stage}:${nonce}`;
   const activePlan=planKey===key&&plan?.mission===stage?plan:null;
   const current=stage===1?null:activePlan?.questions[question]??null;
-  const marketOther=current?(current.target>=1000?current.target-7:
-    Math.min(1000,current.target+(current.target>=100?100:current.target>20?10:3))):0;
-  const marketPrices=current?(current.target%2===0?[current.target,marketOther]:[marketOther,current.target]):[];
+  const wordTiles=useMemo(()=>current&&stage===3?numberWordTiles(current.target,(activePlan?.seed??0)+question):[],
+    [current?.target,stage,activePlan?.seed,question]);
+  const portalWords=current?['I','see',englishNumber(current.target),'stars']:[];
+  const portalOrder=[2,0,3,1];
 
   useEffect(()=>{
     let alive=true;
@@ -120,7 +112,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
     if(muted||!speechAvailable)return;
     const request=++audioRequest.current;
     setHeardAudio(false);setSpeaking(false);
-    const started=soundService.speakEnglish(phrase?`Collect ${englishNumber(value)} stars`:englishNumber(value),{
+    const started=soundService.speakEnglish(phrase?portalSentence(value):englishNumber(value),{
       rate:0.8,
       onStart:()=>{if(request===audioRequest.current)setSpeaking(true);},
       onEnd:()=>{if(request===audioRequest.current){setHeardAudio(true);setSpeaking(false);}},
@@ -136,7 +128,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
     session.current=newSession(profileId,next);
     setBand(nextBand);setStage(next);setNonce(v=>v+1);setPlan(null);setPlanKey('');setLoadError(false);
     audioRequest.current++;setHeardAudio(false);setSpeaking(false);
-    setVisited([]);setAnswers([]);setQuestion(0);setSelectedTokens([]);setPlaceValue({hundreds:0,tens:0,ones:0});setPortalPhase('collect');
+    setVisited([]);setAnswers([]);setQuestion(0);setSelectedWordTiles([]);setSelectedPortalTokens([]);setPortalPhase('collect');
     setMistakes(0);setPerQuestionMistakes(0);setHintUsed(false);setFeedback(null);
     setAwaitingNext(false);setSaving(false);setSaveError('');setCompleted(false);
   }
@@ -172,43 +164,55 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
     soundService.playSfx('correct');
     const row:NumberAnswerEvidence={
       value:current.target,kind:current.skill,mistakes:perQuestionMistakes,
-      firstTryCorrect:perQuestionMistakes===0&&!hintUsed && !(stage===4&&(!heardAudio||muted||!speechAvailable)),
-      hintUsed:hintUsed || (stage===4&&(!heardAudio||muted||!speechAvailable)),
+      firstTryCorrect:perQuestionMistakes===0&&!hintUsed && !(stage===4&&(!heardAudio||muted||!speechAvailable)) && !(stage===3&&(muted||!speechAvailable)),
+      hintUsed:hintUsed || (stage===4&&(!heardAudio||muted||!speechAvailable)) || (stage===3&&(muted||!speechAvailable)),
       timestamp:new Date().toISOString()
     };
     setAnswers(old=>[...old,row]);
     setFeedback({good:true,text:`Harika! ${current.target} = ${englishNumber(current.target).toUpperCase()}`});
     setAwaitingNext(true);
   }
+  /** Spelling stars: the child builds an English word, not a numeric quantity. */
+  function chooseWordTile(index:number){
+    if(stage!==3||!current||buttonsDisabled)return;
+    if(selectedWordTiles.includes(index))return;
+    const needed=numberWordParts(current.target)[selectedWordTiles.length];
+    const chosen=wordTiles[index];
+    if(chosen?.part!==needed){mistake('Bu parça henüz sırada değil. Parlayan ipucunu deneyebilirsin.');return;}
+    setSelectedWordTiles(old=>[...old,index]);
+    soundService.playSfx('tap',0.45);
+    if(selectedWordTiles.length+1===wordTiles.length)correctAnswer();
+  }
+  function choosePortalToken(index:number){
+    if(stage!==5||portalPhase!=='decode'||!current||buttonsDisabled)return;
+    const token=portalOrder[index];
+    if(selectedPortalTokens.includes(token))return;
+    if(token!==selectedPortalTokens.length){
+      mistake('İngilizce cümledeki kelimelerin sırasını yeniden dene.');return;
+    }
+    setSelectedPortalTokens(old=>[...old,token]);
+    soundService.playSfx('tap',0.5);
+    if(selectedPortalTokens.length+1===4){
+      setPortalPhase('seal');
+      setFeedback({good:true,text:'I see … stars! Cümle tamamlandı. Son mühürü seç.'});
+    }
+  }
   function choose(value:number){
     if(!current||awaitingNext||saving||completed)return;
     if(stage===4&&!heardAudio&&!hintUsed&&!muted&&speechAvailable){
       setFeedback({text:'Önce yankıyı dinle veya yazılı yardım seç.',good:false});return;
     }
-    if(value!==current.target){mistake('Bu sayı değil. Diğer seçeneği dene.');return;}
-    if(stage===5&&portalPhase==='decode'){
-      setPortalPhase('market');
-      setFeedback({text:'Portal açıldı! Son görev: pazardaki iki fiyattan ucuz olanı seç.',good:true});
+    if(value!==current.target){mistake('İngilizce sayı kelimesine yeniden bak.');return;}
+    if(stage===5&&portalPhase==='collect'){
+      setPortalPhase('decode');
+      setFeedback({text:'Doğru! Şimdi “I see … stars” cümlesini kur.',good:true});
       soundService.playSfx('correct');return;
     }
-    correctAnswer();
+    if(stage!==5)correctAnswer();
   }
-  function chooseMarket(value:number){
-    if(stage!==5||portalPhase!=='market'||!current||buttonsDisabled)return;
-    if(value!==Math.min(current.target,marketOther)){
-      mistake('Bu ürün daha pahalı. Daha uygun fiyatı bul.');return;
-    }
-    correctAnswer();
-  }
-  function confirmCount(){
-    if(!current||saving||awaitingNext||completed)return;
-    const assembled=current.target>20?currentCount:count;
-    if(assembled!==current.target){mistake('Miktar henüz doğru değil. Nesneleri veya basamak bloklarını yeniden kontrol et.');return;}
-    if(stage===5&&portalPhase==='collect'){
-      setPortalPhase('decode');setFeedback({text:'Portal doldu! Şimdi İngilizce şifreyi bul.',good:true});
-      soundService.playSfx('correct');
-      return;
-    }
+  function choosePortalSentence(value:number){
+    if(stage!==5||portalPhase!=='seal'||buttonsDisabled||!current)return;
+    if(value!==current.target){mistake('Cümledeki İngilizce sayı kelimesini tekrar kontrol et.');return;}
     correctAnswer();
   }
   function next(){
@@ -217,9 +221,17 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
     if(last){void finish(answers,answers.length);return;}
     audioRequest.current++;setHeardAudio(false);setSpeaking(false);
     if('speechSynthesis' in window)soundService.cancelSpeech();
-    setQuestion(v=>v+1);setSelectedTokens([]);setPlaceValue({hundreds:0,tens:0,ones:0});setPortalPhase('collect');setPerQuestionMistakes(0);
+    setQuestion(v=>v+1);setSelectedWordTiles([]);setSelectedPortalTokens([]);setPortalPhase('collect');setPerQuestionMistakes(0);
     setFeedback(null);setHintUsed(false);setAwaitingNext(false);
   }
+  // Automatically move to the next language challenge after success, but keep
+  // the chapter reward screen (and save-error retry) under player control.
+  useEffect(()=>{
+    if(!awaitingNext||saving||completed||!activePlan)return;
+    const timer=window.setTimeout(()=>next(),1050);
+    return ()=>window.clearTimeout(timer);
+  },[awaitingNext,saving,completed,activePlan,question,answers]);
+
   const total=stage===1?activePlan?.discoveries.length??0:activePlan?.questions.length??0;
   const done=stage===1?visited.length:question+Number(awaitingNext);
   const completeEnabled=stage===1&&activePlan&&visited.length===activePlan.discoveries.length&&visited.length>0;
@@ -319,63 +331,93 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
             {stage!==1&&current&&<div className="relative z-10 mx-auto max-w-3xl text-center">
               <p className="text-xs font-extrabold uppercase tracking-[.18em] text-sky-100">Soru {question+1}/{total}</p>
               <h2 className="mt-2 text-2xl font-black drop-shadow-lg sm:text-4xl">
-                {stage===2?'Doğru köprü taşını seç!':stage===3?'İstenen yıldızları topla!':
+                {stage===2?'Doğru köprü taşını seç!':stage===3?'İngilizce yıldız kelimesini oluştur!':
                   stage===4?'Yankıyı dinle, sayıyı bul!':'Portalı çalıştır!'}
               </h2>
               <p className="mx-auto mt-2 max-w-xl text-sm font-semibold leading-relaxed text-white/90">
                 {stage===2?`${current.target} sayısının İngilizce adını bul.`:
-                  stage===3?`Collect ${englishNumber(current.target)} stars — ${current.target} yıldız topla.`:
+                  stage===3?`${current.target} sayısının İngilizce adını yıldız parçalarıyla oluştur. Dinle ve harfleri sırala.`:
                   stage===4?'İngilizce duyduğun sayıya ait taşı seç.':
-                  portalPhase==='collect'?`Collect ${englishNumber(current.target)} gems — ${current.target} kristal topla.`:
-                  portalPhase==='decode'?'Kristal sayısı doğru. Şimdi portalın İngilizce şifresini seç.':
-                  'Ventra Pazarı: Which costs less? İki üründen daha ucuz olanı seç.'}
+                  portalPhase==='collect'?`${current.target} sayısının İngilizcesini seçerek portalı uyandır.`:
+                  portalPhase==='decode'?'I see … stars! Sözcükleri doğru sırayla birleştir.':
+                  'Cümlede doğru İngilizce sayı kelimesini seçerek mührü aç.'}
               </p>
               <ValleyMilestone stage={stage} completed={question+Number(awaitingNext)}
                 total={total} active={speaking&&!muted}/>
-              {(stage===3||(stage===5&&portalPhase==='collect'))&&<div className="nv-counting mt-5 rounded-[22px] p-3 sm:p-5">
-                <div className="mb-3 flex items-center justify-center gap-3">
-                  <span className="text-sm font-extrabold text-sky-100">Topladığın {stage===3?'yıldız':'kristal'}:</span>
-                  <span className="text-3xl font-black tabular-nums text-amber-200">{current.target>20?currentCount:count}</span>
+              {stage===3&&<div className="nv-word-forge mt-5 rounded-[22px] p-4 sm:p-6">
+                <div className="mx-auto flex max-w-lg flex-col items-center gap-2">
+                  <span className="text-xs font-black uppercase tracking-[.16em] text-lime-100">Yıldızların gizli İngilizce sözcüğü</span>
+                  <span className="nv-forge-number rounded-2xl px-8 py-2 text-5xl font-black tabular-nums text-white">{current.target}</span>
+                  <button type="button" onClick={()=>speak(current.target)}
+                    disabled={muted||!speechAvailable||buttonsDisabled}
+                    className="nv-control min-h-12 rounded-full px-6 py-2 text-sm font-black disabled:opacity-45">
+                    {muted||!speechAvailable?'🔇 Yazılı ipucu kullan':'🔊 İngilizceyi Dinle'}
+                  </button>
+                  {(muted||!speechAvailable||hintUsed)&&<p className="text-sm font-black text-lime-100">
+                    Yazılı destek: {englishNumber(current.target).toUpperCase()}
+                  </p>}
+                  {!muted&&speechAvailable&&<button type="button" onClick={()=>{
+                    setHintUsed(true);setFeedback({good:true,text:'Yazılı destek açıldı; bu soru destekli çözüm olarak işaretlendi.'});
+                  }} className="min-h-10 text-xs font-bold text-sky-100 underline underline-offset-4">Yazılı ipucu göster</button>}
                 </div>
-                <p className="mb-3 text-xs font-semibold text-sky-100">{current.target>20?'100, 10 ve 1 değerli blokları kullanarak sayıyı inşa et.':'Nesnelere dokunarak topla. Tekrar dokunursan geri bırakırsın.'}</p>
-                {current.target<=20?<>
-                  <div role="group" aria-label="Tek tek toplanabilir yıldız ve kristaller"
-                    className="nv-token-field mx-auto grid max-w-xl grid-cols-4 gap-2 sm:grid-cols-6 sm:gap-3">
-                    {Array.from({length:20},(_,i)=>{
-                      const selected=selectedTokens.includes(i);
-                      return <button type="button" key={i} aria-pressed={selected}
-                        aria-label={`${i+1}. nesneyi ${selected?'geri bırak':'topla'}`}
-                        disabled={buttonsDisabled||portalPhase==='decode'}
-                        onClick={()=>{setSelectedTokens(old=>old.includes(i)?old.filter(v=>v!==i):[...old,i]);soundService.playSfx('tap');}}
-                        className={`nv-token min-h-14 rounded-xl text-3xl sm:min-h-16 ${selected?'nv-token-selected':''} disabled:opacity-50`}>
-                        <span aria-hidden="true">{stage===3?'★':'💎'}</span>
-                        <span className="block text-[10px] font-black">{selected?'✓':''}</span>
-                      </button>;
-                    })}
-                  </div>
-                  {stage===3&&<Stars count={count} active/>}
-                </>:<NumberPlaceWorkshop value={placeValue}
-                  onChange={value=>{setPlaceValue(value);soundService.playSfx('tap');}}
-                  disabled={buttonsDisabled||portalPhase==='decode'}/>}
-                {(stage===3||portalPhase==='collect')&&
-                  <button onClick={confirmCount} disabled={buttonsDisabled}
-                    className="nv-primary mt-4 min-h-12 rounded-xl px-7 py-3 text-sm font-black disabled:opacity-50">
-                    {stage===5?'Portal Kristallerini Yerleştir':'Yıldızları Teslim Et'}
-                  </button>}
-              </div>}
-              {stage===5&&portalPhase==='market'&&<div className="nv-market mx-auto mt-6 max-w-xl">
-                <p className="mb-4 text-base font-extrabold text-amber-100">🛒 Ventra Pazarı · Which costs less?</p>
-                <div className="grid grid-cols-2 gap-3 sm:gap-5">
-                  {marketPrices.map((price,i)=><button key={price} type="button"
-                    aria-label={`${i===0?'Birinci':'İkinci'} ürün fiyatı ${price} jeton`}
-                    onClick={()=>chooseMarket(price)} disabled={buttonsDisabled}
-                    className="nv-choice nv-price-card min-h-28 rounded-2xl px-3 py-5 text-center disabled:opacity-50">
-                    <span className="block text-3xl" aria-hidden="true">{i===0?'🎒':'🧸'}</span>
-                    <span className="mt-2 block text-2xl font-black tabular-nums text-amber-100">{price} <span className="text-sm">jeton</span></span>
-                    <span className="mt-2 block text-xs font-bold text-cyan-100">Satın al</span>
+                <div aria-label="Oluşturulan İngilizce sayı kelimesi" aria-live="polite"
+                  className="nv-forge-output mt-5 flex min-h-16 flex-wrap items-center justify-center gap-2 rounded-2xl p-3">
+                  {numberWordParts(current.target).map((part,i)=>{
+                    const chosenIndex=selectedWordTiles[i];
+                    return <span key={i} className={`nv-forge-slot ${chosenIndex!==undefined?'nv-forge-filled':''}`}>
+                      {chosenIndex!==undefined?part.toUpperCase():'✧'}
+                    </span>;
+                  })}
+                </div>
+                <p className="mt-3 text-center text-xs font-extrabold text-sky-100">Parçaları doğru sırayla seç. Yıldız kelimesini tamamla!</p>
+                <div role="group" aria-label="Hareketli yıldız kelime parçaları"
+                  className="nv-forge-choices mt-4 flex flex-wrap justify-center gap-3">
+                  {wordTiles.map((tile,i)=><button key={tile.id} type="button"
+                    disabled={buttonsDisabled||selectedWordTiles.includes(i)}
+                    aria-label={`${tile.part} İngilizce kelime parçasını seç`}
+                    onClick={()=>chooseWordTile(i)}
+                    className="nv-forge-tile min-h-16 min-w-16 rounded-2xl px-4 py-3 text-xl font-black uppercase disabled:opacity-30"
+                    style={{animationDelay:`${i*95}ms`}}>
+                    <span aria-hidden="true" className="block text-2xl text-amber-200">✦</span>
+                    {tile.part}
                   </button>)}
                 </div>
-                <p className="mt-3 text-xs text-sky-100">Sanal oyun jetonudur; gerçek satın alma yoktur.</p>
+              </div>}
+              {stage===5&&portalPhase==='collect'&&<div className="nv-portal-language mx-auto mt-5 max-w-xl rounded-2xl p-4">
+                <p className="mb-3 font-extrabold text-amber-100">🔮 {current.target} · İngilizce anahtar kelime hangisi?</p>
+                <button type="button" onClick={()=>speak(current.target,true)} disabled={muted||!speechAvailable||buttonsDisabled}
+                  className="nv-control mb-4 min-h-11 rounded-xl px-4 text-sm font-bold disabled:opacity-45">🔊 İngilizce Cümleyi Dinle</button>
+                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
+                  {current.choices.map(value=><button key={value} type="button" onClick={()=>choose(value)}
+                    disabled={buttonsDisabled} className="nv-choice min-h-20 rounded-2xl p-3 text-base font-black uppercase disabled:opacity-50">
+                    {englishNumber(value)}
+                  </button>)}
+                </div>
+              </div>}
+              {stage===5&&portalPhase==='decode'&&<div className="nv-portal-language mx-auto mt-5 max-w-xl rounded-2xl p-4">
+                <p className="mb-3 text-base font-extrabold text-lime-100">✨ “I see … stars.” cümlesini tamamla</p>
+                <div aria-live="polite" aria-label="Oluşturulan İngilizce cümle" className="nv-forge-output flex min-h-16 flex-wrap justify-center gap-2 rounded-xl p-3">
+                  {portalWords.map((_,i)=><span key={i} className="nv-forge-slot">
+                    {selectedPortalTokens.includes(i)?portalWords[i]:'✧'}
+                  </span>)}
+                </div>
+                <div role="group" aria-label="Cümle kelimeleri" className="mt-4 grid grid-cols-2 gap-3">
+                  {portalOrder.map((order,i)=><button type="button" key={order}
+                    disabled={buttonsDisabled||selectedPortalTokens.includes(order)}
+                    className="nv-forge-tile min-h-16 rounded-xl p-3 text-lg font-black disabled:opacity-25"
+                    onClick={()=>choosePortalToken(i)}>{portalWords[order]}</button>)}
+                </div>
+              </div>}
+              {stage===5&&portalPhase==='seal'&&<div className="nv-portal-language mx-auto mt-5 max-w-xl rounded-2xl p-4">
+                <p className="mb-4 text-base font-extrabold text-lime-100">🌀 Son adım: Doğru İngilizce cümleyi seç</p>
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
+                  {[current.target,current.choices.find(n=>n!==current.target)??current.target+1].map((value,i)=>
+                    <button type="button" key={i} disabled={buttonsDisabled}
+                      onClick={()=>choosePortalSentence(value)}
+                      className="nv-choice min-h-24 rounded-2xl p-4 text-base font-black disabled:opacity-50">
+                      {portalSentence(value)}
+                    </button>)}
+                </div>
               </div>}
                             {stage===4&&<div className="mt-4 flex flex-col items-center gap-2">
                 <button onClick={()=>speak(current.target)} disabled={muted||!speechAvailable||buttonsDisabled}
@@ -390,10 +432,10 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
                   {englishNumber(current.target).toUpperCase()} · Bu tur yazılı desteklidir.
                 </p>}
               </div>}
-              {(stage===2||stage===4||(stage===5&&portalPhase==='decode'))&&
+              {(stage===2||stage===4)&&
                 <div className="mx-auto mt-6 grid max-w-xl grid-cols-2 gap-3 sm:grid-cols-3">
                   {current.choices.map((value,i)=><button key={value} onClick={()=>choose(value)} disabled={buttonsDisabled}
-                    aria-label={stage===2||stage===5?`${englishNumber(value)} kelimesini seç`:`${value} sayısını seç`}
+                    aria-label={stage===2?`${englishNumber(value)} kelimesini seç`:`${value} sayısını seç`}
                     className="nv-choice group min-h-24 rounded-2xl px-3 py-5 text-center disabled:opacity-60 sm:min-h-32">
                     <span className="block text-xl font-black tracking-wide sm:text-2xl">{stage===4?value:englishNumber(value).toUpperCase()}</span>
                     <span className="mt-2 block text-xs text-sky-100">{stage===4?'Sayı taşı':'Işık taşı'} {i+1}</span>
@@ -409,9 +451,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
           {stage===1?<button onClick={()=>void finish(answers,answers.length)}
             disabled={!completeEnabled||saving} className="nv-primary mt-5 min-h-14 w-full rounded-2xl p-4 font-black disabled:cursor-not-allowed disabled:opacity-40">
             {saving?'Kaydediliyor…':`Keşfi Tamamla (${visited.length}/${total})`}
-          </button>:awaitingNext&&<button onClick={next} disabled={saving} className="nv-primary mt-5 min-h-14 w-full rounded-2xl p-4 font-black disabled:opacity-45">
-            {saving?'Kaydediliyor…':question+1===total?'Görevi Kaydet →':'Sonraki Görev →'}
-          </button>}
+          </button>:awaitingNext&&<p role="status" aria-live="polite" className="nv-auto-next mt-5 rounded-xl px-4 py-3 text-center text-sm font-black">✨ Doğru! {question+1===total?'Bölüm sonucu kaydediliyor…':'Yeni İngilizce macerası açılıyor…'}</p>}
           {stage!==1&&!current&&<p role="alert" className="mt-5 text-center text-amber-100">Soru oluşturulamadı. Önce Kristal Keşfi görevini tekrar oyna.</p>}
           {saveError&&<p role="alert" className="mt-4 rounded-xl bg-rose-950/80 px-4 py-3 text-center text-sm">
             {saveError} <button onClick={()=>void finish(answers,answers.length)}
@@ -431,7 +471,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
           if(stage===5)onBack();else restart((stage+1) as NumberStage);
         }}>{stage===5?'Kelime Bahçesi’ne Dön →':'Sonraki Bölüme Geç →'}</button>
         <button className="nv-control mt-3 min-h-12 w-full rounded-xl px-4 font-bold" onClick={()=>restart(stage)}>
-          ↻ Bu Bölümü Yeni Sayılarla Tekrar Oyna
+          ↻ Yeni Kelimelerle Tekrar Oyna
         </button>
       </section>}
       <footer className="mt-6 text-center text-xs text-sky-100/75">
