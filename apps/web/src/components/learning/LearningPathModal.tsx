@@ -2,6 +2,8 @@
 
 import React, { useEffect, useState } from 'react';
 import { WordGardenDistrictMap } from './WordGardenDistrictMap';
+import {FirstPlayGuide} from './FirstPlayGuide';
+import type {TutorialWorld} from '@/lib/learning/firstPlayTutorial';
 import { AnimalMeadowAdventure } from './activities/AnimalMeadowAdventure';
 import { ColorGroveAdventure } from './activities/ColorGroveAdventure';
 import { NumberValleyAdventure } from './activities/NumberValleyAdventure';
@@ -87,12 +89,16 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
   const [numberError,setNumberError]=useState(false);
   const [numberLoaded,setNumberLoaded]=useState(false);
   const [colorError, setColorError] = useState(false);
+  const [animalLoaded,setAnimalLoaded]=useState(false);
+  const [colorLoaded,setColorLoaded]=useState(false);
   const [animalError, setAnimalError] = useState(false);
 
   useEffect(() => {
     let active = true;
     setAnimalError(false);
     setColorError(false);
+    setAnimalLoaded(false);
+    setColorLoaded(false);
     setNumberError(false);
     setNumberLoaded(false);
     setFoodError(false);setFoodLoaded(false);
@@ -100,11 +106,11 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
     setTempleError(false);setTempleLoaded(false);
     const repo = getProgressRepository();
     void getWordGardenProgress(repo, profileId)
-      .then(snapshot => { if (active) setAnimals(snapshot); })
-      .catch(error => { console.error('Hayvan Çayırı ilerlemesi okunamadı:', error); if (active) setAnimalError(true); });
+      .then(snapshot => { if (active) {setAnimals(snapshot);setAnimalLoaded(true);} })
+      .catch(error => { console.error('Hayvan Çayırı ilerlemesi okunamadı:', error); if (active) {setAnimalError(true);setAnimalLoaded(true);} });
     void getColorGroveProgress(repo, profileId)
-      .then(snapshot => { if (active) setColors(snapshot); })
-      .catch(error => { console.error('Renk Korusu ilerlemesi okunamadı:', error); if (active) setColorError(true); });
+      .then(snapshot => { if (active) {setColors(snapshot);setColorLoaded(true);} })
+      .catch(error => { console.error('Renk Korusu ilerlemesi okunamadı:', error); if (active) {setColorError(true);setColorLoaded(true);} });
     void getNumberValleyProgress(repo,profileId)
       .then(snapshot=>{if(active){setNumbers(snapshot);setNumberLoaded(true);}})
       .catch(error=>{console.error('Sayı Vadisi ilerlemesi okunamadı:',error);
@@ -131,13 +137,17 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
     return () => window.removeEventListener('keydown', onKey);
   }, [district, onClose]);
 
+  const withFirstPlay=(world:TutorialWorld,ready:boolean,hasPlayed:boolean,game:React.ReactNode)=><>
+    {game}<FirstPlayGuide key={profileId+':'+world} world={world} profileId={profileId} ready={ready} hasPlayed={hasPlayed}/>
+  </>;
+
   if (district === 'animals') {
     return animalError ? (
       <div role="alert" className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-slate-950 p-6 text-center text-white">
         <p>Hayvan Çayırı ilerlemesi açılamadı. Mevcut kayıtlarını silmeden yeniden dene.</p>
         <button onClick={() => setDistrict('overview')} className="rounded-xl bg-lime-300 px-5 py-3 font-bold text-emerald-950">Bölgelere Dön</button>
       </div>
-    ) : <AnimalMeadowAdventure
+    ) : withFirstPlay('animals',animalLoaded&&!animalError,animals.completedLevels>0,<AnimalMeadowAdventure
       key={profileId}
       profileId={profileId}
       englishLevel={englishLevel}
@@ -154,7 +164,7 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
         setAnimals(updated);
         return updated;
       }}
-    />;
+    />);
   }
 
   if (district === 'numbers') {
@@ -163,7 +173,7 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
         <p>Sayı Vadisi ilerlemesi açılamadı. Kayıtlarını silmeden tekrar deneyebilirsin.</p>
         <button onClick={()=>setDistrict('overview')} className="rounded-xl bg-lime-300 px-5 py-3 font-bold text-emerald-950">Bölgelere Dön</button>
       </div>
-    ) : <NumberValleyAdventure
+    ) : withFirstPlay('numbers',numberLoaded&&!numberError,numbers.completedLevels>0,<NumberValleyAdventure
       key={profileId}
       profileId={profileId}
       englishLevel={englishLevel}
@@ -175,7 +185,7 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
         setNumbers(updated);
         onNumberProgressSaved?.();
       }}
-    />;
+    />);
   }
 
   if(district==='sanctuary'){
@@ -184,14 +194,14 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
         <p>Keşif Tapınağı ilerlemesi okunamadı. Kayıtların silinmedi.</p>
         <button onClick={()=>setDistrict('overview')} className="rounded-xl bg-lime-300 px-5 py-3 font-bold text-slate-950">Bölgelere Dön</button>
       </div>
-    ):<TempleAdventure
+    ):withFirstPlay('sanctuary',templeLoaded&&!templeError,temple.completedLevels>0,<TempleAdventure
       key={profileId} profileId={profileId} gradeLevel={gradeLevel} englishLevel={englishLevel}
       progress={temple} onBack={()=>setDistrict('overview')}
       onSave={async (room,stage,mistakes,duration,answers:TempleAnswerEvidence[],sessionId)=>{
         const updated=await saveTempleMission(getProgressRepository(),profileId,room,stage,mistakes,duration,answers,sessionId);
         setTemple(updated);onTempleProgressSaved?.();
       }}
-    />;
+    />);
   }
 
   if(district==='family'){
@@ -200,14 +210,14 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
         <p>Aile Köyü ilerlemesi okunamadı. Oyun kayıtlarını silmeden yeniden deneyebilirsin.</p>
         <button onClick={()=>setDistrict('overview')} className="rounded-xl bg-lime-300 px-5 py-3 font-bold text-slate-950">Bölgelere Dön</button>
       </div>
-    ):<FamilyVillageAdventure
+    ):withFirstPlay('family',familyLoaded&&!familyError,family.completedLevels>0,<FamilyVillageAdventure
       key={profileId} profileId={profileId} gradeLevel={gradeLevel} englishLevel={englishLevel}
       progress={family} onBack={()=>setDistrict('overview')}
       onSave={async (part,stage,mistakes,duration,answers:FamilyAnswerEvidence[],sessionId)=>{
         const updated=await saveFamilyVillageMission(getProgressRepository(),profileId,part,stage,mistakes,duration,answers,sessionId);
         setFamily(updated);onFamilyProgressSaved?.();
       }}
-    />;
+    />);
   }
 
   if(district==='food'){
@@ -216,18 +226,18 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
         <p>Lezzet Pazarı ilerlemesi okunamadı. Oyun kayıtlarını silmeden yeniden deneyebilirsin.</p>
         <button onClick={()=>setDistrict('overview')} className="rounded-xl bg-lime-300 px-5 py-3 font-bold text-slate-950">Bölgelere Dön</button>
       </div>
-    ):<FoodMarketAdventure
+    ):withFirstPlay('food',foodLoaded&&!foodError,food.completedLevels>0,<FoodMarketAdventure
       key={profileId} profileId={profileId} gradeLevel={gradeLevel} englishLevel={englishLevel}
       progress={food} onBack={()=>setDistrict('overview')}
       onSave={async (aisle,stage,mistakes,duration,answers:FoodAnswerEvidence[],sessionId)=>{
         const updated=await saveFoodMarketMission(getProgressRepository(),profileId,aisle,stage,mistakes,duration,answers,sessionId);
         setFood(updated);onFoodProgressSaved?.();
       }}
-    />;
+    />);
   }
 
   if (district === 'colors') {
-    return <ColorGroveAdventure
+    return withFirstPlay('colors',colorLoaded&&!colorError,colors.completedLevels>0,<ColorGroveAdventure
       key={profileId}
       profileId={profileId}
       englishLevel={englishLevel}
@@ -239,7 +249,7 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
         setColors(updated);
         onColorProgressSaved?.();
       }}
-    />;
+    />);
   }
 
   return <WordGardenDistrictMap
