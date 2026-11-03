@@ -76,20 +76,33 @@ export function movementWordLimit(grade:number|null|undefined):number{
  const valid=Number.isInteger(grade)&&grade!>=1&&grade!<=8;
  return valid&&grade!<=2?10:valid&&grade!<=4?13:18;
 }
-export function movementCueFor(chapter:MagicChapter,actor:MagicActor,place:MagicPlace,colorTr:string,level:EnglishPlacement,grade:number|null):string{
+export function movementCueFor(chapter:MagicChapter,actor:MagicActor,place:MagicPlace,colorTr:string,
+ level:EnglishPlacement,grade:number|null,sentence:string):string{
  const info=CAST[actor],loc=PLACES[place];
  const advanced=level==='A2'&&!(grade!=null&&grade>=1&&grade<=2);
- if(chapter===1)return advanced?
-   colorTr+' '+info.tr+' '+info.feelingTr+' hissettiği için '+info.actionTr+' eylemini şu anda yapıyor.':
-   'Bu '+colorTr+' '+info.tr+' ne yapabilir? '+info.actionTr+' eylemini İngilizce anlat.';
- if(chapter===2)return info.tr+(advanced?' '+info.feelingTr+' hissettiği için':'')+
-   ' '+loc.tr+' yakınında '+info.actionTr+' eylemini yapıyor. Yeri seç ve İngilizce anlat.';
- if(chapter===3)return advanced?
+ if(chapter===1){
+  if(sentence.endsWith('?'))return colorTr+' '+info.tr+' '+info.actionTr+' yapabilir mi? İngilizce sor.';
+  return advanced?
+   colorTr+' '+info.tr+' '+info.feelingTr+' hissettiği için şu anda '+info.actionTr+' eylemini yapıyor.':
+   'Bu '+colorTr+' '+info.tr+' '+info.actionTr+' yapabilir. İngilizce bir cümle kur.';
+ }
+ if(chapter===2){
+  if(level==='Pre-A1')return info.tr+' '+loc.tr+' yakınında '+info.actionTr+
+   ' yapabilir. Yeri seç ve İngilizce anlat.';
+  return info.tr+(advanced?' '+info.feelingTr+' hissettiği için':'')+
+   ' '+loc.tr+' yakınında şu anda '+info.actionTr+' eylemini yapıyor. Yeri seç ve İngilizce anlat.';
+ }
+ if(chapter===3){
+  if(level==='Pre-A1')return 'Bozulan cümleyi düzelt: '+colorTr+' '+info.tr+' '+info.actionTr+' yapabilir.';
+  return advanced?
    'Bozulan cümleyi düzelt: '+info.tr+' '+loc.tr+' yakınında '+info.actionTr+' eylemini yapıyor ve '+info.feelingTr+' hissediyor.':
-   'Bozulan cümleyi düzelt: '+info.tr+' '+loc.tr+' yakınında '+info.actionTr+' eylemini yapıyor.';
+   'Bozulan cümleyi düzelt: '+info.tr+' şu anda '+loc.tr+' yakınında '+info.actionTr+' eylemini yapıyor.';
+ }
+ if(level==='Pre-A1')return colorTr+' '+info.tr+' '+loc.tr+' yakınında '+info.actionTr+
+  ' yapabilir. Hareketi ve yeri seç, sonra cümleyi kur.';
  return colorTr+' '+info.tr+' '+loc.tr+' yakınında '+info.actionTr+
-   ' eylemini yapıyor'+(advanced?' çünkü '+info.feelingTr+' hissediyor':'')+
-   '. İki seçimi de yap, sonra cümleyi kur.';
+  ' eylemini yapıyor'+(advanced?' çünkü '+info.feelingTr+' hissediyor':'')+
+  '. İki seçimi de yap, sonra cümleyi kur.';
 }
 function fabricate(chapter:MagicChapter,actor:MagicActor,place:MagicPlace,colorIndex:number,level:EnglishPlacement,grade:number|null):MovementTrial {
  const c=COLORS[colorIndex%COLORS.length],data=CAST[actor],loc=PLACES[place],early=grade!=null&&grade>=1&&grade<=2;
@@ -138,7 +151,7 @@ function fabricate(chapter:MagicChapter,actor:MagicActor,place:MagicPlace,colorI
  const scene:PlazaSceneEffect={actor,color:c.en,action:data.verb,place:'near the '+loc.en};
  const question:PlazaQuestion={
   id,mission:4,skill:'action',englishLevel:level,kind,mode:chapter===3?'repair':chapter===2?'scene':'construct',
-  cue:movementCueFor(chapter,actor,place,c.tr,level,grade),
+  cue:movementCueFor(chapter,actor,place,c.tr,level,grade,sentence),
   scene,sentence,tokens,
   decoys:['are','is','can','running','sleeping','fly','jump','the'].filter(w=>!tokens.includes(w)).slice(0,2),
   explanation,

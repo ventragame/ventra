@@ -152,3 +152,20 @@ test('A paused 12–20 question adventure can resume safely without granting inc
  assert.match(ui,/resume|resumed/);
  assert.match(ui,/saveSentencePlazaMission\(/);
 });
+
+test('Every grade-level Turkish cue preserves the English sentence intent',()=>{
+ for(const grade of [1,4,8])for(const level of ['Pre-A1','A1','A2']){
+  const pool=movementMagicPool(level,grade);
+  for(const row of pool){
+   const q=row.question;
+   if(row.chapter===1&&q.sentence.endsWith('?'))assert.match(q.cue,/mi\?/);
+   if(row.chapter===2&&level==='Pre-A1')assert.match(q.cue,/yapabilir/);
+   if(row.chapter===3&&level==='Pre-A1'){
+    assert.match(q.cue,/yapabilir/);
+    assert.ok(q.cue.length>20);
+   }
+   if(row.chapter===4&&level==='Pre-A1')assert.match(q.cue,/yapabilir/);
+   if(level==='A2'&&grade>=4&&q.kind==='reason')assert.match(q.cue,/hissettiği için|çünkü/);
+  }
+ }
+});
