@@ -76,12 +76,20 @@ export function movementWordLimit(grade:number|null|undefined):number{
  const valid=Number.isInteger(grade)&&grade!>=1&&grade!<=8;
  return valid&&grade!<=2?10:valid&&grade!<=4?13:18;
 }
-export function movementCueFor(chapter:MagicChapter,actor:MagicActor,place:MagicPlace,colorTr:string,level:EnglishPlacement):string{
+export function movementCueFor(chapter:MagicChapter,actor:MagicActor,place:MagicPlace,colorTr:string,level:EnglishPlacement,grade:number|null):string{
  const info=CAST[actor],loc=PLACES[place];
- if(chapter===1)return 'Bu '+colorTr+' '+info.tr+' ne yapabilir? '+info.actionTr+' eylemini İngilizce anlat.';
- if(chapter===2)return info.tr+' '+loc.tr+' yakınında '+info.actionTr+' eylemini yapıyor. Yeri seç ve İngilizce anlat.';
- if(chapter===3)return 'Bozulan İngilizce cümleyi düzelt: '+info.tr+' '+info.actionTr+' yapabilir.';
- return colorTr+' '+info.tr+' '+loc.tr+' yakınında '+info.actionTr+' eylemini yapıyor. İki seçimi de yap, sonra cümleyi kur.';
+ const advanced=level==='A2'&&!(grade!=null&&grade>=1&&grade<=2);
+ if(chapter===1)return advanced?
+   colorTr+' '+info.tr+' '+info.feelingTr+' hissettiği için '+info.actionTr+' eylemini şu anda yapıyor.':
+   'Bu '+colorTr+' '+info.tr+' ne yapabilir? '+info.actionTr+' eylemini İngilizce anlat.';
+ if(chapter===2)return info.tr+(advanced?' '+info.feelingTr+' hissettiği için':'')+
+   ' '+loc.tr+' yakınında '+info.actionTr+' eylemini yapıyor. Yeri seç ve İngilizce anlat.';
+ if(chapter===3)return advanced?
+   'Bozulan cümleyi düzelt: '+info.tr+' '+loc.tr+' yakınında '+info.actionTr+' eylemini yapıyor ve '+info.feelingTr+' hissediyor.':
+   'Bozulan cümleyi düzelt: '+info.tr+' '+loc.tr+' yakınında '+info.actionTr+' eylemini yapıyor.';
+ return colorTr+' '+info.tr+' '+loc.tr+' yakınında '+info.actionTr+
+   ' eylemini yapıyor'+(advanced?' çünkü '+info.feelingTr+' hissediyor':'')+
+   '. İki seçimi de yap, sonra cümleyi kur.';
 }
 function fabricate(chapter:MagicChapter,actor:MagicActor,place:MagicPlace,colorIndex:number,level:EnglishPlacement,grade:number|null):MovementTrial {
  const c=COLORS[colorIndex%COLORS.length],data=CAST[actor],loc=PLACES[place],early=grade!=null&&grade>=1&&grade<=2;
@@ -89,8 +97,8 @@ function fabricate(chapter:MagicChapter,actor:MagicActor,place:MagicPlace,colorI
  let sentence='',kind:PlazaSentenceKind='statement',explanation='';
  if(chapter===1){
   if(a2&&!early){
-   sentence='The '+c.en+' '+actor+' can '+data.verb+' because it feels '+data.feeling+'.';
-   kind='reason';explanation='Can + fiil yetenek, because bir neden bildirir.';
+   sentence='The '+c.en+' '+actor+' is '+data.ing+' because it feels '+data.feeling+'.';
+   kind='reason';explanation='Is + fiil-ing şu anki hareket, because ise neden bildirir.';
   } else if(a1&&colorIndex%2===1){
    sentence='Can the '+actor+' '+data.verb+'?';
    kind='question';explanation='Can öznenin önünde olursa soru oluşur.';
@@ -107,10 +115,11 @@ function fabricate(chapter:MagicChapter,actor:MagicActor,place:MagicPlace,colorI
  }else if(chapter===3){
   if(!a1)sentence='The '+c.en+' '+actor+' can '+data.verb+'.';
   else if(a2&&!early){
-   sentence='The '+actor+' is '+data.ing+' because it feels '+data.feeling+'.';
-   kind='reason';
-  } else sentence='The '+actor+' is '+data.ing+'.';
-  explanation=a1?'Is + fiil-ing doğru, is + yalın fiil yanlıştır.':'Can + yalın fiil doğru, can + fiil-ing yanlıştır.';
+   sentence='The '+actor+' is '+data.ing+' near the '+loc.en+', and it feels '+data.feeling+'.';
+   kind='statement';
+  } else sentence='The '+actor+' is '+data.ing+' near the '+loc.en+' now.';
+  explanation=a2&&!early?'Is + fiil-ing ve and ile iki doğru ifade kurulur.':
+   a1?'Is + fiil-ing doğru, is + yalın fiil yanlıştır.':'Can + yalın fiil doğru, can + fiil-ing yanlıştır.';
  }else {
   if(!a1)sentence='The '+c.en+' '+actor+' can '+data.verb+' near the '+loc.en+'.';
   else if(a2&&!early){
@@ -129,7 +138,7 @@ function fabricate(chapter:MagicChapter,actor:MagicActor,place:MagicPlace,colorI
  const scene:PlazaSceneEffect={actor,color:c.en,action:data.verb,place:'near the '+loc.en};
  const question:PlazaQuestion={
   id,mission:4,skill:'action',englishLevel:level,kind,mode:chapter===3?'repair':chapter===2?'scene':'construct',
-  cue:movementCueFor(chapter,actor,place,c.tr,level),
+  cue:movementCueFor(chapter,actor,place,c.tr,level,grade),
   scene,sentence,tokens,
   decoys:['are','is','can','running','sleeping','fly','jump','the'].filter(w=>!tokens.includes(w)).slice(0,2),
   explanation,
