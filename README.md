@@ -83,3 +83,5 @@ Cümle Meydanı'nın **ilk bölgesi** kullanıma açıldı: 6 sıralı İngilizc
 **Hareket Büyüsü 2.0 (Cümle Meydanı, 03.11.2026):** İlk ada bölümünün dördüncü görevi dört aşamalı gerçek oyun deneyimine dönüştürüldü: karakter hareketini seç, sahnede hedefe dokun, hatalı İngilizceyi onar, finalde hepsini birleştir. Sınıf ve İngilizce seviyesi ayrı, süre cezası yok, yıldızlar aynı kayıtta. [Oyun tasarımı ve kabul planı](docs/CM1_HAREKET_BUYUSU_V2.md).
 
 **Hareket Büyüsü aynı cihazda devam:** 12–20 soruluk oturumun ortasında çıkıldığında yarım kalan bölüm tarayıcıda saklanır; ilerleme ve yıldızlar yalnızca bütün bölüm tamamlanınca mevcut profile kaydedilir. Farklı cihazda yarım oturum devri henüz yoktur.
+
+**İstekler Meydanı 2.0 / Dilekler Festivali (03.11.2026):** Cümle Meydanı'nın 5. görevinde dört ayrı dil-oyun dünyası (beğeni, kibar sipariş, diyalog, karşılaştırmalı festival), 8 resimli yiyecek, 4 karakter, 12–20 görev, sınıf ve Pre-A1/A1/A2 ayrı politikası, sahne tepkisi ve duraklat-devam. Mevcut 5. seviye ve yıldız kimliği korunur. [GDD ve kalite kabul](docs/CM1_ISTEKLER_MEYDANI_PREMIUM_GDD.md).

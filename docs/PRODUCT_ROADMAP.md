@@ -294,3 +294,6 @@ See [CM1 acceptance and implemented grammatical families](./CM1_UYANAN_MEYDAN_GD
 
 ### 2026-11-03 — CM1 Hareket Büyüsü 2.0
 - Four original motion-language chapters, stage action controls, scene hotspots, English grammatical repair and final combined mission; one existing plaza level (4) with 12–20 questions selected by actual child grade and Pre-A1/A1/A2 separately. Timeless play, dedicated vector art scene and new opt-in audio score. Existing progress and reward keys unchanged. See [full GDD & acceptance](./CM1_HAREKET_BUYUSU_V2.md). Physical-device/teacher QA pending.
+
+### 2026-11-03 — CM1 İstekler Meydanı / Dilekler Festivali
+- Replace generic sentence task #5 with four distinct language interactions: likes/dislikes, polite requests, guest dialogue, combined festival preference/contrast/reasoning. 8 unique food illustrations, 4 guest portraits, layered responsive illustrated market, dedicated opt-in music, 12/16/20 grade-based prompts and independent Pre-A1/A1/A2 grammar, automatic next, offline same-device resume, profile-safe existing level 5 rewards. [Full GDD and acceptance](./CM1_ISTEKLER_MEYDANI_PREMIUM_GDD.md). No production deploy; teacher/child-device acceptance remains open.

@@ -3,7 +3,7 @@
  * WebAudio oscillator score: seven location-specific tonal palettes, low CPU.
  * Explicit opt-in only. The SoundService owns/resumes the shared AudioContext.
  */
-export type MusicScene='archipelago'|'garden'|'animals'|'colors'|'numbers'|'food'|'family'|'sanctuary'|'plaza'|'movement';
+export type MusicScene='archipelago'|'garden'|'animals'|'colors'|'numbers'|'food'|'family'|'sanctuary'|'plaza'|'movement'|'wishes';
 interface Score { root:number; tempo:number; progression:readonly number[][]; melody:readonly number[]; timbre:OscillatorType; }
 const SCORES:Record<MusicScene,Score>={
   archipelago:{root:220,tempo:101,progression:[[0,4,7,11],[-3,0,4,7],[-5,-1,2,7],[-3,0,4,9]],melody:[7,11,12,7,4,7,11,9],timbre:'sine'},
@@ -18,7 +18,10 @@ const SCORES:Record<MusicScene,Score>={
     melody:[7,12,14,12,9,7,4,7,9,12,16,14,12,9,7,12],timbre:'triangle'},
   movement:{root:293.66,tempo:128,progression:[[0,4,7,12],[-3,0,4,9],[-5,-1,2,7],[0,5,9,14]],
     melody:[7,12,14,16,12,9,7,9,12,16,19,16,14,12,9,7],
-    timbre:'triangle'}
+    timbre:'triangle'},
+  wishes:{root:293.66,tempo:116,
+    progression:[[0,4,7,11],[-5,-1,2,7],[-3,0,4,9],[0,5,9,12]],
+    melody:[7,12,14,11,9,7,4,7,9,12,16,14,12,11,9,7],timbre:'triangle'}
 };
 export const MUSIC_SCENES=Object.freeze(Object.keys(SCORES) as MusicScene[]);
 export const musicSceneForDistrict=(district:string|null|undefined):MusicScene=>{

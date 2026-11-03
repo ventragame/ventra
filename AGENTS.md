@@ -43,3 +43,7 @@ This instruction file does not itself establish a new delivery/deployment author
 - Canonical [GDD and acceptance](docs/CM1_HAREKET_BUYUSU_V2.md). Specialized gameplay components are in `apps/web/src/components/learning/sentence/MovementMagic*`; curriculum in `apps/web/src/lib/learning/movementMagicEngine.ts`.
 - Preserve old game ID `island_sentence_square_plaza` and level 4. Save the full 12/16/20-question `PlazaDeck` using existing `saveSentencePlazaMission` and never claim official CEFR placement.
 - Music state `movement` inherits child opt-in; don't override global mute. Four future sentence regions remain locked. Do not deploy without approval.
+
+### İstekler Meydanı CM1 mission 5 (2026-11-03)
+- [Teaching/design/QA acceptance](docs/CM1_ISTEKLER_MEYDANI_PREMIUM_GDD.md). New curriculum `apps/web/src/lib/learning/wishFestivalEngine.ts`, original interactive stage and gameplay in `apps/web/src/components/learning/sentence/WishFestival*`.
+- Mission 5 persists using **existing** game ID `island_sentence_square_plaza` and level 5. Do not create new rewards on partial sessions, invent user levels, or publish locked future islands. Respect adult opt-in to music and existing central voice controls. No production deploy.

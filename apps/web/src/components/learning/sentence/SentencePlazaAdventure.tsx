@@ -10,6 +10,7 @@ import {SENTENCE_PLAZA_MISSIONS,planPlazaMission,plazaWordTiles,evaluatePlazaSen
 import {soundService} from '@/lib/audio/SoundService';
 import {SentencePlazaScene} from './SentencePlazaScene';
 import {MovementMagicAdventure} from './MovementMagicAdventure';
+import {WishFestivalAdventure} from './WishFestivalAdventure';
 import './sentence-plaza.css';
 
 interface Props{
@@ -26,6 +27,7 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
  const [progress,setProgress]=useState<SentencePlazaProgress>(EMPTY);
  const [history,setHistory]=useState<SentenceAnswerEvidence[]>([]);
  const [movementOpen,setMovementOpen]=useState(false);
+ const [wishOpen,setWishOpen]=useState(false);
  const [knownWords,setKnownWords]=useState<string[]>([]);
  const [loading,setLoading]=useState(true);
  const [loadError,setLoadError]=useState('');
@@ -111,6 +113,7 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
  function openMission(m:PlazaMission){
   if(loading||loadError||savingLock.current||m>progress.completedLevels+1)return;
   if(m===4){setMovementOpen(true);return;}
+  if(m===5){setWishOpen(true);return;}
   clearTimer();soundService.cancelSpeech();
   setMission(m);setScreen('lesson');setDeck(null);setFeedback('');setSaveError('');
   setAwakened(false);setCompletedStars(0);setAnswers([]);completedAnswers.current=[];
@@ -238,6 +241,17 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
  }
  const sceneEffect=screen==='play'&&awakened?task?.scene??null:null;
  const chapterTotal=6;
+ if(wishOpen){
+  return <WishFestivalAdventure profileId={profileId} gradeLevel={gradeLevel}
+    englishLevel={englishLevel} history={history} knownFoods={knownWords}
+    onExit={()=>setWishOpen(false)}
+    onComplete={(rows)=>{
+      setHistory(old=>[...old,...rows]);
+      void getSentencePlazaProgress(getProgressRepository(),profileId).then(setProgress)
+        .catch(error=>console.error('İstekler Meydanı ilerlemesi yenilenemedi',error));
+      onSaved();
+    }}/>;
+ }
  if(movementOpen){
   return <MovementMagicAdventure profileId={profileId} gradeLevel={gradeLevel}
     englishLevel={englishLevel} history={history}
