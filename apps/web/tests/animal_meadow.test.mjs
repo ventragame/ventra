@@ -156,7 +156,7 @@ test('Mobile-first Meadow has separate real touch scene and retains desktop Phas
  assert.match(view,/am-missions/);
  assert.match(view,/am-task-title/);
  assert.match(view,/am-compact-details/);
- assert.match(view,/awaiting\&\&target\.id===id/);
+ assert.match(view,/awaiting\s*&&\s*id===target\.id/);
  assert.match(mobile,/word\.image/);
  assert.match(mobile,/onInteract\(object\)/);
  assert.match(mobile,/aria-pressed=\{done\|\|correct\}/);
