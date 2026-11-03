@@ -41,3 +41,6 @@ All missions use the original adaptive target planner and stored profile-specifi
 
 ## Release gate
 The CSS/React implementation, static web CI and test suite do **not** replace device acceptance. Only promote this layout to other Ventra islands after product-owner Android + iOS review. Keep production deployment off until explicitly authorized.
+
+## GitHub Actions test APK delivery
+After a successful `Ventra Kids Slice QA` workflow run, open its **Artifacts** section and download `ventra-android-debug-apk` (ZIP containing `app-debug.apk`). This is a debug build for internal physical-device acceptance, not a production-signed Play Store release. Release AAB validation is a separate step. The CI iOS job builds an **unsigned simulator application**, not a distributable IPA for iPhone. Real iOS-device installation requires an Apple signing/provisioning workflow and a Mac or suitable distribution service.
