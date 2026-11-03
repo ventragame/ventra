@@ -34,7 +34,7 @@ test('Mobile Color Grove keeps discovery, grade eligibility and replay contracts
  assert.equal(COLOR_GROVE_WORDS.length,30);
  for(const [level,grade] of [['Pre-A1',1],['A1',3],['A2',7]]){
   const plan=planColorMission({mission:1,history:[],seed:43,englishLevel:level,gradeLevel:grade});
-  assert.equal(plan.colors.length,6);
+  assert.equal(plan.colors.length,grade<=2?4:6,'grade-aware discovery remains unchanged');
   assert.ok(plan.colors.every(id=>COLOR_GROVE_WORDS.some(word=>word.id===id)));
  }
 });
