@@ -144,4 +144,6 @@ test('Same-device checkpoint cannot credit incomplete play and captures assisted
  assert.match(src,/sessionId:session\.current/);
  assert.match(src,/retryRows\.current/);
  assert.match(src,/onComplete\(rows\)/);
+ assert.match(src,/onEnd:\(\)=>scheduleNext/);
+ assert.match(src,/const fallback=Math\.max\(3500/);
 });

@@ -110,7 +110,7 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
  }
  useEffect(()=>{
   soundService.setMusicScene('wishes');
-  return()=>{clearTimer();soundService.cancelSpeech();soundService.setMusicScene('plaza');};
+  return()=>{locked.current=false;clearTimer();soundService.cancelSpeech();soundService.setMusicScene('plaza');};
  },[]);
  useEffect(()=>{
   if(loadingCheckpoint.current)return;
@@ -271,16 +271,41 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
   if(evidence.firstTryCorrect){setIndependent(v=>v+1);setStreak(v=>{setBestStreak(b=>Math.max(b,v+1));return v+1;});}
   else setStreak(0);
   soundService.playSfx('correct',.82);
-  speech(question.sentence);
-  const duration=Math.max(2400,Math.min(5200,1250+question.tokens.length*220));
-  clearTimer();
-  timer.current=setTimeout(()=>{
-   timer.current=null;locked.current=false;soundService.cancelSpeech();
-   if(index+1>=plan!.trials.length){void finish(all);return;}
-   const change=plan!.trials[index+1].chapter!==trial.chapter;
-   setIndex(i=>i+1);resetRound();
-   if(change){setScreen('lesson');soundService.playSfx('whoosh',.55);}
-  },duration);
+  // Do not interrupt a long A2 sentence just because the scene effect finished.
+  // Advance shortly after speech ends, with a bounded fallback for browsers that
+  // never emit speechSynthesis.onend (or have no usable voice).
+  const spokenAt=Date.now();
+  let scheduled=false;
+  const scheduleNext=(delay:number)=>{
+   if(scheduled||!locked.current)return;
+   scheduled=true;
+   clearTimer();
+   timer.current=setTimeout(()=>{
+    timer.current=null;if(!locked.current)return;
+    locked.current=false;soundService.cancelSpeech();
+    if(index+1>=plan!.trials.length){void finish(all);return;}
+    const change=plan!.trials[index+1].chapter!==trial.chapter;
+    setIndex(i=>i+1);resetRound();
+    if(change){setScreen('lesson');soundService.playSfx('whoosh',.55);}
+   },delay);
+  };
+  const played=soundService.speakEnglish(question.sentence,{
+   rate:gradeLevel!==null&&gradeLevel<=2?.77:.88,
+   onEnd:()=>scheduleNext(Math.max(650,2300-(Date.now()-spokenAt))),
+   onError:()=>scheduleNext(2300)
+  });
+  // If speech never finishes, the child can still proceed. The allowance
+  // scales with word count so long sentences remain intelligible.
+  const fallback=Math.max(3500,Math.min(10500,1200+question.tokens.length*480));
+  if(!played)scheduleNext(2500);
+  else{
+   // Independent fallback timer, cancelled on exit. Speech-driven timer gets
+   // precedence when onEnd arrives successfully.
+   timer.current=setTimeout(()=>{
+    timer.current=null;
+    scheduleNext(750);
+   },fallback);
+  }
  }
  const dialogue=trial?(chapter===3?
   trial.intent==='want'?'What would you like?':'Do you like this food?':
@@ -309,7 +334,7 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
     <div className="wf-header-actions"><span className="wf-pill">🎓 {gradeLevel??'—'}. sınıf · {englishLevel}</span>
      <span className="wf-pill">◷ {clock(elapsed)} · Süre sınırı yok</span>
      <button type="button" className="wf-back" disabled={saving}
-      onClick={()=>{clearTimer();soundService.cancelSpeech();onExit();}}>← Cümle Meydanı</button></div>
+      onClick={()=>{locked.current=false;clearTimer();soundService.cancelSpeech();onExit();}}>← Cümle Meydanı</button></div>
    </header>
    {resumed&&screen!=='reward'&&<div role="status" className="wf-notice">
     ↻ Yarım kalan festivalin bu cihazda kayıtlı. Kaldığın İngilizce görevine geri döndün.</div>}
