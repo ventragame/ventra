@@ -24,6 +24,17 @@ test('Animal Meadow catalog contains forty unique animals and preserves existing
     assert.ok(animal.image?.endsWith('.svg'));
   }
 });
+test('All animal words have mobile native speech and browser fallback instead of silent audio null',()=>{
+ const source=fs.readFileSync(new URL('../src/components/learning/activities/AnimalMeadowAdventure.tsx',import.meta.url),'utf8');
+ const sound=fs.readFileSync(new URL('../src/lib/audio/SoundService.ts',import.meta.url),'utf8');
+ assert.equal(ANIMAL_MEADOW_WORDS.filter(word=>word.audio===null).length,36);
+ assert.match(source,/soundService\.speakEnglish\(/);
+ assert.match(source,/setTextMode\(true\);setAssisted\(true\)/);
+ assert.match(sound,/Capacitor\.isPluginAvailable\('TextToSpeech'\)/);
+ assert.match(sound,/TextToSpeech\.speak\(/);
+ assert.match(sound,/this\.speakInBrowser\(text,options,id\)/);
+ for(const word of ANIMAL_MEADOW_WORDS)assert.match(word.id,/^[a-z]+$/);
+});
 test('New learner discovers eight; replay eventually introduces fresh additional animals',()=>{
   const intro=planAnimalMission({mission:1,history:[],seed:1});
   assert.equal(intro.animals.length,8);

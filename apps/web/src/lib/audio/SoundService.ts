@@ -4,6 +4,9 @@
  * Music is explicit opt-in; the audio context unlocks only after user interaction.
  */
 import { EventBus } from '@/lib/game/EventBus';
+import { Capacitor } from '@capacitor/core';
+import { TextToSpeech } from '@capacitor-community/text-to-speech';
+import { preferredEnglishVoiceIndex } from './EnglishVoice';
 import { MusicDirector, type MusicScene } from './MusicDirector';
 import {playRewardSound,type RewardEvent} from './RewardSounds';
 
@@ -34,10 +37,8 @@ export function normalizeAudioSettings(value:unknown):AudioSettings{
  };
 }
 export function chooseEnglishVoice(voices:SpeechSynthesisVoice[]):SpeechSynthesisVoice|null{
- const english=voices.filter(v=>/^en(?:-|_)/i.test(v.lang)||v.lang.toLowerCase()==='en');
- const us=english.filter(v=>/^en[-_]us$/i.test(v.lang));
- // Prefer installed voices for offline play; never send child voice or text to a third party ourselves.
- return us.find(v=>v.localService)??us[0]??english.find(v=>v.localService)??english[0]??null;
+ const index=preferredEnglishVoiceIndex(voices);
+ return index<0?null:voices[index];
 }
 export interface EnglishSpeechOptions{
  rate?:number;pitch?:number;
@@ -53,6 +54,11 @@ class SoundService {
  private context:AudioContext|null=null;
  private voiceActive=false;
  private speechGeneration=0;
+ private nativeSpeaking=false;
+ private nativeStopQueue:Promise<void>=Promise.resolve();
+ private nativeVoiceIndex:number|undefined;
+ private nativeVoicesRequested=false;
+ private speechWatchdog:ReturnType<typeof setTimeout>|null=null;
  private gestureListenerAttached=false;
  private lastSfx=new Map<SfxName,number>();
  private sfxCooldown:Readonly<Record<SfxName,number>>={
@@ -144,6 +150,7 @@ class SoundService {
  setChannelVolume(channel:AudioChannel,volume:number):void{
   this.settings[channel]=clamp(volume);
   if(channel==='effects'||channel==='voice')this.updatePooledVolumes();
+  if(channel==='voice'&&this.settings.voice===0)this.cancelSpeech();
   this.refreshMusic();this.persist();
  }
  private updatePooledVolumes():void{
@@ -200,43 +207,118 @@ class SoundService {
   }
   this.playChannel(`/audio/sfx/${name}.wav`,volume,'effects');
  }
- playSpeech(path:string,volume=1):void{this.playChannel(path,volume,'voice');}
+ /** Native voice is used by Android/iOS builds; browsers keep Web Speech. */
+ hasEnglishSpeech():boolean{
+  return typeof window!=='undefined'&&(this.hasNativeSpeech()||
+   ('speechSynthesis' in window&&typeof SpeechSynthesisUtterance!=='undefined'));
+ }
+ private hasNativeSpeech():boolean{
+  return typeof window!=='undefined'&&Capacitor.isNativePlatform()&&Capacitor.isPluginAvailable('TextToSpeech');
+ }
+ private primeNativeVoice():void{
+  if(this.nativeVoicesRequested||!this.hasNativeSpeech())return;
+  this.nativeVoicesRequested=true;
+  void TextToSpeech.getSupportedVoices().then(({voices})=>{
+   const index=preferredEnglishVoiceIndex(voices??[]);
+   if(index>=0)this.nativeVoiceIndex=index;
+  }).catch(()=>{ /* The OS default voice is still usable. */ });
+ }
+ private clearSpeechWatchdog():void{
+  if(this.speechWatchdog!==null)clearTimeout(this.speechWatchdog);
+  this.speechWatchdog=null;
+ }
+ private stopRecordedSpeech():void{
+  for(const [path,items] of this.audioPool){
+   if(path.startsWith('/audio/sfx/'))continue;
+   for(const item of items)try{item.pause();item.currentTime=0;}catch{}
+  }
+ }
+ playSpeech(path:string,volume=1):void{
+  this.cancelSpeech();
+  this.playChannel(path,volume,'voice');
+ }
  cancelSpeech():void{
   this.speechGeneration++;
+  this.clearSpeechWatchdog();
+  if(this.nativeSpeaking&&this.hasNativeSpeech()){
+   this.nativeStopQueue=this.nativeStopQueue.catch(()=>{}).then(()=>
+    TextToSpeech.stop().catch(()=>{})
+   );
+  }
+  this.nativeSpeaking=false;
   if(typeof window!=='undefined'&&'speechSynthesis' in window){
    try{window.speechSynthesis.cancel();}catch{}
   }
+  this.stopRecordedSpeech();
   this.voiceActive=false;this.refreshMusic();
  }
- speakEnglish(text:string,options:EnglishSpeechOptions={}):boolean{
-  this.cancelSpeech();
-  if(!text.trim()||this.isMuted||this.settings.voice<=0||typeof window==='undefined'
-   ||document.hidden||!('speechSynthesis' in window)
-   ||typeof SpeechSynthesisUtterance==='undefined')return false;
-  const id=this.speechGeneration;
+ private speakInBrowser(text:string,options:EnglishSpeechOptions,id:number):boolean{
+  if(typeof window==='undefined'||!('speechSynthesis' in window)||
+   typeof SpeechSynthesisUtterance==='undefined')return false;
   try{
    const utterance=new SpeechSynthesisUtterance(text);
    utterance.lang='en-US';
-   utterance.rate=Math.max(0.65,Math.min(1.1,options.rate??0.83));
-   utterance.pitch=Math.max(0.8,Math.min(1.15,options.pitch??1));
+   utterance.rate=Math.max(0.75,Math.min(1.05,options.rate??0.9));
+   utterance.pitch=Math.max(0.9,Math.min(1.12,options.pitch??1));
    utterance.volume=this.settings.voice;
    const voice=chooseEnglishVoice(window.speechSynthesis.getVoices());
    if(voice)utterance.voice=voice;
+   let started=false,finished=false;
+   const finish=(success:boolean)=>{
+    if(finished||this.speechGeneration!==id)return;
+    finished=true;this.clearSpeechWatchdog();
+    this.voiceActive=false;this.refreshMusic();
+    if(success)options.onEnd?.();else options.onError?.();
+   };
    utterance.onstart=()=>{
     if(this.speechGeneration!==id||this.isMuted)return;
+    started=true;this.clearSpeechWatchdog();
     this.voiceActive=true;this.refreshMusic();options.onStart?.();
    };
-   utterance.onend=()=>{
-    if(this.speechGeneration!==id)return;
-    this.voiceActive=false;this.refreshMusic();options.onEnd?.();
-   };
-   utterance.onerror=()=>{
-    if(this.speechGeneration!==id)return;
-    this.voiceActive=false;this.refreshMusic();options.onError?.();
-   };
+   utterance.onend=()=>finish(true);
+   utterance.onerror=()=>finish(false);
    window.speechSynthesis.speak(utterance);
+   // A WebView can expose speechSynthesis while never starting playback.
+   this.speechWatchdog=setTimeout(()=>{
+    if(started||finished||this.speechGeneration!==id)return;
+    try{window.speechSynthesis.cancel();}catch{}
+    finish(false);
+   },4500);
    return true;
-  }catch{options.onError?.();return false;}
+  }catch{return false;}
+ }
+ speakEnglish(text:string,options:EnglishSpeechOptions={}):boolean{
+  this.cancelSpeech();
+  if(!text.trim()||this.isMuted||this.settings.voice<=0||
+   typeof window==='undefined'||document.hidden)return false;
+  const id=this.speechGeneration;
+  if(this.hasNativeSpeech()){
+   this.primeNativeVoice();
+   this.nativeSpeaking=true;this.voiceActive=true;this.refreshMusic();
+   void this.nativeStopQueue.then(async()=>{
+    if(this.speechGeneration!==id||this.isMuted)return false;
+    options.onStart?.();
+    await TextToSpeech.speak({
+     text,lang:'en-US',rate:Math.max(0.75,Math.min(1.05,options.rate??0.9)),
+     pitch:Math.max(0.9,Math.min(1.12,options.pitch??1)),volume:this.settings.voice,
+     category:'ambient',
+     ...(this.nativeVoiceIndex===undefined?{}:{voice:this.nativeVoiceIndex})
+    });
+    return true;
+   }).then(completed=>{
+    if(this.speechGeneration!==id)return;
+    this.nativeSpeaking=false;this.voiceActive=false;this.refreshMusic();
+    if(completed)options.onEnd?.();
+   }).catch(()=>{
+    if(this.speechGeneration!==id)return;
+    this.nativeSpeaking=false;this.voiceActive=false;this.refreshMusic();
+    if(!this.speakInBrowser(text,options,id))options.onError?.();
+   });
+   return true;
+  }
+  const accepted=this.speakInBrowser(text,options,id);
+  if(!accepted)options.onError?.();
+  return accepted;
  }
  stopAllAudio():void{
   for(const pool of this.audioPool.values())for(const audio of pool){

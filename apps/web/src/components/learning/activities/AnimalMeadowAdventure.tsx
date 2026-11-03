@@ -130,6 +130,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
   const [loadError,setLoadError] = useState(false);
   const [muted,setMuted] = useState(() => soundService.getMuted());
   const [voiceAvailable,setVoiceAvailable] = useState(false);
+  const [audioHelp,setAudioHelp] = useState<string|null>(null);
   const [discovered,setDiscovered] = useState<AnimalId[]>([]);
   const [answered,setAnswered] = useState<AnimalAnswerEvidence[]>([]);
   const [questionIndex,setQuestionIndex] = useState(0);
@@ -173,7 +174,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
   },[activePlan,stage,discovered,currentQuestion,rescueSelected,mobile]);
 
   useEffect(()=>{
-    setVoiceAvailable(typeof window!=='undefined' && 'speechSynthesis' in window && typeof SpeechSynthesisUtterance!=='undefined');
+    setVoiceAvailable(soundService.hasEnglishSpeech());
     const cancelSpeech=()=>{
       if(typeof window!=='undefined' && 'speechSynthesis' in window) soundService.cancelSpeech();
     };
@@ -206,9 +207,17 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
   function speak(word:AnimalWord, sentence=false) {
     if(muted)return;
     soundService.unlockAudio();
-    if((!sentence || !voiceAvailable) && word.audio){soundService.playSpeech(word.audio);return;}
-    if(!voiceAvailable || typeof window==='undefined' || document.hidden)return;
-    soundService.speakEnglish(sentence?animalCommandFor(word,englishLevel,gradeLevel):word.id,{rate:0.8});
+    setAudioHelp(null);
+    const unavailable=()=>{
+      if(!sentence&&word.audio){soundService.playSpeech(word.audio);return;}
+      setAudioHelp('İngilizce ses açılamadı. Cihazın İngilizce ses paketini kontrol et veya yazılı destekle devam et.');
+      if(stage===3){setTextMode(true);setAssisted(true);}
+    };
+    const accepted=soundService.speakEnglish(
+      sentence?animalCommandFor(word,englishLevel,gradeLevel):word.id,
+      {rate:0.9,onError:unavailable}
+    );
+    if(!accepted&&voiceAvailable)setVoiceAvailable(false);
   }
   const canSpeak = (word:AnimalWord|null) => !muted && Boolean(word && (word.audio || voiceAvailable));
   function toggleMute(){
@@ -223,7 +232,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
     setStage(next);setNonce(x=>x+1);setPlan(null);setPlanKey(null);setLoadError(false);
     setDiscovered([]);setAnswered([]);setQuestionIndex(0);setWrongCount(0);setQuestionWrong(0);
     setCorrectCount(0);setFeedback(null);setAwaiting(false);setAssisted(false);setWrongChoice(null);
-    setRescueSelected(false);setTextMode(false);setShowAlbum(false);
+    setRescueSelected(false);setTextMode(false);setAudioHelp(null);setShowAlbum(false);
     setCompleted(false);setSaving(false);setSaveError(null);startedAt.current=Date.now();
     sessionId.current=`am_${profileId}_${next}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
   }
@@ -276,7 +285,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
     if(!activePlan)return;
     if(questionIndex+1>=activePlan.questions.length) {void finish();return;}
     setQuestionIndex(x=>x+1);setQuestionWrong(0);setAwaiting(false);setAssisted(false);
-    setFeedback(null);setWrongChoice(null);setRescueSelected(false);
+    setFeedback(null);setWrongChoice(null);setRescueSelected(false);setAudioHelp(null);
     answerLocked.current=false;
     panelRef.current?.scrollTo({top:0,behavior:'smooth'});
   }
@@ -461,6 +470,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
                     stage===4?'Söylenen hayvanı bul.':'Resme bak, İngilizce adını seç.'}
                 </p>
                 {stage===2&&assisted&&<p className="am-task-hint">💡 {target.tr}</p>}
+                {audioHelp&&<p className="am-task-hint" role="status">🔇 {audioHelp}</p>}
               </div>
               <div className="am-task-actions">
                 {(stage===3||stage===4||stage===5)&&
