@@ -80,7 +80,7 @@ test('All sentences match the fruit, communicative intent, grammar and scene sem
    assert.equal(q.tokens.join(' '),q.sentence.replace(/[.,!?]/g,''));
    if(t.chapter===1)assert.match(q.sentence,/\blike\b/);
    if(t.chapter===2)assert.match(q.sentence,/please[.?]$/);
-   if(t.chapter===3)assert.ok(['like','want','dislike'].includes(t.intent));
+   if(t.chapter===3)assert.ok(['like','want','dislike','polite'].includes(t.intent));
    if(t.chapter===4){
     assert.match(q.sentence,level==='Pre-A1'?/ and /:level==='A1'?/ but /:/because/);
    }
@@ -146,4 +146,17 @@ test('Same-device checkpoint cannot credit incomplete play and captures assisted
  assert.match(src,/onComplete\(rows\)/);
  assert.match(src,/onEnd:\(\)=>scheduleNext/);
  assert.match(src,/const fallback=Math\.max\(3500/);
+});
+
+test('Polite dialogue distinguishes would like from ordinary want, at A1 and A2',()=>{
+ for(const level of ['A1','A2']){
+  const pool=wishFestivalPool(level,4).filter(t=>t.chapter===3);
+  const polite=pool.filter(t=>t.sentence.includes('would like'));
+  assert.ok(polite.length>=5);
+  assert.ok(polite.every(t=>t.intent==='polite'));
+  assert.ok(polite.every(t=>t.question.kind==='request'));
+  assert.ok(polite.every(t=>t.question.cue.includes('iste')||t.question.cue.includes('rica')));
+ }
+ const src=fs.readFileSync(new URL('../src/components/learning/sentence/WishFestivalAdventure.tsx',import.meta.url),'utf8');
+ assert.match(src,/trial\.intent==='want'\|\|trial\.intent==='polite'/);
 });

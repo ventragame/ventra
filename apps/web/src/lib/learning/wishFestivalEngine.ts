@@ -104,19 +104,19 @@ function author(chapter:WishChapter,level:EnglishPlacement,grade:number|null,gue
    cue='Konuğun sorusuna cevap ver: '+first.tr+(intent==='want'?' istediğini':' sevdiğini')+' söyle.';
    explanation='Want = istemek, like = sevmek. Sorunun amacına göre farklı cümle kur.';
   } else if(a1){
-   intent=variant%3===0?'want':variant%3===1?'like':'dislike';
-   kind=intent==='want'?'request':intent==='dislike'?'negative':'preference';
+   intent=variant%3===0?'polite':variant%3===1?'like':'dislike';
+   kind=intent==='polite'?'request':intent==='dislike'?'negative':'preference';
    sentence=intent==='dislike'?'I do not like '+food+'.':
-     intent==='want'?'I would like some '+food+'.':'Yes, I like '+food+'.';
-   cue=first.tr+(intent==='dislike'?' sevmediğini':intent==='want'?' rica ettiğini':' sevdiğini')+' söyle.';
+     intent==='polite'?'I would like some '+food+'.':'Yes, I like '+food+'.';
+   cue=first.tr+(intent==='dislike'?' sevmediğini':intent==='polite'?' rica ettiğini':' sevdiğini')+' söyle.';
    explanation='Would like kibar bir istek, do not like olumsuz tercih belirtir.';
   }else{
-   intent=variant%3===0?'want':variant%3===1?'like':'dislike';
-   kind=intent==='dislike'?'negative':intent==='want'?'request':'reason';
+   intent=variant%3===0?'polite':variant%3===1?'like':'dislike';
+   kind=intent==='dislike'?'negative':intent==='polite'?'request':'reason';
    sentence=intent==='dislike'?'No, I do not like '+food+'.':
-    intent==='want'?'I would like some '+food+', please.':
+    intent==='polite'?'I would like some '+food+', please.':
     'I like '+food+' because they are '+first.trait+'.';
-   cue=first.tr+(intent==='dislike'?' sevmediğini':intent==='want'?' kibarca istediğini':' '+first.traitTr+' oldukları için sevdiğini')+' söyle.';
+   cue=first.tr+(intent==='dislike'?' sevmediğini':intent==='polite'?' kibarca istediğini':' '+first.traitTr+' oldukları için sevdiğini')+' söyle.';
    explanation='No olumsuz cevabı, would like kibar isteği, because nedeni belirtir.';
   }
  }else{
