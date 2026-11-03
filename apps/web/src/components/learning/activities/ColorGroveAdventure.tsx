@@ -64,6 +64,9 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
   const [complete, setComplete] = useState(false);
   const startTime = useRef(Date.now());
   const locked = useRef(false);
+  const answerLocked = useRef(false);
+  const discoveredRef = useRef<Set<string>>(new Set());
+  const lastWrongTap = useRef({id:'',at:0});
 
   // Before the async effect runs, React may render the previous stage's plan.
   // Discovery has zero questions; never read questions[0] on the quiz screen.
@@ -133,6 +136,9 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
     setPlanIdentity(null);
     setLoadError(false);
     locked.current = false;
+    answerLocked.current = false;
+    discoveredRef.current.clear();
+    lastWrongTap.current = {id:'',at:0};
     startTime.current = Date.now();
     runId.current = `cg_${profileId}_${next}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
     setReplayNonce(value => value + 1);
@@ -174,9 +180,12 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
     }
   };
   const choose = (id: string) => {
-    if (saving || complete || locked.current || !activePlan || !currentQuestion || awaitingAdvance) return;
+    if (saving || complete || locked.current || answerLocked.current || !activePlan || !currentQuestion || awaitingAdvance) return;
     const target = currentQuestion.target;
     if (id !== target) {
+      const now=Date.now();
+      if(lastWrongTap.current.id===id&&now-lastWrongTap.current.at<280)return;
+      lastWrongTap.current={id,at:now};
       setWrongAnswerId(id);
       setMistakes((value) => value + 1);
       setQuestionMistakes((value) => value + 1);
@@ -184,6 +193,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
       setFeedback('Bu renk değil. Başka bir seçeneğe dokun veya yönergeyi tekrar dinle.');
       return;
     }
+    answerLocked.current=true;
     soundService.playSfx('correct');
     setWrongAnswerId(null);
     const nextCorrect = correct + 1;
@@ -219,6 +229,8 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
       setSpeechError(false);
       soundService.cancelSpeech();
       setAwaitingAdvance(false);
+      answerLocked.current=false;
+      lastWrongTap.current={id:'',at:0};
     }
   };
   useAutoQuestionAdvance({ready:awaitingAdvance,blocked:saving||complete||Boolean(saveError)||!activePlan,
@@ -230,7 +242,8 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
       pronounce(id,()=>setSpeechError(true));
     }
     soundService.playSfx('tap');
-    if (!discovered.includes(id)) {
+    if (!discoveredRef.current.has(id)) {
+      discoveredRef.current.add(id);
       setDiscovered((old) => [...old, id]);
       setEvidence((old) => [...old, { wordId: id, mistakes: 0, firstTryCorrect: false, kind: 'discovery', timestamp: new Date().toISOString() }]);
     }
@@ -343,6 +356,9 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
               discoveredIds={discovered} freshIds={activePlan.freshColorIds}
               disabled={saving} onChoose={explore}
             /></div>
+            {speechError&&<p className="mb-2 rounded-xl border border-amber-300/50 bg-amber-900/60 p-2 text-xs text-amber-100" role="status">
+              İngilizce ses oynatılamadı. Cihazın İngilizce ses paketini kontrol et; keşfe devam edebilirsin.
+            </p>}
             <div className="cg-discovery-progress my-4 flex items-center justify-between rounded-xl border border-white/20 bg-black/20 px-4 py-3 text-sm font-bold">
               <span>🧭 Keşfedilen renkler</span>
               <span className="text-lime-200">{discovered.length} / {activePlan.colors.length}</span>

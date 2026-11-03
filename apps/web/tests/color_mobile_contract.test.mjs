@@ -42,6 +42,8 @@ test('Mobile Color Grove audio controls detect Capacitor speech and honor sound 
  const view=file('ColorGroveAdventure.tsx');
  assert.match(view,/soundService\.hasEnglishSpeech\(\)/);
  assert.match(view,/soundService\.cancelSpeech\(\)/);
+ assert.match(view,/answerLocked\.current/);
+ assert.match(view,/discoveredRef\.current/);
  assert.match(view,/onError/);
  assert.match(view,/setSpeechError\(true\)/);
  assert.match(view,/onPointerDown=\{\(event\) => event.stopPropagation\(\)\}/);

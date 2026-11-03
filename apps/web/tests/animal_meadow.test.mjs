@@ -31,7 +31,7 @@ test('All animal words have mobile native speech and browser fallback instead of
  assert.match(source,/soundService\.speakEnglish\(/);
  assert.match(source,/setTextMode\(true\);setAssisted\(true\)/);
  assert.match(sound,/Capacitor\.isPluginAvailable\('TextToSpeech'\)/);
- assert.match(sound,/TextToSpeech\.speak\(/);
+ assert.match(sound,/plugin\.speak\(/);
  assert.match(sound,/this\.speakInBrowser\(text,options,id\)/);
  for(const word of ANIMAL_MEADOW_WORDS)assert.match(word.id,/^[a-z]+$/);
 });

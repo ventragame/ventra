@@ -139,7 +139,8 @@
  .cg-progress-track{height:6px!important;margin-bottom:8px!important}
  .cg-mission-prompt{margin:0 0 9px!important;padding:9px 11px!important;
   border:1px solid #fff2c450!important;border-radius:15px!important;background:#0b3d4be5!important;
-  display:flex;align-items:center;gap:9px;text-align:left!important}
+  display:flex;flex-wrap:wrap;align-items:center;gap:9px;text-align:left!important}
+ .cg-mission-prompt .cg-hint-wrap{flex-basis:100%;width:100%}
  .cg-mission-prompt h2{font-size:clamp(16px,4.5vw,20px)!important;line-height:1.15}
  .cg-mission-prompt p{font-size:11px!important;margin-top:3px}
  .cg-mission-prompt .cg-prompt-listen{flex:0 0 auto;min-height:46px;min-width:46px;
