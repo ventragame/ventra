@@ -177,7 +177,7 @@ test('Animal spoken commands honor actual English placement and use short child-
  assert.equal(animalCommandFor(word,'A2',1),'Find the elephant, please.');
  assert.equal(animalCommandFor(word,'A2',7),'Please find the elephant in the meadow.');
 });
-test('Mobile scene objects preserve answer IDs, including the distinct two-phase habitat rescue',()=>{
+test('Mobile scene objects preserve answer IDs, including the distinct two-phase habitat rescue',async()=>{
  const {getAnimalObjects,getHabitatObjects}=await import('../src/components/learning/world/worldLayout.ts');
  const ids=['rabbit','cow','fish'];
  const objects=getAnimalObjects(ids,id=>findAnimal(id).image);
