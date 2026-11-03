@@ -129,7 +129,7 @@ function fabricate(chapter:MagicChapter,actor:MagicActor,place:MagicPlace,colorI
   explanation=a1?'Is + fiil-ing, şu anda yapılan hareketi tarif eder.':'Can + fiilin yalın hâli, yeteneği anlatır.';
  }
  const tokens=sentence.replace(/[.,!?]/g,'').split(' ');
- const id='movement:v3:'+chapter+':'+level+':'+actor+':'+place+':'+c.en;
+ const id='movement:v3:'+chapter+':'+level+':'+(early?'early':'older')+':'+actor+':'+place+':'+c.en;
  const isQuestion=sentence.endsWith('?');
  const forbidden=chapter===3?(a1?'are':'is'):null;
  const brokenTokens=[...tokens];

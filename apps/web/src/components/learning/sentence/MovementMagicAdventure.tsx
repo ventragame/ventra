@@ -8,7 +8,7 @@ import {saveSentencePlazaMission} from '@/lib/progress/sentencePlazaProgress';
 import {plazaWordTiles} from '@/lib/learning/sentencePlazaEngine';
 import {MovementMagicStage} from './MovementMagicStage';
 import {MAGIC_VERBS,MOVEMENT_CHAPTERS,checkMagicAction,checkMagicPlace,
- checkMagicRepair,checkMagicSentence,planMovementMagic,
+ checkMagicRepair,checkMagicSentence,planMovementMagic,movementQuestionsPerChapter,
  type MagicVerb,type MagicPlace,type MovementPlan,type MovementTrial}
  from '@/lib/learning/movementMagicEngine';
 import './movement-magic.css';
@@ -54,7 +54,7 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
  const question=trial?.question??null;
  const stage=trial?.chapter??1;
  const meta=MOVEMENT_CHAPTERS[stage-1];
- const perChapter=plan?.roundsPerChapter??3;
+ const perChapter=plan?.roundsPerChapter??movementQuestionsPerChapter(gradeLevel);
  const currentChapterRound=index%perChapter+1;
  const tiles=useMemo(()=>question?plazaWordTiles(question,(plan?.deck.seed??0)^(index*16807)):[],
   [question,plan?.deck.seed,index]);
@@ -245,11 +245,11 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
     {visual}
     <aside className="mm-sidebar">
      <div className="mm-eyebrow">MACERANIN KURALLARI</div><h3>Dört dünya, bir İngilizce ustalığı.</h3>
-     <p>Her dünya yeni bir dil becerisi öğretir. Önce İngilizceyi keşfeder, sonra gerçek hareketlerle
-      uygularsın. Her seferinde farklı karakter, renk, yer ve cümlelerle oynarsın.</p>
+     <p>Dört bölümün her birinde {perChapter} görev, toplam {perChapter*4} İngilizce etkileşim bulunur. Önce
+      dili keşfeder, ardından hareket, konum ve tam cümle kurma görevlerini birleştirirsin.</p>
      <div className="mm-lesson-block"><strong>ÖĞRENME YOLCULUĞU</strong>
       <span>Keşfet → Hareket Et → İngilizce Kur → Canlandır</span>
-      <small>Yaşına göre {perChapter} yerine başlangıçta sınıf seviyene uygun tur sayısı belirlenir.</small>
+      <small>Sınıf: {gradeLevel??'seçilmemiş'} · İngilizce: {englishLevel} · {perChapter} görev/bölüm</small>
      </div>
      <div className="mm-preview-stats">
       <div className="mm-stat"><strong>4</strong>bölüm</div>

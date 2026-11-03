@@ -129,3 +129,13 @@ test('Movement save continues existing plaza level 4 and does not increase repla
  const history=await repo.getSentenceAnswerHistory(profile.id);
  assert.ok(history.some(item=>item.questionId.startsWith('movement:v3:')));
 });
+
+test('Changing a child grade never silently reuses an evidence ID for a different sentence',()=>{
+ const early=movementMagicPool('A2',1);
+ const older=movementMagicPool('A2',7);
+ const e=new Map(early.map(t=>[t.id,t.question.sentence]));
+ const l=new Map(older.map(t=>[t.id,t.question.sentence]));
+ assert.ok(early.length>0&&older.length>0);
+ for(const [id,sentence] of e)if(l.has(id))assert.equal(l.get(id),sentence);
+ assert.equal([...e.keys()].filter(id=>id.includes(':early:')).length,e.size);
+});
