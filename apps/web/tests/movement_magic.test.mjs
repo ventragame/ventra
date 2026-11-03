@@ -139,3 +139,16 @@ test('Changing a child grade never silently reuses an evidence ID for a differen
  for(const [id,sentence] of e)if(l.has(id))assert.equal(l.get(id),sentence);
  assert.equal([...e.keys()].filter(id=>id.includes(':early:')).length,e.size);
 });
+
+test('A paused 12–20 question adventure can resume safely without granting incomplete stars',()=>{
+ const ui=fs.readFileSync(new URL('../src/components/learning/sentence/MovementMagicAdventure.tsx',import.meta.url),'utf8');
+ assert.match(ui,/MOVEMENT_CHECKPOINT_PREFIX/);
+ assert.match(ui,/validCheckpoint\(saved,profileId,gradeLevel,englishLevel\)/);
+ assert.match(ui,/window\.localStorage\.setItem\(MOVEMENT_CHECKPOINT_PREFIX/);
+ assert.match(ui,/window\.localStorage\.removeItem\(MOVEMENT_CHECKPOINT_PREFIX/);
+ assert.match(ui,/p\.deck\.mission!==4/);
+ assert.match(ui,/row\.firstTryCorrect===\(row\.mistakes===0&&!row\.hintUsed&&!row\.modelHeard\)/);
+ assert.match(ui,/awaitingFinalSave/);
+ assert.match(ui,/resume|resumed/);
+ assert.match(ui,/saveSentencePlazaMission\(/);
+});

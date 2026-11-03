@@ -56,6 +56,11 @@ Human:
 - [ ] English teacher validates every cue, English sentence and suggested difficulty (not CEFR certification)
 - [ ] Actual device sound playback and pronunciation quality; reduced motion / mute
 - [ ] Two-device sync and offline/reconnect manual test
+- [ ] Interrupt mid-chapter, close browser, reopen on same device and continue
+- [ ] Interrupt after last action before network save: recover safe retry without double stars
 - [ ] UX final art/animation acceptance
 
 **Outside this work:** Other 5 plaza missions retain previous mechanics and art. The four later Cümle Meydanı regions remain locked; not magically complete. No production deployment, Android publishing or SQL migration.
+
+### Same-device partial-session checkpoint
+A 12–20 question lesson cannot discard completed rounds when a parent closes a mobile browser. `MovementMagicAdventure` persists a versioned, profile+grade+placement-scoped checkpoint in browser localStorage, including the exact lesson deck, prior answer evidence, and progress. Only the complete session produces the authoritative `GameCompleted` progress event and stars. A different grade/placement ignores an incompatible checkpoint. Session is recoverable only on **that device**; this is explicitly not automatic cross-device resume. Physical offline and storage-quota QA are pending.

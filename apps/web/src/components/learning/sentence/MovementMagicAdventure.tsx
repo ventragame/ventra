@@ -1,5 +1,5 @@
 'use client';
-import React,{useCallback,useEffect,useMemo,useRef,useState} from 'react';
+import React,{useEffect,useMemo,useRef,useState} from 'react';
 import type {SentenceAnswerEvidence} from '@ventra/shared';
 import type {EnglishPlacement} from '@/lib/learning/gradeAwareLearningPolicy';
 import {soundService} from '@/lib/audio/SoundService';
@@ -20,8 +20,42 @@ interface Props{
 }
 const STAGE_ICONS:Record<MagicVerb,string>={fly:'🪽',jump:'✦',run:'➜',sleep:'☾'};
 const CLOCK=(seconds:number)=>String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');
+/** Local checkpoint persists only the unfinished mission. The authoritative
+ * reward is still a validated, idempotent GameCompleted event after all rounds. */
+const MOVEMENT_CHECKPOINT_PREFIX='ventra:movement-magic:v2:';
+interface MovementCheckpoint{
+ version:2;profileId:string;gradeLevel:number|null;englishLevel:EnglishPlacement;
+ plan:MovementPlan;index:number;phase:'play'|'chapter';answers:SentenceAnswerEvidence[];
+ currentErrors:number;assisted:boolean;heardModel:boolean;
+ chosenAction:MagicVerb|null;chosenPlace:MagicPlace|null;repairFixed:boolean;
+ picked:string[];streak:number;bestStreak:number;independent:number;
+ sessionId:string;elapsedSeconds:number;recordedAt:number;awaitingFinalSave?:boolean;
+}
+function validCheckpoint(value:unknown,profileId:string,grade:number|null,level:EnglishPlacement):value is MovementCheckpoint{
+ if(!value||typeof value!=='object')return false;
+ const c=value as Partial<MovementCheckpoint>,p=c.plan;
+ if(c.version!==2||c.profileId!==profileId||c.gradeLevel!==grade||
+    c.englishLevel!==level||!p||!Array.isArray(p.trials)||
+    !p.deck||!Array.isArray(p.deck.questions)||p.deck.mission!==4||
+    p.englishLevel!==level||p.grade!==grade||p.trials.length<12||
+    p.trials.length!==p.deck.questions.length||p.trials.length!==p.roundsPerChapter*4||
+    !Number.isInteger(c.index)||c.index!<0||c.index!>=p.trials.length||
+    !Array.isArray(c.answers)||c.answers.length>p.trials.length||
+    typeof c.sessionId!=='string'||!c.sessionId.startsWith('movement:'+profileId+':')||
+    !Number.isFinite(c.recordedAt)||Date.now()-c.recordedAt!>7*24*3600*1000||
+    typeof c.elapsedSeconds!=='number'||c.elapsedSeconds!<0||
+    (c.phase!=='chapter'&&c.phase!=='play'))return false;
+ return p.trials.every((trial,i)=>trial.question.id===p.deck.questions[i]?.id)&&
+  c.answers.every((row,i)=>row.questionId===p.deck.questions[i]?.id&&row.skill==='action'&&
+    row.placement===level&&Number.isInteger(row.mistakes)&&row.mistakes>=0&&
+    typeof row.hintUsed==='boolean'&&typeof row.modelHeard==='boolean'&&
+    row.firstTryCorrect===(row.mistakes===0&&!row.hintUsed&&!row.modelHeard)&&
+    typeof row.timestamp==='string'&&Number.isFinite(Date.parse(row.timestamp)))&&
+  (c.answers.length===c.index||Boolean(c.awaitingFinalSave)&&c.answers.length===p.trials.length);
+}
 export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,history,onExit,onComplete}:Props){
  const [phase,setPhase]=useState<Phase>('welcome');
+ const [resumed,setResumed]=useState(false);
  const [plan,setPlan]=useState<MovementPlan|null>(null);
  const [index,setIndex]=useState(0);
  const [chosenAction,setChosenAction]=useState<MagicVerb|null>(null);
@@ -50,6 +84,7 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
  const saveLock=useRef(false);
  const finishedRef=useRef<SentenceAnswerEvidence[]|null>(null);
  const rootRef=useRef<HTMLDivElement>(null);
+ const checkpointLoaded=useRef(false);
  const trial=plan?.trials[index]??null;
  const question=trial?.question??null;
  const stage=trial?.chapter??1;
@@ -78,6 +113,63 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
   return()=>{clearPending();soundService.cancelSpeech();soundService.setMusicScene('plaza');};
  },[]);
  useEffect(()=>{
+  if(checkpointLoaded.current)return;
+  checkpointLoaded.current=true;
+  try{
+   const raw=window.localStorage.getItem(MOVEMENT_CHECKPOINT_PREFIX+profileId);
+   if(!raw)return;
+   const saved:unknown=JSON.parse(raw);
+   if(!validCheckpoint(saved,profileId,gradeLevel,englishLevel)){
+    window.localStorage.removeItem(MOVEMENT_CHECKPOINT_PREFIX+profileId);return;
+   }
+   const c=saved;
+   setPlan(c.plan);setIndex(c.index);setResumed(true);
+   answersRef.current=c.answers;sessionIdRef.current=c.sessionId;
+   startedAt.current=Date.now()-Math.floor(c.elapsedSeconds)*1000;
+   setSeconds(Math.floor(c.elapsedSeconds));
+   setStreak(c.streak??0);setBestStreak(c.bestStreak??0);setIndependentCount(c.independent??0);
+   if(c.awaitingFinalSave){
+    setActivated(true);finishedRef.current=c.answers;
+    setSaveError('Önceki oturum tamamlandı. Güvenli profil kaydını yeniden dene.');
+    setPhase('play');
+   }else{
+    setMistakes(c.currentErrors??0);setAssisted(Boolean(c.assisted));
+    setHeardModel(Boolean(c.heardModel));
+    setChosenAction(c.chosenAction??null);setChosenPlace(c.chosenPlace??null);
+    setRepairFixed(Boolean(c.repairFixed));setPicked(Array.isArray(c.picked)?c.picked:[]);
+    setPhase(c.phase);
+   }
+  }catch(error){
+   console.warn('Hareket Büyüsü devam kaydı okunamadı',error);
+   try{window.localStorage.removeItem(MOVEMENT_CHECKPOINT_PREFIX+profileId);}catch{}
+  }
+ },[profileId,gradeLevel,englishLevel]);
+ useEffect(()=>{
+  if(!plan||!startedAt.current||phase==='reward')return;
+  try{
+   const rows=answersRef.current;
+   const awaitingFinalSave=activated&&rows.length===plan.trials.length;
+   const advancingToNext=activated&&rows.length===index+1&&index+1<plan.trials.length;
+   const nextIndex=advancingToNext?index+1:index;
+   const nextChapter=advancingToNext&&plan.trials[nextIndex].chapter!==plan.trials[index].chapter;
+   const checkpoint:MovementCheckpoint={
+    version:2,profileId,gradeLevel,englishLevel,plan,index:nextIndex,
+    phase:advancingToNext&&nextChapter?'chapter':phase==='chapter'?'chapter':'play',
+    answers:rows,currentErrors:advancingToNext?0:mistakes,
+    assisted:advancingToNext?false:assisted,heardModel:advancingToNext?false:heardModel,
+    chosenAction:advancingToNext?null:chosenAction,
+    chosenPlace:advancingToNext?null:chosenPlace,
+    repairFixed:advancingToNext?false:repairFixed,picked:advancingToNext?[]:picked,
+    streak,bestStreak,independent:independentCount,sessionId:sessionIdRef.current,
+    elapsedSeconds:Math.floor((Date.now()-startedAt.current)/1000),
+    recordedAt:Date.now(),awaitingFinalSave
+   };
+   window.localStorage.setItem(MOVEMENT_CHECKPOINT_PREFIX+profileId,JSON.stringify(checkpoint));
+  }catch(error){console.warn('Hareket Büyüsü devam kaydı yazılamadı',error);}
+ },[plan,phase,index,mistakes,assisted,heardModel,chosenAction,chosenPlace,
+   repairFixed,picked,activated,streak,bestStreak,independentCount,profileId,gradeLevel,englishLevel]);
+
+ useEffect(()=>{
   if(!startedAt.current||phase==='reward')return;
   const id=setInterval(()=>setSeconds(Math.max(0,Math.floor((Date.now()-startedAt.current)/1000))),1000);
   return()=>clearInterval(id);
@@ -99,7 +191,7 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
    startedAt.current=Date.now();
    answersRef.current=[];finishedRef.current=null;
    saveLock.current=false;advancing.current=false;
-   setIndex(0);resetRound();setIndependentCount(0);setStreak(0);setBestStreak(0);
+   setIndex(0);resetRound();setIndependentCount(0);setStreak(0);setBestStreak(0);setResumed(false);
    setSeconds(0);setPlan(built);setPhase('chapter');
    soundService.playSfx('whoosh',.6);
   }catch(error){
@@ -167,6 +259,7 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
     sessionId:sessionIdRef.current,durationSeconds:(Date.now()-startedAt.current)/1000
    });
    setRewardStars(result.starsByLevel[4]??1);
+   try{window.localStorage.removeItem(MOVEMENT_CHECKPOINT_PREFIX+profileId);}catch{}
    setPhase('reward');soundService.playSfx('fanfare',.86);
    onComplete(rows);
   }catch(error){
@@ -233,6 +326,9 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
      disabled={saving}>← Cümle Meydanı</button>
    </div>
   </header>
+  {resumed&&phase!=='reward'&&<div role="status" className="mm-feedback" style={{marginTop:12}}>
+    ↺ Yarım kalan Hareket Büyüsü oturumun bu cihazda korundu; kaldığın görevden devam ediyorsun.
+   </div>}
   {phase==='welcome'?<>
    <section className="mm-status"><div>
     <div className="mm-eyebrow">DÖRT CANLI BÖLÜM · HAREKETİN DİLİ</div>
@@ -256,7 +352,7 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
       <div className="mm-stat"><strong>{estimatedText}</strong>tahmini süre</div>
       <div className="mm-stat"><strong>∞</strong>tekrar</div>
      </div>
-     <p className="mm-caption-text">Süre geri saymaz. Yavaş okuma cezalandırılmaz. İpucu ve ses desteği her görevde bulunur;
+     <p className="mm-caption-text">Süre geri saymaz. Yavaş okuma cezalandırılmaz. Yarım kalan görevler bu cihazda saklanır. İpucu ve ses desteği her görevde bulunur;
       ancak bunlar bağımsız öğrenme başarısından ayrı kaydedilir.</p>
      {feedback&&<p role="alert" className="mm-feedback" data-error={feedbackError}>{feedback}</p>}
      <button type="button" className="mm-primary" style={{marginTop:17}}

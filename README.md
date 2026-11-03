@@ -81,3 +81,5 @@ Cümle Meydanı'nın **ilk bölgesi** kullanıma açıldı: 6 sıralı İngilizc
 **Cümle Meydanı CM1 v2:** Yaşa uygun 3/4/5 görev ve kelime uzunluğu tavanları, Pre-A1/A1/A2 ayrı dil politikası, sekiz iletişim işlevi, cümle kurma / hata onarma / sahne anlamını eşleştirme. Kelime Bahçesi'ndeki tanınan sözcükler seçimde öncelik alır. Tamamlanan ilk bölümün kayıtları korunur. [Ayrıntılı kabul](docs/CM1_UYANAN_MEYDAN_GDD_ACCEPTANCE.md).
 
 **Hareket Büyüsü 2.0 (Cümle Meydanı, 03.11.2026):** İlk ada bölümünün dördüncü görevi dört aşamalı gerçek oyun deneyimine dönüştürüldü: karakter hareketini seç, sahnede hedefe dokun, hatalı İngilizceyi onar, finalde hepsini birleştir. Sınıf ve İngilizce seviyesi ayrı, süre cezası yok, yıldızlar aynı kayıtta. [Oyun tasarımı ve kabul planı](docs/CM1_HAREKET_BUYUSU_V2.md).
+
+**Hareket Büyüsü aynı cihazda devam:** 12–20 soruluk oturumun ortasında çıkıldığında yarım kalan bölüm tarayıcıda saklanır; ilerleme ve yıldızlar yalnızca bütün bölüm tamamlanınca mevcut profile kaydedilir. Farklı cihazda yarım oturum devri henüz yoktur.
