@@ -297,3 +297,6 @@ See [CM1 acceptance and implemented grammatical families](./CM1_UYANAN_MEYDAN_GD
 
 ### 2026-11-03 — CM1 İstekler Meydanı / Dilekler Festivali
 - Replace generic sentence task #5 with four distinct language interactions: likes/dislikes, polite requests, guest dialogue, combined festival preference/contrast/reasoning. 8 unique food illustrations, 4 guest portraits, layered responsive illustrated market, dedicated opt-in music, 12/16/20 grade-based prompts and independent Pre-A1/A1/A2 grammar, automatic next, offline same-device resume, profile-safe existing level 5 rewards. [Full GDD and acceptance](./CM1_ISTEKLER_MEYDANI_PREMIUM_GDD.md). No production deploy; teacher/child-device acceptance remains open.
+
+### CM1 final — Fener Festivali (2026-11-03)
+- Fifth/sixth tasks are distinct premium chapters; **mission 6** is a transfer-focused four-act lantern finale with color selection, physical location choice, grammatical repair and final color+character+location+complete-English transfer. 12/16/20 prompts based on grade, Pre-A1/A1/A2 separately, original night festival art and dedicated opt-in soundtrack. `island_sentence_square_plaza` level 6 progress stays canonical. See [complete GDD & QA acceptance](./CM1_FENER_FESTIVALI_PREMIUM_GDD.md). Future Cümle Meydanı regions remain locked; physical-device/English-teacher QA pending.

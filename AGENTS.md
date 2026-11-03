@@ -47,3 +47,7 @@ This instruction file does not itself establish a new delivery/deployment author
 ### İstekler Meydanı CM1 mission 5 (2026-11-03)
 - [Teaching/design/QA acceptance](docs/CM1_ISTEKLER_MEYDANI_PREMIUM_GDD.md). New curriculum `apps/web/src/lib/learning/wishFestivalEngine.ts`, original interactive stage and gameplay in `apps/web/src/components/learning/sentence/WishFestival*`.
 - Mission 5 persists using **existing** game ID `island_sentence_square_plaza` and level 5. Do not create new rewards on partial sessions, invent user levels, or publish locked future islands. Respect adult opt-in to music and existing central voice controls. No production deploy.
+
+### Fener Festivali — canonical Uyanan Meydan mission 6 (2026-11-03)
+- Curriculum: `apps/web/src/lib/learning/lanternFestivalEngine.ts`. Scene and gameplay: `apps/web/src/components/learning/sentence/LanternFestival*`. [GDD & tests](docs/CM1_FENER_FESTIVALI_PREMIUM_GDD.md).
+- Must preserve `island_sentence_square_plaza` level 6, answer evidence, user-approved sound opt-in, sequential unlocking and locked future regions. No simulated progress, no production deployment and no DB migrations without explicit approval.

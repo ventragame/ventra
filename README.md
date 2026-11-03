@@ -85,3 +85,5 @@ Cümle Meydanı'nın **ilk bölgesi** kullanıma açıldı: 6 sıralı İngilizc
 **Hareket Büyüsü aynı cihazda devam:** 12–20 soruluk oturumun ortasında çıkıldığında yarım kalan bölüm tarayıcıda saklanır; ilerleme ve yıldızlar yalnızca bütün bölüm tamamlanınca mevcut profile kaydedilir. Farklı cihazda yarım oturum devri henüz yoktur.
 
 **İstekler Meydanı 2.0 / Dilekler Festivali (03.11.2026):** Cümle Meydanı'nın 5. görevinde dört ayrı dil-oyun dünyası (beğeni, kibar sipariş, diyalog, karşılaştırmalı festival), 8 resimli yiyecek, 4 karakter, 12–20 görev, sınıf ve Pre-A1/A1/A2 ayrı politikası, sahne tepkisi ve duraklat-devam. Mevcut 5. seviye ve yıldız kimliği korunur. [GDD ve kalite kabul](docs/CM1_ISTEKLER_MEYDANI_PREMIUM_GDD.md).
+
+**Fener Festivali / Uyanan Meydan finali (03.11.2026):** 4 bölümlü İngilizce final macerası, 6 renk kristali, 4 sahne konumu, 4 animasyonlu karakter, 12–20 görev, sınıf + Pre-A1/A1/A2 ayrı zorluk, yanlış dil bilgisi onarma, otomatik geçiş, yeniden oynama ve aynı cihazda devam. Önceki beş görevin yıldızları korunur. [Oyun tasarımı ve kabul](docs/CM1_FENER_FESTIVALI_PREMIUM_GDD.md).

@@ -11,6 +11,7 @@ import {soundService} from '@/lib/audio/SoundService';
 import {SentencePlazaScene} from './SentencePlazaScene';
 import {MovementMagicAdventure} from './MovementMagicAdventure';
 import {WishFestivalAdventure} from './WishFestivalAdventure';
+import {LanternFestivalAdventure} from './LanternFestivalAdventure';
 import './sentence-plaza.css';
 
 interface Props{
@@ -28,6 +29,7 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
  const [history,setHistory]=useState<SentenceAnswerEvidence[]>([]);
  const [movementOpen,setMovementOpen]=useState(false);
  const [wishOpen,setWishOpen]=useState(false);
+ const [lanternOpen,setLanternOpen]=useState(false);
  const [knownWords,setKnownWords]=useState<string[]>([]);
  const [loading,setLoading]=useState(true);
  const [loadError,setLoadError]=useState('');
@@ -114,6 +116,7 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
   if(loading||loadError||savingLock.current||m>progress.completedLevels+1)return;
   if(m===4){setMovementOpen(true);return;}
   if(m===5){setWishOpen(true);return;}
+  if(m===6){setLanternOpen(true);return;}
   clearTimer();soundService.cancelSpeech();
   setMission(m);setScreen('lesson');setDeck(null);setFeedback('');setSaveError('');
   setAwakened(false);setCompletedStars(0);setAnswers([]);completedAnswers.current=[];
@@ -241,6 +244,17 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
  }
  const sceneEffect=screen==='play'&&awakened?task?.scene??null:null;
  const chapterTotal=6;
+ if(lanternOpen){
+  return <LanternFestivalAdventure profileId={profileId} gradeLevel={gradeLevel}
+    englishLevel={englishLevel} history={history} knownWords={knownWords}
+    onExit={()=>setLanternOpen(false)}
+    onComplete={(rows)=>{
+      setHistory(old=>[...old,...rows]);
+      void getSentencePlazaProgress(getProgressRepository(),profileId).then(setProgress)
+        .catch(error=>console.error('Fener Festivali ilerleme görünümü yenilenemedi',error));
+      onSaved();
+    }}/>;
+ }
  if(wishOpen){
   return <WishFestivalAdventure profileId={profileId} gradeLevel={gradeLevel}
     englishLevel={englishLevel} history={history} knownFoods={knownWords}
