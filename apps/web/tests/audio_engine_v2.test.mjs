@@ -18,6 +18,12 @@ test('Original score provides a unique music state per English learning world an
  m.setEnabled(false);m.stop();
 });
 
+test('Capacitor TTS does not load on the Next.js server during prerender',()=>{
+ const source=fs.readFileSync(new URL('../src/lib/audio/SoundService.ts',import.meta.url),'utf8');
+ assert.doesNotMatch(source,/^import\\s+\\{\\s*TextToSpeech\\s*\\}/m);
+ assert.match(source,/await import\\('@capacitor-community\\/text-to-speech'\\)/);
+ assert.match(source,/typeof window!==['"]undefined['"]/);
+});
 test('Music scheduler has visibility, opt-in, dynamic ducking and independent mixer safeguards',()=>{
  const sound=fs.readFileSync(new URL('../src/lib/audio/SoundService.ts',import.meta.url),'utf8');
  const music=fs.readFileSync(new URL('../src/lib/audio/MusicDirector.ts',import.meta.url),'utf8');

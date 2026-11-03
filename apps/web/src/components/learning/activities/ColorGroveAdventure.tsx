@@ -288,7 +288,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
               disabled={i + 1 > progress.completedLevels + 1 || saving}
               aria-current={step === i + 1 ? 'step' : undefined}
               className={`vg-answer-card min-h-14 rounded-xl border px-2 py-3 text-[11px] font-bold sm:text-sm ${step === i + 1 ? 'border-lime-200 bg-emerald-600/55' : 'border-white/20 bg-white/10'} disabled:opacity-40`}>
-              {i + 1 <= progress.completedLevels ? '✓ ' : ''}{i + 1}. <span className="cg-tab-long">{name}</span><span className="cg-tab-short" style={{display:undefined}}>{['Keşif','Eşleştir','Boya'][i]}</span>
+              {i + 1 <= progress.completedLevels ? '✓ ' : ''}{i + 1}. <span className="cg-tab-long">{name}</span><span className="cg-tab-short">{['Keşif','Eşleştir','Boya'][i]}</span>
             </button>
           ))}
         </div>

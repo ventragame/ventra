@@ -5,7 +5,8 @@
  */
 import { EventBus } from '@/lib/game/EventBus';
 import { Capacitor } from '@capacitor/core';
-import { TextToSpeech } from '@capacitor-community/text-to-speech';
+// The TTS plugin touches window during module evaluation; importing it on the
+// server breaks Next.js /kids prerender. Load it only inside a browser action.
 import { preferredEnglishVoiceIndex } from './EnglishVoice';
 import { MusicDirector, type MusicScene } from './MusicDirector';
 import {playRewardSound,type RewardEvent} from './RewardSounds';
@@ -207,6 +208,14 @@ class SoundService {
   }
   this.playChannel(`/audio/sfx/${name}.wav`,volume,'effects');
  }
+ /**
+  * Capacitor community TTS v4 accesses window at import time. Never load it
+  * while rendering the server. The dynamic import is used only on real devices.
+  */
+ private async nativeTextToSpeech(){
+  const module=await import('@capacitor-community/text-to-speech');
+  return module.TextToSpeech;
+ }
  /** Native voice is used by Android/iOS builds; browsers keep Web Speech. */
  hasEnglishSpeech():boolean{
   return typeof window!=='undefined'&&(this.hasNativeSpeech()||
@@ -218,7 +227,7 @@ class SoundService {
  private primeNativeVoice():void{
   if(this.nativeVoicesRequested||!this.hasNativeSpeech())return;
   this.nativeVoicesRequested=true;
-  void TextToSpeech.getSupportedVoices().then(({voices})=>{
+  void this.nativeTextToSpeech().then(plugin=>plugin.getSupportedVoices()).then(({voices})=>{
    const index=preferredEnglishVoiceIndex(voices??[]);
    if(index>=0)this.nativeVoiceIndex=index;
   }).catch(()=>{ /* The OS default voice is still usable. */ });
@@ -241,9 +250,11 @@ class SoundService {
   this.speechGeneration++;
   this.clearSpeechWatchdog();
   if(this.nativeSpeaking&&this.hasNativeSpeech()){
-   this.nativeStopQueue=this.nativeStopQueue.catch(()=>{}).then(()=>
-    TextToSpeech.stop().catch(()=>{})
-   );
+   this.nativeStopQueue=this.nativeStopQueue.catch(()=>{}).then(async()=>{
+    const plugin=await this.nativeTextToSpeech();
+    await plugin.stop().catch(()=>{});
+   }).catch(()=>{});
+
   }
   this.nativeSpeaking=false;
   if(typeof window!=='undefined'&&'speechSynthesis' in window){
@@ -298,7 +309,9 @@ class SoundService {
    void this.nativeStopQueue.then(async()=>{
     if(this.speechGeneration!==id||this.isMuted)return false;
     options.onStart?.();
-    await TextToSpeech.speak({
+    const plugin=await this.nativeTextToSpeech();
+    if(this.speechGeneration!==id||this.isMuted)return false;
+    await plugin.speak({
      text,lang:'en-US',rate:Math.max(0.75,Math.min(1.05,options.rate??0.9)),
      pitch:Math.max(0.9,Math.min(1.12,options.pitch??1)),volume:this.settings.voice,
      category:'ambient',
