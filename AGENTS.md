@@ -38,3 +38,8 @@ This instruction file does not itself establish a new delivery/deployment author
 - Canonical curriculum, art and acceptance: [docs/CM1_UYANAN_MEYDAN_GDD_ACCEPTANCE.md](docs/CM1_UYANAN_MEYDAN_GDD_ACCEPTANCE.md).
 - Game ID `island_sentence_square_plaza` is permanent, 6 levels, session-idempotent, offline first. Sentence answer evidence distinguishes independent construction from listening and hint assistance; no auto CEFR upgrade.
 - Always open published world through `/kids` and its existing profile, never create synthetic child profile. No release claim before real device and language-teacher testing.
+
+### Hareket Büyüsü CM1 mission 4 (2026-11-03)
+- Canonical [GDD and acceptance](docs/CM1_HAREKET_BUYUSU_V2.md). Specialized gameplay components are in `apps/web/src/components/learning/sentence/MovementMagic*`; curriculum in `apps/web/src/lib/learning/movementMagicEngine.ts`.
+- Preserve old game ID `island_sentence_square_plaza` and level 4. Save the full 12/16/20-question `PlazaDeck` using existing `saveSentencePlazaMission` and never claim official CEFR placement.
+- Music state `movement` inherits child opt-in; don't override global mute. Four future sentence regions remain locked. Do not deploy without approval.

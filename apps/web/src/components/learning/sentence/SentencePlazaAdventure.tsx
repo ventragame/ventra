@@ -9,6 +9,7 @@ import {SENTENCE_PLAZA_MISSIONS,planPlazaMission,plazaWordTiles,evaluatePlazaSen
  type PlazaMission,type PlazaDeck,type PlazaQuestion} from '@/lib/learning/sentencePlazaEngine';
 import {soundService} from '@/lib/audio/SoundService';
 import {SentencePlazaScene} from './SentencePlazaScene';
+import {MovementMagicAdventure} from './MovementMagicAdventure';
 import './sentence-plaza.css';
 
 interface Props{
@@ -24,6 +25,7 @@ function sessionId(profileId:string,mission:PlazaMission):string{
 export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack,onSaved}:Props){
  const [progress,setProgress]=useState<SentencePlazaProgress>(EMPTY);
  const [history,setHistory]=useState<SentenceAnswerEvidence[]>([]);
+ const [movementOpen,setMovementOpen]=useState(false);
  const [knownWords,setKnownWords]=useState<string[]>([]);
  const [loading,setLoading]=useState(true);
  const [loadError,setLoadError]=useState('');
@@ -108,6 +110,7 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
  }
  function openMission(m:PlazaMission){
   if(loading||loadError||savingLock.current||m>progress.completedLevels+1)return;
+  if(m===4){setMovementOpen(true);return;}
   clearTimer();soundService.cancelSpeech();
   setMission(m);setScreen('lesson');setDeck(null);setFeedback('');setSaveError('');
   setAwakened(false);setCompletedStars(0);setAnswers([]);completedAnswers.current=[];
@@ -235,6 +238,17 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
  }
  const sceneEffect=screen==='play'&&awakened?task?.scene??null:null;
  const chapterTotal=6;
+ if(movementOpen){
+  return <MovementMagicAdventure profileId={profileId} gradeLevel={gradeLevel}
+    englishLevel={englishLevel} history={history}
+    onExit={()=>setMovementOpen(false)}
+    onComplete={(newRows)=>{
+      setHistory(old=>[...old,...newRows]);
+      void getSentencePlazaProgress(getProgressRepository(),profileId).then(setProgress)
+        .catch(error=>console.error('Hareket Büyüsü ilerleme görünümü yenilenemedi',error));
+      onSaved();
+    }}/>;
+ }
  return <div ref={root} role="dialog" aria-modal="true" aria-label="Cümle Meydanı İngilizce macerası"
   className="sp-overlay" onPointerDown={event=>event.stopPropagation()}>
   <div className="sp-wrap">

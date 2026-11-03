@@ -291,3 +291,6 @@ Kaynaklar:
 
 ### CM1 v2 · sentence diversity & grade/placement safety
 See [CM1 acceptance and implemented grammatical families](./CM1_UYANAN_MEYDAN_GDD_ACCEPTANCE.md). Teacher review, child studies, 4 later sentence regions not completed.
+
+### 2026-11-03 — CM1 Hareket Büyüsü 2.0
+- Four original motion-language chapters, stage action controls, scene hotspots, English grammatical repair and final combined mission; one existing plaza level (4) with 12–20 questions selected by actual child grade and Pre-A1/A1/A2 separately. Timeless play, dedicated vector art scene and new opt-in audio score. Existing progress and reward keys unchanged. See [full GDD & acceptance](./CM1_HAREKET_BUYUSU_V2.md). Physical-device/teacher QA pending.
