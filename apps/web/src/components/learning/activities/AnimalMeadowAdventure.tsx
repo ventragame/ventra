@@ -9,10 +9,11 @@ import { EventBus } from '@/lib/game/EventBus';
 import { getProgressRepository } from '@/lib/progress';
 import type { WordGardenProgressSnapshot } from '@/lib/progress/wordGardenProgress';
 import {
-  ANIMAL_MEADOW_WORDS, findAnimal, planAnimalMission, getAnimalPrompt,
+  ANIMAL_MEADOW_WORDS, findAnimal, planAnimalMission, animalCommandFor,
   type AnimalMission, type AnimalWord, type AnimalId, type PlannedAnimalMission
 } from '@/lib/learning/animalMissionEngine';
 import { resolveRescueChoice } from '@/lib/learning/animalRescueEngine';
+import {MobileMeadowWorld} from './MobileMeadowWorld';
 import { getAnimalObjects,getHabitatObjects,type WorldObject } from '../world/worldLayout';
 const ExplorerCanvas=dynamic(()=>import('../world/ExplorerCanvas').then(m=>m.ExplorerCanvas),{
   ssr:false,loading:()=> <div role="status" className="flex min-h-80 items-center justify-center rounded-3xl bg-emerald-900/60 text-white">Çayır hazırlanıyor…</div>
@@ -112,6 +113,13 @@ function MeadowScene({stage, word, blooms, choices, onChoose, wrongChoice, await
 
 export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null, progress, onSave, onBack, onAllCompleted }:Props) {
   const [localProgress,setLocalProgress] = useState(progress);
+  const [mobile,setMobile]=useState(false);
+  useEffect(()=>{
+    const media=window.matchMedia('(max-width:767px)');
+    const update=()=>setMobile(media.matches);
+    update();media.addEventListener?.('change',update);
+    return()=>media.removeEventListener?.('change',update);
+  },[]);
   // The parent reads IndexedDB asynchronously. If the child enters the meadow
   // before hydration finishes, the real progress must replace placeholders.
   useEffect(() => { setLocalProgress(progress); }, [progress]);
@@ -155,14 +163,14 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
   const noAudioMode = stage===3 && (textMode || muted || (!voiceAvailable && !target?.audio));
   const worldObjects=useMemo<WorldObject[]>(()=>{
     if(!activePlan)return [];
-    if(stage===1)return getAnimalObjects(activePlan.animals.filter(id=>!discovered.includes(id)),
+    if(stage===1)return getAnimalObjects((mobile?activePlan.animals:activePlan.animals.filter(id=>!discovered.includes(id))),
       id=>findAnimal(id)?.image).map(object=>({...object,label:findAnimal(object.id)?.tr??object.id}));
     if(!currentQuestion || (stage!==4 && stage!==5))return [];
     if(stage===5 && rescueSelected)return getHabitatObjects(currentQuestion.choices,
       id=>findAnimal(id)?.habitat??id);
     return getAnimalObjects(currentQuestion.choices,id=>findAnimal(id)?.image)
       .map(object=>({...object,label:findAnimal(object.id)?.tr??object.id}));
-  },[activePlan,stage,discovered,currentQuestion,rescueSelected]);
+  },[activePlan,stage,discovered,currentQuestion,rescueSelected,mobile]);
 
   useEffect(()=>{
     setVoiceAvailable(typeof window!=='undefined' && 'speechSynthesis' in window && typeof SpeechSynthesisUtterance!=='undefined');
@@ -200,7 +208,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
     soundService.unlockAudio();
     if((!sentence || !voiceAvailable) && word.audio){soundService.playSpeech(word.audio);return;}
     if(!voiceAvailable || typeof window==='undefined' || document.hidden)return;
-    soundService.speakEnglish(sentence?`Find the ${word.id}`:word.id,{rate:0.8});
+    soundService.speakEnglish(sentence?animalCommandFor(word,englishLevel,gradeLevel):word.id,{rate:0.8});
   }
   const canSpeak = (word:AnimalWord|null) => !muted && Boolean(word && (word.audio || voiceAvailable));
   function toggleMute(){
@@ -313,19 +321,22 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
         <div className="absolute -left-20 top-0 h-80 w-80 rounded-full bg-sky-400/20 blur-3xl"/>
         <div className="absolute -right-20 bottom-0 h-96 w-96 rounded-full bg-lime-400/15 blur-3xl"/>
       </div>
-      <main className="relative mx-auto max-w-5xl px-3 py-4 sm:px-6" style={{paddingTop:'max(16px, env(safe-area-inset-top))',paddingBottom:'max(30px, env(safe-area-inset-bottom))'}}>
-        <header className="flex flex-wrap items-center justify-between gap-2">
-          <button className="am-tap rounded-xl border border-white/30 bg-slate-950/45 px-4 py-3 text-sm font-extrabold disabled:opacity-50" disabled={saving} onClick={onBack}>← Bölgeler</button>
-          <div className="flex items-center gap-2">
-            <span className="rounded-xl border border-amber-300/40 bg-emerald-950/65 px-3 py-3 text-xs font-black text-amber-100">⭐ {stars}/15</span>
-            <button onClick={()=>setShowAlbum(value=>!value)} aria-expanded={showAlbum}
-              className="am-tap min-h-11 rounded-xl border border-white/30 bg-slate-950/45 px-3 py-2.5 text-xs font-bold" aria-label="Keşif albümünü aç veya kapat">
-              📖 Albüm {new Set([...seenAnimals,...discovered]).size}/12
-            </button>
-            <button onClick={toggleMute} className="am-tap min-h-11 rounded-xl border border-white/30 bg-slate-950/45 px-4 py-3" aria-label={muted?'Sesi aç':'Sesi kapat'} aria-pressed={muted}>{muted?'🔇':'🔊'}</button>
+      <main className="am-main relative mx-auto max-w-5xl px-3 py-4 sm:px-6" style={{paddingTop:'max(16px, env(safe-area-inset-top))',paddingBottom:'max(30px, env(safe-area-inset-bottom))'}}>
+        <header className="am-hud">
+          <button type="button" className="am-hud-btn" disabled={saving} onClick={onBack}
+            aria-label="Kelime Bahçesi bölgelerine geri dön">← <span className="hidden sm:inline">Bölgeler</span></button>
+          <div className="am-hud-title"><span className="am-hud-icon" aria-hidden="true">🐾</span>
+            <span><strong>Hayvan Çayırı</strong><small>{gradeLevel??'—'}. sınıf · {englishLevel}</small></span>
+          </div>
+          <div className="am-hud-actions">
+            <span className="am-hud-btn" aria-label={'Toplam '+stars+' yıldız'}>⭐ {stars}</span>
+            <button type="button" className="am-hud-btn" onClick={()=>setShowAlbum(v=>!v)}
+              aria-expanded={showAlbum} aria-label="Keşif albümünü aç veya kapat">📖</button>
+            <button type="button" className="am-hud-btn" onClick={toggleMute}
+              aria-label={muted?'Sesi aç':'Sesi kapat'} aria-pressed={muted}>{muted?'🔇':'🔊'}</button>
           </div>
         </header>
-        <div className="py-5 text-center">
+        <div className="am-intro py-5 text-center">
           <p className="text-[11px] font-black uppercase tracking-[.23em] text-lime-200">Hayvan Çayırı · Bölüm {stage}/5</p>
           <h1 ref={headingRef} tabIndex={-1} className="mt-2 text-3xl font-black tracking-tight outline-none sm:text-5xl">{STAGES[stage-1].icon} {STAGES[stage-1].name}</h1>
           <p className="mx-auto mt-2 max-w-xl text-sm text-sky-100 sm:text-base">
@@ -336,16 +347,14 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
              'Her hayvanın yaşadığı yeri ve İngilizce adını eşleştir.'}
           </p>
         </div>
-        <aside role="note" className="am-story mb-4 flex items-center gap-3 rounded-2xl border border-amber-200/45 bg-[#104b51]/90 px-4 py-3 shadow-xl">
-          <span aria-hidden="true" className="text-3xl sm:text-4xl">🦉</span>
-          <p className="text-xs font-bold leading-relaxed text-amber-50 sm:text-sm">
-            <span className="font-black text-amber-200">Rehber Pufi:</span> {STAGES[stage-1].story}
-          </p>
-        </aside>
+        <details className="am-story-guide">
+          <summary>🦉 Pufi'den ipucu <span aria-hidden="true">✦</span></summary>
+          <p>{STAGES[stage-1].story}</p>
+        </details>
         {showAlbum && <section aria-label="Keşif albümü" className="am-album mb-4 rounded-3xl border border-lime-200/40 bg-[#0b3649]/90 p-3 shadow-2xl sm:p-5">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div><h2 className="text-lg font-black text-lime-100">📖 Hayvan Dostları Albümü</h2>
-            <p className="text-xs text-sky-100">Çayırı tekrar keşfederek 12 dostun hepsini tanı.</p></div>
+            <p className="text-xs text-sky-100">Çayırı tekrar keşfederek 40 hayvanın İngilizce adını öğren.</p></div>
             <button onClick={()=>setShowAlbum(false)} aria-label="Albümü kapat"
               className="am-tap min-h-11 rounded-xl border border-white/25 bg-white/10 px-3 font-black">✕</button>
           </div>
@@ -363,14 +372,15 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
             })}
           </div>
         </section>}
-        <nav aria-label="Hayvan Çayırı görevleri" className="mb-4 grid grid-cols-5 gap-1.5 sm:gap-2">
+        <nav aria-label="Hayvan Çayırı görevleri" className="am-missions">
           {STAGES.map((item,i)=>{
             const order=(i+1) as Stage,locked=order>localProgress.completedLevels+1;
-            return <button key={order} disabled={locked||saving} onClick={()=>reset(order)}
-              aria-current={stage===order?'step':undefined} aria-label={`${order}. ${item.name}${locked?', kilitli':''}`}
-              className={`am-tap flex min-h-16 flex-col items-center justify-center gap-1 rounded-xl border p-1 text-[10px] font-bold sm:text-xs ${stage===order?'border-lime-200 bg-emerald-500/35':locked?'border-white/10 bg-white/5 text-white/45':'border-white/25 bg-white/10'}`}>
-              <span aria-hidden="true" className="text-lg">{locked?'🔒':order<=localProgress.completedLevels?'✅':item.icon}</span>
-              <span>{item.name}</span>
+            return <button key={order} type="button" disabled={locked||saving}
+              onClick={()=>reset(order)} aria-current={stage===order?'step':undefined}
+              aria-label={order+'. '+item.name+(locked?', kilitli':'')}
+              className="am-mission am-tap" data-active={stage===order} data-locked={locked}>
+              <span aria-hidden="true">{locked?'🔒':order<=localProgress.completedLevels?'✅':item.icon}</span>
+              <span className="am-mission-text">{item.name}</span>
             </button>;
           })}
         </nav>
@@ -397,15 +407,18 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
           </button>
         </section>}
         {!loadError && valid && !completed && activePlan && (stage===1?(
-          <section className="mx-auto max-w-4xl">
-            <ExplorerCanvas key={`meadow-discovery-${nonce}`} area="meadow"
-              caption="Keşif Çayırı · Hayvanlara Dokun" objects={worldObjects}
-              onInteract={onWorldInteract} height={520} progress={discovered.length}/>
-            <p className="mt-3 rounded-xl bg-emerald-950/65 p-3 text-center text-xs font-bold text-sky-100">Hayvanlara dokun, karakterin yanlarına yürüsün. Keşfettiklerin albüme eklenir. İstersen aşağıdaki erişilebilir listeyi de kullan.</p>
+          <section className="am-quest-area mx-auto max-w-4xl">
+            {mobile?<MobileMeadowWorld objects={worldObjects} discovery
+                discoveredIds={discovered} onInteract={onWorldInteract}
+                caption="Hayvanlara dokun ve İngilizce isimlerini öğren" progress={discovered.length}/>:
+              <div className="am-desktop-world"><ExplorerCanvas key={`meadow-discovery-${nonce}`} area="meadow"
+                caption="Keşif Çayırı · Hayvanlara Dokun" objects={worldObjects}
+                onInteract={onWorldInteract} height={520} progress={discovered.length}/></div>}
+            <p className="am-discovery-help mt-3 rounded-xl bg-emerald-950/65 p-3 text-center text-xs font-bold text-sky-100">Hayvanlara dokun, karakterin yanlarına yürüsün. Keşfettiklerin albüme eklenir. İstersen aşağıdaki erişilebilir listeyi de kullan.</p>
             <div className="my-4 flex items-center justify-between rounded-xl border border-white/20 bg-emerald-950/65 px-4 py-3 text-sm font-bold">
               <span>🌱 Keşfedilen Hayvanlar</span><span className="text-lime-200">{discovered.length}/{activePlan.animals.length}</span>
             </div>
-            <details className="mb-3 rounded-2xl border border-white/20 bg-emerald-950/40 p-3">
+            <details className="am-compact-details mb-3 rounded-2xl border border-white/20 bg-emerald-950/40 p-3">
               <summary className="min-h-11 cursor-pointer py-3 text-sm font-black text-lime-100">♿ Hayvan Listesi / Alternatif Kontrol</summary>
               <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
               {activePlan.animals.map(id=>{
@@ -427,17 +440,51 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
             </button>
           </section>
         ):target && currentQuestion?(
-          <section className="mx-auto max-w-4xl rounded-3xl border border-white/25 bg-slate-950/20 p-3 shadow-xl sm:p-6">
-            <div className="mb-2 flex items-center justify-between gap-3 text-xs font-extrabold text-lime-100 sm:text-sm">
+          <section className="am-quest-area mx-auto max-w-4xl rounded-3xl border border-white/25 bg-slate-950/20 p-3 shadow-xl sm:p-6">
+            <div className="am-quest-head mb-2 flex items-center justify-between gap-3 text-xs font-extrabold text-lime-100 sm:text-sm">
               <span>🧭 {STAGES[stage-1].desc}</span><span>Soru {questionIndex+1}/{activePlan.questions.length}</span>
             </div>
-            <div className="mb-4 h-2 overflow-hidden rounded-full bg-white/20" aria-hidden="true">
+            <div className="am-quest-progress mb-4 h-2 overflow-hidden rounded-full bg-white/20" aria-hidden="true">
               <div className="h-full rounded-full bg-gradient-to-r from-emerald-300 to-sky-300 transition-all" style={{width:`${Math.round(((questionIndex+Number(awaiting))/activePlan.questions.length)*100)}%`}}/>
             </div>
-            {(stage===4||stage===5)?<ExplorerCanvas key={`meadow-quest-${stage}-${nonce}`} area="meadow"
-              caption={stage===5 ? rescueSelected?'Yuva Kurtarma · Uygun Yuvaya Yürü':'Kayıp Dostu Bul · Hayvana Yürü' : 'Görev Patikası · Söylenen Hayvanı Bul'}
-              objects={worldObjects} onInteract={onWorldInteract} height={510} progress={correctCount}/>:
-              <MeadowScene stage={stage} word={target} blooms={correctCount}/>}
+            <div className="am-task">
+              <div className="min-w-0 flex-1">
+                <h2 className="am-task-title" tabIndex={-1}>
+                  {stage===3?(noAudioMode?'Read: '+target.id.toUpperCase():'🔊 Listen and find!'):
+                    stage===4?animalCommandFor(target,englishLevel,gradeLevel):
+                    stage===5?(rescueSelected?'🏡 Find its home!':animalCommandFor(target,englishLevel,gradeLevel)):
+                    'Which animal is this?'}
+                </h2>
+                <p className="am-task-hint">
+                  {stage===3?(noAudioMode?'Yazılı destek açık.':'İngilizce kelimeyi dinle.'):
+                    stage===5?(rescueSelected?'Şimdi doğru yuvaya dokun.':'Kayıp hayvanı bul.'):
+                    stage===4?'Söylenen hayvanı bul.':'Resme bak, İngilizce adını seç.'}
+                </p>
+                {stage===2&&assisted&&<p className="am-task-hint">💡 {target.tr}</p>}
+              </div>
+              <div className="am-task-actions">
+                {(stage===3||stage===4||stage===5)&&
+                  <button type="button" className="am-task-action"
+                    onClick={()=>speak(target,stage===4||stage===5&&!rescueSelected)}
+                    disabled={!canSpeak(target)} aria-label="İngilizceyi dinle">🔊</button>}
+                {stage===3&&!noAudioMode&&<button type="button" className="am-task-action"
+                  disabled={awaiting} onClick={()=>{setTextMode(true);setAssisted(true);}}
+                  aria-label="Ses yoksa yazılı modu aç">Aa</button>}
+                {stage===2&&<button type="button" className="am-task-action"
+                  disabled={awaiting} onClick={()=>setAssisted(true)}
+                  aria-label="Türkçe ipucu göster">💡</button>}
+              </div>
+            </div>
+            {(stage===4||stage===5)?(mobile?
+              <MobileMeadowWorld objects={worldObjects} onInteract={onWorldInteract}
+                caption={stage===5&&rescueSelected?'Doğru yuvaya dokun':'Söylenen hayvana dokun'}
+                wrongChoice={wrongChoice} awaiting={awaiting} targetId={target.id}
+                habitatMode={stage===5&&rescueSelected} progress={correctCount}/>:
+              <div className="am-desktop-world"><ExplorerCanvas
+                key={`meadow-quest-${stage}-${nonce}`} area="meadow"
+                caption={stage===5 ? rescueSelected?'Yuva Kurtarma · Uygun Yuvaya Yürü':'Kayıp Dostu Bul · Hayvana Yürü' : 'Görev Patikası · Söylenen Hayvanı Bul'}
+                objects={worldObjects} onInteract={onWorldInteract} height={510} progress={correctCount}/></div>):
+              <MeadowScene stage={stage} word={target} blooms={correctCount}/> }
             {stage===5 && rescueSelected && <div className="am-rescue mt-2 flex items-center justify-center gap-3 rounded-xl bg-emerald-900/75 p-3">
               <AnimalPicture word={target}/>
               <span className="text-sm font-black text-lime-100">→ YUVASINI BUL!</span>
@@ -446,33 +493,12 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
               🐾 {target.tr} güvenli yuvasına doğru koşuyor!
             </div>}
             {activePlan.reviewIds.length>0 && <p className="mt-3 rounded-xl bg-sky-950/65 p-2 text-center text-xs text-sky-100">🔁 Pekiştirme turu: zorlandığın kelimeler yeniden karşına çıkıyor.</p>}
-            <div className="my-4 rounded-2xl border border-white/25 bg-emerald-950/80 p-4 text-center">
-              <h2 className="text-xl font-black sm:text-2xl">
-                {stage===3 ? (noAudioMode? `Yazılı alternatif: ${target.id.toUpperCase()}` : '🔊 Sesi Dinle') :
-                  stage===5 ? (rescueSelected ? '🏡 Find its home!' : `Find the ${target.id.toUpperCase()}!`) : getAnimalPrompt(stage,target,englishLevel).title}
-              </h2>
-              <p className="mt-1 text-sm text-white/85">
-                {stage===3 && noAudioMode ? 'Ses kullanılamıyor veya yazılı modu seçtin. Kelimeyi okuyarak devam et.' :
-                  stage===5 ? (rescueSelected ? 'Hayvanı doğru yaşam alanına götür. Yanlış seçersen tekrar deneyebilirsin.' :
-                    'İngilizce adını öğrendiğin kayıp hayvanı çayırda ara ve yanına git.') :
-                  getAnimalPrompt(stage,target,englishLevel).guide}
-              </p>
-              {(stage===3||stage===4)&&<button onClick={()=>speak(target,stage===4)} disabled={!canSpeak(target)}
-                className="am-tap mt-3 min-h-11 rounded-xl border border-sky-200/40 bg-sky-400/15 px-5 font-bold disabled:opacity-50" aria-label="İngilizce yönergeyi dinle">
-                {canSpeak(target)?'🔊 Tekrar Dinle':'🔇 Yazılı Mod'}
-              </button>}
-              {stage===3 && !noAudioMode && <button onClick={()=>{setTextMode(true);setAssisted(true)}} disabled={awaiting}
-                className="am-tap ml-2 mt-3 min-h-11 rounded-xl border border-white/25 bg-white/10 px-4 text-xs font-bold disabled:opacity-50">
-                Ses Gelmiyor mu? Yazılı Oyna
-              </button>}
-              {stage===2 && <button onClick={()=>setAssisted(true)} disabled={awaiting}
-                className="am-tap mt-3 min-h-11 rounded-xl border border-white/20 bg-white/10 px-4 text-xs font-bold disabled:opacity-50">
-                {assisted ? `İpucu: ${target.tr}` : 'Türkçe İpucu Göster'}
-              </button>}
-            </div>
-            <div>
-              {(stage===4 || stage===5) && <p className="mb-2 text-center text-xs font-black text-lime-100">♿ Alternatif dokunmatik seçenekler · Sahne kullanılamıyorsa buradan devam et</p>}
-              <div className="grid grid-cols-3 gap-2 sm:gap-3" role="group"
+            <details className={stage===4||stage===5?'am-compact-details':'am-primary-answer-details'}
+              open={stage===2||stage===3?true:undefined}>
+              <summary className={stage===2||stage===3?'sr-only':'am-details-label'}>
+                ♿ Alternatif hayvan / yuva seçenekleri
+              </summary>
+              <div className="am-choices grid grid-cols-3 gap-2 sm:gap-3" role="group"
               aria-label={stage===5&&rescueSelected?'Hayvan için doğru yuva':'Hayvan cevabı'}>
               {currentQuestion.choices.map(id=>{
                 const word=findAnimal(id)!;
@@ -481,7 +507,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
                 return <button key={id} onClick={()=>habitatChoice?chooseHabitat(id):choose(id)} disabled={saving||awaiting}
                   aria-pressed={awaiting && id===target.id}
                   aria-label={habitatChoice?`Yaşam alanı: ${word.habitat}`:textOnly?`${word.id} İngilizce kelimesi`:`${word.tr} hayvanını seç`}
-                  className={`am-tap flex min-h-28 flex-col items-center justify-center rounded-2xl border bg-slate-950/45 p-2 text-center shadow-lg disabled:opacity-65 sm:min-h-36 sm:p-4
+                  className={`am-choice am-tap flex min-h-28 flex-col items-center justify-center rounded-2xl border bg-slate-950/45 p-2 text-center shadow-lg disabled:opacity-65 sm:min-h-36 sm:p-4
                     ${awaiting && id===target.id?'border-lime-300 bg-lime-400/20 ring-2 ring-lime-300/50':wrongChoice===id?'border-rose-300 bg-rose-400/20':'border-white/25 hover:border-sky-200'}`}>
                   {habitatChoice && <span aria-hidden="true" className="mb-2 text-3xl">{word.place==='Gölet'?'💧':word.place==='Çiftlik'?'🚜':word.place==='Ağaç'?'🌳':word.place==='Çayır'?'🌿':word.place==='Çiçeklik'?'🌸':'🏡'}</span>}
                   {!textOnly && <AnimalPicture word={word}/>}
@@ -489,7 +515,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
                 </button>;
               })}
               </div>
-            </div>
+            </details>
             <div className="mt-4 min-h-16 text-center">
               {feedback && <p role="status" aria-live="polite" className={`rounded-xl px-3 py-3 text-sm font-semibold ${feedback.good?'bg-lime-500/15 text-lime-100':'bg-amber-500/20 text-amber-100'}`}>{feedback.text}</p>}
               {awaiting&&!saveError&&<p role="status" aria-live="polite" className="mt-2 rounded-xl border border-lime-200/30 bg-emerald-700/20 px-4 py-3 text-sm font-bold text-lime-100">

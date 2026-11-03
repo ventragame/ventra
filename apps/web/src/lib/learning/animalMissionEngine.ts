@@ -189,3 +189,12 @@ export function getAnimalPrompt(mission: AnimalMission, word: AnimalWord, level:
     default: return { title:word.id.toUpperCase(),guide:word.tr,speech:word.id };
   }
 }
+
+/** Consistent visible + spoken commands for the three language placements.
+ * School grade limits sentence length without upgrading actual placement. */
+export function animalCommandFor(word:AnimalWord,level:EnglishPlacement,grade:number|null|undefined):string {
+ if(level==='Pre-A1')return 'Find the '+word.id+'!';
+ if(level==='A1')return 'Can you find the '+word.id+'?';
+ if(grade!=null&&grade>=1&&grade<=2)return 'Find the '+word.id+', please.';
+ return 'Please find the '+word.id+' in the meadow.';
+}

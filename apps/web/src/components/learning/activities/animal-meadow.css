@@ -26,3 +26,257 @@
 
 .am-story{animation:am-album-enter .28s ease-out both}
 @media(prefers-reduced-motion:reduce){.am-story{animation:none!important}}
+
+/* Mobile-first Hayvan Çayırı: the task is a scene, not a scrollable web form.
+ * Core desktop/Phaser gameplay is preserved; phones use semantic touch targets.
+ */
+.am-shell{--am-cream:#fff4ca;--am-ink:#153e49;--am-dew:#bcf6df;
+ color-scheme:dark;overscroll-behavior:contain}
+.am-main{position:relative;max-width:1150px;margin:0 auto}
+.am-hud{position:relative;z-index:8;display:flex;align-items:center;justify-content:space-between;
+ gap:12px;flex-wrap:wrap;padding:11px 14px;border:1px solid #ffffff65;
+ border-radius:22px;background:linear-gradient(125deg,#174963ed,#205e66ed);
+ box-shadow:0 12px 30px #062a3894,inset 0 1px #fff9d26b}
+.am-hud-actions{display:flex;align-items:center;gap:7px}
+.am-hud-btn{display:inline-flex;align-items:center;justify-content:center;gap:5px;
+ border:1px solid #c4eee0a3;background:#ffffff21;color:#fff8df;border-radius:15px;
+ padding:10px 12px;min-height:46px;min-width:46px;font-size:13px;font-weight:900}
+.am-hud-btn:focus-visible{outline:3px solid #ffeeb8;outline-offset:3px}
+.am-hud-btn:hover:not(:disabled){background:#ffffff38}
+.am-hud-title{display:flex;align-items:center;gap:10px;min-width:0}
+.am-hud-icon{width:43px;height:43px;display:grid;place-items:center;border:2px solid #fff1c8;
+ border-radius:15px;background:linear-gradient(135deg,#f4c97b,#d995a4);font-size:23px;
+ box-shadow:0 3px 14px #102c4680}
+.am-hud-title strong{display:block;font-size:17px;font-weight:1000;color:#fff2c4;line-height:1.1}
+.am-hud-title small{font-size:11px;color:#d7f2e7;display:block;font-weight:850}
+.am-intro{padding:13px 0 10px;text-align:center}
+.am-intro h1{font-size:clamp(25px,3.4vw,37px);line-height:1.1;margin:3px 0;
+ font-weight:1000;color:#fff2c5;text-shadow:0 2px 12px #032c436e}
+.am-intro p{font-size:13px;line-height:1.5;color:#d8f5ef;max-width:650px;margin:5px auto 0}
+.am-story-guide{margin-bottom:12px;border:1px solid #ffe9b57b;border-radius:17px;
+ background:linear-gradient(120deg,#20616edb,#315b73d9);padding:10px 13px}
+.am-story-guide summary{list-style:none;min-height:35px;display:flex;align-items:center;
+ justify-content:space-between;gap:6px;cursor:pointer;font-size:12px;font-weight:900;color:#fff0c5}
+.am-story-guide summary::-webkit-details-marker{display:none}
+.am-story-guide summary::after{content:'⌄';font-size:19px}
+.am-story-guide[open] summary::after{content:'⌃'}
+.am-story-guide p{font-size:12px;line-height:1.55;margin:6px 0 3px;color:#e2f6ef}
+.am-missions{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:12px}
+.am-mission{display:flex;align-items:center;justify-content:center;gap:8px;min-height:57px;
+ padding:9px 7px;border:1px solid #d2e9d68e;border-radius:15px;
+ background:linear-gradient(130deg,#2b6274d0,#21546dd0);color:#fff1d9;font-size:12px;font-weight:850}
+.am-mission[data-active=true]{border-color:#ffe8a7;background:linear-gradient(130deg,#6b87a0,#377e7e);
+ box-shadow:inset 0 1px #fff9d780,0 0 13px #b1df9d66}
+.am-mission[data-locked=true]{opacity:.52}
+.am-mission>span:first-child{font-size:21px}.am-mission-text{line-height:1.2}
+.am-quest-area{max-width:1050px;margin:auto;padding:12px;border-radius:23px;
+ border:1px solid #e3f5e294;background:linear-gradient(135deg,#164c63bd,#27566aba);
+ box-shadow:0 14px 40px #06253d85}
+.am-quest-head{display:flex;align-items:center;justify-content:space-between;gap:12px;
+ font-weight:950;color:#d9f8df;font-size:12px;margin-bottom:8px}
+.am-quest-progress{height:9px;overflow:hidden;border-radius:99px;background:#071d36a8;margin-bottom:12px}
+.am-quest-progress>div{height:100%;border-radius:99px;background:linear-gradient(90deg,#8de9bb,#fff0a5);transition:width .3s}
+.am-task{position:relative;display:flex;align-items:center;justify-content:space-between;
+ gap:12px;min-height:79px;border:1px solid #f3e8baac;border-radius:18px;
+ padding:13px 16px;margin-bottom:11px;background:linear-gradient(120deg,#2a6574ed,#24546fed);
+ box-shadow:inset 0 1px #fff4cd55}
+.am-task-title{font-size:clamp(18px,2vw,25px);line-height:1.19;color:#fff1be;
+ font-weight:1000;margin:2px 0 0}
+.am-task-hint{font-size:12px;color:#e4f3ed;line-height:1.48;margin-top:4px}
+.am-task-actions{display:flex;gap:7px;flex:0 0 auto;flex-wrap:wrap;justify-content:flex-end}
+.am-task-action{display:inline-flex;align-items:center;justify-content:center;gap:5px;
+ min-height:47px;min-width:47px;border-radius:14px;border:1px solid #bfe9e4a8;
+ background:#ffffff25;padding:9px;color:#fff5d8;font-weight:900;font-size:12px}
+.am-task-action:hover:not(:disabled){background:#ffffff40}
+.am-choices{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;margin-top:11px}
+.am-choice{min-width:0;min-height:111px;display:flex;flex-direction:column;
+ align-items:center;justify-content:center;gap:4px;padding:10px;border:2px solid #c6eadd8f;
+ border-radius:17px;background:linear-gradient(145deg,#2b6177,#18465f);
+ color:#fff6df;box-shadow:0 5px 0 #0a34476a}
+.am-choice>span{font-size:16px;font-weight:1000;line-height:1.22;overflow-wrap:anywhere}
+.am-choice[data-right=true]{border-color:#d8ff9c;background:linear-gradient(145deg,#4b9979,#2a776e)}
+.am-choice[data-wrong=true]{border-color:#ffbdba;background:linear-gradient(145deg,#a65b73,#683f61)}
+.am-choice:hover:not(:disabled){filter:brightness(1.11)}
+.am-feedback{margin-top:11px;min-height:47px;display:flex;align-items:center;justify-content:center;
+ border-radius:14px;border:1px solid #e0f3e084;background:#2b6f6bbf;padding:10px 13px;
+ color:#fff7dc;font-size:13px;font-weight:850;text-align:center;line-height:1.45}
+.am-feedback[data-good=false]{background:#87556dbf;border-color:#ffe7c18f}
+.am-compact-details{border:1px solid #c6e9dd91;border-radius:15px;background:#0a4157a3;margin-top:11px}
+.am-compact-details summary{cursor:pointer;min-height:47px;display:flex;align-items:center;
+ padding:10px 13px;color:#dcf7ef;font-size:12px;font-weight:900}
+.am-compact-details summary:focus-visible{outline:3px solid #ffe8aa}
+.am-compact-details>div{padding:0 10px 12px}
+.am-completion{border:1px solid #d5f5c7a2;border-radius:25px;padding:22px;
+ background:linear-gradient(140deg,#174a66,#2d776e);box-shadow:0 15px 46px #052e428c}
+.am-discovery-progress{display:flex;align-items:center;justify-content:space-between;
+ gap:10px;padding:9px 12px;border:1px solid #e8e7b9a3;border-radius:15px;
+ background:#145367b8;color:#e5f9dd;font-size:13px;font-weight:900;margin:11px 0}
+.am-mobile-world{display:none}
+/* Full-size, touch-first world is used only below tablet widths. */
+@media(max-width:767px){
+ .am-main{padding:7px 9px max(18px,env(safe-area-inset-bottom,0px))!important;
+ padding-top:max(7px,env(safe-area-inset-top,0px))!important}
+ .am-shell{background:radial-gradient(ellipse at 30% -15%,#4a9b9f,transparent 61%),
+ linear-gradient(175deg,#113a58,#1a525b 65%,#113f4d)}
+ .am-hud{position:sticky;top:0;top:env(safe-area-inset-top,0px);border-radius:16px;
+ padding:7px 9px;gap:4px;min-height:56px;backdrop-filter:blur(16px)}
+ .am-hud-title{gap:7px}.am-hud-icon{width:35px;height:35px;font-size:18px;border-radius:11px}
+ .am-hud-title strong{font-size:14px}.am-hud-title small{font-size:10px}
+ .am-hud-actions{gap:5px}.am-hud-btn{min-height:43px;min-width:43px;
+ border-radius:12px;font-size:15px;padding:6px}
+ .am-hud-btn[data-mobile-hide=true]{display:none}
+ .am-intro{padding:8px 0 5px}.am-intro h1{font-size:22px;margin:0}
+ .am-intro p{display:none}
+ .am-story-guide{margin-bottom:7px;padding:0 10px;border-radius:12px}
+ .am-story-guide summary{min-height:36px;font-size:11px}
+ .am-story-guide p{font-size:12px}
+ .am-missions{gap:5px;margin-bottom:9px}
+ .am-mission{min-height:42px;flex-direction:column;gap:0;padding:4px 1px;border-radius:11px}
+ .am-mission>span:first-child{font-size:19px}
+ .am-mission-text{font-size:0}.am-mission[data-active=true]{transform:translateY(-1px)}
+ .am-quest-area{padding:9px;border-radius:17px}
+ .am-quest-head{font-size:11px;margin:0 1px 6px}
+ .am-quest-progress{height:6px;margin-bottom:9px}
+ .am-task{gap:8px;min-height:68px;margin-bottom:8px;padding:9px 11px;border-radius:13px}
+ .am-task-title{font-size:clamp(17px,5vw,22px)}
+ .am-task-hint{font-size:11px;margin-top:2px;line-height:1.37}
+ .am-task-actions{gap:5px}.am-task-action{min-width:44px;min-height:44px;
+ padding:7px;font-size:11px;border-radius:11px}
+ .am-scene{height:clamp(205px,34dvh,305px)!important;border-radius:16px!important}
+ .am-scene>svg{height:100%}
+ .am-scene .am-pop{padding:6px!important}.am-scene .am-pop img{width:101px;height:101px}
+ .am-choices{gap:7px;margin-top:9px}
+ .am-choice{min-height:91px;padding:7px 4px;border-radius:13px}
+ .am-choice img{width:54px!important;height:54px!important}
+ .am-choice>span{font-size:clamp(12px,3.1vw,15px)}
+ .am-feedback{margin-top:8px;min-height:39px;padding:7px 10px;font-size:12px}
+ .am-discovery-progress{margin:8px 0;padding:8px 10px}
+ .am-completion{padding:12px;border-radius:17px}
+ .am-completion .am-scene{height:clamp(180px,28dvh,260px)!important}
+ .am-desktop-world{display:none!important}
+ .am-mobile-world{position:relative;isolation:isolate;display:flex;flex-direction:column;
+  min-height:clamp(280px,41dvh,405px);overflow:hidden;border-radius:19px;
+  border:3px solid #fff0d0;box-shadow:0 11px 26px #062e448f,
+   inset 0 1px #fff9dea0;
+  background:linear-gradient(180deg,#4e9eaa32,#88cd9a32),
+  url('/assets/kids-islands/word_garden_mobile.webp') center 60%/cover,
+  linear-gradient(150deg,#89d6d6,#acd992)}
+ .am-mobile-world::after{content:'';position:absolute;inset:0;z-index:-1;
+  background:linear-gradient(180deg,#5badc420 0%,#8ed2c300 43%,#1d705135 100%);pointer-events:none}
+ .am-mobile-world-sun{position:absolute;right:8%;top:7%;height:55px;width:55px;z-index:-1;
+  border-radius:50%;background:#fff1b7;box-shadow:0 0 0 12px #fff2bd58,0 0 55px #ffedc9}
+ .am-mobile-cloud{position:absolute;height:17px;width:76px;border-radius:50%;
+  background:#f3fbebd6;filter:blur(2px);z-index:-1}
+ .am-mobile-cloud-a{top:13%;left:10%}.am-mobile-cloud-b{top:25%;right:29%;width:64px;opacity:.69}
+ .am-mobile-hills{position:absolute;inset:auto -5% -6% -5%;height:41%;z-index:-1;
+  background:linear-gradient(165deg,#6db88e8c,#28745dbf);
+  border-radius:50% 48% 0 0/43% 40% 0 0}
+ .am-mobile-pond{position:absolute;bottom:3%;right:2%;width:37%;height:21%;
+  border-radius:50%;z-index:-1;background:linear-gradient(130deg,#98f4ec,#409db6);
+  border:5px solid #a8e1ae9c;filter:drop-shadow(0 3px 7px #0a486372)}
+ .am-mobile-garden{position:absolute;bottom:4%;left:2%;color:#ffe2a9;
+  font-size:26px;opacity:.8;z-index:-1;text-shadow:0 2px 5px #357a60}
+ .am-mobile-board{align-self:flex-start;border:1px solid #fff2c8;z-index:1;
+  background:#144f64ed;border-radius:0 0 14px 0;padding:8px 13px;
+  color:#fff0c6;font-size:11px;letter-spacing:.4px;font-weight:950;
+  box-shadow:0 5px 14px #12506661}
+ .am-mobile-world-items{flex:1;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+  align-content:center;align-items:center;justify-items:stretch;gap:7px;
+  padding:16px 12px 28px}
+ .am-mobile-animal{position:relative;display:flex;flex-direction:column;align-items:center;
+  justify-content:center;gap:3px;min-width:0;min-height:99px;border:2px solid #fff5dbdb;
+  border-radius:20px;background:linear-gradient(145deg,#fff8e6ef,#ddedcfed);
+  box-shadow:0 6px 0 #4e9a81,0 9px 20px #14534a91;color:#1c5960;
+  padding:6px 3px 7px;animation:am-forest-grow .3s ease-out both;
+  animation-delay:var(--am-delay)}
+ .am-mobile-animal:hover:not(:disabled){transform:translateY(-2px)}
+ .am-mobile-animal:active:not(:disabled){transform:translateY(1px) scale(.97)}
+ .am-mobile-animal-art{height:57px;width:100%;display:grid;place-items:center}
+ .am-mobile-animal-art img{height:100%;width:100%;object-fit:contain;
+  filter:drop-shadow(0 4px 4px #395e5c56)}
+ .am-mobile-habitat-icon{font-size:36px}
+ .am-mobile-animal-label{font-size:clamp(9px,2.6vw,12px);font-weight:1000;
+  line-height:1.15;white-space:normal;overflow-wrap:anywhere;text-align:center;
+  max-width:100%}
+ .am-mobile-animal[data-discovered=true]{background:linear-gradient(135deg,#e5fac6,#aff0c3);
+  border-color:#fff6a4}
+ .am-mobile-animal[data-correct=true]{border-color:#eaff82;background:#b3f2b1}
+ .am-mobile-animal[data-wrong=true]{border-color:#ffa6ae;background:#ffdcda}
+ .am-mobile-discovered{position:absolute;right:-4px;top:-6px;width:22px;height:22px;
+  display:grid;place-items:center;background:#1b907b;border:2px solid white;
+  color:white;border-radius:50%;font-weight:1000;font-size:12px}
+ .am-mobile-world-progress{position:absolute;bottom:5px;left:50%;transform:translateX(-50%);
+  background:#1c6377e5;border:1px solid #fff0b6;border-radius:999px;
+  color:#fff4ce;font-size:11px;font-weight:950;padding:3px 10px}
+ .am-mobile-world-items:has(.am-mobile-animal:nth-child(2):last-child){grid-template-columns:repeat(2,1fr)}
+ .am-mobile-world-items:has(.am-mobile-animal:nth-child(3):last-child){grid-template-columns:repeat(3,1fr)}
+ .am-mobile-world-items:has(.am-mobile-animal:nth-child(2):last-child) .am-mobile-animal,
+ .am-mobile-world-items:has(.am-mobile-animal:nth-child(3):last-child) .am-mobile-animal{
+  min-height:139px;border-radius:23px}
+ .am-mobile-world-items:has(.am-mobile-animal:nth-child(3):last-child) .am-mobile-animal-art,
+ .am-mobile-world-items:has(.am-mobile-animal:nth-child(2):last-child) .am-mobile-animal-art{
+  height:88px}
+ .am-compact-details{border-radius:12px}
+ .am-compact-details summary{font-size:11px}
+}
+@media(max-width:359px){
+ .am-hud-title strong{font-size:12px}.am-hud-btn{min-width:40px;padding:5px}
+ .am-mobile-world-items{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;
+ padding:10px 7px 25px}
+ .am-mobile-animal{min-height:86px;border-radius:14px}
+ .am-mobile-animal-art{height:46px}
+ .am-mobile-animal-label{font-size:10px}
+ .am-choices{gap:5px}.am-choice{padding:5px 2px}
+}
+@media(min-width:768px){.am-mobile-world{display:none!important}}
+@media(max-height:620px) and (max-width:767px){
+ .am-intro{padding:5px 0}.am-missions{margin-bottom:6px}
+ .am-mobile-world{min-height:275px}
+ .am-mobile-world-items{padding-top:8px;padding-bottom:22px}
+}
+@media(prefers-reduced-motion:reduce){
+ .am-mobile-animal,.am-mobile-cloud,.am-mobile-world *{animation:none!important;
+ transition:none!important;scroll-behavior:auto!important}
+}
+
+/* Extra mobile content density control without hiding the actual task or choices. */
+@media(max-width:767px){
+ .am-discovery-help{display:none}
+ .am-shell .am-quest-area{margin-bottom:6px}
+ .am-quest-area>.am-quest-head{font-size:11px}
+ .am-shell .am-album{max-height:70dvh;overflow:auto;overscroll-behavior:contain}
+ .am-shell .am-album img{width:65px;height:65px}
+ .am-shell .am-quest-area .am-rescue{margin-top:7px;padding:8px;
+  gap:6px;font-size:12px}
+ .am-shell .am-quest-area .am-rescue img{width:45px;height:45px}
+ .am-shell .am-quest-area>p[class*="mt-3"]{margin-top:8px;font-size:11px}
+ .am-shell .am-quest-area .am-primary-answer-details summary{position:absolute!important;
+  width:1px!important;height:1px!important;padding:0!important;margin:-1px!important;
+  overflow:hidden!important;clip:rect(0,0,0,0)!important;white-space:nowrap!important;border:0!important}
+ .am-primary-answer-details .am-choices{margin-top:8px}
+ .am-quest-area .am-compact-details>.am-choices{margin-top:0}
+ .am-quest-area .am-compact-details .am-choices{padding:2px 9px 11px}
+ .am-shell .am-quest-area .am-compact-details .am-choice{min-height:98px}
+ .am-quest-area .am-feedback{padding:9px;line-height:1.4}
+ .am-shell .am-quest-area .am-choice>span:last-child{margin-top:3px;font-size:12px}
+ .am-shell .am-quest-area .am-choices{gap:7px}
+ .am-shell .am-quest-area .am-choice{box-shadow:0 4px 0 #0b374b}
+ .am-shell .am-quest-area .am-compact-details>summary{list-style:none}
+ .am-shell .am-quest-area .am-compact-details>summary::-webkit-details-marker{display:none}
+ .am-shell .am-quest-area .am-compact-details>summary::after{content:'⌄';margin-left:auto;font-size:18px}
+ .am-shell .am-quest-area .am-compact-details[open]>summary::after{content:'⌃'}
+ .am-shell .am-quest-area .am-compact-details>div{padding:0 9px 10px}
+ .am-shell .am-task-action{min-height:46px;min-width:46px}
+ .am-shell .am-quest-area .am-scene .am-tap{min-height:50px;min-width:50px}
+ .am-shell .am-quest-area .am-task+div.am-scene{margin-bottom:0}
+ .am-quest-area .am-mobile-world{margin-bottom:4px}
+ .am-shell .am-mobile-animal:focus-visible{outline:3px solid #ffea91;outline-offset:3px}
+ .am-shell .am-mobile-world[data-empty=true]{min-height:180px}
+}
+@media(max-width:767px) and (orientation:landscape) and (max-height:500px){
+ .am-main{max-width:830px}
+ .am-intro{display:none}.am-story-guide{display:none}
+ .am-mobile-world{min-height:270px}
+ .am-mobile-world-items{padding-top:8px}
+ .am-quest-area .am-scene{height:245px!important}
+}

@@ -300,3 +300,6 @@ See [CM1 acceptance and implemented grammatical families](./CM1_UYANAN_MEYDAN_GD
 
 ### CM1 final — Fener Festivali (2026-11-03)
 - Fifth/sixth tasks are distinct premium chapters; **mission 6** is a transfer-focused four-act lantern finale with color selection, physical location choice, grammatical repair and final color+character+location+complete-English transfer. 12/16/20 prompts based on grade, Pre-A1/A1/A2 separately, original night festival art and dedicated opt-in soundtrack. `island_sentence_square_plaza` level 6 progress stays canonical. See [complete GDD & QA acceptance](./CM1_FENER_FESTIVALI_PREMIUM_GDD.md). Future Cümle Meydanı regions remain locked; physical-device/English-teacher QA pending.
+
+### 2026-11-03 — Mobile-first milestone M2: Hayvan Çayırı
+- Five-stage Mobile-first reference design: lightweight touchable world for mobile, large premium SVG animals + existing optimized WebP garden background, compact child-focused HUD and short task cue above the scene, accessible optional hints, grade/English placement speech consistency. Desktop Phaser preserved and authoritative learning history/stars untouched. QA: [mobile-first acceptance](./HAYVAN_CAYIRI_MOBILE_FIRST_ACCEPTANCE.md). No production release; physical Android/iOS phone checks required before broad rollout.

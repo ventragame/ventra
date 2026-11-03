@@ -51,3 +51,8 @@ This instruction file does not itself establish a new delivery/deployment author
 ### Fener Festivali — canonical Uyanan Meydan mission 6 (2026-11-03)
 - Curriculum: `apps/web/src/lib/learning/lanternFestivalEngine.ts`. Scene and gameplay: `apps/web/src/components/learning/sentence/LanternFestival*`. [GDD & tests](docs/CM1_FENER_FESTIVALI_PREMIUM_GDD.md).
 - Must preserve `island_sentence_square_plaza` level 6, answer evidence, user-approved sound opt-in, sequential unlocking and locked future regions. No simulated progress, no production deployment and no DB migrations without explicit approval.
+
+### Mobile-first Hayvan Çayırı acceptance (2026-11-03)
+- Implementation: `apps/web/src/components/learning/activities/AnimalMeadowAdventure.tsx` + `MobileMeadowWorld.tsx` + `animal-meadow.css`; teaching contract [docs/HAYVAN_CAYIRI_MOBILE_FIRST_ACCEPTANCE.md](docs/HAYVAN_CAYIRI_MOBILE_FIRST_ACCEPTANCE.md).
+- At <=767px, lightweight accessible HTML animal/habitat selection uses the *same* callback as desktop Phaser; do not create a separate progress/reward system. Preserve existing 40 SVG animals, optimized `word_garden_mobile.webp`, audio/TTS fallback, Pre-A1/A1/A2 placement independent of grade.
+- Real Android APK / iOS WebView acceptance is a separate gate; no production deploy or live DB migrations without user approval.
