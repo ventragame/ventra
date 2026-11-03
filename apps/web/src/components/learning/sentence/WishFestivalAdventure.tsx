@@ -285,7 +285,7 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
  const dialogue=trial?(chapter===3?
   trial.intent==='want'?'What would you like?':'Do you like this food?':
   chapter===2?'Welcome! What would you like?':
-  chapter===1?'What do you like?':'Let’s prepare the festival table!'):'Welcome to the festival!';
+  chapter===1?(trial.intent==='dislike'?'Do you like this food?':'What do you like?'):'Let’s prepare the festival table!'):'Welcome to the festival!';
  const foodAllowed=screen==='play'&&!served&&!saving&&Boolean(trial)&&
   (!chosenFood||chapter===4&&needsSecond&&!chosenSecond);
  const visual=<WishFestivalStage chapter={chapter} guest={trial?.guest??'mila'}

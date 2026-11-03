@@ -4,6 +4,7 @@ import type {WishFood,WishGuest,WishChapter} from '@/lib/learning/wishFestivalEn
 import {WISH_FOODS,WISH_GUESTS} from '@/lib/learning/wishFestivalEngine';
 
 export function WishFruitArtwork({food,size=58}: {food:WishFood;size?:number}){
+ const gradientId='wf-fruit-'+React.useId().replace(/:/g,'');
  const base=WISH_FOODS.find(f=>f.id===food)!;
  const grape=food==='grapes',banana=food==='bananas',carrot=food==='carrots',
   orange=food==='oranges',pear=food==='pears',strawberry=food==='strawberries',
@@ -11,7 +12,7 @@ export function WishFruitArtwork({food,size=58}: {food:WishFood;size?:number}){
  return <svg viewBox="0 0 100 100" width={size} height={size} role="img" aria-label={base.label}
   xmlns="http://www.w3.org/2000/svg" className="wf-fruit-art">
   <defs>
-   <radialGradient id={'wf-fruit-'+food} cx=".27" cy=".19" r=".9">
+   <radialGradient id={gradientId} cx=".27" cy=".19" r=".9">
     <stop stopColor="#fff7d9" stopOpacity=".83"/>
     <stop offset=".22" stopColor={base.color}/>
     <stop offset="1" stopColor={base.color} stopOpacity=".85"/>
@@ -27,30 +28,30 @@ export function WishFruitArtwork({food,size=58}: {food:WishFood;size?:number}){
    <path d="M39 24Q15 15 22 7Q42 7 48 26Q42 5 55 7Q65 15 53 29Q69 6 78 18Q70 34 55 38"
     fill="#65ba82" stroke="#4f996b" strokeWidth="3"/>
    <path d="M27 33Q45 24 70 36Q62 62 48 92Q26 72 27 33Z"
-    fill="url(#wf-fruit-carrots)" stroke="#c7794d" strokeWidth="3"/>
+    fill={'url(#'+gradientId+')'} stroke="#c7794d" strokeWidth="3"/>
    <path d="M34 44l17 5m-17 13 11 4" stroke="#ffdea6" strokeWidth="4" strokeLinecap="round"/>
   </g>:grape?<g>
    <path d="M50 22l4-15m-4 16q-10-12-20-8" stroke="#5a8a66" strokeWidth="6" fill="none" strokeLinecap="round"/>
    {[[34,40],[55,38],[24,56],[46,57],[67,55],[36,74],[58,72],[48,88]].map(([x,y],i)=>
-    <circle key={i} cx={x} cy={y} r="15" fill="url(#wf-fruit-grapes)" stroke="#7662a3" strokeWidth="2"/>)}
+    <circle key={i} cx={x} cy={y} r="15" fill={'url(#'+gradientId+')'} stroke="#7662a3" strokeWidth="2"/>)}
    <ellipse cx="36" cy="37" rx="7" ry="4" fill="#fff" opacity=".4"/>
   </g>:strawberry?<g>
    <path d="M28 29Q14 45 33 75Q46 94 53 90Q85 63 75 33Q57 21 28 29Z"
-    fill="url(#wf-fruit-strawberries)" stroke="#ba556d" strokeWidth="3"/>
+    fill={'url(#'+gradientId+')'} stroke="#ba556d" strokeWidth="3"/>
    <path d="M20 29l19-12 12 12 14-13 18 12-17 6-12-2-12 4-13-3Z"
     fill="#70bc80" stroke="#549969" strokeWidth="3"/>
    {[[36,46],[56,44],[69,55],[44,63],[53,76],[29,58]].map(([x,y],i)=>
     <path key={i} d={'M'+x+' '+y+'l3 5'} stroke="#ffe5b5" strokeWidth="3" strokeLinecap="round"/>)}
   </g>:pear?<g>
    <path d="M44 22Q50 11 61 23Q62 39 77 52Q86 70 71 84Q51 97 30 84Q15 69 25 53Q38 41 44 22Z"
-    fill="url(#wf-fruit-pears)" stroke="#759e58" strokeWidth="3"/>
+    fill={'url(#'+gradientId+')'} stroke="#759e58" strokeWidth="3"/>
    <path d="M50 23L54 9m-3 7q15-10 23-2" stroke="#5f8555" strokeWidth="5" fill="none" strokeLinecap="round"/>
    <path d="M34 57q-8 20 10 27" stroke="#f5f0b1" strokeWidth="6" fill="none" opacity=".55" strokeLinecap="round"/>
   </g>:<g>
    <path d={orange?'M25 39Q29 19 52 20Q80 19 83 48Q91 78 61 87Q34 95 20 70Q13 54 25 39Z':
     peach?'M25 40Q31 23 48 27Q62 19 75 34Q94 58 76 80Q58 97 47 86Q22 95 17 69Q11 54 25 40Z':
     'M25 40Q15 24 35 27Q51 24 52 30Q67 18 79 37Q91 59 76 82Q62 94 51 86Q36 97 22 77Q12 62 25 40Z'}
-    fill={'url(#wf-fruit-'+food+')'} stroke={orange?'#cb8355':peach?'#dc8873':'#b65469'} strokeWidth="3"/>
+    fill={'url(#'+gradientId+')'} stroke={orange?'#cb8355':peach?'#dc8873':'#b65469'} strokeWidth="3"/>
    <path d="M50 27L54 12q18-9 28-1q-11 17-29 12" stroke="#669c6f" strokeWidth="5"
     fill="#7bb883" strokeLinecap="round"/>
    <path d="M27 49Q27 36 43 34" fill="none" stroke="#fff6d7" strokeWidth="7"
