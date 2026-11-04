@@ -125,23 +125,21 @@ test('Muted listening fallback and optional hints are neutral, not permanent wea
   assert.deepEqual(getWeakAnimalIds([assisted,missed]),['cow']);
 });
 
-test('All forty illustrated characters exist and are self-contained safe SVGs',()=>{
-  for(const word of ANIMAL_MEADOW_WORDS){
-    assert.equal(typeof word.image,'string');
-    const file=path.join(process.cwd(),'public',word.image.replace(/^\//,''));
-    assert.ok(fs.existsSync(file),'missing art for '+word.id);
-    const svg=fs.readFileSync(file,'utf8');
-    assert.match(svg,/<svg[^>]+viewBox="0 0 320 320"/);
-    assert.match(svg,/<\/svg>\s*$/);
-    assert.doesNotMatch(svg,/<script\b|<foreignObject\b|<image\b|(?:href|xlink:href)=["']https?:\/\//i,'no external scripts or image links');
-    assert.ok(svg.length>900,'nonempty offline asset; byte count is not a visual-quality score');
-    assert.match(svg, /aria-label="[a-z]+"/, 'accessible asset label');
-  }
+test('Every lesson animal uses a safe local 3D PNG instead of font emoji fallback',()=>{
+ for(const word of ANIMAL_MEADOW_WORDS){
+  assert.match(word.image,/^\/assets\/animals\/fluent-3d\/[a-z]+\.png$/);
+  const file=path.join(process.cwd(),'public',word.image.replace(/^\//,''));
+  const b=fs.readFileSync(file);
+  assert.equal(b.subarray(0,8).toString('hex'),'89504e470d0a1a0a',word.id);
+  assert.equal(b.readUInt32BE(16),256);
+  assert.equal(b.readUInt32BE(20),256);
+  assert.ok(b.length>12000);
+ }
 });
 test('Animal Meadow uses one accessible visual stage for every mission on every screen',()=>{
  const view=fs.readFileSync(new URL('../src/components/learning/activities/AnimalMeadowAdventure.tsx',import.meta.url),'utf8');
  const stage=fs.readFileSync(new URL('../src/components/learning/activities/MeadowPlayStage.tsx',import.meta.url),'utf8');
- const css=fs.readFileSync(new URL('../src/components/learning/activities/animal-meadow.css',import.meta.url),'utf8');
+ const css=fs.readFileSync(new URL('../src/components/learning/activities/animal-meadow-v3.css',import.meta.url),'utf8');
  assert.doesNotMatch(view,/ExplorerCanvas|MobileMeadowWorld|worldObjects|getHabitatObjects|rescueSelected|resolveRescueChoice|chooseHabitat/);
  assert.match(view,/MeadowPlayStage mode="discover"/);
  assert.match(view,/mode=\{stage===2\?'match':stage===3\?'listen':stage===4\?'command':'rescue'\}/);
@@ -156,10 +154,13 @@ test('Animal Meadow uses one accessible visual stage for every mission on every 
  assert.match(stage,/target.image/);
  assert.match(stage,/noAudioMode&&isListening/);
  assert.match(stage,/data-rescued=\{isRescue&&right\}/);
- assert.match(stage,/function homeIcon\(word:AnimalWord/);
+ assert.match(css,/overflow:hidden!important/);
+ assert.match(css,/object-fit:contain!important/);
+ assert.doesNotMatch(css,/backdrop-filter:blur/);
+ assert.match(stage,/function safeDestination\(word:AnimalWord/);
  assert.match(stage,/Gölet:'💧'/);
  assert.match(stage,/Deniz:'🐠'/);
- assert.match(css,/assets\/word-garden\/premium-v2\/animals.webp/);
+ assert.match(css,/assets\/animals\/meadow-stage-v3.svg/);
  assert.match(css,/@media\(max-width:767px\)/);
  assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
  assert.match(css,/focus-visible/);
@@ -194,11 +195,11 @@ test('Animal spoken commands honor actual English placement and use short child-
 test('Visual answer IDs and pre-answer disclosure are pedagogically safe',()=>{
  const stage=fs.readFileSync(new URL('../src/components/learning/activities/MeadowPlayStage.tsx',import.meta.url),'utf8');
  assert.match(stage,/isMatch\?animal.id\+' İngilizce kelimesini seç'/);
- assert.match(stage,/showImage=!isMatch/);
- assert.match(stage,/isDiscovery&&found/);
- assert.match(stage,/right\?<span className="am-v2-animal-name/);
+ assert.match(stage,/imageChoices=!isMatch/);
+ assert.match(stage,/isDiscovery\?known:right/);
+ assert.match(stage,/const showName=isDiscovery\?known:right/);
  assert.match(stage,/animals.map\(\(animal,i\)=>/);
- assert.match(stage,/className="am-v2-hero-sound"/);
+ assert.match(stage,/className="am3-listen-button"/);
  const plan=planAnimalMission({mission:5,history:starters,seed:123});
  assert.ok(plan.questions.every(q=>q.choices.includes(q.target)));
  assert.equal(plan.questions.length,6);

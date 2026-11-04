@@ -144,3 +144,41 @@
  animation:none!important;transition:none!important}
  .am3-choice:active{transform:none!important}
 }
+
+
+/* Layout chrome v3: emphasize the learnable scene instead of duplicating titles
+   and full-width "help" HTML bars across desktop/mobile. */
+.am-shell .am3-intro{position:absolute!important;width:1px!important;height:1px!important;
+ padding:0!important;margin:0!important;overflow:hidden!important;clip:rect(0,0,0,0);
+ white-space:nowrap;border:0}
+.am-shell .am3-help{display:block;width:max-content;max-width:100%;margin:5px 0 8px auto;
+ border:0;position:relative;z-index:5;color:#fff8d4}
+.am-shell .am3-help summary{display:grid;place-items:center;list-style:none;cursor:pointer;
+ min-width:44px;min-height:44px;border-radius:50%;border:2px solid #f8e8b2;
+ background:#194e61;box-shadow:0 3px 0 #17344f;
+ font-size:22px;font-weight:1000;touch-action:manipulation}
+.am-shell .am3-help summary::-webkit-details-marker{display:none}
+.am-shell .am3-help summary:focus-visible{outline:3px solid #ffec92;outline-offset:3px}
+.am-shell .am3-help[open]{width:min(100%,440px);padding:7px 9px;
+ background:#17495bfa;border:1px solid #ffeab4;border-radius:18px}
+.am-shell .am3-help p{padding:7px 9px;font-size:12px;line-height:1.5}
+.am-shell .am3-missions{margin:0 0 9px;gap:7px}
+.am-shell .am3-missions .am-mission{min-height:50px;padding:8px 5px}
+.am-shell .am3-missions .am-mission:focus-visible{outline:3px solid #ffe9a2;outline-offset:2px}
+.am-shell .am-quest-area{width:100%;max-width:1030px;padding:5px!important;
+ border:0!important;background:none!important;box-shadow:none!important}
+.am-shell .am-quest-head{margin-bottom:5px!important}
+.am-shell .am-quest-progress{margin-bottom:9px!important}
+.am-shell .am-task{margin-bottom:10px!important}
+.am-shell .am3-feedback{margin-top:9px;min-height:0!important}
+.am-shell .am-discovery-progress{margin-top:9px}
+.am-shell .am-album img{object-fit:contain!important;max-width:100%;max-height:90px}
+@media(max-width:767px){
+ .am-shell .am3-help{margin:3px 0 5px auto}
+ .am-shell .am3-missions{gap:5px;margin-bottom:6px}
+ .am-shell .am3-missions .am-mission{min-height:43px;padding:5px 2px}
+ .am-shell .am-quest-area{padding:1px!important;margin:0 auto}
+ .am-shell .am-task{padding:8px 10px!important;min-height:55px!important;margin-bottom:7px!important}
+ .am-shell .am-quest-progress{margin-bottom:7px!important}
+ .am-shell .am3-feedback{margin-top:7px}
+}

@@ -260,7 +260,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
               aria-label={muted?'Sesi aç':'Sesi kapat'} aria-pressed={muted}>{muted?'🔇':'🔊'}</button>
           </div>
         </header>
-        <div className="am-intro py-5 text-center">
+        <div className="am-intro am3-intro sr-only">
           <p className="text-[11px] font-black uppercase tracking-[.23em] text-lime-200">Hayvan Çayırı · Bölüm {stage}/5</p>
           <h1 ref={headingRef} tabIndex={-1} className="mt-2 text-3xl font-black tracking-tight outline-none sm:text-5xl">{STAGES[stage-1].icon} {STAGES[stage-1].name}</h1>
           <p className="sr-only">
@@ -271,8 +271,8 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
              'Kayıp hayvanı İngilizce yönergeden tanı ve kurtar.'}
           </p>
         </div>
-        <details className="am-story-guide">
-          <summary aria-label="Pufi'den oyun yardımı">❔ <span>Yardım</span></summary>
+        <details className="am3-help">
+          <summary aria-label="Pufi'den oyun yardımı" title="Nasıl oynanır?">?<span className="sr-only">Yardım</span></summary>
           <p>{STAGES[stage-1].story}</p>
         </details>
         {showAlbum && <section aria-label="Keşif albümü" className="am-album mb-4 rounded-3xl border border-lime-200/40 bg-[#0b3649]/90 p-3 shadow-2xl sm:p-5">
@@ -291,12 +291,12 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
                 {unlocked?<AnimalPicture word={word}/>:<div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/10 text-4xl font-black text-white/40">?</div>}
                 <span className="mt-1 text-xs font-black uppercase">{unlocked?word.id:'???'}</span>
                 <span className="mt-1 text-[11px] text-sky-100">{unlocked?word.tr:'Keşfedilmedi'}</span>
-                {unlocked && <span className="mt-1 text-[10px] text-lime-100/80">{word.habitat}</span>}
+
               </button>;
             })}
           </div>
         </section>}
-        <nav aria-label="Hayvan Çayırı görevleri" className="am-missions">
+        <nav aria-label="Hayvan Çayırı görevleri" className="am-missions am3-missions">
           {STAGES.map((item,i)=>{
             const order=(i+1) as Stage,locked=order>localProgress.completedLevels+1;
             return <button key={order} type="button" disabled={locked||saving}
@@ -368,7 +368,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
                 {audioHelp&&<p className="am-task-hint" role="status">🔇 {audioHelp}</p>}
               </div>
               <div className="am-task-actions">
-                {(stage===3||stage===4||stage===5)&&
+                {(stage===4||stage===5)&&
                   <button type="button" className="am-task-action"
                     onClick={()=>speak(target,stage===4||stage===5)}
                     disabled={!canSpeak(target)} aria-label="İngilizceyi dinle">🔊</button>}
@@ -391,7 +391,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
               onListen={()=>speak(target,stage===4||stage===5)}
               onSelect={choose}/>
             {activePlan.reviewIds.length>0 && <p className="mt-3 rounded-xl bg-sky-950/65 p-2 text-center text-xs text-sky-100">🔁 Pekiştirme turu: zorlandığın kelimeler yeniden karşına çıkıyor.</p>}
-            <div className="mt-4 min-h-16 text-center">
+            <div className="am3-feedback mt-4 text-center">
               {feedback && <p role="status" aria-live="polite" className={`rounded-xl px-3 py-3 text-sm font-semibold ${feedback.good?'bg-lime-500/15 text-lime-100':'bg-amber-500/20 text-amber-100'}`}>{feedback.text}</p>}
               {awaiting&&!saveError&&<p role="status" aria-live="polite" className="mt-2 rounded-xl border border-lime-200/30 bg-emerald-700/20 px-4 py-3 text-sm font-bold text-lime-100">
                 ✨ {questionIndex+1===activePlan.questions.length?'Bölüm sonu kaydediliyor…':'Sıradaki hayvan keşfediliyor…'}
