@@ -31,7 +31,7 @@ export function ExplorerCanvas({
   const ambience=useRef<WorldAmbience|null>(null);
   const [ambienceOn,setAmbienceOn]=useState(false);
   const [reduced,setReduced]=useState(false);
-  const [hint,setHint]=useState('Bir dünyaya dokun!');
+  const [hint,setHint]=useState('Bir bölgeye dokun!');
   onInteractRef.current=onInteract;
   onInspectRef.current=onInspect;
   objectsRef.current=objects;
