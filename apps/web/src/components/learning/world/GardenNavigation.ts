@@ -6,7 +6,7 @@ import type {Point} from './worldLayout';
 export const GARDEN_ROAD_NODES={
  center:{x:675,y:647},
  bridge:{x:745,y:662},
- market:{x:598,y:565},
+ market:{x:598,y:566},
  meadowTurn:{x:466,y:486},
  meadowGate:{x:353,y:433},
  animals:{x:290,y:407},
