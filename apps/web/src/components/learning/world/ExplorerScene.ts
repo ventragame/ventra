@@ -25,6 +25,7 @@ export class ExplorerScene extends Phaser.Scene {
   private targetAnimations:Phaser.Tweens.Tween[]=[];
   private path:Point|null=null;
   private waypoints:Point[]=[];
+  private travelTrail?:Phaser.GameObjects.Graphics;
   private character?:Phaser.GameObjects.Image;
   private shadow?:Phaser.GameObjects.Ellipse;
   private gait=0;
@@ -76,6 +77,7 @@ export class ExplorerScene extends Phaser.Scene {
       if(this.area==='garden'){
         this.waypoints=planGardenTapRoute({x:this.player.x,y:this.player.y},position);
         this.path=this.waypoints.shift()??null;
+        this.paintTravelTrail();
       }else this.path=position;
     });
     if(this.input.keyboard){
@@ -85,6 +87,7 @@ export class ExplorerScene extends Phaser.Scene {
     }
     this.events.once(Phaser.Scenes.Events.SHUTDOWN,()=>{
       this.scale.off('resize',this.reframe,this);
+      this.clearTravelTrail();
       this.ready=false;
     });
     this.ready=true;
@@ -282,6 +285,7 @@ export class ExplorerScene extends Phaser.Scene {
   setTargets(targets:WorldObject[]):void {
     this.targets=targets;
     this.pendingTarget=null;this.path=null;this.waypoints=[];
+    this.clearTravelTrail();
     if(this.ready)this.drawTargets();
   }
   setCallbacks(onInteract:ActivityCallback,onInspect:ActivityCallback):void{
@@ -292,6 +296,41 @@ export class ExplorerScene extends Phaser.Scene {
     this.reducedMotion=reduced;
     if(reduced)this.tweens.pauseAll();
     else this.tweens.resumeAll();
+  }
+  private clearTravelTrail():void{
+    this.travelTrail?.destroy();
+    this.travelTrail=undefined;
+  }
+  private paintTravelTrail():void{
+    this.clearTravelTrail();
+    if(this.area!=='garden'||this.reducedMotion||!this.path)return;
+    const points=[{x:this.player.x,y:this.player.y},this.path,...this.waypoints];
+    const g=this.add.graphics().setDepth(4);
+    for(let k=1;k<points.length;k++){
+      const a=points[k-1],b=points[k];
+      const d=Math.hypot(b.x-a.x,b.y-a.y);
+      const count=Math.max(1,Math.floor(d/36));
+      for(let i=1;i<=count;i++){
+        const f=i/count,x=a.x+(b.x-a.x)*f,y=a.y+(b.y-a.y)*f;
+        g.fillStyle(0xffe7a2,.55);g.fillCircle(x,y,6);
+        g.fillStyle(0xffffff,.9);g.fillCircle(x,y,2);
+      }
+    }
+    this.travelTrail=g;
+  }
+  resetOverview():void{
+    if(this.area!=='garden')return;
+    this.pendingTarget=null;this.path=null;this.waypoints=[];
+    this.clearTravelTrail();
+    this.cameras.main.stopFollow();
+    const fit=Math.min(this.scale.width/WORLD_WIDTH,this.scale.height/WORLD_HEIGHT)*.965;
+    if(this.reducedMotion){
+      this.cameras.main.setZoom(fit);
+      this.cameras.main.centerOn(WORLD_WIDTH/2,WORLD_HEIGHT/2);
+    }else{
+      this.cameras.main.pan(WORLD_WIDTH/2,WORLD_HEIGHT/2,500,'Sine.easeInOut',true);
+      this.cameras.main.zoomTo(fit,500,'Sine.easeInOut',true);
+    }
   }
   goToObject(id:string):void {
     const object=this.targets.find(x=>x.id===id);
@@ -306,6 +345,7 @@ export class ExplorerScene extends Phaser.Scene {
       this.path=clampToWorld({x:object.x,y:object.y+76});
     }
     if(!this.path){this.pendingTarget=null;return;}
+    this.paintTravelTrail();
     if(this.area==='garden'&&!this.reducedMotion&&this.scale.width>=750){
       const fit=Math.min(this.scale.width/WORLD_WIDTH,this.scale.height/WORLD_HEIGHT)*.965;
       this.cameras.main.startFollow(this.player,true,.085,.085);
@@ -319,6 +359,7 @@ export class ExplorerScene extends Phaser.Scene {
     if(this.area==='garden'){
       this.waypoints=planGardenTapRoute({x:this.player.x,y:this.player.y},destination);
       this.path=this.waypoints.shift()??null;
+      this.paintTravelTrail();
     }else{this.waypoints=[];this.path=destination;}
   }
   update(_time:number,delta:number):void {
@@ -331,6 +372,7 @@ export class ExplorerScene extends Phaser.Scene {
     const movement=Math.hypot(dx,dy);
     if(movement>0){
       this.pendingTarget=null;this.path=null;this.waypoints=[];
+      this.clearTravelTrail();
       const from={x:this.player.x,y:this.player.y};
       const to={x:from.x+dx/movement*220,y:from.y+dy/movement*220};
       const next=walkTowards(from,to,delta);
@@ -348,6 +390,7 @@ export class ExplorerScene extends Phaser.Scene {
         this.player.setPosition(reached.x,reached.y);
         this.path=this.waypoints.shift()??null;
         if(this.path)return;
+        this.clearTravelTrail();
         const id=this.pendingTarget;
         this.pendingTarget=null;
         if(id){
