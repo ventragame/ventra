@@ -134,7 +134,7 @@ test('M1 premium Phaser world fits six landmarks on desktop and still follows ex
  const scene=fs.readFileSync(new URL('../src/components/learning/world/ExplorerScene.ts',import.meta.url),'utf8');
  const theme=fs.readFileSync(new URL('../src/components/learning/world/GardenWorldArt.ts',import.meta.url),'utf8');
  assert.match(scene,/const overview=w>=750&&height>=430/);
- assert.match(scene,/Math\.min\(w\/WORLD_WIDTH,height\/WORLD_HEIGHT\)/);
+ assert.match(scene,/Math\.max\(w\/WORLD_WIDTH,height\/WORLD_HEIGHT\)/);
  assert.match(scene,/this\.cameras\.main\.stopFollow\(\)/);
  assert.match(scene,/this\.cameras\.main\.startFollow\(this\.player/);
  assert.match(scene,/paintGardenWorld\(this\)/);

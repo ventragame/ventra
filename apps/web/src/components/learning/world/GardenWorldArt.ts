@@ -70,28 +70,24 @@ function gem(g:Phaser.GameObjects.Graphics,x:number,y:number,size:number,color:n
 /** Minimal depth-aware foreground ornaments over the premium world painting.
  * Illustration of each biome lives in map-ground.webp. Keeping these live
  * avoids baked-in progress labels and keeps hover/locked/complete states real. */
+/** Small light marker only. The continuous environment already supplies
+ * the building, region and ground: never draw another oval "island". */
 export function createGardenLandmark(scene:Phaser.Scene,object:WorldObject):Phaser.GameObjects.Container{
- const node=scene.add.container(0,-82);
- const g=scene.add.graphics();
+ const node=scene.add.container(0,-42);
+ const ready=object.unlocked!==false;
  const color=districtColors[object.id]??0xbde8d8;
- const done=(object.total??0)>0&&(object.completed??0)>=(object.total??0);
- g.fillStyle(0x19494a,.3);g.fillEllipse(0,37,110,32);
- g.fillStyle(0xffefc4,.9);g.fillEllipse(0,19,106,45);
- g.fillStyle(color,.9);g.fillEllipse(0,13,93,29);
- g.lineStyle(3,done?0xffe68f:0xffffff,.93);g.strokeEllipse(0,13,93,29);
- g.fillStyle(0xf9e7b9,.95);g.fillRoundedRect(-21,-24,42,44,13);
- g.lineStyle(3,0x417b72,.92);g.strokeRoundedRect(-21,-24,42,44,13);
- const icon=object.id==='sanctuary'?'✧':
-  object.id==='animals'?'✿':object.id==='family'?'⌂':
-  object.id==='colors'?'✦':object.id==='numbers'?'❖':'❀';
- const glyph=scene.add.text(0,-3,icon,{
-  fontFamily:'Arial, sans-serif',fontSize:'30px',fontStyle:'bold',color:'#264958',
-  stroke:'#fff7da',strokeThickness:1
+ const g=scene.add.graphics();
+ g.fillStyle(color,ready?.16:.07);g.fillCircle(0,0,30);
+ g.lineStyle(2,ready?0xffe9a9:0x8195aa,.75);g.strokeCircle(0,0,19);
+ node.add(g);
+ const symbol=object.id==='sanctuary'?'✦':object.id==='animals'?'🐾':
+  object.id==='family'?'⌂':object.id==='colors'?'✿':
+  object.id==='numbers'?'❖':'✺';
+ const badge=scene.add.text(0,0,object.unlocked===false?'🔒':symbol,{
+  fontFamily:'Arial, sans-serif',fontSize:'21px',fontStyle:'bold',
+  color:'#fff5ce',stroke:'#1b4656',strokeThickness:4
  }).setOrigin(.5);
- node.add([g,glyph]);
- if(done){
-  node.add(scene.add.text(35,-28,'★',{fontSize:'20px',color:'#ffdc7a'}).setOrigin(.5));
- }
+ node.add(badge);
  return node;
 }
 export function addGardenAmbient(scene:Phaser.Scene,reduced:boolean):void{

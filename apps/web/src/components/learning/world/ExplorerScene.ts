@@ -27,6 +27,8 @@ export class ExplorerScene extends Phaser.Scene {
   private waypoints:Point[]=[];
   private travelTrail?:Phaser.GameObjects.Graphics;
   private character?:Phaser.GameObjects.Image;
+  private leftBoot?:Phaser.GameObjects.Image;
+  private rightBoot?:Phaser.GameObjects.Image;
   private shadow?:Phaser.GameObjects.Ellipse;
   private gait=0;
   private facing8=4;
@@ -47,8 +49,13 @@ export class ExplorerScene extends Phaser.Scene {
   }
   preload():void {
     this.load.svg('p4_explorer','/assets/kids/explorer-avatar.svg',{width:150,height:175});
-    if(this.area==='garden')
-      this.load.image('garden_ground_v2','/assets/word-garden/premium-v2/map-ground.webp');
+    if(this.area==='garden'){
+      this.load.image('garden_ground_v3','/assets/word-garden/premium-v3/garden-ground.webp');
+      this.load.image('garden_canopy_v3','/assets/word-garden/premium-v3/foreground.webp');
+      this.load.svg('garden_avatar_torso','/assets/kids/explorer-avatar-torso.svg',{width:150,height:175});
+      this.load.svg('garden_avatar_leg_l','/assets/kids/explorer-avatar-left-leg.svg',{width:150,height:175});
+      this.load.svg('garden_avatar_leg_r','/assets/kids/explorer-avatar-right-leg.svg',{width:150,height:175});
+    }
     if(this.area==='meadow')for(const id of ANIMALS){
       this.load.svg('p4_'+id,`/assets/animals/premium/${id}.svg`,{width:116,height:116});
     }
@@ -57,9 +64,12 @@ export class ExplorerScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#83cfca');
     this.cameras.main.setBounds(0,0,WORLD_WIDTH,WORLD_HEIGHT);
     if(this.area==='garden'){
-      if(this.textures.exists('garden_ground_v2')){
-        this.add.image(WORLD_WIDTH/2,WORLD_HEIGHT/2,'garden_ground_v2')
-          .setDisplaySize(WORLD_WIDTH,WORLD_HEIGHT).setDepth(-10);
+      if(this.textures.exists('garden_ground_v3')){
+        this.add.image(WORLD_WIDTH/2,WORLD_HEIGHT/2,'garden_ground_v3')
+          .setDisplaySize(WORLD_WIDTH,WORLD_HEIGHT).setDepth(-20);
+        if(this.textures.exists('garden_canopy_v3'))
+          this.add.image(WORLD_WIDTH/2,WORLD_HEIGHT/2,'garden_canopy_v3')
+            .setDisplaySize(WORLD_WIDTH,WORLD_HEIGHT).setDepth(1200);
       }else paintGardenWorld(this);
     }else this.drawLandscape();
     this.bloomLayer=this.add.graphics().setDepth(2);
@@ -98,8 +108,9 @@ export class ExplorerScene extends Phaser.Scene {
     if(this.area==='garden'){
       // All six districts visible at once on desktop; follow the explorer on phones.
       const overview=w>=750&&height>=430;
-      const fit=Math.min(w/WORLD_WIDTH,height/WORLD_HEIGHT)*.965;
-      this.cameras.main.setZoom(overview?fit:Math.max(.45,Math.min(.85,w/740)));
+      // Cover the complete viewport: the old contain-fit exposed a cyan strip.
+      const fit=Math.max(w/WORLD_WIDTH,height/WORLD_HEIGHT)*1.009;
+      this.cameras.main.setZoom(overview?fit:Math.max(.56,Math.min(.90,w/690)));
       this.cameras.main.setBounds(0,0,WORLD_WIDTH,WORLD_HEIGHT);
       if(overview){this.cameras.main.stopFollow();this.cameras.main.centerOn(WORLD_WIDTH/2,WORLD_HEIGHT/2);}
       else this.cameras.main.startFollow(this.player,true,.13,.13);
@@ -160,10 +171,20 @@ export class ExplorerScene extends Phaser.Scene {
   private createExplorer():void {
     const start=PLAYER_START[this.area];
     this.player=this.add.container(start.x,start.y);
-    const shadow=this.add.ellipse(0,42,75,19,0x1d4540,.32);
-    const character=this.add.image(0,-8,'p4_explorer').setDisplaySize(108,125);
-    this.shadow=shadow;this.character=character;
-    this.player.add([shadow,character]);
+    const shadow=this.add.ellipse(0,42,77,18,0x0d3041,.34);
+    this.shadow=shadow;
+    this.player.add(shadow);
+    if(this.area==='garden'&&this.textures.exists('garden_avatar_torso')){
+      // Rigged original artwork: boots rotate individually, unlike the old
+      // single flat SVG which bobbed and slid along the map.
+      this.rightBoot=this.add.image(0,24,'garden_avatar_leg_r').setDisplaySize(108,126).setOrigin(.5,.75);
+      this.leftBoot=this.add.image(0,24,'garden_avatar_leg_l').setDisplaySize(108,126).setOrigin(.5,.75);
+      this.character=this.add.image(0,-8,'garden_avatar_torso').setDisplaySize(108,126);
+      this.player.add([this.rightBoot,this.leftBoot,this.character]);
+    }else{
+      this.character=this.add.image(0,-8,'p4_explorer').setDisplaySize(108,125);
+      this.player.add(this.character);
+    }
     this.player.setDepth(20);
     // Idle and walk offsets are managed by update(), avoiding competing tweens.
   }
@@ -171,6 +192,22 @@ export class ExplorerScene extends Phaser.Scene {
     if(!this.bloomLayer)return;
     const g=this.bloomLayer;g.clear();
     const count=Math.min(12,Math.max(0,this.bloomProgress));
+    if(this.area==='garden'){
+      // Small earned flowers along the meadow path, not random giant decals.
+      const positions=[
+        [382,451],[402,467],[428,485],[452,497],[479,505],[507,521],
+        [537,535],[563,551],[587,574],[613,598],[638,619],[660,639]
+      ];
+      for(const [x,y] of positions.slice(0,count)){
+        g.fillStyle(0xfff3ab,.25);g.fillCircle(x,y,15);
+        g.fillStyle(0xffd9ed,.94);
+        for(let t=0;t<5;t++){
+          const a=t*Math.PI*2/5;g.fillCircle(x+Math.cos(a)*6,y+Math.sin(a)*6,4);
+        }
+        g.fillStyle(0xffe298,1);g.fillCircle(x,y,3);
+      }
+      return;
+    }
     for(let i=0;i<count;i++){
       const x=135+(i%6)*216,y=475+Math.floor(i/6)*170;
       g.fillStyle(0xfff5bd,.2);g.fillCircle(x,y,31);
@@ -191,43 +228,45 @@ export class ExplorerScene extends Phaser.Scene {
     const node=this.add.container(object.x,object.y);
     const locked=object.unlocked===false;
     if(this.area==='garden'&&object.kind==='district'){
-      const art=createGardenLandmark(this,object);
-      node.add(art);
+      // Native interactive state over a single cohesive illustration. No
+      // duplicated cut-out photos, oval portals or baked-in score badges.
+      const ornament=createGardenLandmark(this,object);
+      node.add(ornament);
+      const n=Math.max(0,object.completed??0),total=Math.max(1,object.total??1);
+      const stage=locked?'🔒':n>=total?'✓':'▶';
       const plate=this.add.graphics();
-      plate.fillStyle(0x183e52,.9);plate.fillRoundedRect(-104,55,208,65,14);
-      plate.lineStyle(2,locked?0x94aab0:0xf6e3ab,.95);plate.strokeRoundedRect(-104,55,208,65,14);
-      node.add(plate);
-      const title=this.add.text(0,69,object.label,{
-        fontFamily:'Arial, sans-serif',fontStyle:'bold',fontSize:'20px',color:'#fff7e8',
-        align:'center'
-      }).setOrigin(.5);
-      const n=object.completed??0,total=Math.max(1,object.total??1);
-      const subtitle=locked?'🔒 KİLİTLİ':n>=total?'★ TAMAMLANDI':n>0?`${n}/${total} · DEVAM ET`:'✦ KEŞFET';
-      const status=this.add.text(0,96,subtitle,{
-        fontFamily:'Arial, sans-serif',fontStyle:'bold',fontSize:'14px',
-        color:locked?'#d6d5df':n>=total?'#ffe7a2':'#bdf5d3'
-      }).setOrigin(.5);
-      node.add([title,status]);
+      plate.fillStyle(0x102d4c,.91);plate.fillRoundedRect(-91,14,182,55,13);
+      plate.lineStyle(2,locked?0x9aabb4:0xffe1a0,.93);plate.strokeRoundedRect(-91,14,182,55,13);
+      plate.fillStyle(0x274b5b,.96);plate.fillRoundedRect(-72,62,144,3,2);
       if(n>0){
-        const progress=this.add.graphics();
-        progress.fillStyle(0x244052,1);progress.fillRoundedRect(-80,111,160,4,2);
-        progress.fillStyle(0xf6d589,1);progress.fillRoundedRect(-80,111,Math.max(3,160*Math.min(1,n/total)),4,2);
-        node.add(progress);
+        plate.fillStyle(0xffd776,.98);
+        plate.fillRoundedRect(-72,62,Math.max(2,144*Math.min(1,n/total)),3,2);
       }
-      const hit=this.add.rectangle(0,-25,212,310,0xffffff,.001).setInteractive({useHandCursor:true});
+      node.add(plate);
+      const label=this.add.text(0,30,object.label,{
+        fontFamily:'Arial, sans-serif',fontStyle:'bold',fontSize:'17px',
+        color:locked?'#dce5e8':'#fff9e6',align:'center'
+      }).setOrigin(.5);
+      const state=locked?'KİLİTLİ':n>=total?'TAMAMLANDI':n>0?`${n}/${total} · DEVAM`:'OYNA';
+      const meta=this.add.text(0,50,`${stage} ${state}`,{
+        fontFamily:'Arial, sans-serif',fontStyle:'bold',fontSize:'12px',
+        color:locked?'#d4dbe4':'#ffe9a6',align:'center'
+      }).setOrigin(.5);
+      node.add([label,meta]);
+      const hit=this.add.rectangle(0,-12,194,144,0xffffff,.001)
+        .setInteractive({useHandCursor:true});
       node.add(hit);
       hit.on('pointerover',()=>{
-        if(this.reducedMotion)return;
-        this.tweens.add({targets:node,scale:1.055,duration:170,ease:'Sine.easeOut'});
+        if(!this.reducedMotion)this.tweens.add({targets:node,scale:1.045,duration:160});
       });
       hit.on('pointerout',()=>{
-        if(this.reducedMotion){node.setScale(1);return;}
-        this.tweens.add({targets:node,scale:1,duration:160,ease:'Sine.easeOut'});
+        if(!this.reducedMotion)this.tweens.add({targets:node,scale:1,duration:170});
+        else node.setScale(1);
       });
       hit.on('pointerdown',(_pointer:Phaser.Input.Pointer,_x:number,_y:number,event:any)=>{
         event?.stopPropagation?.();this.goToObject(object.id);
       });
-      node.setDepth(Math.round(object.y));
+      node.setDepth(Math.round(object.y)+18);
       return node;
     }
     const marker=this.add.graphics();
@@ -323,7 +362,7 @@ export class ExplorerScene extends Phaser.Scene {
     this.pendingTarget=null;this.path=null;this.waypoints=[];
     this.clearTravelTrail();
     this.cameras.main.stopFollow();
-    const fit=Math.min(this.scale.width/WORLD_WIDTH,this.scale.height/WORLD_HEIGHT)*.965;
+    const fit=Math.max(this.scale.width/WORLD_WIDTH,this.scale.height/WORLD_HEIGHT)*1.009;
     if(this.reducedMotion){
       this.cameras.main.setZoom(fit);
       this.cameras.main.centerOn(WORLD_WIDTH/2,WORLD_HEIGHT/2);
@@ -416,12 +455,21 @@ export class ExplorerScene extends Phaser.Scene {
       }
       if(Math.hypot(faceX,faceY)>1e-3){
         this.facing8=(Math.round((Math.atan2(faceY,faceX)+Math.PI/2)/(Math.PI/4))+8)%8;
-        if(Math.abs(faceX)>3)this.character.setFlipX(faceX<0);
+        if(Math.abs(faceX)>3){
+          this.character.setFlipX(faceX<0);
+          this.leftBoot?.setFlipX(faceX<0);
+          this.rightBoot?.setFlipX(faceX<0);
+        }
       }
       if(!this.reducedMotion)this.gait+=Math.min(delta,65)*(walking?.017:.0022);
       this.character.y=-8-(this.reducedMotion?0:walking?Math.abs(Math.sin(this.gait))*5:Math.sin(this.gait)*1.6);
       this.character.angle=walking&&!this.reducedMotion?Math.sin(this.gait)*2.6:0;
       this.character.setScale(this.facing8%2===1?.97:1,walking?.985:1);
+      if(this.leftBoot&&this.rightBoot){
+        const swing=walking&&!this.reducedMotion?Math.sin(this.gait)*10:0;
+        this.leftBoot.setAngle(swing);
+        this.rightBoot.setAngle(-swing);
+      }
       if(this.shadow)this.shadow.setScale(walking?1.08:1,1);
     }
     this.player.setDepth(Math.round(this.player.y));

@@ -6,7 +6,7 @@ import {GARDEN_ROAD_NODES,GARDEN_ROAD_EDGES,GARDEN_DESTINATION_NODES,
  closestRoadPoint,isGardenWalkable,planGardenRoute,planGardenTapRoute} from '../src/components/learning/world/GardenNavigation.ts';
 
 test('All six locations are connected to a deterministic playable road graph',()=>{
- assert.equal(GARDEN_ROAD_EDGES.length,8);
+ assert.equal(GARDEN_ROAD_EDGES.length,15);
  assert.equal(Object.keys(GARDEN_DESTINATION_NODES).length,6);
  for(const district of DISTRICTS){
   const path=planGardenRoute(PLAYER_START.garden,district.id,district);
@@ -25,6 +25,8 @@ test('Tap and controls project onto paths, never walk through ponds or out of bo
  assert.ok(tap.length>0);
  assert.ok(closestRoadPoint(tap.at(-1)).distance<1);
  assert.deepEqual(planGardenTapRoute(PLAYER_START.garden,GARDEN_ROAD_NODES.center),[]);
+ assert.ok(isGardenWalkable({x:505,y:280}));
+ assert.equal(isGardenWalkable({x:1260,y:100}),false);
 });
 test('The map scene routes touch travel, keeps callbacks and honors reduced motion',()=>{
  const scene=fs.readFileSync(new URL('../src/components/learning/world/ExplorerScene.ts',import.meta.url),'utf8');
@@ -35,7 +37,11 @@ test('The map scene routes touch travel, keeps callbacks and honors reduced moti
  assert.match(scene,/pendingTarget/);
  assert.match(scene,/onInteract\(object\)/);
  assert.match(scene,/onInspect\(object\)/);
- assert.match(scene,/this\.reducedMotion/);
+ assert.match(scene,/this.reducedMotion/);
+ assert.match(scene,/garden_ground_v3/);
+ assert.match(scene,/this.leftBoot.setAngle/);
+ assert.match(scene,/const fit=Math.max/);
+ assert.doesNotMatch(scene,/fillEllipse\(-104,55,208,65/);
  assert.match(canvas,/aria-label="Yön kontrolleri"/);
  assert.match(canvas,/aria-pressed=\{ambienceOn\}/);
 });

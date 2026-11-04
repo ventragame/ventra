@@ -4,21 +4,36 @@
 import type {Point} from './worldLayout';
 
 export const GARDEN_ROAD_NODES={
- center:{x:700,y:484},west:{x:365,y:432},sanctuary:{x:260,y:190},
- numbers:{x:715,y:194},colors:{x:1080,y:470},
- food:{x:1100,y:744},family:{x:660,y:789}
+ center:{x:675,y:647},
+ bridge:{x:745,y:662},
+ market:{x:598,y:565},
+ meadowTurn:{x:466,y:486},
+ meadowGate:{x:353,y:433},
+ animals:{x:290,y:407},
+ colorsFork:{x:531,y:419},
+ colors:{x:505,y:280},
+ numberFork:{x:717,y:449},
+ numbers:{x:826,y:358},
+ templeBridge:{x:972,y:336},
+ sanctuary:{x:1150,y:246},
+ familyBridge:{x:878,y:642},
+ family:{x:1130,y:651}
 } as const;
 export type RoadNodeId=keyof typeof GARDEN_ROAD_NODES;
 export const GARDEN_ROAD_EDGES:readonly (readonly [RoadNodeId,RoadNodeId])[]=[
- ['center','west'],['west','sanctuary'],['center','numbers'],
- ['center','colors'],['center','food'],['center','family'],
- ['west','family'],['colors','food']
+ ['center','market'],['center','bridge'],['market','meadowTurn'],
+ ['meadowTurn','meadowGate'],['meadowGate','animals'],
+ ['meadowTurn','colorsFork'],['colorsFork','colors'],
+ ['market','numberFork'],['numberFork','numbers'],
+ ['numbers','templeBridge'],['templeBridge','sanctuary'],
+ ['bridge','familyBridge'],['familyBridge','family'],
+ ['market','colorsFork'],['bridge','numberFork']
 ];
 export const GARDEN_DESTINATION_NODES:Record<string,RoadNodeId>={
- animals:'west',colors:'colors',numbers:'numbers',
- food:'food',family:'family',sanctuary:'sanctuary'
+ animals:'animals',colors:'colors',numbers:'numbers',
+ food:'market',family:'family',sanctuary:'sanctuary'
 };
-export const ROAD_CLEARANCE=58;
+export const ROAD_CLEARANCE=55;
 const dist=(a:Point,b:Point)=>Math.hypot(a.x-b.x,a.y-b.y);
 export function closestRoadPoint(point:Point):{point:Point;distance:number;from:RoadNodeId;to:RoadNodeId}{
  let best:{point:Point;distance:number;from:RoadNodeId;to:RoadNodeId}|null=null;
@@ -35,7 +50,7 @@ export function closestRoadPoint(point:Point):{point:Point;distance:number;from:
 }
 export function isGardenWalkable(point:Point):boolean {
  if(!Number.isFinite(point.x)||!Number.isFinite(point.y))return false;
- if(point.x<58||point.y<52||point.x>1342||point.y>888)return false;
+ if(point.x<55||point.y<65||point.x>1345||point.y>880)return false;
  if(closestRoadPoint(point).distance<=ROAD_CLEARANCE)return true;
  // Each image portal has a small reachable forecourt; never walk into its centre.
  return Object.values(GARDEN_ROAD_NODES).some(node=>dist(node,point)<95);

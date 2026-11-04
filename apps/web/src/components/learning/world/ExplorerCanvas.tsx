@@ -31,7 +31,7 @@ export function ExplorerCanvas({
   const ambience=useRef<WorldAmbience|null>(null);
   const [ambienceOn,setAmbienceOn]=useState(false);
   const [reduced,setReduced]=useState(false);
-  const [hint,setHint]=useState('Yolculuğa başlamak için bir bölgeye dokun.');
+  const [hint,setHint]=useState('Bir dünyaya dokun!');
   onInteractRef.current=onInteract;
   onInspectRef.current=onInspect;
   objectsRef.current=objects;
@@ -161,7 +161,7 @@ export function ExplorerCanvas({
     <div ref={host} aria-hidden="true" className="absolute inset-0 overflow-hidden"
       style={{touchAction:'none',userSelect:'none'}}/>
     <div className="pointer-events-none absolute left-3 top-3 rounded-xl border border-[#fff4db]/70 bg-[#163b55]/90 px-3 py-2 text-[10px] font-extrabold tracking-wide text-white shadow-lg sm:text-xs">
-      🧭 {caption??(area==='garden'?'Keşif Haritası':'Hayvan Dostları')}
+      🧭 {area==='garden'?'Keşfet':(caption??'Hayvan Dostları')}
     </div>
     {area==='garden'&&<button type="button" onClick={showAll}
       aria-label="Altı dünyanın tamamını haritada göster" title="Haritanın tamamı"
@@ -179,7 +179,7 @@ export function ExplorerCanvas({
       </div>
     </div>
     {debugFps!==null && <div className="pointer-events-none absolute left-3 bottom-20 rounded-lg bg-black/70 px-2 py-1 text-xs font-black text-lime-100">FPS {debugFps.current} · Ort. {debugFps.average} ({debugFps.samples})</div>}
-    <div aria-label="Yön kontrolleri" className="absolute bottom-3 right-3 grid grid-cols-3 gap-1.5" style={{touchAction:'manipulation'}}>
+    <div aria-label="Yön kontrolleri" className="absolute bottom-3 right-3 grid grid-cols-3 gap-1.5 sm:hidden" style={{touchAction:'manipulation'}}>
       <span/><button type="button" onClick={()=>move(0,-1)} aria-label="Yukarı yürü" className="min-h-11 min-w-11 rounded-xl border border-white/70 bg-[#fff7d7]/95 font-black text-emerald-950 shadow-lg">↑</button><span/>
       <button type="button" onClick={()=>move(-1,0)} aria-label="Sola yürü" className="min-h-11 min-w-11 rounded-xl border border-white/70 bg-[#fff7d7]/95 font-black text-emerald-950 shadow-lg">←</button>
       <span className="pointer-events-none flex items-center justify-center text-white">●</span>
