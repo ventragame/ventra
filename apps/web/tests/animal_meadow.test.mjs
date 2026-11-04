@@ -152,7 +152,7 @@ test('Animal Meadow uses one accessible visual stage for every mission on every 
  assert.match(stage,/onSelect\?\.\(animal.id\)/);
  assert.match(stage,/aria-pressed=\{isDiscovery\?known:right\}/);
  assert.match(stage,/target.image/);
- assert.match(stage,/noAudioMode&&isListening/);
+ assert.match(stage,/noAudioMode&&target/);
  assert.match(stage,/data-rescued=\{isRescue&&right\}/);
  assert.match(css,/overflow:hidden!important/);
  assert.match(css,/object-fit:contain!important/);
