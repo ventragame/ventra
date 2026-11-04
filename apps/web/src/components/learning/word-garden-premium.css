@@ -19,11 +19,13 @@
 .wg-passport-label{font-size:11px}
 .wg-help-toggle{width:46px;padding:0;border-radius:50%;font-size:22px;color:#fdf3c8;background:#215968}
 .wg-back:not(:disabled):hover,.wg-help-toggle:hover,.wg-passport:hover{filter:brightness(1.15)}
-.wg-play-strip{display:flex;align-items:center;gap:18px;margin:15px 0;padding:13px 18px;border:1px solid #e6f3cd71;border-radius:24px;background:linear-gradient(100deg,#205b57,#2f726d 61%,#22556b);box-shadow:0 12px 38px #062e3466}
+.wg-play-strip{display:flex;align-items:center;gap:18px;min-height:175px;margin:15px 0;padding:23px 24px;border:1px solid #e6f3cd71;border-radius:24px;
+ background-image:linear-gradient(90deg,#072e3ff2 0%,#17464edb 36%,#163b4eb0 71%,#113e4a75 100%),url('/assets/word-garden/premium-v2/cover.webp');
+ background-size:cover;background-position:center 52%;box-shadow:0 12px 38px #062e3466;overflow:hidden}
 .wg-strip-heading{display:flex;gap:12px;align-items:center;flex:1;min-width:0}
 .wg-strip-flower{font-size:clamp(34px,4vw,55px);filter:drop-shadow(0 5px 2px #0b413890)}
-.wg-strip-heading small{font-size:10px;font-weight:1000;letter-spacing:.13em;color:#ecdc9f}
-.wg-strip-heading h2{font-size:clamp(19px,2.8vw,29px);font-weight:1000;line-height:1.15;letter-spacing:-.035em}
+.wg-strip-heading small{text-shadow:0 2px 8px #082c3c;font-size:10px;font-weight:1000;letter-spacing:.13em;color:#ecdc9f}
+.wg-strip-heading h2{text-shadow:0 2px 12px #082c3cd0;font-size:clamp(19px,2.8vw,29px);font-weight:1000;line-height:1.15;letter-spacing:-.035em}
 .wg-strip-progress{display:flex;align-items:center;gap:9px;min-width:145px}
 .wg-strip-track{width:110px;height:12px;border-radius:999px;background:#092c3566;border:1px solid #d3f3dc7d;overflow:hidden}
 .wg-strip-track span{display:block;height:100%;border-radius:999px;background:linear-gradient(90deg,#a7f0ca,#f8efad);transition:width .3s ease}
@@ -45,7 +47,13 @@
 .wg-world-card:not(:disabled):hover{transform:translateY(-3px);box-shadow:0 11px 0 #082b3766,0 18px 32px #0718279f}
 .wg-card-disabled{opacity:.64;cursor:not-allowed;filter:saturate(.65)}
 .wg-card-top{position:relative;overflow:hidden;height:150px;background:var(--wg-light)}
-.wg-card-artwork{display:block;width:100%;height:100%}
+.wg-card-media{display:block;width:100%;height:100%;overflow:hidden;background:#30676b}
+.wg-card-artwork{display:block;width:100%;height:100%;object-fit:cover;object-position:center 49%;
+ filter:saturate(1.05) contrast(1.02);transition:transform .4s ease,filter .4s ease}
+.wg-world-card:not(:disabled):hover .wg-card-artwork{transform:scale(1.05);filter:saturate(1.12) contrast(1.02)}
+.wg-card-top::after{content:'';position:absolute;inset:43% 0 0;pointer-events:none;
+ background:linear-gradient(180deg,transparent,#0b344b33 65%,#0b344b61);z-index:0}
+.wg-card-top>.wg-card-index,.wg-card-top>.wg-card-status,.wg-card-top>.wg-card-art-icon{z-index:1}
 .wg-card-index,.wg-card-status{position:absolute;top:9px;display:grid;place-items:center;min-height:29px;border:1px solid #fff7de;border-radius:10px;background:#153f4cd9;color:#fff9df;box-shadow:0 2px 7px #082f355b}
 .wg-card-index{left:10px;width:32px;font-size:11px;font-weight:1000}
 .wg-card-status{right:10px;min-width:33px;padding:3px 8px;font-size:17px;font-weight:1000}
@@ -79,13 +87,15 @@
  .wg-hud-crest{width:37px;height:37px;font-size:22px}.wg-hud-identity strong{font-size:15px}
  .wg-hud-identity small{font-size:10px}.wg-hud-chip{padding:6px 8px;min-height:42px}
  .wg-hud-items{gap:5px}.wg-help-toggle{width:43px;min-height:43px}
- .wg-play-strip{padding:10px;gap:9px;flex-wrap:wrap;margin:10px 0}
+ .wg-play-strip{padding:16px 12px;gap:9px;flex-wrap:wrap;margin:10px 0;min-height:185px;
+ background-image:linear-gradient(90deg,#092e3fe8,#113b4ebb 75%,#14374ca6),url('/assets/word-garden/premium-v2/cover_mobile.webp');
+ background-position:center 48%}
  .wg-strip-heading{flex-basis:55%;gap:7px}.wg-strip-flower{font-size:32px}
  .wg-strip-heading small{font-size:8px;letter-spacing:.08em}.wg-strip-heading h2{font-size:17px}
  .wg-strip-progress{min-width:0;flex:1;gap:6px}.wg-strip-track{width:60px;height:10px}.wg-strip-progress strong{font-size:12px}
  .wg-hero-primary{width:100%;min-height:47px;font-size:16px}
  .wg-main-map{padding:7px;border-radius:20px}.wg-map-heading{padding:5px 6px 9px}
- .wg-world-grid{gap:8px}.wg-card-top{height:112px}.wg-card-art-icon{width:36px;height:36px;font-size:19px;right:5px}
+ .wg-world-grid{gap:8px}.wg-card-top{height:135px}.wg-card-art-icon{width:36px;height:36px;font-size:19px;right:5px}
  .wg-card-body{padding:9px 10px 10px}.wg-card-body h3{font-size:15px}
  .wg-card-index{width:25px;min-height:25px;font-size:10px;left:5px;top:5px}
  .wg-card-status{font-size:13px;min-height:25px;min-width:26px;padding:2px 5px;right:5px;top:5px}
@@ -95,3 +105,10 @@
 }
 @media(max-width:360px){.wg-hud-identity small{display:none}.wg-passport-label{display:none}.wg-card-top{height:100px}}
 @media(prefers-reduced-motion:reduce){.wg-world-card,.wg-card-progress>span,.wg-strip-track>span{transition:none}.wg-world-card:hover,.wg-hero-primary:hover{transform:none}.wg-sky-orb{filter:none}}
+
+/* Keep full-color illustrations for locked worlds: the padlock conveys state.
+   Reduced motion disables optional hover zoom, preserving accessibility. */
+@media(prefers-reduced-motion:reduce){
+ .wg-card-artwork{transition:none!important}
+ .wg-world-card:not(:disabled):hover .wg-card-artwork{transform:none}
+}
