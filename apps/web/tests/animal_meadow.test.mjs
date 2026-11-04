@@ -1,8 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import { ANIMAL_MEADOW_WORDS, findAnimal, planAnimalMission, getWeakAnimalIds, getAnimalPrompt, animalCommandFor } from '../src/lib/learning/animalMissionEngine.ts';
+import { ANIMAL_MEADOW_WORDS, findAnimal, planAnimalMission, getWeakAnimalIds, getAnimalPrompt, animalCommandFor, animalRescueCommandFor } from '../src/lib/learning/animalMissionEngine.ts';
 import { MemoryProgressRepository } from '../src/lib/progress/MemoryProgressRepository.ts';
-import { resolveRescueChoice } from '../src/lib/learning/animalRescueEngine.ts';
 import fs from 'node:fs';
 import path from 'node:path';
 import { getWordGardenProgress, saveWordGardenLevelCompletion } from '../src/lib/progress/wordGardenProgress.ts';
@@ -88,7 +87,7 @@ test('Animal Meadow full five-stage save, profile isolation, accurate stars and 
     const answers=mission===1
       ? plan.animals.map(id=>evidence(id))
       : plan.questions.map((q,i)=>evidence(q.target,
-          mission===2?'recognition':mission===3?'listening':mission===4?'command':'habitat',
+          mission===2?'recognition':mission===3?'listening':'command',
           mission===2&&i===0?2:0,new Date(Date.parse('2026-11-01T10:00:00Z')+mission*100000+i*1000).toISOString()));
     const wrong=mission===2?2:0;
     const stars=wrong?2:3;
@@ -138,46 +137,46 @@ test('All forty illustrated characters exist and are self-contained safe SVGs',(
     assert.match(svg, /aria-label="[a-z]+"/, 'accessible asset label');
   }
 });
-test('Two-step animal rescue cannot award a star after only identifying the animal',()=>{
-  for(const target of ANIMAL_MEADOW_WORDS.map(x=>x.id)){
-    const wrong=ANIMAL_MEADOW_WORDS.find(x=>x.id!==target).id;
-    assert.deepEqual(resolveRescueChoice({phase:'find',selected:wrong,target}),
-      {phase:'find',outcome:'wrong',complete:false});
-    assert.deepEqual(resolveRescueChoice({phase:'find',selected:target,target}),
-      {phase:'home',outcome:'found',complete:false});
-    assert.deepEqual(resolveRescueChoice({phase:'home',selected:wrong,target}),
-      {phase:'home',outcome:'wrong',complete:false});
-    assert.deepEqual(resolveRescueChoice({phase:'home',selected:target,target}),
-      {phase:'done',outcome:'rescued',complete:true});
-    assert.deepEqual(resolveRescueChoice({phase:'done',selected:target,target}),
-      {phase:'done',outcome:'ignore',complete:true});
-  }
-});
-
-test('Mobile-first Meadow has separate real touch scene and retains desktop Phaser instead of web-panel duplication',()=>{
+test('Animal Meadow uses one accessible visual stage for every mission on every screen',()=>{
  const view=fs.readFileSync(new URL('../src/components/learning/activities/AnimalMeadowAdventure.tsx',import.meta.url),'utf8');
- const mobile=fs.readFileSync(new URL('../src/components/learning/activities/MobileMeadowWorld.tsx',import.meta.url),'utf8');
+ const stage=fs.readFileSync(new URL('../src/components/learning/activities/MeadowPlayStage.tsx',import.meta.url),'utf8');
  const css=fs.readFileSync(new URL('../src/components/learning/activities/animal-meadow.css',import.meta.url),'utf8');
- assert.match(view,/window\.matchMedia\('\(max-width:767px\)'\)/);
- assert.match(view,/<MobileMeadowWorld objects=\{worldObjects\} discovery/);
- assert.match(view,/mobile\?<MobileMeadowWorld objects=\{worldObjects\}/);
- assert.match(view,/<ExplorerCanvas/);
- assert.match(view,/onInteract=\{onWorldInteract\}/);
- assert.match(view,/am-story-guide/);
- assert.match(view,/am-missions/);
- assert.match(view,/am-task-title/);
- assert.match(view,/am-compact-details/);
- assert.match(view,/awaiting\s*&&\s*id===target\.id/);
- assert.match(mobile,/word\.image/);
- assert.match(mobile,/onInteract\(object\)/);
- assert.match(mobile,/aria-pressed=\{done\|\|correct\}/);
- assert.match(mobile,/HOME_ICONS\[word\.place\]/);
- assert.match(mobile,/aria-label=\{habitatMode\?/);
- assert.match(css,/word_garden_mobile\.webp/);
+ assert.doesNotMatch(view,/ExplorerCanvas|MobileMeadowWorld|worldObjects|getHabitatObjects|rescueSelected|resolveRescueChoice|chooseHabitat/);
+ assert.match(view,/MeadowPlayStage mode="discover"/);
+ assert.match(view,/mode=\{stage===2\?'match':stage===3\?'listen':stage===4\?'command':'rescue'\}/);
+ assert.match(view,/onSelect=\{choose\}/);
+ assert.match(view,/useAutoQuestionAdvance\(/);
+ assert.match(view,/setTextMode\(true\);setAssisted\(true\)/);
+ assert.match(view,/kind=stage===2\?'recognition':stage===3\?'listening':'command'/);
+ assert.match(view,/if\(stage===1&&activePlan&&discovered.length===activePlan.animals.length/);
+ assert.match(stage,/role="group"/);
+ assert.match(stage,/onSelect\?\.\(animal.id\)/);
+ assert.match(stage,/aria-pressed=\{isDiscovery\?found:right\}/);
+ assert.match(stage,/target.image/);
+ assert.match(stage,/noAudioMode&&isListening/);
+ assert.match(stage,/data-rescued=\{isRescue&&right\}/);
+ assert.match(css,/assets\/word-garden\/premium-v2\/animals.webp/);
  assert.match(css,/@media\(max-width:767px\)/);
  assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
- assert.match(css,/env\(safe-area-inset-bottom/);
  assert.match(css,/focus-visible/);
+ assert.match(css,/touch-action:manipulation/);
+ assert.match(css,/safe-area-inset-bottom/);
+});
+test('Single-choice rescue measures English command recognition, not a second habitat quiz',()=>{
+ for(const level of ['Pre-A1','A1','A2']){
+  const word=findAnimal('cow');
+  const command=animalRescueCommandFor(word,level,4);
+  assert.match(command,/cow/);
+  assert.ok(!command.includes(word.habitat));
+ }
+ assert.equal(animalRescueCommandFor(findAnimal('cow'),'Pre-A1',1),'Help the cow!');
+ assert.equal(animalRescueCommandFor(findAnimal('cow'),'A1',4),'Can you help the cow?');
+ assert.equal(animalRescueCommandFor(findAnimal('cow'),'A2',6),'Please help the cow get home!');
+ const prompt=getAnimalPrompt(5,findAnimal('duck'),'Pre-A1');
+ assert.match(prompt.title,/Help the duck!/);
+ const view=fs.readFileSync(new URL('../src/components/learning/activities/AnimalMeadowAdventure.tsx',import.meta.url),'utf8');
+ assert.doesNotMatch(view,/Şimdi doğru yuvayı seç|YUVASINI BUL|Find its home/);
+ assert.match(view,/setAwaiting\(true\)/);
 });
 test('Animal spoken commands honor actual English placement and use short child-appropriate language',()=>{
  const word=findAnimal('elephant');
@@ -188,15 +187,15 @@ test('Animal spoken commands honor actual English placement and use short child-
  assert.equal(animalCommandFor(word,'A2',1),'Find the elephant, please.');
  assert.equal(animalCommandFor(word,'A2',7),'Please find the elephant in the meadow.');
 });
-test('Mobile scene objects preserve answer IDs, including the distinct two-phase habitat rescue',async()=>{
- const {getAnimalObjects,getHabitatObjects}=await import('../src/components/learning/world/worldLayout.ts');
- const ids=['rabbit','cow','fish'];
- const objects=getAnimalObjects(ids,id=>findAnimal(id).image);
- assert.deepEqual(objects.map(o=>o.id),ids);
- assert.ok(objects.every(o=>o.kind==='animal'&&o.image?.endsWith('.svg')));
- const homes=getHabitatObjects(ids,id=>findAnimal(id).habitat);
- assert.deepEqual(homes.map(o=>o.id),ids);
- assert.ok(homes.every(o=>o.kind==='habitat'&&o.label));
- assert.equal(resolveRescueChoice({phase:'find',selected:'rabbit',target:'rabbit'}).phase,'home');
- assert.equal(resolveRescueChoice({phase:'home',selected:'rabbit',target:'rabbit'}).complete,true);
+test('Visual answer IDs and pre-answer disclosure are pedagogically safe',()=>{
+ const stage=fs.readFileSync(new URL('../src/components/learning/activities/MeadowPlayStage.tsx',import.meta.url),'utf8');
+ assert.match(stage,/isMatch\?animal.id\+' İngilizce kelimesini seç'/);
+ assert.match(stage,/showImage=!isMatch/);
+ assert.match(stage,/isDiscovery&&found/);
+ assert.match(stage,/right\?<span className="am-v2-animal-name/);
+ assert.match(stage,/animals.map\(\(animal,i\)=>/);
+ assert.match(stage,/className="am-v2-hero-sound"/);
+ const plan=planAnimalMission({mission:5,history:starters,seed:123});
+ assert.ok(plan.questions.every(q=>q.choices.includes(q.target)));
+ assert.equal(plan.questions.length,6);
 });
