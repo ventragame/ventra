@@ -263,7 +263,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
             className="nv-control min-h-12 rounded-xl px-3">{muted?'🔇':'🔊'}</button>
         </div>
       </header>
-      <div className="py-6 text-center sm:py-9">
+      <div className="nv-stage-intro py-6 text-center sm:py-9">
         <p className="text-xs font-black uppercase tracking-[.23em] text-cyan-200">VENTRA KIDS · SAYI VADİSİ · BÖLÜM {stage}/5</p>
         <h1 ref={heading} tabIndex={-1} className="mt-3 text-3xl font-black tracking-tight outline-none sm:text-5xl">
           {CHAPTERS[stage-1].icon} {CHAPTERS[stage-1].title}

@@ -35,4 +35,10 @@ test('art is responsive and decorative without changing learning or accessibilit
  assert.match(css,/premium-v2\/cover_mobile\.webp/);
  assert.match(css,/object-fit:cover/);
  assert.match(css,/prefers-reduced-motion:reduce/);
+ const worldArt=fs.readFileSync(path.resolve(here,'../src/components/learning/word-garden-world-art.css'),'utf8');
+ for(const id of names)assert.match(worldArt,new RegExp('premium-v2/'+id+'\\.webp'));
+ assert.match(worldArt,/@media\\(min-width:768px\\)/);
+ assert.match(worldArt,/linear-gradient/);
+ assert.match(worldArt,/@media\\(max-width:767px\\)/);
+ assert.match(fs.readFileSync(path.resolve(here,'../src/components/learning/LearningPathModal.tsx'),'utf8'),/word-garden-world-art\\.css/);
 });

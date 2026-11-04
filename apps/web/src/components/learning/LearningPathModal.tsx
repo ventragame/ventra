@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { WordGardenDistrictMap } from './WordGardenDistrictMap';
+import './word-garden-world-art.css';
 import {soundService} from '@/lib/audio/SoundService';
 import {musicSceneForDistrict} from '@/lib/audio/MusicDirector';
 import {FirstPlayGuide} from './FirstPlayGuide';

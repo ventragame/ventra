@@ -1,0 +1,50 @@
+/* Premium Word Garden v2 — six coordinated lesson-header backdrops.
+   The actual teaching scenes retain their own interaction art and layout.
+   On smaller screens the picture is omitted to prioritize playable area. */
+@media(min-width:768px){
+ .am-intro,.cg-stage-intro,.nv-root .nv-stage-intro,
+ .fm-header,.fv-top,.tp-header{
+   border:1px solid #f7efd16b;
+   border-radius:22px;
+   min-height:108px;
+   padding:17px 20px!important;
+   box-shadow:0 9px 30px #041c2f65;
+   background-size:cover;
+   background-position:center 49%;
+   background-repeat:no-repeat;
+   isolation:isolate;
+   overflow:visible;
+ }
+ .am-intro{
+   background-image:linear-gradient(90deg,#082d3bea,#0a3944b9),url('/assets/word-garden/premium-v2/animals.webp');
+ }
+ .cg-stage-intro{
+   background-image:linear-gradient(90deg,#172844ed,#25394da8),url('/assets/word-garden/premium-v2/colors.webp');
+ }
+ .nv-root .nv-stage-intro{
+   background-image:linear-gradient(90deg,#081f42ed,#203e63b4),url('/assets/word-garden/premium-v2/numbers.webp');
+ }
+ .fm-header{
+   background-image:linear-gradient(90deg,#2a1d29ed,#422e36b8),url('/assets/word-garden/premium-v2/food.webp');
+ }
+ .fv-top{
+   background-image:linear-gradient(90deg,#2c2344ed,#3c3550b8),url('/assets/word-garden/premium-v2/family.webp');
+ }
+ .tp-header{
+   background-image:linear-gradient(90deg,#16243eed,#39324cb8),url('/assets/word-garden/premium-v2/sanctuary.webp');
+ }
+ .am-intro h1,.cg-stage-intro h1,.nv-stage-intro h1,
+ .fm-brand h1,.fv-heading h1,.tp-title h1{
+   color:#fffbea;
+   text-shadow:0 2px 8px #081b30,0 4px 18px #081b30;
+ }
+ .am-intro p,.cg-stage-intro p,.nv-stage-intro p{color:#f1f8ec}
+}
+/* Keep the game view compact on phone/tablet and prevent heavy images
+   from taking vertical space away from questions or touch targets. */
+@media(max-width:767px){
+ .nv-stage-intro{padding:9px 0 6px!important}
+}
+@media(prefers-reduced-motion:reduce){
+ .am-intro,.cg-stage-intro,.nv-stage-intro,.fm-header,.fv-top,.tp-header{transition:none!important}
+}
