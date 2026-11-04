@@ -137,7 +137,7 @@ export function planAnimalMission(input: {
     now:input.now??new Date().toISOString()
   });
   const targetSkill = input.mission===2?'recognition':
-    input.mission===3?'listening':input.mission===4?'command':'habitat';
+    input.mission===3?'listening':'command';
   const due = new Set<string>(all.filter(id=>needsReview(learning,'animals',targetSkill,id)));
   const weight = (id: string) => weak.has(id) ? Math.min(12,5+(mistakes.get(id)||0)) :
     due.has(id)?6:2;
@@ -185,7 +185,7 @@ export function getAnimalPrompt(mission: AnimalMission, word: AnimalWord, level:
     case 3: return { title:'Dinle ve hayvanı bul',guide:'Ses açıksa dinle, sonra doğru resme dokun.',speech:word.id };
     case 4: return { title: level==='Pre-A1' ? `Find the ${word.id.toUpperCase()}` : `Find the ${word.id}!`,
       guide:'Find = bul. Söylenen hayvanı çayırda bul.',speech:`Find the ${word.id}` };
-    case 5: return { title:word.habitat,guide:'Burası hangi hayvanın yuvası? İngilizce adını seç.',speech:word.id };
+    case 5: return { title:'Help the '+word.id+'!',guide:'İngilizce yönergeyi dinle, hayvanı seç ve kurtar.',speech:'Help the '+word.id };
     default: return { title:word.id.toUpperCase(),guide:word.tr,speech:word.id };
   }
 }
@@ -197,4 +197,14 @@ export function animalCommandFor(word:AnimalWord,level:EnglishPlacement,grade:nu
  if(level==='A1')return 'Can you find the '+word.id+'?';
  if(grade!=null&&grade>=1&&grade<=2)return 'Find the '+word.id+', please.';
  return 'Please find the '+word.id+' in the meadow.';
+}
+
+/** The rescue mini-adventure tests listening to an English command, not
+ * factual knowledge of an animal's habitat. Do not record it as 'habitat'.
+ * Existing historical habitat events remain readable in user progress. */
+export function animalRescueCommandFor(word:AnimalWord,level:EnglishPlacement,grade:number|null|undefined):string{
+ if(level==='Pre-A1')return 'Help the '+word.id+'!';
+ if(level==='A1'||(grade!==null&&grade!==undefined&&grade<=2))
+  return 'Can you help the '+word.id+'?';
+ return 'Please help the '+word.id+' get home!';
 }
