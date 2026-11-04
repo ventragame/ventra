@@ -5,6 +5,7 @@ import {
   type WorldArea,type WorldObject,type Point
 } from './worldLayout';
 import {paintGardenWorld,createGardenLandmark,addGardenAmbient} from './GardenWorldArt';
+import {planGardenRoute,planGardenTapRoute,isGardenWalkable} from './GardenNavigation';
 
 const ANIMALS=['cat','dog','bird','rabbit','cow','fish','horse','duck','sheep','frog','bee','butterfly','lion','elephant','monkey','penguin','turtle','fox','bear','owl','zebra','giraffe','panda','tiger','crocodile','hippo','rhino','kangaroo','koala','deer','wolf','hedgehog','squirrel','snake','dolphin','whale','shark','octopus','crab','parrot'];
 type ActivityCallback=(object:WorldObject)=>void;
@@ -23,6 +24,11 @@ export class ExplorerScene extends Phaser.Scene {
   private targetGraphics:Phaser.GameObjects.Container[]=[];
   private targetAnimations:Phaser.Tweens.Tween[]=[];
   private path:Point|null=null;
+  private waypoints:Point[]=[];
+  private character?:Phaser.GameObjects.Image;
+  private shadow?:Phaser.GameObjects.Arc;
+  private gait=0;
+  private facing8=4;
   private pendingTarget:string|null=null;
   private keys:Phaser.Input.Keyboard.Key[]=[];
   private ready=false;
@@ -39,7 +45,9 @@ export class ExplorerScene extends Phaser.Scene {
     this.reducedMotion=args.reducedMotion;
   }
   preload():void {
-    this.load.svg('p4_explorer','/assets/kids/explorer-avatar.svg',{width:112,height:131});
+    this.load.svg('p4_explorer','/assets/kids/explorer-avatar.svg',{width:150,height:175});
+    if(this.area==='garden')
+      this.load.image('garden_ground_v2','/assets/word-garden/premium-v2/map-ground.webp');
     if(this.area==='meadow')for(const id of ANIMALS){
       this.load.svg('p4_'+id,`/assets/animals/premium/${id}.svg`,{width:116,height:116});
     }
@@ -47,8 +55,12 @@ export class ExplorerScene extends Phaser.Scene {
   create():void {
     this.cameras.main.setBackgroundColor('#83cfca');
     this.cameras.main.setBounds(0,0,WORLD_WIDTH,WORLD_HEIGHT);
-    if(this.area==='garden')paintGardenWorld(this);
-    else this.drawLandscape();
+    if(this.area==='garden'){
+      if(this.textures.exists('garden_ground_v2')){
+        this.add.image(WORLD_WIDTH/2,WORLD_HEIGHT/2,'garden_ground_v2')
+          .setDisplaySize(WORLD_WIDTH,WORLD_HEIGHT).setDepth(-10);
+      }else paintGardenWorld(this);
+    }else this.drawLandscape();
     this.bloomLayer=this.add.graphics().setDepth(2);
     this.renderRestoration();
     this.createExplorer();
@@ -60,7 +72,11 @@ export class ExplorerScene extends Phaser.Scene {
     this.input.on('pointerdown',(pointer:Phaser.Input.Pointer)=>{
       if(!pointer) return;
       this.pendingTarget=null;
-      this.path=clampToWorld({x:pointer.worldX,y:pointer.worldY});
+      const position=clampToWorld({x:pointer.worldX,y:pointer.worldY});
+      if(this.area==='garden'){
+        this.waypoints=planGardenTapRoute({x:this.player.x,y:this.player.y},position);
+        this.path=this.waypoints.shift()??null;
+      }else this.path=position;
     });
     if(this.input.keyboard){
       for(const key of ['W','A','S','D','UP','DOWN','LEFT','RIGHT']){
@@ -141,8 +157,9 @@ export class ExplorerScene extends Phaser.Scene {
   private createExplorer():void {
     const start=PLAYER_START[this.area];
     this.player=this.add.container(start.x,start.y);
-    const shadow=this.add.ellipse(0,42,70,18,0x1d4540,.28);
-    const character=this.add.image(0,-8,'p4_explorer').setDisplaySize(102,119);
+    const shadow=this.add.ellipse(0,42,75,19,0x1d4540,.32);
+    const character=this.add.image(0,-8,'p4_explorer').setDisplaySize(108,125);
+    this.shadow=shadow;this.character=character;
     this.player.add([shadow,character]);
     this.player.setDepth(20);
     if(!this.reducedMotion){
@@ -267,8 +284,7 @@ export class ExplorerScene extends Phaser.Scene {
   }
   setTargets(targets:WorldObject[]):void {
     this.targets=targets;
-    this.pendingTarget=null;
-    this.path=null;
+    this.pendingTarget=null;this.path=null;this.waypoints=[];
     if(this.ready)this.drawTargets();
   }
   setCallbacks(onInteract:ActivityCallback,onInspect:ActivityCallback):void{
@@ -285,17 +301,28 @@ export class ExplorerScene extends Phaser.Scene {
     if(!object)return;
     if(object.unlocked===false){this.onInspect(object);return;}
     this.pendingTarget=id;
-    this.path=clampToWorld({x:object.x,y:object.y+76});
+    if(this.area==='garden'){
+      this.waypoints=planGardenRoute({x:this.player.x,y:this.player.y},id,object);
+      this.path=this.waypoints.shift()??null;
+    }else{
+      this.waypoints=[];
+      this.path=clampToWorld({x:object.x,y:object.y+76});
+    }
+    if(!this.path){this.pendingTarget=null;return;}
     if(this.area==='garden'&&!this.reducedMotion&&this.scale.width>=750){
       const fit=Math.min(this.scale.width/WORLD_WIDTH,this.scale.height/WORLD_HEIGHT)*.965;
-      this.cameras.main.pan(object.x,object.y,620,'Sine.easeInOut',true);
-      this.cameras.main.zoomTo(Math.min(.85,fit*1.16),620,'Sine.easeInOut',true);
+      this.cameras.main.startFollow(this.player,true,.085,.085);
+      this.cameras.main.zoomTo(Math.min(.9,Math.max(fit*1.35,.58)),650,'Sine.easeInOut',true);
     }
   }
   goDirection(x:number,y:number):void {
     if(!this.ready)return;
     this.pendingTarget=null;
-    this.path=clampToWorld({x:this.player.x+x*160,y:this.player.y+y*160});
+    const destination=clampToWorld({x:this.player.x+x*160,y:this.player.y+y*160});
+    if(this.area==='garden'){
+      this.waypoints=planGardenTapRoute({x:this.player.x,y:this.player.y},destination);
+      this.path=this.waypoints.shift()??null;
+    }else{this.waypoints=[];this.path=destination;}
   }
   update(_time:number,delta:number):void {
     if(!this.ready||!this.player)return;
@@ -306,18 +333,24 @@ export class ExplorerScene extends Phaser.Scene {
     if(this.keys[3]?.isDown||this.keys[7]?.isDown)dx+=1;
     const movement=Math.hypot(dx,dy);
     if(movement>0){
-      this.pendingTarget=null;this.path=null;
+      this.pendingTarget=null;this.path=null;this.waypoints=[];
       const from={x:this.player.x,y:this.player.y};
       const to={x:from.x+dx/movement*220,y:from.y+dy/movement*220};
       const next=walkTowards(from,to,delta);
-      this.player.setPosition(next.x,next.y);
+      if(this.area!=='garden'||isGardenWalkable(next))
+        this.player.setPosition(next.x,next.y);
     }else if(this.path){
       const current={x:this.player.x,y:this.player.y};
-      const next=walkTowards(current,this.path,delta);
+      const distance=distanceBetween(current,this.path);
+      const pace=distance<32?Math.max(115,240*distance/32):240;
+      const next=walkTowards(current,this.path,delta,pace);
       this.player.setPosition(next.x,next.y);
       const arrived=distanceBetween(next,this.path)<3;
       if(arrived){
-        this.path=null;
+        const reached=this.path;
+        this.player.setPosition(reached.x,reached.y);
+        this.path=this.waypoints.shift()??null;
+        if(this.path)return;
         const id=this.pendingTarget;
         this.pendingTarget=null;
         if(id){
@@ -332,6 +365,24 @@ export class ExplorerScene extends Phaser.Scene {
           }
         }
       }
+    }
+    // Eight compass-direction states drive an optically grounded animated
+    // walk cycle; a hand-drawn 8-angle sprite atlas can replace the shared art.
+    const walking=movement>0||Boolean(this.path);
+    if(this.character){
+      let faceX=dx,faceY=dy;
+      if(movement===0&&this.path){
+        faceX=this.path.x-this.player.x;faceY=this.path.y-this.player.y;
+      }
+      if(Math.hypot(faceX,faceY)>1e-3){
+        this.facing8=(Math.round((Math.atan2(faceY,faceX)+Math.PI/2)/(Math.PI/4))+8)%8;
+        if(Math.abs(faceX)>3)this.character.setFlipX(faceX<0);
+      }
+      if(walking&&!this.reducedMotion)this.gait+=Math.min(delta,65)*.017;
+      this.character.y=-8-(walking&&!this.reducedMotion?Math.abs(Math.sin(this.gait))*5:0);
+      this.character.angle=walking&&!this.reducedMotion?Math.sin(this.gait)*2.6:0;
+      this.character.setScale(1,walking?.985:1);
+      if(this.shadow)this.shadow.setScale(walking?1.08:1,1);
     }
     this.player.setDepth(Math.round(this.player.y));
   }

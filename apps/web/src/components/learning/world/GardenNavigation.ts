@@ -99,7 +99,7 @@ export function planGardenRoute(from:Point,districtId:string,destination:Point):
 export function planGardenTapRoute(from:Point,tap:Point):Point[]{
  const nearest=closestRoadPoint(tap);
  const target=nearest.point;
- if(dist(from,target)<7)return [];
+ if(dist(from,target)<24)return [];
  const start=bestRoadEntry(from);
  const finish=bestRoadEntry(target);
  const segments=shortestGraphRoute(start.node,finish.node);
