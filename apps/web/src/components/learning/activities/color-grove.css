@@ -188,3 +188,18 @@
  .cg-world *, .cg-world *::before,.cg-world *::after{animation:none!important;transition:none!important}
  .cg-world .cg-flower-choice:active,.cg-world .cg-palette-choice:active{transform:none!important}
 }
+
+
+/* Reading-light web layout: instructional help stays accessible on demand. */
+.cg-stage-intro{position:relative;padding-top:12px!important;padding-bottom:9px!important}
+.cg-stage-intro h1{font-size:clamp(25px,3.3vw,38px)!important;margin-top:5px!important}
+.cg-stage-intro>.wg-game-help{display:flex;flex-direction:column;align-items:center;margin:7px auto 0}
+.cg-stage-intro>.wg-game-help .wg-game-help-body{max-width:min(520px,90vw);text-align:left}
+.cg-mission-tabs .cg-tab-long{display:none}
+.cg-mission-tabs .cg-tab-short{display:inline}
+@media(min-width:768px){
+ .cg-mission-tabs{max-width:720px;margin-left:auto;margin-right:auto;margin-bottom:13px!important}
+ .cg-mission-tabs button{min-height:52px;font-size:15px!important}
+ .cg-quiz-panel{max-width:850px}
+ .cg-quiz-panel>.cg-desktop-view .vg-scene{max-height:300px}
+}

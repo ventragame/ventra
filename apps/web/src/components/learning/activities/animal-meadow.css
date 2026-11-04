@@ -280,3 +280,18 @@
  .am-mobile-world-items{padding-top:8px}
  .am-quest-area .am-scene{height:245px!important}
 }
+
+/* Web: prioritize explorer scene and choices rather than repeated prose. */
+@media(min-width:768px){
+ .am-intro{padding:11px 0 7px!important}
+ .am-intro h1{font-size:clamp(28px,3.3vw,38px);margin-top:3px}
+ .am-story-guide{margin:4px 0 11px}
+ .am-missions{margin-bottom:10px}
+}
+.am-story-guide summary,.am-discovery-help summary{cursor:pointer;touch-action:manipulation}
+.am-discovery-help summary{list-style:none;display:inline-flex;align-items:center;justify-content:center;
+ gap:6px;min-height:44px;padding:5px 17px;border:1px solid #e9efbd7d;
+ border-radius:999px;background:#285d5c;color:#fff6ca;font-size:13px;font-weight:1000}
+.am-discovery-help summary::-webkit-details-marker{display:none}
+.am-discovery-help>p{padding:8px 13px 10px;line-height:1.55}
+.am-discovery-help summary:focus-visible{outline:3px solid #ffe9a2;outline-offset:3px}

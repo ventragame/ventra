@@ -348,7 +348,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
         <div className="am-intro py-5 text-center">
           <p className="text-[11px] font-black uppercase tracking-[.23em] text-lime-200">Hayvan Çayırı · Bölüm {stage}/5</p>
           <h1 ref={headingRef} tabIndex={-1} className="mt-2 text-3xl font-black tracking-tight outline-none sm:text-5xl">{STAGES[stage-1].icon} {STAGES[stage-1].name}</h1>
-          <p className="mx-auto mt-2 max-w-xl text-sm text-sky-100 sm:text-base">
+          <p className="sr-only">
             {stage===1?'Çayırdaki hayvanları keşfet; adlarına dokun ve İngilizcelerini öğren.':
              stage===2?'Gördüğün hayvanın İngilizce adını bul.':
              stage===3?'Duyduğun İngilizce kelimenin hangi hayvana ait olduğunu seç.':
@@ -357,7 +357,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
           </p>
         </div>
         <details className="am-story-guide">
-          <summary>🦉 Pufi'den ipucu <span aria-hidden="true">✦</span></summary>
+          <summary aria-label="Pufi'den oyun yardımı">❔ <span>Yardım</span></summary>
           <p>{STAGES[stage-1].story}</p>
         </details>
         {showAlbum && <section aria-label="Keşif albümü" className="am-album mb-4 rounded-3xl border border-lime-200/40 bg-[#0b3649]/90 p-3 shadow-2xl sm:p-5">
@@ -423,12 +423,15 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
               <div className="am-desktop-world"><ExplorerCanvas key={`meadow-discovery-${nonce}`} area="meadow"
                 caption="Keşif Çayırı · Hayvanlara Dokun" objects={worldObjects}
                 onInteract={onWorldInteract} height={520} progress={discovered.length}/></div>}
-            <p className="am-discovery-help mt-3 rounded-xl bg-emerald-950/65 p-3 text-center text-xs font-bold text-sky-100">Hayvanlara dokun, karakterin yanlarına yürüsün. Keşfettiklerin albüme eklenir. İstersen aşağıdaki erişilebilir listeyi de kullan.</p>
+            <details className="am-discovery-help mt-3 rounded-xl bg-emerald-950/65 p-2 text-center text-xs font-bold text-sky-100">
+              <summary aria-label="Hayvan keşfi nasıl oynanır">❔ <span>Yardım</span></summary>
+              <p>Hayvanlara dokun, karakterin yanlarına yürüsün. Keşfettiklerin albüme eklenir. İstersen aşağıdaki erişilebilir listeyi de kullan.</p>
+            </details>
             <div className="my-4 flex items-center justify-between rounded-xl border border-white/20 bg-emerald-950/65 px-4 py-3 text-sm font-bold">
               <span>🌱 Keşfedilen Hayvanlar</span><span className="text-lime-200">{discovered.length}/{activePlan.animals.length}</span>
             </div>
             <details className="am-compact-details mb-3 rounded-2xl border border-white/20 bg-emerald-950/40 p-3">
-              <summary className="min-h-11 cursor-pointer py-3 text-sm font-black text-lime-100">♿ Hayvan Listesi / Alternatif Kontrol</summary>
+              <summary className="min-h-11 cursor-pointer py-3 text-sm font-black text-lime-100" aria-label="Erişilebilir hayvan listesini aç">🐾 Hayvanlar</summary>
               <div className="mt-3 grid grid-cols-2 gap-2 sm:grid-cols-4 sm:gap-3">
               {activePlan.animals.map(id=>{
                 const word=findAnimal(id)!;

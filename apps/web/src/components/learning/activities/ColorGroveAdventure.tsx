@@ -8,6 +8,7 @@ import { soundService } from '@/lib/audio/SoundService';
 import {useAutoQuestionAdvance} from '@/lib/learning/useAutoQuestionAdvance';
 import { EventBus } from '@/lib/game/EventBus';
 import { ColorGroveScene } from './ColorGroveScene';
+import {GardenHelp} from '../GardenHelp';
 import { MobileColorGroveWorld } from './MobileColorGroveWorld';
 
 type Word = (typeof COLOR_GROVE_WORDS)[number];
@@ -287,11 +288,11 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
         <div className="cg-stage-intro py-4 text-center sm:py-6">
           <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-lime-200">Büyülü Renkler Hikâyesi · Bölüm {step}/3</p>
           <h1 ref={headingRef} tabIndex={-1} className="mt-2 text-3xl font-black tracking-tight outline-none sm:text-5xl">{names[step - 1]}</h1>
-          <p className="cg-desktop-description mx-auto mt-2 max-w-xl text-sm leading-relaxed text-sky-100 sm:text-base">
+          <GardenHelp label="Renk Korusu nasıl oynanır?">
             {step === 1 ? 'Lumi’nin korusunu keşfet. Her turda yeni renkleri bul; İngilizce adlarına dokun ve dinle.' :
             step === 2 ? 'Rengini kaybeden çiçeği kurtar! Gördüğün rengin İngilizce adını seç.' :
             'Koruya renkleri geri getir! İngilizce söylenen rengi boya paletinden bul.'}
-          </p>
+          </GardenHelp>
         </div>
 
         <div className="cg-mission-tabs mb-4 grid grid-cols-3 gap-2 sm:mb-5">
@@ -363,7 +364,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
               <span>🧭 Keşfedilen renkler</span>
               <span className="text-lime-200">{discovered.length} / {activePlan.colors.length}</span>
             </div>
-            <p className="cg-discovery-caption mb-3 text-center text-sm font-semibold text-sky-100">
+            <p className="sr-only">
               {activePlan.encounteredCount} / {activePlan.eligibleCount} renk daha önce keşfedildi ·
               {activePlan.freshColorIds.length > 0 ? ` Bu tur ${activePlan.freshColorIds.length} yeni renk` : ' Pekiştirme turu'}
             </p>
@@ -413,7 +414,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
               <h2 className="text-xl font-black tracking-wide sm:text-2xl">
                 {getColorInstruction(currentQuestion.target, step, englishLevel).title}
               </h2>
-              <p className="mt-1 text-sm text-slate-100">
+              <p className="sr-only">
                 {getColorInstruction(currentQuestion.target, step, englishLevel).guide}
               </p>
               </div>

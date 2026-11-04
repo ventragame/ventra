@@ -11,6 +11,7 @@ import type {NumberValleyProgress} from '@/lib/progress/numberValleyProgress';
 import {resolveGradeAwarePolicy} from '@/lib/learning/gradeAwareLearningPolicy';
 import {NumberValleyScenery,ValleyMilestone} from './NumberValleyScenery';
 import './number-valley.css';
+import {GardenHelp} from '../GardenHelp';
 
 const CHAPTERS=[
   {icon:'💎',title:'Kristal Keşfi',caption:'Kayıp sayı kristallerini keşfet'},
@@ -267,7 +268,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
         <h1 ref={heading} tabIndex={-1} className="mt-3 text-3xl font-black tracking-tight outline-none sm:text-5xl">
           {CHAPTERS[stage-1].icon} {CHAPTERS[stage-1].title}
         </h1>
-        <p className="mt-3 text-sm text-sky-100 sm:text-base">{CHAPTERS[stage-1].caption} · {bandLabel}</p>
+        <GardenHelp label="Sayı Vadisi görev yardımı">{CHAPTERS[stage-1].caption} · {bandLabel}</GardenHelp>
       </div>
       <nav aria-label="Sayı Vadisi sayı yolları" className="nv-bands mb-4 grid grid-cols-3 gap-2 sm:gap-3">
         {NUMBER_BANDS.map((path,i)=>{
@@ -315,7 +316,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
             className={`nv-landscape nv-world-${stage} relative min-h-[270px] overflow-hidden rounded-[22px] px-3 py-7 sm:min-h-[355px] sm:p-8`}>
             <NumberValleyScenery stage={stage}/>
             {stage===1&&<div className="relative z-10">
-              <h2 className="mb-3 text-center text-xl font-black text-white drop-shadow-lg sm:text-2xl">Kristallere dokun ve sayılarını dinle!</h2>
+              <h2 className="mb-3 text-center text-xl font-black text-white drop-shadow-lg sm:text-2xl">👆 Kristalleri Keşfet</h2>
               <div className="mx-auto grid max-w-3xl grid-cols-3 gap-3 sm:grid-cols-4 sm:gap-5">
                 {activePlan.discoveries.map((value,i)=><button key={value} type="button"
                   onClick={()=>discover(value)} aria-pressed={visited.includes(value)}
@@ -323,8 +324,8 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
                   className={`nv-crystal-tile group rounded-2xl p-2 text-center ${visited.includes(value)?'nv-discovered':''}`}
                   style={{animationDelay:`${i*80}ms`}}>
                     <Gem number={value} discovered={visited.includes(value)}/>
-                    <span className="mt-2 block text-xs font-black uppercase tracking-wide sm:text-sm">{visited.includes(value)?englishNumber(value):'Keşfet'}</span>
-                    <span className="block text-xs text-emerald-100">{visited.includes(value)?'✓ Öğrenildi':'Dokun'}</span>
+                    <span className="mt-2 block text-xs font-black uppercase tracking-wide sm:text-sm">{visited.includes(value)?englishNumber(value):'✦'}</span>
+                    <span className="block text-xs text-emerald-100">{visited.includes(value)?'✓':'🔊'}</span>
                   </button>)}
               </div>
             </div>}
