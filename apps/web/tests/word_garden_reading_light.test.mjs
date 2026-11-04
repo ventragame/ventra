@@ -68,5 +68,5 @@ test('Visual simplification preserves actual English words, answer events and au
  assert.match(color,/useAutoQuestionAdvance/);
  assert.match(color,/getColorInstruction/);
  assert.match(number,/numberWordParts\(current.target\)/);
- assert.match(number,/useAutoQuestionAdvance/);
+ assert.match(number,/window\.setTimeout\(\(\)=>next\(\),1050\)/);
 });
