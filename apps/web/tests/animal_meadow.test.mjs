@@ -165,7 +165,7 @@ test('Animal Meadow uses one accessible visual stage for every mission on every 
  assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
  assert.match(css,/focus-visible/);
  assert.match(css,/touch-action:manipulation/);
- assert.match(css,/safe-area-inset-bottom/);
+ assert.match(fs.readFileSync(new URL('../src/components/learning/activities/animal-meadow.css',import.meta.url),'utf8'),/safe-area-inset-bottom/);
 });
 test('Single-choice rescue measures English command recognition, not a second habitat quiz',()=>{
  for(const level of ['Pre-A1','A1','A2']){
