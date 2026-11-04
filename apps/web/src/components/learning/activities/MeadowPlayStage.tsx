@@ -19,6 +19,17 @@ export interface MeadowPlayStageProps {
  onListen?:()=>void;
 }
 
+/** Visual story destination only — never a second quiz or false habitat score. */
+const HOME_ICONS:Readonly<Record<string,string>>={
+ Ev:'🏠',Bahçe:'🏡',Ağaç:'🌳',Çayır:'🌿',Çiftlik:'🚜',
+ Gölet:'💧',Çiçeklik:'🌸',Savan:'🌅',Orman:'🌲',
+ Kutup:'🧊',Sahil:'🏖️',Dağ:'⛰️',Nehir:'🌊',
+ Otlak:'🌾',Deniz:'🐠'
+};
+function homeIcon(word:AnimalWord|null|undefined):string {
+ return word?HOME_ICONS[word.place]??'🏡':'🏡';
+}
+
 const labels:Record<MeadowMode,string>={
  discover:'🐾 Hayvanlarla Tanış',match:'🧩 Resimden Kelimeye',
  listen:'👂 Dinle ve Bul',command:'🌿 Hayvan Macerası',
@@ -75,7 +86,7 @@ export function MeadowPlayStage({
         </button>
       ):(
         <div className="am-v2-rescue-sign" aria-hidden="true">
-          <span>🐾</span><span>💛</span><span>🏡</span>
+          <span>🐾</span><span>💛</span><span>{homeIcon(target)}</span>
         </div>
       )}
       {noAudioMode&&isListening&&target&&
@@ -117,7 +128,7 @@ export function MeadowPlayStage({
       })}
     </div>
     {isRescue&&correctId&&<div className="am-v2-rescue-reward" role="status" aria-live="polite">
-       <span aria-hidden="true">🐾</span> {target?.id.toUpperCase()} <span aria-hidden="true">💛 🏡</span>
+       <span aria-hidden="true">🐾</span> {target?.id.toUpperCase()} <span aria-hidden="true">💛 {homeIcon(target)}</span>
      </div>}
    </>}
    <div className="am-v2-ground-glow" aria-hidden="true">✿　✦　✿　✧　✿</div>

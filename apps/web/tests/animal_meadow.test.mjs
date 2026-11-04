@@ -155,6 +155,9 @@ test('Animal Meadow uses one accessible visual stage for every mission on every 
  assert.match(stage,/target.image/);
  assert.match(stage,/noAudioMode&&isListening/);
  assert.match(stage,/data-rescued=\{isRescue&&right\}/);
+ assert.match(stage,/function homeIcon\(word:AnimalWord/);
+ assert.match(stage,/Gölet:'💧'/);
+ assert.match(stage,/Deniz:'🐠'/);
  assert.match(css,/assets\/word-garden\/premium-v2\/animals.webp/);
  assert.match(css,/@media\(max-width:767px\)/);
  assert.match(css,/@media\(prefers-reduced-motion:reduce\)/);
