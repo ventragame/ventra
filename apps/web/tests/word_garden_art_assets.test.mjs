@@ -12,7 +12,7 @@ const names=['animals','colors','numbers','food','family','sanctuary'];
 
 test('all six illustrated games ship real local desktop and mobile WebP files',()=>{
  for(const id of [...names,'cover']){
-  const variants=id==='cover'?['','_mobile']:['','_mobile'];
+  const variants=['','_mobile'];
   for(const suffix of variants){
    const name=id+suffix+'.webp';
    const buffer=fs.readFileSync(path.join(root,name));
@@ -37,8 +37,8 @@ test('art is responsive and decorative without changing learning or accessibilit
  assert.match(css,/prefers-reduced-motion:reduce/);
  const worldArt=fs.readFileSync(path.resolve(here,'../src/components/learning/word-garden-world-art.css'),'utf8');
  for(const id of names)assert.match(worldArt,new RegExp('premium-v2/'+id+'\\.webp'));
- assert.match(worldArt,/@media\\(min-width:768px\\)/);
+ assert.match(worldArt,/@media\(min-width:768px\)/);
  assert.match(worldArt,/linear-gradient/);
- assert.match(worldArt,/@media\\(max-width:767px\\)/);
- assert.match(fs.readFileSync(path.resolve(here,'../src/components/learning/LearningPathModal.tsx'),'utf8'),/word-garden-world-art\\.css/);
+ assert.match(worldArt,/@media\(max-width:767px\)/);
+ assert.match(fs.readFileSync(path.resolve(here,'../src/components/learning/LearningPathModal.tsx'),'utf8'),/word-garden-world-art\.css/);
 });
