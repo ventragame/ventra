@@ -150,7 +150,7 @@ test('Animal Meadow uses one accessible visual stage for every mission on every 
  assert.match(view,/if\(stage===1&&activePlan&&discovered.length===activePlan.animals.length/);
  assert.match(stage,/role="group"/);
  assert.match(stage,/onSelect\?\.\(animal.id\)/);
- assert.match(stage,/aria-pressed=\{isDiscovery\?found:right\}/);
+ assert.match(stage,/aria-pressed=\{isDiscovery\?known:right\}/);
  assert.match(stage,/target.image/);
  assert.match(stage,/noAudioMode&&isListening/);
  assert.match(stage,/data-rescued=\{isRescue&&right\}/);
@@ -194,7 +194,7 @@ test('Animal spoken commands honor actual English placement and use short child-
 });
 test('Visual answer IDs and pre-answer disclosure are pedagogically safe',()=>{
  const stage=fs.readFileSync(new URL('../src/components/learning/activities/MeadowPlayStage.tsx',import.meta.url),'utf8');
- assert.match(stage,/isMatch\?animal.id\+' İngilizce kelimesini seç'/);
+ assert.match(stage,/isMatch\?animal.id\+' kelimesini seç'/);
  assert.match(stage,/imageChoices=!isMatch/);
  assert.match(stage,/isDiscovery\?known:right/);
  assert.match(stage,/const showName=isDiscovery\?known:right/);

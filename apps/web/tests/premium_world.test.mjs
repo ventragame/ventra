@@ -54,7 +54,7 @@ test('P4 all forty animal positions and habitats are unique and playable on a 14
     assert.ok(target.x>=80&&target.x<WORLD_WIDTH-40);
     assert.ok(target.y>=80&&target.y<WORLD_HEIGHT-40);
   }
-  assert.ok(animals.every(x=>x.image?.endsWith('.svg')));
+  assert.ok(animals.every(x=>x.image?.endsWith('.png')));
   assert.ok(homes.every(x=>x.kind==='habitat'&&x.label));
   assert.equal(Object.keys(ANIMAL_POSITIONS).length,40);
 });

@@ -52,7 +52,7 @@ test('Parents can expand game instructions but children can play immediately',()
   assert.match(activity(file),/GardenHelp/,'missing optional help: '+file);
  }
  const animal=activity('AnimalMeadowAdventure.tsx');
- assert.match(animal,/am-story-guide/);
+ assert.match(animal,/am3-help/);
  assert.match(animal,/MeadowPlayStage/);
  assert.match(animal,/aria-label="Pufi'den oyun yardımı"/);
 });
