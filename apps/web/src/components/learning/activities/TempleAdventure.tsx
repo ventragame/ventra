@@ -11,6 +11,7 @@ import {TEMPLE_CHAMBERS,TEMPLE_STAGES,TEMPLE_OFFSETS,TEMPLE_TOTAL,
 import type {TempleProgress} from '@/lib/progress/templeProgress';
 import {TempleScenery} from './TempleScenery';
 import './temple-adventure.css';
+import {GardenHelp} from '../GardenHelp';
 
 type Props={profileId:string;gradeLevel:number|null;englishLevel:EnglishPlacement;
  progress:TempleProgress;onBack:()=>void;
@@ -195,7 +196,7 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
    <header className="tp-header">
     <button className="tp-return" onClick={()=>{stopAudio();onBack()}}>← Kelime Bahçesi</button>
     <div className="tp-title"><span>VENTRA • THE ENGLISH TEMPLE</span>
-     <h1>✨ Keşif Tapınağı</h1><p>Explore · Listen · Build · Unlock</p>
+     <h1>✨ Keşif Tapınağı</h1><p className="sr-only">Explore · Listen · Build · Unlock</p>
     </div>
     <div className="tp-score">⭐ {Object.values(progress.starsByLevel).reduce((sum,v)=>sum+v,0)} / 75</div>
    </header>
@@ -227,7 +228,7 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
     </div>
     <div className="tp-workbench">
      <div className="tp-panel-head"><div><span className="tp-eyebrow">THE LEGEND OF WORDS</span>
-      <h2>{stageInfo.icon} {stageInfo.title}</h2><p>{stageInfo.desc}</p></div>
+      <h2>{stageInfo.icon} {stageInfo.title}</h2><GardenHelp>{stageInfo.desc}</GardenHelp></div>
       <button className="tp-mute" aria-label={muted?'Sesi aç':'Sesi kapat'}
        onClick={()=>{const m=!muted;setMuted(m);soundService.toggleMute();if(m)stopAudio();}}>
        {muted?'🔇':'🔊'}</button>

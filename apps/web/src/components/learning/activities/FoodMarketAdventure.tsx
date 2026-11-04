@@ -9,6 +9,7 @@ import type {FoodMarketProgress} from '@/lib/progress/foodMarketProgress';
 import {soundService} from '@/lib/audio/SoundService';
 import {useAutoQuestionAdvance} from '@/lib/learning/useAutoQuestionAdvance';
 import './food-market.css';
+import {GardenHelp} from '../GardenHelp';
 
 type Props={
  profileId:string;gradeLevel?:number|null;englishLevel:EnglishPlacement;
@@ -215,7 +216,7 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
    <header className="fm-header">
     <button className="fm-back" onClick={()=>{cancelVoice();onBack();}}>← Kelime Bahçesi</button>
     <div className="fm-brand"><span>VENTRA · ENGLISH ADVENTURE</span><h1>🍓 Lezzet Pazarı</h1>
-      <p>See it · Hear it · Say it · Find it!</p></div>
+      <p className="sr-only">See it · Hear it · Say it · Find it!</p></div>
     <div className="fm-score">⭐ {Object.values(progress.starsByLevel).reduce((n,v)=>n+v,0)} / 45</div>
    </header>
    <section className="fm-map" aria-label="Pazar sokakları">
@@ -247,7 +248,7 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
     <div className="fm-workshop">
      <div className="fm-step-head">
       <div><p className="fm-eyebrow">MISSION {MARKET_OFFSETS[aisle]+stage} / 15</p>
-       <h2>{stageMeta.title}</h2><p>{stageMeta.description}</p></div>
+       <h2>{stageMeta.title}</h2><GardenHelp>{stageMeta.description}</GardenHelp></div>
       <button className="fm-sound" onClick={()=>{const next=!muted;setMuted(next);soundService.toggleMute();
        if(next)cancelVoice();}} aria-label={muted?'Sesi aç':'Sesi kapat'}>{muted?'🔇':'🔊'}</button>
      </div>

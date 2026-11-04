@@ -12,6 +12,7 @@ import type {FamilyVillageProgress} from '@/lib/progress/familyVillageProgress';
 import {FamilyVillageScenery} from './FamilyVillageScenery';
 import {FamilyWordArt} from './FamilyVillageWordArt';
 import './family-village.css';
+import {GardenHelp} from '../GardenHelp';
 
 type Props={
  profileId:string;gradeLevel:number|null;englishLevel:EnglishPlacement;progress:FamilyVillageProgress;
@@ -168,7 +169,7 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
     <header className="fv-top">
       <button onClick={()=>{cancelSpeech();onBack();}} className="fv-back">← Kelime Bahçesi</button>
       <div className="fv-heading"><span>VENTRA • ENGLISH WORLD</span><h1>🏡 Aile Köyü</h1>
-        <p>My Family · My Home · My Day</p></div>
+        <p className="sr-only">My Family · My Home · My Day</p></div>
       <div className="fv-stars">⭐ {Object.values(progress.starsByLevel).reduce((n,v)=>n+v,0)} / 60</div>
     </header>
     <nav className="fv-district-nav" aria-label="Aile Köyü mahalleleri">
@@ -200,7 +201,7 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
       <div className="fv-panel">
         <div className="fv-panel-head"><div>
           <p className="fv-eyebrow">LEARN & EXPLORE</p>
-          <h2>{stageMeta.title}</h2><p>{stageMeta.description}</p>
+          <h2>{stageMeta.title}</h2><GardenHelp>{stageMeta.description}</GardenHelp>
         </div><button type="button" className="fv-audio-toggle" aria-label={muted?'Sesi aç':'Sesi kapat'}
           onClick={()=>{const next=!muted;setMuted(next);soundService.toggleMute();if(next)cancelSpeech();}}>
           {muted?'🔇':'🔊'}</button></div>
