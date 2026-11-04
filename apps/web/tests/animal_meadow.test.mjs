@@ -20,7 +20,8 @@ test('Animal Meadow catalog contains forty unique animals and preserves existing
   for(const id of ['cat','dog','bird','rabbit']){
     const animal=findAnimal(id);
     assert.ok(animal.audio?.endsWith('.wav'));
-    assert.ok(animal.image?.endsWith('.svg'));
+    assert.ok(animal.image?.endsWith('.png'));
+    assert.ok(animal.image?.startsWith('/assets/animals/fluent-3d/'));
   }
 });
 test('All animal words have mobile native speech and browser fallback instead of silent audio null',()=>{
