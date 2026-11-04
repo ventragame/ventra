@@ -67,70 +67,37 @@ function gem(g:Phaser.GameObjects.Graphics,x:number,y:number,size:number,color:n
  g.fillStyle(color,.75);g.fillTriangle(x-size*.75,y,x+size*.75,y,x,y+size);
  g.lineStyle(2,0xfff5da,1);g.strokeTriangle(x,y-size,x-size*.75,y,x+size*.75,y);
 }
+/** Minimal depth-aware foreground ornaments over the premium world painting.
+ * Illustration of each biome lives in map-ground.webp. Keeping these live
+ * avoids baked-in progress labels and keeps hover/locked/complete states real. */
 export function createGardenLandmark(scene:Phaser.Scene,object:WorldObject):Phaser.GameObjects.Container{
- const node=scene.add.container(0,-69);
+ const node=scene.add.container(0,-82);
  const g=scene.add.graphics();
  const color=districtColors[object.id]??0xbde8d8;
- // lush stone platform, shadow and halo
- g.fillStyle(0x244d56,.25);g.fillEllipse(0,57,190,48);
- g.fillStyle(0xe4d5b0,1);g.fillEllipse(0,40,196,94);
- g.fillStyle(0xfaf1ca,1);g.fillEllipse(0,29,182,78);
- g.fillStyle(color,1);g.fillEllipse(0,23,164,62);
- g.lineStyle(3,0xffffff,.8);g.strokeEllipse(0,23,164,62);
- if(object.id==='animals'){
-  // animal gate: arched wooden fence, barn and forest shapes
-  g.fillStyle(0x5b9374,1);g.fillCircle(-59,-53,28);g.fillCircle(60,-51,30);
-  g.fillStyle(0x8bd29a,1);g.fillCircle(-64,-63,17);g.fillCircle(55,-66,19);
-  g.lineStyle(7,0x936a5a,1);g.lineBetween(-38,1,-38,-62);g.lineBetween(38,1,38,-62);
-  g.lineStyle(5,0xeccda1,1);g.strokeEllipse(0,-58,80,47);
-  g.fillStyle(0xf7c3a4,1);g.fillRoundedRect(-24,-58,48,47,5);
-  g.fillStyle(0xa75d62,1);g.fillTriangle(-32,-58,0,-86,32,-58);
-  g.fillStyle(0x6c5360,1);g.fillRoundedRect(-10,-33,20,22,6);
-  g.fillStyle(0xffe0a3,1);g.fillCircle(-43,-7,5);g.fillCircle(45,-11,5);
- }else if(object.id==='colors'){
-  // paint grove with six gem-flower blooms
-  for(let i=0;i<6;i++){const x=-67+i*27,y=-50-(i%2)*17;
-   g.lineStyle(3,0x49886f,.85);g.lineBetween(x,14,x,y+7);gem(g,x,y,13,[0xfb8eae,0x97d7ee,0xf8c979,0xc0a2f6,0x9edd9a,0xfff1db][i]);}
-  g.fillStyle(0xf9e8cc,1);g.fillRoundedRect(-35,-66,72,35,12);
-  for(let i=0;i<4;i++){g.fillStyle([0xfa83a3,0x86c7ef,0xedd17e,0xb5a2ed][i]);g.fillCircle(-24+i*15,-51,5);}
- }else if(object.id==='numbers'){
-  // tall crystalline numeric observatory
-  g.fillStyle(0x557a9e,1);g.fillRoundedRect(-54,-60,108,67,10);
-  g.fillStyle(0xece3cc,1);g.fillRoundedRect(-40,-85,80,22,6);
-  g.fillStyle(0x9de3eb,1);g.fillTriangle(-31,-86,0,-122,31,-86);
-  for(let n=0;n<3;n++){g.fillStyle(0xffffff,.84);g.fillCircle(-30+n*29,-28,8);}
-  gem(g,0,-115,16,0xa1edfb);
- }else if(object.id==='food'){
-  // striped canopy, wooden market shelves and baskets
-  g.fillStyle(0x9d6a58,1);g.fillRoundedRect(-68,-40,136,52,5);
-  g.fillStyle(0xffe4be,1);g.fillRoundedRect(-73,-84,146,44,6);
-  for(let i=0;i<7;i++){g.fillStyle(i%2?0xffe7be:0xf18f8a,1);g.fillRect(-69+i*20,-82,20,39);}
-  g.lineStyle(5,0xffffff,.82);g.lineBetween(-72,-41,73,-41);
-  g.fillStyle(0xc1855e,1);g.fillRoundedRect(-55,-10,111,21,5);
-  for(let n=0;n<6;n++){g.fillStyle(n%2?0xf5be60:0xd46569);g.fillCircle(-39+n*15,-17,11);}
- }else if(object.id==='family'){
-  // cosy row of little houses
-  for(const [x,y,size,wall,roof] of [[-51,-23,48,0xf6d5b1,0xc77985],[13,-41,65,0xb1d7da,0x806a96],[64,-14,35,0xf1d5ae,0xc97f8f]] as const){
-   g.fillStyle(wall,1);g.fillRoundedRect(x-size/2,y-size/2,size,size*.76,5);
-   g.fillStyle(roof,1);g.fillTriangle(x-size*.6,y-size*.48,x,y-size*.95,x+size*.6,y-size*.48);
-   g.fillStyle(0xffffff,.85);g.fillRoundedRect(x-8,y-size*.25,16,18,4);
-  }
- }else if(object.id==='sanctuary'){
-  // luminous archway and golden stone columns
-  g.fillStyle(0x8c83a8,1);g.fillRoundedRect(-73,-57,146,70,5);
-  g.fillStyle(0xf0dcaa,1);g.fillTriangle(-82,-59,0,-111,82,-59);
-  for(const x of [-55,55]){g.fillStyle(0xf7e5bf,1);g.fillRoundedRect(x-14,-65,28,72,3);}
-  g.fillStyle(0x3c5976,1);g.fillRoundedRect(-35,-54,70,67,25);
-  gem(g,0,-115,21,0xffe6a1);
-  g.lineStyle(3,0xffe5a2,.7);g.strokeEllipse(0,-40,57,85);
+ const done=(object.total??0)>0&&(object.completed??0)>=(object.total??0);
+ g.fillStyle(0x19494a,.3);g.fillEllipse(0,37,110,32);
+ g.fillStyle(0xffefc4,.9);g.fillEllipse(0,19,106,45);
+ g.fillStyle(color,.9);g.fillEllipse(0,13,93,29);
+ g.lineStyle(3,done?0xffe68f:0xffffff,.93);g.strokeEllipse(0,13,93,29);
+ g.fillStyle(0xf9e7b9,.95);g.fillRoundedRect(-21,-24,42,44,13);
+ g.lineStyle(3,0x417b72,.92);g.strokeRoundedRect(-21,-24,42,44,13);
+ const icon=object.id==='sanctuary'?'✧':
+  object.id==='animals'?'✿':object.id==='family'?'⌂':
+  object.id==='colors'?'✦':object.id==='numbers'?'❖':'❀';
+ const glyph=scene.add.text(0,-3,icon,{
+  fontFamily:'Arial, sans-serif',fontSize:'30px',fontStyle:'bold',color:'#264958',
+  stroke:'#fff7da',strokeThickness:1
+ }).setOrigin(.5);
+ node.add([g,glyph]);
+ if(done){
+  node.add(scene.add.text(35,-28,'★',{fontSize:'20px',color:'#ffdc7a'}).setOrigin(.5));
  }
- node.add(g);
  return node;
 }
 export function addGardenAmbient(scene:Phaser.Scene,reduced:boolean):void{
  const sparkle=scene.add.container(0,0).setDepth(8);
  const rand=seedRandom(3382);
- for(let i=0;i<29;i++){
+ for(let i=0;i<24;i++){
   const x=60+rand()*(WORLD_WIDTH-120),y=50+rand()*(WORLD_HEIGHT-100);
   const star=scene.add.star(x,y,4,1.6,4,[0xffffff,0xffe8b2,0xc3ffe2][i%3],.8);
   sparkle.add(star);

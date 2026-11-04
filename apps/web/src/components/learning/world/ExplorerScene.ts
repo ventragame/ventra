@@ -162,10 +162,7 @@ export class ExplorerScene extends Phaser.Scene {
     this.shadow=shadow;this.character=character;
     this.player.add([shadow,character]);
     this.player.setDepth(20);
-    if(!this.reducedMotion){
-      this.tweens.add({targets:character,y:'-=3',duration:920,
-        yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
-    }
+    // Idle and walk offsets are managed by update(), avoiding competing tweens.
   }
   private renderRestoration():void {
     if(!this.bloomLayer)return;
@@ -378,10 +375,10 @@ export class ExplorerScene extends Phaser.Scene {
         this.facing8=(Math.round((Math.atan2(faceY,faceX)+Math.PI/2)/(Math.PI/4))+8)%8;
         if(Math.abs(faceX)>3)this.character.setFlipX(faceX<0);
       }
-      if(walking&&!this.reducedMotion)this.gait+=Math.min(delta,65)*.017;
-      this.character.y=-8-(walking&&!this.reducedMotion?Math.abs(Math.sin(this.gait))*5:0);
+      if(!this.reducedMotion)this.gait+=Math.min(delta,65)*(walking?.017:.0022);
+      this.character.y=-8-(this.reducedMotion?0:walking?Math.abs(Math.sin(this.gait))*5:Math.sin(this.gait)*1.6);
       this.character.angle=walking&&!this.reducedMotion?Math.sin(this.gait)*2.6:0;
-      this.character.setScale(1,walking?.985:1);
+      this.character.setScale(this.facing8%2===1?.97:1,walking?.985:1);
       if(this.shadow)this.shadow.setScale(walking?1.08:1,1);
     }
     this.player.setDepth(Math.round(this.player.y));
