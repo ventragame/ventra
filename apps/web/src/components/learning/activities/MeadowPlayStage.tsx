@@ -2,9 +2,9 @@
 
 import React from 'react';
 import type {AnimalId,AnimalWord} from '@/lib/learning/animalMissionEngine';
+import './animal-meadow-v3.css';
 
 export type MeadowMode='discover'|'match'|'listen'|'command'|'rescue'|'complete';
-
 export interface MeadowPlayStageProps {
  mode:MeadowMode;
  animals:readonly AnimalWord[];
@@ -18,119 +18,109 @@ export interface MeadowPlayStageProps {
  onSelect?:(id:AnimalId)=>void;
  onListen?:()=>void;
 }
-
-/** Visual story destination only — never a second quiz or false habitat score. */
-const HOME_ICONS:Readonly<Record<string,string>>={
+const labels:Record<MeadowMode,string>={
+ discover:'Hayvanları Keşfet',match:'Kelimeyi Bul',listen:'Dinle ve Bul',
+ command:'Hayvanı Bul',rescue:'Kurtarma',complete:'Tebrikler'
+};
+const icons:Record<MeadowMode,string>={
+ discover:'🐾',match:'🧩',listen:'👂',command:'🧭',rescue:'💛',complete:'⭐'
+};
+const destinationIcons:Record<string,string>={
  Ev:'🏠',Bahçe:'🏡',Ağaç:'🌳',Çayır:'🌿',Çiftlik:'🚜',
  Gölet:'💧',Çiçeklik:'🌸',Savan:'🌅',Orman:'🌲',
- Kutup:'🧊',Sahil:'🏖️',Dağ:'⛰️',Nehir:'🌊',
- Otlak:'🌾',Deniz:'🐠'
+ Kutup:'🧊',Sahil:'🏖️',Dağ:'⛰️',Nehir:'🌊',Otlak:'🌾',Deniz:'🐠'
 };
-function homeIcon(word:AnimalWord|null|undefined):string {
- return word?HOME_ICONS[word.place]??'🏡':'🏡';
+function safeDestination(word:AnimalWord|null|undefined):string{
+ return word?destinationIcons[word.place]??'🏡':'🏡';
 }
 
-const labels:Record<MeadowMode,string>={
- discover:'🐾 Hayvanlarla Tanış',match:'🧩 Resimden Kelimeye',
- listen:'👂 Dinle ve Bul',command:'🌿 Hayvan Macerası',
- rescue:'✨ Kurtarma Macerası',complete:'🏆 Harika!'
-};
-
 /**
- * One visual, semantic stage for desktop + mobile. No second map, fake
- * character walking or image-only answer hotspots. The real question plan
- * drives all options; displayed vocabulary is revealed at the right moment.
+ * One composited, sharp-edged playfield for web and mobile:
+ * - 3D animals live INSIDE sized, clipped transparent-image slots;
+ * - background is decorative only (never a hidden animal answer);
+ * - the same question and accessibility callbacks drive every device.
  */
 export function MeadowPlayStage({
  mode,animals,target,discovered=[],wrongId=null,correctId=null,disabled=false,
  noAudioMode=false,canSpeak=true,onSelect,onListen
 }:MeadowPlayStageProps){
- const isDiscovery=mode==='discover',isMatch=mode==='match';
- const isListening=mode==='listen';
- const isRescue=mode==='rescue';
- const isComplete=mode==='complete';
- const revealed=new Set(discovered);
- const showImage=!isMatch;
- return <section className={'am-v2-stage am-v2-'+mode}
-   aria-label={labels[mode]} data-mode={mode}>
-   <div className="am-v2-atmosphere" aria-hidden="true">
-    <div className="am-v2-sun"/><div className="am-v2-cloud am-v2-cloud-one"/>
-    <div className="am-v2-cloud am-v2-cloud-two"/>
-    <span className="am-v2-butterfly">🦋</span><span className="am-v2-flower">✿</span>
+ const seen=new Set(discovered);
+ const isDiscovery=mode==='discover',isMatch=mode==='match',isListening=mode==='listen';
+ const isRescue=mode==='rescue',isComplete=mode==='complete';
+ const imageChoices=!isMatch;
+ return <section className={'am3-stage am3-stage--'+mode} data-mode={mode}
+  aria-label={labels[mode]}>
+  <div className="am3-atmosphere" aria-hidden="true"/>
+  <div className="am3-topline">
+   <span className="am3-step"><span aria-hidden="true">{icons[mode]}</span>
+    <span>{labels[mode]}</span></span>
+   {isDiscovery&&<span className="am3-discovered" aria-label={seen.size+' hayvan keşfedildi'}>
+    ✨ {seen.size}/{animals.length}</span>}
+  </div>
+  {isComplete?(
+   <div className="am3-victory" role="img" aria-label="Üç yıldız ve görev başarısı">
+    <span className="am3-victory-stars">⭐ ⭐ ⭐</span>
+    <strong>Harika!</strong>
+    <span aria-hidden="true">🎉 ✨ 🎉</span>
    </div>
-   <div className="am-v2-stage-top">
-    <span className="am-v2-stage-label">{labels[mode]}</span>
-    {isDiscovery&&<span className="am-v2-count" aria-label={revealed.size+' hayvan öğrenildi'}>
-      ✨ {revealed.size}/{animals.length}
-    </span>}
-   </div>
-   {isComplete?(
-    <div className="am-v2-victory" role="img" aria-label="Üç yıldız ve kutlama">
-     <span className="am-v2-win-spark">✦ ✨ ✦</span>
-     <span className="am-v2-win-stars">⭐ ⭐ ⭐</span>
-     <strong>Harika!</strong>
-     <span className="am-v2-win-spark">✿ ✨ ✿</span>
-    </div>
-   ):<>
-    {isMatch&&target&&<div className="am-v2-hero">
-      <div className="am-v2-hero-frame" aria-label="Hangi hayvan?">
-       <img src={target.image} alt="" width={320} height={320} draggable={false}/>
-       {correctId===target.id&&<span className="am-v2-hero-tick" aria-label="Doğru">✓</span>}
-      </div>
-     </div>}
-    {(isListening||isRescue)&&<div className="am-v2-audio-hero">
-      {isListening?(
-        <button className="am-v2-hero-sound" type="button" onClick={onListen}
-         disabled={disabled||!canSpeak} aria-label="İngilizce hayvan seslendirmesini tekrar dinle">
-         <span aria-hidden="true">🔊</span><span>Dinle</span>
-        </button>
-      ):(
-        <div className="am-v2-rescue-sign" aria-hidden="true">
-          <span>🐾</span><span>💛</span><span>{homeIcon(target)}</span>
-        </div>
-      )}
-      {noAudioMode&&isListening&&target&&
-        <div className="am-v2-audio-fallback" aria-label={'Yazılı ipucu '+target.id}>
-          {target.id.toUpperCase()}
-        </div>}
+  ):<>
+   {isMatch&&target&&<div className="am3-focus" aria-label="İngilizce adı sorulan hayvan">
+     <div className="am3-focus-frame">
+      <img src={target.image} alt={target.tr+' resmi'} width={256} height={256}
+       decoding="async" draggable={false}/>
+      {correctId===target.id&&<span className="am3-focus-check" aria-hidden="true">✓</span>}
+     </div>
     </div>}
-    <div className={'am-v2-options'+(isDiscovery?' am-v2-options-discover':'')+(isMatch?' am-v2-options-text':'')}
-      role="group" aria-label={isDiscovery?'Hayvanlara dokunarak İngilizceyi öğren':
-        isMatch?'Doğru İngilizce kelimeyi seç':'Doğru hayvanı seç'}>
-      {animals.map((animal,i)=>{
-        const found=revealed.has(animal.id);
-        const right=correctId===animal.id;
-        const wrong=wrongId===animal.id;
-        const revealedWord=isDiscovery&&found;
-        return <button key={animal.id} type="button" disabled={disabled}
-         className={'am-v2-option'+(isMatch?' am-v2-word-option':'')}
-         data-found={found} data-right={right} data-wrong={wrong}
-         data-rescued={isRescue&&right}
-         style={{'--am-order':i} as React.CSSProperties}
-         onClick={()=>onSelect?.(animal.id)}
-         aria-pressed={isDiscovery?found:right}
-         aria-label={isDiscovery?
-          animal.tr+', '+(found?'tekrar dinle':'dokun ve öğren'):
-          isMatch?animal.id+' İngilizce kelimesini seç':
-          animal.tr+' hayvanını seç'}>
-         {showImage&&<span className="am-v2-animal-art">
-           <img src={animal.image} alt="" width={320} height={320}
-             draggable={false} loading="eager"/>
-          </span>}
-         {isMatch?<span className="am-v2-word-label">{animal.id.toUpperCase()}</span>:
-          isDiscovery?<span className="am-v2-animal-name">
-           {revealedWord?animal.id.toUpperCase():'🔊'}
-          </span>:
-          right?<span className="am-v2-animal-name am-v2-answer-reveal">{animal.id.toUpperCase()}</span>:null}
-         {found&&isDiscovery&&<span className="am-v2-learned" aria-hidden="true">✓</span>}
-         {right&&!isDiscovery&&<span className="am-v2-correct" aria-hidden="true">✓</span>}
-        </button>;
-      })}
-    </div>
-    {isRescue&&correctId&&<div className="am-v2-rescue-reward" role="status" aria-live="polite">
-       <span aria-hidden="true">🐾</span> {target?.id.toUpperCase()} <span aria-hidden="true">💛 {homeIcon(target)}</span>
-     </div>}
-   </>}
-   <div className="am-v2-ground-glow" aria-hidden="true">✿　✦　✿　✧　✿</div>
+   {isListening&&<div className="am3-listen-zone">
+     <button type="button" className="am3-listen-button" onClick={onListen}
+      aria-label="İngilizce kelimeyi tekrar dinle" disabled={disabled||!canSpeak}>
+      <span aria-hidden="true">🔊</span><strong>Dinle</strong>
+     </button>
+     {noAudioMode&&target&&<span className="am3-written-assist"
+       aria-label="Yazılı yardım açık">{target.id.toUpperCase()}</span>}
+    </div>}
+   {isRescue&&<div className="am3-rescue-zone" aria-label="Kurtarma görevi">
+     <span aria-hidden="true">🐾</span><span aria-hidden="true">💛</span>
+     {correctId&&<span className="am3-home-icon" aria-label="Hayvan güvenli yerine döndü">
+      {safeDestination(target)}</span>}
+    </div>}
+   <div className={'am3-choices'+(isDiscovery?' am3-choices--discover':'')+
+     (isMatch?' am3-choices--words':'')}
+    role="group" aria-label={isDiscovery?'Dokun, İngilizce adını dinle':
+     isMatch?'İngilizce kelime seçenekleri':'Hayvan resmi seçenekleri'}>
+    {animals.map((animal,i)=>{
+     const known=seen.has(animal.id),right=correctId===animal.id,wrong=wrongId===animal.id;
+     const showName=isDiscovery?known:right;
+     return <button type="button" key={animal.id} disabled={disabled}
+      className="am3-choice"
+      data-known={known} data-correct={right} data-wrong={wrong}
+      data-rescued={isRescue&&right}
+      style={{'--am3-order':i} as React.CSSProperties}
+      aria-pressed={isDiscovery?known:right}
+      aria-label={isDiscovery?
+       animal.tr+(known?', yeniden dinle':', dokun ve İngilizceyi dinle'):
+       isMatch?animal.id+' kelimesini seç':animal.tr+' hayvanını seç'}
+      onClick={()=>onSelect?.(animal.id)}>
+      {imageChoices?
+       <span className="am3-portrait" aria-hidden="true">
+        <img src={animal.image} alt="" width={256} height={256}
+         decoding="async" draggable={false} loading={i>5?'lazy':'eager'}/>
+       </span>:
+       <span className="am3-word-choice">{animal.id.toUpperCase()}</span>}
+      {imageChoices&&<span className="am3-caption">
+       {showName?animal.id.toUpperCase():
+        isDiscovery?<span className="am3-discover-icon" aria-hidden="true">🔊</span>:
+        <span className="am3-answer-placeholder" aria-hidden="true">✦</span>}
+      </span>}
+      {known&&isDiscovery&&<span className="am3-check" aria-hidden="true">✓</span>}
+      {right&&!isDiscovery&&<span className="am3-check" aria-hidden="true">✓</span>}
+     </button>;
+    })}
+   </div>
+   {isRescue&&correctId&&<p className="am3-rescue-success" role="status">
+    <span aria-hidden="true">💛</span> {target?.id.toUpperCase()}
+    <span aria-hidden="true"> {safeDestination(target)}</span>
+   </p>}
+  </>}
  </section>;
 }
