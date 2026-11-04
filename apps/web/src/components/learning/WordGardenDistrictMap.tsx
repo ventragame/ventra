@@ -1,4 +1,5 @@
 'use client';
+
 import React,{useMemo,useState} from 'react';
 import dynamic from 'next/dynamic';
 import {getDistrictObjects} from './world/worldLayout';
@@ -11,8 +12,9 @@ import {describeLearnerRoute} from '@/lib/learning/learningJourney';
 import type {EnglishPlacement} from '@/lib/learning/gradeAwareLearningPolicy';
 
 const ExplorerCanvas=dynamic(()=>import('./world/ExplorerCanvas').then(x=>x.ExplorerCanvas),{
- ssr:false,loading:()=> <div role="status" className="wg-map-loading">Haritanın büyülü dünyası hazırlanıyor…</div>
+ ssr:false,loading:()=> <div role="status" className="wg-map-loading">🌿 Harita hazırlanıyor…</div>
 });
+
 interface WordGardenDistrictMapProps {
  completedLevels:number;totalLevels:number;onEnterAnimals:()=>void;
  onEnterColors:()=>void;colorsUnlocked:boolean;colorsAvailable:boolean;colorCompleted:number;
@@ -24,6 +26,11 @@ interface WordGardenDistrictMapProps {
  coinBalance?:number|null;playerName?:string;onOpenPassport?:()=>void;
  gradeLevel?:number|null;englishLevel?:EnglishPlacement;onBack:()=>void;
 }
+
+/** One canonical progression / action layer for all six Word Garden worlds.
+ * The Phaser map and visual world cards both call enter(), preserving locks,
+ * error handling and persisted activity IDs. Help is opt-in for early readers.
+ */
 export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
  completedLevels,totalLevels,onEnterAnimals,onEnterColors,
  colorsUnlocked,colorsAvailable,colorCompleted,numberCompleted,numberTotal,numbersUnlocked,numbersAvailable,onEnterNumbers,
@@ -54,18 +61,16 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
  const summary=useMemo(()=>mapProgress(all),[all]);
  const featured=all.find(p=>districtStatus(p)==='continue')??all.find(p=>districtStatus(p)==='ready')??all[0];
  const focus=selected??featured.id;
- const pageTitle='Kelime Bahçesi';
- const detail=all.find(p=>p.id===focus)!;
  const enter=(obj:WorldObject)=>{
   const p=all.find(x=>x.id===obj.id);
   if(!p)return;
   const state=districtStatus(p);
   if(state==='error'){
-   setNotice(`${GARDEN_THEMES[p.id].name} ilerlemesi yüklenemedi. Kayıtların silinmedi; bölgeden çıkıp yeniden deneyebilirsin.`);
+   setNotice(`${GARDEN_THEMES[p.id].name} ilerlemesi yüklenemedi. Kayıtların silinmedi; yeniden deneyebilirsin.`);
    return;
   }
-  if(state==='loading'){setNotice(`${GARDEN_THEMES[p.id].name} ilerlemesi yükleniyor. Tekrar dene.`);return;}
-  if(state==='locked'){setNotice(`${GARDEN_THEMES[p.id].name} için önceki İngilizce görevlerini bitirmelisin.`);return;}
+  if(state==='loading'){setNotice(`${GARDEN_THEMES[p.id].name} yükleniyor. Birazdan yeniden dene.`);return;}
+  if(state==='locked'){setNotice(`${GARDEN_THEMES[p.id].name} için önceki görevlerini tamamlamalısın.`);return;}
   setNotice('');
   const actions:Record<GardenDistrictId,()=>void>={
    animals:onEnterAnimals,colors:onEnterColors,numbers:onEnterNumbers,food:onEnterFood,
@@ -73,125 +78,119 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
   };
   actions[p.id]();
  };
- const selectedObject=objects.find(o=>o.id===focus);
+ const playFeatured=()=>{const target=objects.find(obj=>obj.id===featured.id);if(target)enter(target);};
  return <div role="dialog" aria-modal="true" aria-labelledby="wg-world-title"
   onPointerDown={e=>e.stopPropagation()} onPointerMove={e=>e.stopPropagation()}
   onPointerUp={e=>e.stopPropagation()} onWheel={e=>e.stopPropagation()}
   className="wg-premium-screen">
-  <div className="wg-sky-orb wg-sky-orb-one" aria-hidden="true"/><div className="wg-sky-orb wg-sky-orb-two" aria-hidden="true"/>
+  <div className="wg-sky-orb wg-sky-orb-one" aria-hidden="true"/>
+  <div className="wg-sky-orb wg-sky-orb-two" aria-hidden="true"/>
   <div className="wg-shell">
    <header className="wg-hud">
     <button type="button" onClick={onBack} className="wg-back" aria-label="Adalar evrenine dön">
-     <span aria-hidden="true">←</span><span>Adalara Dön</span></button>
+     <span aria-hidden="true">←</span><span className="wg-back-label">Geri</span></button>
     <div className="wg-hud-identity">
-     <span className="wg-hud-crest" aria-hidden="true">✦</span>
-     <div><small>VENTRA KIDS · ENGLISH WORLDS</small>
-      <strong>{playerName?playerName+'’ın Macerası':'Maceranın Haritası'}</strong></div>
+     <span className="wg-hud-crest" aria-hidden="true">🌸</span>
+     <div><strong id="wg-world-title">Kelime Bahçesi</strong>
+      {playerName&&<small>{playerName}</small>}</div>
     </div>
     <div className="wg-hud-items">
-     <span className="wg-hud-chip" title="Profilde seçilen İngilizce düzeyi; seviye sınavı sonucu değildir">
-      📗 {englishLevel}</span>
-     {gradeLevel!=null&&gradeLevel>=1&&gradeLevel<=8&&
-      <span className="wg-hud-chip"><span aria-hidden="true">🎓</span> {gradeLevel}. Sınıf</span>}
-     <span className="wg-hud-chip wg-star-chip" title="Bu dünyanın altı bölgesinde kazanılan toplam yıldız">
-       <span aria-hidden="true">★</span> {summary.stars}</span>
+     <span className="wg-hud-chip wg-star-chip" aria-label={`Toplam ${summary.stars} yıldız`}>
+       <span aria-hidden="true">⭐</span> {summary.stars}</span>
      {onOpenPassport&&<button type="button" onClick={onOpenPassport}
-        className="wg-hud-chip wg-passport" aria-label="Maceracı Pasaportu, günlük görevler ve koleksiyonu aç">
-        <span aria-hidden="true">🪙</span> {coinBalance??'—'} <span className="wg-passport-label">Pasaport ↗</span>
-       </button>}
+       className="wg-hud-chip wg-passport" aria-label="Maceracı Pasaportu ve koleksiyonunu aç"
+       title="Pasaport"><span aria-hidden="true">🎒</span><span className="wg-passport-label">{coinBalance??'—'}</span></button>}
+     <button type="button" className="wg-help-toggle"
+      onClick={()=>setMapTips(x=>!x)} aria-expanded={mapTips} aria-controls="wg-tips"
+      aria-label="Harita yardımı ve öğrenme hedefleri" title="Nasıl oynanır?">?</button>
     </div>
    </header>
 
-   <section className="wg-hero" aria-label="Kelime Bahçesi yolculuğu">
-    <div className="wg-hero-left">
-     <div className="wg-eyebrow"><span className="wg-eyebrow-star">✧</span> SIX WORLDS. ONE ENGLISH ADVENTURE.</div>
-     <h1 id="wg-world-title"><span className="wg-flower" aria-hidden="true">✿</span> Kelime Bahçesi</h1>
-     <p>Her yeni kelime bir kapı açar. Büyülü dünyaları keşfet, İngilizce öğren ve kendi maceranı tamamla.</p>
-     <div className="wg-route-summary" role="note" aria-label="Profiline göre İngilizce öğrenme hedefleri">
-      <span className="wg-route-label">🎓 {route.gradeLabel} · İngilizce {route.englishLevel}</span>
-      <span className="wg-route-goal">Bugünkü hedef: {route.goals[0]}</span>
-     </div>
-     <div className="wg-hero-actions">
-      <button type="button" className="wg-hero-primary"
-       onClick={()=>{const obj=objects.find(o=>o.id===featured.id);if(obj)enter(obj);}}>
-       <span aria-hidden="true">✦</span> {featured.completed>0?'Maceraya Devam Et':'Maceraya Başla'}
-       <span aria-hidden="true">↗</span></button>
-      <button type="button" className="wg-hero-secondary" onClick={()=>setMapTips(x=>!x)}
-       aria-expanded={mapTips} aria-controls="wg-tips">
-       <span aria-hidden="true">🧭</span> Nasıl Gezilir?</button>
-     </div>
+   {mapTips&&<section id="wg-tips" className="wg-tip-panel" role="region" aria-label="Harita kontrolleri ve öğrenme hedefleri">
+    <div className="wg-tip-heading"><h2>🧭 Nasıl Oynanır?</h2>
+     <button type="button" aria-label="Yardımı kapat" onClick={()=>setMapTips(false)}>✕</button></div>
+    <div className="wg-tip-steps">
+     <p><span aria-hidden="true">👆</span> Haritadaki dünyaya veya resmine dokun.</p>
+     <p><span aria-hidden="true">🎮</span> Masaüstünde WASD/ok tuşlarıyla da gezebilirsin.</p>
+     <p><span aria-hidden="true">🔒</span> Kilitli dünyalar önceki görevlerden sonra açılır.</p>
     </div>
-    <div className="wg-progress-orb" role="group" aria-label="Altı dünyanın toplam ilerlemesi">
-     <div className="wg-progress-circle" style={{'--wg-fill':`${summary.percent}%`} as React.CSSProperties}>
-      <div className="wg-progress-center"><strong>%{summary.percent}</strong><small>KEŞFEDİLDİ</small></div>
-     </div>
-     <span>{summary.done}/{summary.total} görev · {summary.finished}/6 dünya</span>
+    <div className="wg-route-summary" role="note" aria-label="Profiline göre İngilizce öğrenme hedefleri">
+     <span className="wg-route-label">🎓 {route.gradeLabel} · İngilizce {route.englishLevel}</span>
+     <span className="wg-route-goal">Bugünkü hedef: {route.goals[0]}</span>
     </div>
-   </section>
-   {mapTips&&<div id="wg-tips" className="wg-tip-panel" role="region" aria-label="Harita kontrolleri">
-     <strong>Haritayı keşfet:</strong> Bölge girişine dokun; karakter oraya yürüyerek oyunu açar.
-     Masaüstünde WASD/ok tuşları, mobilde sağ alttaki yön tuşları çalışır.
-     Alt dünya kartlarından ilgili oyunu doğrudan açabilirsin.
-   </div>}
+   </section>}
 
-   <section className="wg-main-map" aria-label="Gezilebilir İngilizce dünyası">
-    <div className="wg-map-heading">
-      <div><span className="wg-small-label">✦ INTERACTIVE WORLD MAP</span><h2>Altı Dünya, Sınırsız Keşif</h2></div>
-      <span className="wg-map-counter"><span aria-hidden="true">🌿</span> {summary.finished}/6 dünya tamamlandı</span>
+   <section className="wg-play-strip" aria-label="Macera ve ilerleme">
+    <div className="wg-strip-heading">
+     <span className="wg-strip-flower" aria-hidden="true">🌷</span>
+     <div><small>HAYDİ KEŞFEDELİM!</small><h2>Altı büyülü dünya</h2></div>
     </div>
-    <ExplorerCanvas key="premium-garden" area="garden" objects={objects} progress={Math.round(summary.percent/100*12)}
-      caption="Büyülü Keşif Haritası" height={640} onInteract={enter}
-      onInspect={obj=>enter(obj)} />
-    <div className="wg-map-footer">
-      <span><span aria-hidden="true">✧</span> Simgelere dokunarak veya yürüyerek keşfet.</span>
-      <span>Oyunları alt kartlardan da açabilirsin. <span aria-hidden="true">✦</span></span>
+    <div className="wg-strip-progress" role="progressbar" aria-label="Kelime Bahçesi toplam ilerlemesi"
+       aria-valuenow={summary.percent} aria-valuemin={0} aria-valuemax={100}>
+     <div className="wg-strip-track"><span style={{width:`${summary.percent}%`}}/></div>
+     <strong>%{summary.percent}</strong>
     </div>
+    <button type="button" className="wg-hero-primary" onClick={playFeatured}
+      aria-label={`${GARDEN_THEMES[featured.id].name}: ${featured.completed>0?'Devam et':'Oyna'}`}>
+       <span aria-hidden="true">▶</span> {featured.completed>0?'Devam Et':'Oyna'}
+    </button>
    </section>
-   {notice&&<div className="wg-notice" role="status">{notice}
-     <button type="button" onClick={()=>setNotice('')}>Kapat ×</button></div>}
 
-   <section className="wg-district-section" aria-labelledby="wg-district-title">
-    <div className="wg-section-heading"><div><span className="wg-small-label">EXPLORE YOUR WORLDS</span>
-      <h2 id="wg-district-title">Macera Durakları <span>✦</span></h2>
-      <p>Her durakta farklı İngilizce kelimeler, sesler ve mini maceralar seni bekliyor.</p></div>
-     <span className="wg-count-pill">6 / 6 DÜNYA</span>
-    </div>
-    <div className="wg-world-grid">
-     {GARDEN_ORDER.map((id,index)=>{
-      const p=all[index],theme=GARDEN_THEMES[id],state=districtStatus(p);
-      const playable=state==='ready'||state==='continue'||state==='complete';
-      const pct=districtPercent(p.completed,p.total);
-      return <button type="button" key={id} onClick={()=>{setSelected(id);const o=objects[index];if(o)enter(o)}}
-       onMouseEnter={()=>setSelected(id)} onFocus={()=>setSelected(id)}
-       disabled={!playable}
-       aria-label={`${theme.name}, ${p.completed}/${p.total} görev, ${districtStatusLabel(state)}`}
-       className={`wg-world-card wg-card-${id} ${focus===id?'wg-card-featured':''} ${!playable?'wg-card-disabled':''}`}
-       style={{'--wg-accent':theme.accent,'--wg-light':theme.light} as React.CSSProperties}>
-       <div className="wg-card-top"><DistrictPreviewArt id={id}/>
-        <span className="wg-card-index">{String(index+1).padStart(2,'0')}</span>
-        <span className={`wg-card-status wg-status-${state}`}>
-          {state==='complete'?'✓ ':state==='locked'?'🔒 ':''}{districtStatusLabel(state)}</span>
-        <span className="wg-card-art-icon" aria-hidden="true">{theme.icon}</span>
-       </div>
-       <div className="wg-card-body">
-        <small className="wg-card-eyebrow">{theme.eyebrow}</small>
-        <h3>{theme.name}</h3>
-        <p className="wg-card-subtitle">{theme.subtitle}</p>
-        <p className="wg-card-words">{theme.words}</p>
-        <div className="wg-card-progress-text"><span>GÖREV İLERLEMESİ</span><strong>{p.completed}/{p.total}</strong></div>
-        <div className="wg-card-progress"><span style={{width:`${pct}%`}}/></div>
-        <div className="wg-card-foot"><span className="wg-card-stars">★ {p.stars} yıldız</span>
-         <span className="wg-card-action">{state==='complete'?'Tekrar Oyna ↗':state==='continue'?'Devam Et ↗':state==='ready'?'Keşfet ↗':districtStatusLabel(state)}</span>
+   <main>
+    <section className="wg-main-map" aria-label="Gezilebilir İngilizce dünyası">
+     <div className="wg-map-heading">
+      <h2><span aria-hidden="true">🗺️</span> Keşif Haritası</h2>
+      <span className="wg-map-counter" aria-label={`${summary.finished} dünya tamamlandı, toplam altı dünya`}>✦ {summary.finished}/6</span>
+     </div>
+     <div className="wg-map-stage">
+      <ExplorerCanvas key="premium-garden" area="garden" objects={objects}
+       progress={Math.round(summary.percent/100*12)}
+       caption="Büyülü Keşif Haritası" height={570} onInteract={enter} onInspect={obj=>enter(obj)}/>
+     </div>
+    </section>
+    {notice&&<div className="wg-notice" role="status"><span aria-hidden="true">🧭</span>{notice}
+      <button type="button" onClick={()=>setNotice('')} aria-label="Bildirimi kapat">✕</button></div>}
+
+    <section className="wg-district-section" aria-labelledby="wg-district-title">
+     <div className="wg-section-heading">
+      <h2 id="wg-district-title"><span aria-hidden="true">🎮</span> Oyunlar</h2>
+      <span className="wg-count-pill" aria-label={`${summary.finished} dünya tamamlandı`}>⭐ {summary.finished}/6</span>
+     </div>
+     <div className="wg-world-grid">
+      {GARDEN_ORDER.map((id,index)=>{
+       const p=all[index],theme=GARDEN_THEMES[id],state=districtStatus(p);
+       const playable=state==='ready'||state==='continue'||state==='complete';
+       const pct=districtPercent(p.completed,p.total);
+       const obj=objects.find(x=>x.id===id);
+       return <button type="button" key={id}
+        onClick={()=>{setSelected(id);if(obj)enter(obj);}}
+        onMouseEnter={()=>setSelected(id)} onFocus={()=>setSelected(id)}
+        disabled={!playable}
+        aria-label={`${theme.name}, ${p.completed}/${p.total} görev, ${districtStatusLabel(state)}`}
+        className={`wg-world-card wg-card-${id} ${focus===id?'wg-card-featured':''} ${!playable?'wg-card-disabled':''}`}
+        style={{'--wg-accent':theme.accent,'--wg-light':theme.light} as React.CSSProperties}>
+        <div className="wg-card-top"><DistrictPreviewArt id={id}/>
+         <span className="wg-card-index" aria-hidden="true">{String(index+1).padStart(2,'0')}</span>
+         <span className={`wg-card-status wg-status-${state}`} aria-hidden="true">
+           {state==='locked'?'🔒':state==='complete'?'✓':state==='loading'?'⏳':state==='error'?'!':'▶'}</span>
+         <span className="wg-card-art-icon" aria-hidden="true">{theme.icon}</span>
         </div>
-       </div>
-      </button>;
-     })}
-    </div>
-   </section>
-   <footer className="wg-bottom-note">
-    <span aria-hidden="true">✿</span> Her dünyada farklı bir İngilizce macera. Öğrendikçe dünya seninle büyür.
-    {onOpenPassport&&<button type="button" onClick={onOpenPassport}>Günlük Görevler · Koleksiyon · Pasaport ↗</button>}
-   </footer>
+        <div className="wg-card-body">
+         <h3>{theme.name}</h3>
+         <div className="wg-card-meta">
+          <span className="wg-card-stars" aria-label={`${p.stars} yıldız`}>⭐ {p.stars}</span>
+          <span className="wg-card-task">{p.completed}/{p.total}</span>
+          <span className="wg-card-action" aria-hidden="true">{state==='complete'?'↻':playable?'▶':state==='loading'?'…':'🔒'}</span>
+         </div>
+         <div className="wg-card-progress" role="progressbar" aria-label={`${theme.name} görev ilerlemesi`}
+           aria-valuenow={pct} aria-valuemin={0} aria-valuemax={100}>
+           <span style={{width:`${pct}%`}}/></div>
+        </div>
+       </button>;
+      })}
+     </div>
+    </section>
+   </main>
   </div>
  </div>;
 };
