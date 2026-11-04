@@ -26,7 +26,7 @@ export class ExplorerScene extends Phaser.Scene {
   private path:Point|null=null;
   private waypoints:Point[]=[];
   private character?:Phaser.GameObjects.Image;
-  private shadow?:Phaser.GameObjects.Arc;
+  private shadow?:Phaser.GameObjects.Ellipse;
   private gait=0;
   private facing8=4;
   private pendingTarget:string|null=null;
