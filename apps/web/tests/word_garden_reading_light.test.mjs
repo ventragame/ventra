@@ -53,8 +53,8 @@ test('Parents can expand game instructions but children can play immediately',()
  }
  const animal=activity('AnimalMeadowAdventure.tsx');
  assert.match(animal,/am-story-guide/);
- assert.match(animal,/am-discovery-help/);
- assert.match(animal,/aria-label="Hayvan keşfi nasıl oynanır"/);
+ assert.match(animal,/MeadowPlayStage/);
+ assert.match(animal,/aria-label="Pufi'den oyun yardımı"/);
 });
 
 test('Visual simplification preserves actual English words, answer events and auto advance',()=>{
