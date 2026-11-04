@@ -45,3 +45,33 @@ test('The map scene routes touch travel, keeps callbacks and honors reduced moti
  assert.match(canvas,/aria-label="Yön kontrolleri"/);
  assert.match(canvas,/aria-pressed=\{ambienceOn\}/);
 });
+
+
+test('Cohesive V3 world artwork, rigged motion, and walkable meadow corridor stay in sync',()=>{
+ const art=fs.readFileSync(new URL('../src/components/learning/world/GardenWorldArt.ts',import.meta.url),'utf8');
+ const scene=fs.readFileSync(new URL('../src/components/learning/world/ExplorerScene.ts',import.meta.url),'utf8');
+ const base=new URL('../public/assets/word-garden/premium-v3/',import.meta.url);
+ for(const file of ['garden-ground.webp','foreground.webp']){
+  const bytes=fs.readFileSync(new URL(file,base));
+  assert.equal(bytes.toString('ascii',0,4),'RIFF');
+  assert.equal(bytes.toString('ascii',8,12),'WEBP');
+  assert.ok(bytes.length>15000);
+ }
+ const landmark=art.slice(art.indexOf('export function createGardenLandmark('),art.indexOf('export function addGardenAmbient('));
+ assert.doesNotMatch(landmark,/fillEllipse|drawGardenPortal|image\('/);
+ assert.match(scene,/garden_ground_v3/);
+ assert.doesNotMatch(scene,/garden_ground_v2/);
+ assert.match(scene,/Math\.max\(w\/WORLD_WIDTH,height\/WORLD_HEIGHT\)/);
+ assert.match(scene,/fit\*1\.12/);
+ assert.match(scene,/this\.leftBoot\.setAngle\(swing\)/);
+ assert.match(scene,/this\.rightBoot\.setAngle\(-swing\)/);
+ for(const file of ['left-leg','right-leg']){
+  const svg=fs.readFileSync(new URL('../public/assets/kids/explorer-avatar-'+file+'.svg',import.meta.url),'utf8');
+  assert.match(svg,/<clipPath id="avatar-half">/);
+  assert.match(svg,/<svg /);
+ }
+ const torso=fs.readFileSync(new URL('../public/assets/kids/explorer-avatar-torso.svg',import.meta.url),'utf8');
+ assert.doesNotMatch(torso,/M92 220|M78 273/);
+ const route=planGardenRoute(PLAYER_START.garden,'animals',DISTRICTS.find(x=>x.id==='animals'));
+ assert.ok(route.some(p=>p.x===466&&p.y===486),'meadow path must traverse the painted farm trail');
+});

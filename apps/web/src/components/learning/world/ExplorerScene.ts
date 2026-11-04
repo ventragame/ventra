@@ -110,7 +110,7 @@ export class ExplorerScene extends Phaser.Scene {
       const overview=w>=750&&height>=430;
       // Cover the complete viewport: the old contain-fit exposed a cyan strip.
       const fit=Math.max(w/WORLD_WIDTH,height/WORLD_HEIGHT)*1.009;
-      this.cameras.main.setZoom(overview?fit:Math.max(.56,Math.min(.90,w/690)));
+      this.cameras.main.setZoom(overview?fit:Math.max(.59,Math.min(.94,fit*1.12)));
       this.cameras.main.setBounds(0,0,WORLD_WIDTH,WORLD_HEIGHT);
       if(overview){this.cameras.main.stopFollow();this.cameras.main.centerOn(WORLD_WIDTH/2,WORLD_HEIGHT/2);}
       else this.cameras.main.startFollow(this.player,true,.13,.13);
