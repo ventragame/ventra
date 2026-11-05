@@ -45,7 +45,7 @@ test('All worlds still require explicit actions for chapter rewards and discover
  const temple=read('TempleAdventure');
  assert.match(animal,/onClick=\{\(\)=>\{if\(stage===5\)onAllCompleted\(\);else reset/);
  assert.match(color,/onClick=\{\(\) => \{/);
- assert.match(food,/finished\?<div className="fm-win"/);
+ assert.match(food,/finished\?<div className="fm-win(?: fm4-win)?"/);
  assert.match(family,/saved\?<div className="fv-celebrate"/);
  assert.match(temple,/finished\?<div className="tp-finished"/);
  for(const code of [animal,color,food,family,temple]){
