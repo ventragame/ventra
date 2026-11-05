@@ -114,7 +114,10 @@ export function planMarketMission(input:{
  const selected=Array.from({length:rounds},(_,i)=>active[i%active.length]);
  const sequence=shuffled(selected,rng);
  const questions=sequence.map((word,i)=>{
-   const distractorPool=all.filter(w=>w.id!==word.id);
+   // Assess familiar vocabulary rather than confusing beginners with items
+   // that have not appeared in a discovery mission. On a first ever session,
+   // use the eligible grade-scoped pool as a safe fallback.
+   const distractorPool=(pool.length>=3?pool:all).filter(w=>w.id!==word.id);
    const distractors=shuffled(distractorPool,rng).slice(0,2).map(w=>w.id);
    const options=shuffled([word.id,...distractors],rng);
    const customer=i%2===0?'I would like':'Can I have';

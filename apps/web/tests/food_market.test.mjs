@@ -210,3 +210,57 @@ test('G1.6: listening choices unlock only after completed voice or explicit assi
  assert.match(code,/hint\|\|\(stage===3&&!heard\)/);
  assert.match(code,/aria-label=\{showEnglish\?/);
 });
+
+test('G4 local food art covers all 45 words and three distinct market streets',()=>{
+ const read=(relative)=>fs.readFileSync(new URL(relative,import.meta.url),'utf8');
+ const sprite=read('../public/assets/foods/food-sprite-v4.svg');
+ const ids=[...sprite.matchAll(/<symbol id="food-([a-z]+)" viewBox=/g)].map(x=>x[1]);
+ assert.equal(ids.length,45);
+ assert.deepEqual(new Set(ids),new Set(MARKET_WORDS.map(w=>w.id)));
+ assert.equal(sprite.match(/<\/symbol>/g)?.length,45);
+ assert.doesNotMatch(sprite,/href=["']https?:/);
+ for(const name of ['orchard','bakery','cafe']){
+  const scene=read('../public/assets/foods/market-'+name+'-v4.svg');
+  assert.match(scene,/^<svg /);
+  assert.match(scene,/<\/svg>$/);
+  assert.match(scene,/viewBox="0 0 1280 720"/);
+  assert.ok(scene.length>9000);
+ }
+});
+test('G4 native-capable voice, product artwork, retry and tap safety contracts',()=>{
+ const read=(relative)=>fs.readFileSync(new URL(relative,import.meta.url),'utf8');
+ const code=read('../src/components/learning/activities/FoodMarketAdventure.tsx');
+ const css=read('../src/components/learning/activities/food-market-v4.css');
+ assert.match(code,/food-sprite-v4\.svg#food-/);
+ assert.match(code,/market-orchard-v4\.svg/);
+ assert.match(code,/market-bakery-v4\.svg/);
+ assert.match(code,/market-cafe-v4\.svg/);
+ assert.match(code,/function FoodIllustration/);
+ assert.match(code,/function BasketIllustration/);
+ assert.match(code,/soundService\.hasEnglishSpeech\(\)/);
+ assert.match(code,/soundService\.cancelSpeech\(\)/);
+ assert.match(code,/visitedRef\.current\.has\(id\)/);
+ assert.match(code,/answerLock\.current=true/);
+ assert.match(code,/answerLock\.current=false/);
+ assert.match(code,/ready:stage===1&&Boolean\(current\?\.words.length\)/);
+ assert.match(code,/Boolean\(saveError\)/);
+ assert.match(code,/onAdvance:advance/);
+ assert.match(code,/onDrop=\{event=>/);
+ assert.match(code,/onClick=\{\(\)=>choose\(id\)\}/);
+ assert.match(code,/Kaydetmeyi Tekrar Dene/);
+ assert.doesNotMatch(code,/Tüm Ürünleri Keşfettim/);
+ assert.doesNotMatch(code,/fm-product-art.*w\.icon/);
+ assert.match(css,/@media\(max-width:359px\)/);
+ assert.match(css,/safe-area-inset-bottom/);
+ assert.match(css,/focus-visible/);
+ assert.match(css,/prefers-reduced-motion:reduce/);
+ assert.match(css,/touch-action:manipulation/);
+});
+test('G4 questions never use unknown distractors when enough foods are discovered',()=>{
+ const ids=['apple','banana','orange','strawberry'];
+ const history=ids.map(id=>make(id,'discovery'));
+ const plan=planMarketMission({aisle:'orchard',stage:2,gradeLevel:1,englishLevel:'Pre-A1',history,seed:47});
+ assert.ok(plan.questions.length>0);
+ assert.ok(plan.questions.every(q=>ids.includes(q.target)));
+ assert.ok(plan.questions.every(q=>q.options.every(option=>ids.includes(option))));
+});
