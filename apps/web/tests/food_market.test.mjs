@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {MARKET_WORDS,MARKET_AISLES,MARKET_STAGES,MARKET_TOTAL,
- eligibleMarketWords,planMarketMission,marketResumePoint,validMarketAnswers,marketWord,marketNounPhrase,MARKET_GAME_ID} from '../src/lib/learning/foodMarketEngine.ts';
+ eligibleMarketWords,planMarketMission,marketResumePoint,validMarketAnswers,marketWord,marketNounPhrase,marketMissionStars,MARKET_GAME_ID} from '../src/lib/learning/foodMarketEngine.ts';
 import {saveFoodMarketMission,getFoodMarketProgress} from '../src/lib/progress/foodMarketProgress.ts';
 import {MemoryProgressRepository} from '../src/lib/progress/MemoryProgressRepository.ts';
 import {normalizeLearningEvidence,getLearningSnapshot} from '../src/lib/learning/adaptiveLearningEngine.ts';
@@ -135,7 +135,8 @@ test('G1 market illustrations distinguish visually selectable products and order
 test('G1 distinct dialogue responses and accessible market cart actions exist',()=>{
  const ui=fs.readFileSync(new URL('../src/components/learning/activities/FoodMarketAdventure.tsx',import.meta.url),'utf8');
  assert.match(ui,/fm-dialogue-option/);
- assert.match(ui,/You asked for \{marketNounPhrase\(id\)\}/);
+ assert.match(ui,/fm5-dialogue-option/);
+ assert.doesNotMatch(ui,/You asked for \{marketNounPhrase\(id\)\}/);
  assert.match(ui,/onDrop=\{event=>/);
  assert.match(ui,/onClick=\{\(\)=>choose\(id\)\}/);
  assert.match(ui,/stage===5\?current\.words:task\.options/);
@@ -263,4 +264,104 @@ test('G4 questions never use unknown distractors when enough foods are discovere
  assert.ok(plan.questions.length>0);
  assert.ok(plan.questions.every(q=>ids.includes(q.target)));
  assert.ok(plan.questions.every(q=>q.options.every(option=>ids.includes(option))));
+});
+
+test('G5 recognition assesses English words, never copies the featured illustration into answer options',()=>{
+ const ui=fs.readFileSync(new URL('../src/components/learning/activities/FoodMarketAdventure.tsx',import.meta.url),'utf8');
+ const css=fs.readFileSync(new URL('../src/components/learning/activities/food-market-logic-v5.css',import.meta.url),'utf8');
+ const imagePrompt=ui.indexOf('{stage===2&&<div className="fm-featured');
+ const textChoice=ui.indexOf('stage===2?\n         <div className="fm5-word-choices"');
+ const speech=ui.indexOf('stage===4?\n         <div className="fm-dialogue-choices');
+ assert.ok(imagePrompt>0 && textChoice>imagePrompt && speech>textChoice);
+ const answerUI=ui.slice(textChoice,speech);
+ assert.match(answerUI,/fm5-word-label/);
+ assert.match(answerUI,/\{id\.toUpperCase\(\)\}/);
+ assert.doesNotMatch(answerUI,/FoodIllustration|<Item|\.icon/,'no picture matching in English recognition');
+ assert.doesNotMatch(ui,/showEnglish=\{stage===2\}/);
+ assert.match(css,/fm5-word-option/);
+});
+test('G5 listening and customer dialogue do not print or duplicate the answer without assisted mode',()=>{
+ const ui=fs.readFileSync(new URL('../src/components/learning/activities/FoodMarketAdventure.tsx',import.meta.url),'utf8');
+ const intro=ui.slice(ui.indexOf('<div className="fm-command fm4-command">',ui.indexOf('<div className="fm-command fm4-command">')+1),
+  ui.indexOf('{stage===2&&<div className="fm-featured'));
+ assert.match(intro,/Customer says:/);
+ assert.doesNotMatch(intro,/stage===4\?<><strong>Customer says:<\/strong><strong className="fm-english">\{task.prompt\}/);
+ assert.match(ui,/\(stage===3\|\|stage===4\)&&<div className="fm-audio-panel/);
+ assert.match(ui,/stage===4&&!heard&&!hint\)return/);
+ assert.match(ui,/Yazılı destek:/);
+ assert.match(ui,/stage===4\?task.prompt:task.target.toUpperCase\(\)/);
+ const response=ui.slice(ui.indexOf('stage===4?\n         <div className="fm-dialogue-choices'),ui.indexOf('stage===5?current.words:task.options'));
+ assert.match(response,/fm5-dialogue-option/);
+ assert.match(response,/FoodIllustration id=\{id\}/);
+ assert.doesNotMatch(response,/marketNounPhrase\(id\)|\{task.prompt\}|\{id.toUpperCase\(\)\}/);
+ assert.match(response,/\(!heard&&!hint\)/);
+});
+test('G5 orders say FIRST and THEN, and every pair has two different targets',()=>{
+ for(const aisle of MARKET_AISLES){
+  for(const [gradeLevel,englishLevel] of [[1,'Pre-A1'],[4,'A1'],[7,'A2']]){
+   for(let seed=1;seed<=5;seed++){
+    const plan=planMarketMission({aisle:aisle.id,stage:5,gradeLevel,englishLevel,history:[],seed});
+    assert.equal(plan.questions.length,6);
+    assert.equal(new Set(plan.questions.map(q=>q.target)).size,6,'distinct products per order session');
+    for(let i=0;i<6;i+=2){
+     const first=plan.questions[i],second=plan.questions[i+1];
+     assert.equal(first.orderPair,second.orderPair);
+     assert.equal(first.prompt,second.prompt);
+     assert.equal(first.audio,first.prompt);
+     assert.equal(second.audio,second.prompt);
+     assert.equal(first.prompt,`First, find ${marketNounPhrase(first.target)}. Then, find ${marketNounPhrase(second.target)}.`);
+    }
+   }
+  }
+ }
+});
+test('G5 stars do not treat pronunciation and written hints as perfect independent mastery',async()=>{
+ assert.equal(marketMissionStars(0,[make('apple','recognition')]),3);
+ assert.equal(marketMissionStars(0,[make('apple','recognition',0,true)]),2);
+ assert.equal(marketMissionStars(0,[...Array(3)].map(()=>make('apple','recognition',0,true))),1);
+ assert.equal(marketMissionStars(1,[make('apple','recognition')]),2);
+ assert.equal(marketMissionStars(3,[make('apple','recognition')]),1);
+ const repo=new MemoryProgressRepository();
+ const child=await repo.createProfile({nickname:'Hinted market learner',avatarId:'avatar_explorer'});
+ await saveFoodMarketMission(repo,child.id,'orchard',1,0,11,proof(1),'hinted-discovery');
+ const aided=proof(2);aided[0]={...aided[0],hintUsed:true,firstTryCorrect:false};
+ await saveFoodMarketMission(repo,child.id,'orchard',2,0,11,aided,'hinted-quiz');
+ let p=await getFoodMarketProgress(repo,child.id);
+ assert.equal(p.starsByLevel[2],2,'assisted recognition cannot earn three stars');
+ await saveFoodMarketMission(repo,child.id,'orchard',2,0,11,proof(2),'unassisted-replay');
+ p=await getFoodMarketProgress(repo,child.id);
+ assert.equal(p.starsByLevel[2],3,'independent replay can improve the best star rating');
+});
+test('G5 wrong taps, assist buttons, progress and responsive answer cards are guarded',()=>{
+ const ui=fs.readFileSync(new URL('../src/components/learning/activities/FoodMarketAdventure.tsx',import.meta.url),'utf8');
+ const css=fs.readFileSync(new URL('../src/components/learning/activities/food-market-logic-v5.css',import.meta.url),'utf8');
+ assert.match(ui,/wrongRef\.current\.has\(id\)/);
+ assert.match(ui,/wrongRef\.current\.add\(id\)/);
+ assert.match(ui,/setWrongIds\(\[\.\.\.wrongRef\.current\]\)/);
+ assert.match(ui,/wrongRef\.current\.clear\(\)/);
+ assert.match(ui,/onClick=\{\(\)=>\{setHint\(true\);speak\(task.audio\);\}\}/);
+ assert.match(ui,/marketMissionStars\(wrong,answers\)/);
+ assert.match(ui,/stage===5&&answers.some\(a=>a.kind==='application'&&a.wordId===id\)/);
+ assert.match(ui,/q%2===0\?'1\. ürün: FIRST':'2\. ürün: THEN'/);
+ assert.match(css,/@media\(max-width:680px\)/);
+ assert.match(css,/@media\(max-width:359px\)/);
+ assert.match(css,/touch-action:manipulation/);
+ assert.match(css,/prefers-reduced-motion:reduce/);
+});
+
+test('G5 higher A2 customer orders require selecting requested rather than rejected items',()=>{
+ for(const aisle of MARKET_AISLES){
+  const plan=planMarketMission({aisle:aisle.id,stage:4,englishLevel:'A2',gradeLevel:7,history:[],seed:209});
+  const contrasting=plan.questions.filter(q=>q.prompt.startsWith("I don't want "));
+  assert.ok(contrasting.length>=2,'A2 must contain some negation and preference contexts');
+  for(const q of contrasting){
+   assert.match(q.prompt,/I would like /);
+   assert.equal(q.audio,q.prompt);
+   assert.ok(q.prompt.includes(marketNounPhrase(q.target)));
+   assert.ok(q.options.some(id=>id!==q.target&&q.prompt.includes(marketNounPhrase(id))),
+     'rejected item must also be visible, so keyword spotting alone is not enough');
+  }
+  const beginner=planMarketMission({aisle:aisle.id,stage:4,englishLevel:'Pre-A1',gradeLevel:1,history:[],seed:209});
+  assert.ok(beginner.questions.every(q=>!q.prompt.includes("I don't want ")));
+ }
 });

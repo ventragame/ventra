@@ -1,7 +1,7 @@
 import type {GameCompletedPayload,FoodAnswerEvidence} from '@ventra/shared';
 import type {IProgressRepository} from './types.ts';
 import {MARKET_GAME_ID,MARKET_OFFSETS,MARKET_TOTAL,MARKET_KINDS,marketWord,
- validMarketAnswers,type MarketAisle,type MarketStage} from '../learning/foodMarketEngine.ts';
+ validMarketAnswers,marketMissionStars,type MarketAisle,type MarketStage} from '../learning/foodMarketEngine.ts';
 
 export interface FoodMarketProgress {
  completedLevels:number; totalLevels:number;
@@ -42,7 +42,7 @@ export async function saveFoodMarketMission(
     aisle==='cafe'&&previous.completedByAisle.bakery<5)
    throw Error('Önce önceki pazar sokağını tamamla.');
  const correct=answers.length,attempts=correct+mistakes;
- const stars=mistakes===0?3:mistakes<=2?2:1;
+ const stars=marketMissionStars(mistakes,answers);
  const payload:GameCompletedPayload={
    sessionId,profileId,gameId:MARKET_GAME_ID,
    levelId:MARKET_OFFSETS[aisle]+stage,

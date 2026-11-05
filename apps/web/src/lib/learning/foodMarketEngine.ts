@@ -121,14 +121,36 @@ export function planMarketMission(input:{
    const distractors=shuffled(distractorPool,rng).slice(0,2).map(w=>w.id);
    const options=shuffled([word.id,...distractors],rng);
    const customer=i%2===0?'I would like':'Can I have';
-   const phrase=stage===4?`${customer} ${marketNounPhrase(word.id)}, please${i%2===0?'.':'?'}`:
-      stage===5?`Find the ${word.id}.`:word.id;
+   // Spoken customer request: neither its written word nor a copy of the
+   // correct response appears among the answer options until assisted mode.
+   // Older A2 learners must understand a contrast, not merely spot a
+   // single food name inside the sentence. The rejected item is a visible
+   // distractor; only the requested item is correct.
+   const contrast=stage===4&&gradeLevel!=null&&gradeLevel>=5&&englishLevel==='A2'&&i%2===1;
+   const customerRequest=contrast?
+     `I don't want ${marketNounPhrase(distractors[0])}. I would like ${marketNounPhrase(word.id)}, please.`:
+     `${customer} ${marketNounPhrase(word.id)}, please${i%2===0?'.':'?'}`;
+   const first=sequence[Math.floor(i/2)*2];
+   const second=sequence[Math.floor(i/2)*2+1];
+   // The basket is ordered. Explicit FIRST/THEN instructions prevent a child
+   // being penalized for choosing the right pair in the "wrong" sequence.
+   const order=stage===5?`First, find ${marketNounPhrase(first.id)}. Then, find ${marketNounPhrase(second.id)}.`:'';
+   const phrase=stage===4?customerRequest:stage===5?order:word.id;
    return {target:word.id,options,prompt:stage===2?'Choose the English name':
      stage===3?'Listen and find the item':phrase,
      audio:stage===3?word.id:phrase,
      ...(stage===5?{orderPair:Math.floor(i/2)}:{})};
  });
  return {aisle,stage,words,questions};
+}
+/**
+ * Three stars reflect independent performance, not merely zero wrong taps.
+ * Written/pronunciation hints are allowed but never counted as perfect mastery.
+ * Pure discovery is exposure, and has its own progress star display.
+ */
+export function marketMissionStars(mistakes:number,answers:readonly FoodAnswerEvidence[]):1|2|3{
+ const assisted=answers.filter(answer=>answer.hintUsed).length;
+ return mistakes===0&&assisted===0?3:mistakes<=2&&assisted<=2?2:1;
 }
 export function validMarketAnswers(answers:unknown):answers is FoodAnswerEvidence[]{
  return Array.isArray(answers)&&answers.every(x=>x&&typeof x.wordId==='string'&&

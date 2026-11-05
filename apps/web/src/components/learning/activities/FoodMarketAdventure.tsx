@@ -4,12 +4,13 @@ import type {FoodAnswerEvidence} from '@ventra/shared';
 import {getProgressRepository} from '@/lib/progress';
 import {type EnglishPlacement} from '@/lib/learning/gradeAwareLearningPolicy';
 import {MARKET_AISLES,MARKET_STAGES,MARKET_OFFSETS,
- marketWord,marketNounPhrase,marketResumePoint,planMarketMission,type MarketAisle,type MarketStage,type MarketPlan} from '@/lib/learning/foodMarketEngine';
+ marketWord,marketNounPhrase,marketMissionStars,marketResumePoint,planMarketMission,type MarketAisle,type MarketStage,type MarketPlan} from '@/lib/learning/foodMarketEngine';
 import type {FoodMarketProgress} from '@/lib/progress/foodMarketProgress';
 import {soundService} from '@/lib/audio/SoundService';
 import {useAutoQuestionAdvance} from '@/lib/learning/useAutoQuestionAdvance';
 import './food-market.css';
 import './food-market-v4.css';
+import './food-market-logic-v5.css';
 import {GardenHelp} from '../GardenHelp';
 
 type Props={
@@ -79,7 +80,7 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
  const [heard,setHeard]=useState(false);
  const [speaking,setSpeaking]=useState(false);
  const [selected,setSelected]=useState<string|null>(null);
- const [lastIncorrect,setLastIncorrect]=useState<string|null>(null);
+ const [wrongIds,setWrongIds]=useState<string[]>([]);
  const [success,setSuccess]=useState(false);
  const [finished,setFinished]=useState(false);
  const [busy,setBusy]=useState(false);
@@ -91,6 +92,7 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
  const locked=useRef(false);
  const answerLock=useRef(false);
  const visitedRef=useRef<Set<string>>(new Set());
+ const wrongRef=useRef<Set<string>>(new Set());
  const dialog=useRef<HTMLDivElement>(null);
  const speechRun=useRef(0);
  const key=`${profileId}/${aisle}/${stage}/${gradeLevel}/${englishLevel}/${revision}`;
@@ -140,12 +142,12 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
  }
  function changeStage(next:MarketStage,nextAisle:MarketAisle=aisle){
    if(busy)return;
-   cancelVoice();locked.current=false;answerLock.current=false;visitedRef.current.clear();
+   cancelVoice();locked.current=false;answerLock.current=false;visitedRef.current.clear();wrongRef.current.clear();
    session.current=newSession(profileId,nextAisle,next);
    started.current=Date.now();
    setStage(next);setAisle(nextAisle);setRevision(v=>v+1);
    setVisited([]);setAnswers([]);setWrong(0);setRoundWrong(0);setQ(0);
-   setHint(false);setHeard(false);setSelected(null);setLastIncorrect(null);setSuccess(false);
+   setHint(false);setHeard(false);setSelected(null);setWrongIds([]);setSuccess(false);
    setFinished(false);setBusy(false);setSaveError('');setFeedback('');
  }
  async function finish(result:FoodAnswerEvidence[]){
@@ -173,28 +175,31 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
   setAnswers(a=>[...a,record(id,'discovery',0,false)]);
  }
  function choose(id:string){
-  if(!current||!task||busy||finished||success||locked.current||answerLock.current)return;
+  if(!current||!task||busy||finished||success||locked.current||answerLock.current||wrongRef.current.has(id))return;
   if(stage===3&&!heard&&!hint)return;
+  if(stage===4&&!heard&&!hint)return;
   if(id!==task.target){
-    setLastIncorrect(id);
+    wrongRef.current.add(id);
+    setWrongIds([...wrongRef.current]);
     setWrong(x=>x+1);setRoundWrong(x=>x+1);
     soundService.playSfx('gentle_retry',0.65);
-    setFeedback('Bir kez daha dene. İngilizce kelimeyi veya sesi tekrar incele.');
+    setFeedback('Henüz değil. Kalan seçeneklere dikkatlice bak ve yeniden dene.');
     return;
   }
   const kind=stage===2?'recognition':stage===3?'listening':stage===4?'dialogue':'application';
   answerLock.current=true;
   const proof=record(id,kind,roundWrong,hint||(stage===3&&!heard));
   const next=[...answers,proof];
-  setAnswers(next);setSelected(id);setLastIncorrect(null);setSuccess(true);
+  setAnswers(next);setSelected(id);setSuccess(true);
   soundService.playSfx('correct',0.75);
   setFeedback(`✓ ${marketWord(id).id.toUpperCase()} — doğru seçim!`);
-  if(stage!==3)speak(stage===4?`Thank you! ${id}.`:id);
+  if(stage===2)speak(id);
+  if(stage===4)speak(`Here you go! ${marketNounPhrase(id)}.`);
  }
  function advance(){
   if(!success||busy||!current)return;
   if(q+1>=current.questions.length){void finish(answers);return;}
-  cancelVoice();answerLock.current=false;setQ(n=>n+1);setSuccess(false);setSelected(null);setLastIncorrect(null);
+  cancelVoice();answerLock.current=false;wrongRef.current.clear();setWrongIds([]);setQ(n=>n+1);setSuccess(false);setSelected(null);
   setHint(false);setHeard(false);setFeedback('');setRoundWrong(0);
  }
  useAutoQuestionAdvance({ready:success,blocked:busy||finished||Boolean(saveError)||!current,
@@ -265,8 +270,8 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
      !current?<div className="fm-loading" role="status">Pazar sokağı hazırlanıyor…</div>:
      finished?<div className="fm-win fm4-win">
        <div className="fm-win-icon">🏆</div><h2>Fantastic! Great shopping!</h2>
-       <p>Bu sokakta İngilizce kelimeleri öğrendin ve görev ilerlemen kaydedildi.</p>
-       <p className="fm-gained">⭐ {wrong===0?'⭐⭐⭐':wrong<=2?'⭐⭐':'⭐'} · {answers.length} kelime alıştırması</p>
+       <p>Bu görevdeki ilerlemen kaydedildi. Tekrar oynamak kelimeleri pekiştirir.</p>
+       <p className="fm-gained" aria-label={`${marketMissionStars(wrong,answers)} yıldız kazanıldı`}>{'⭐'.repeat(marketMissionStars(wrong,answers))} · {answers.length} kelime alıştırması</p>
        <button className="fm-cta" onClick={()=>{
          if(stage<5)changeStage((stage+1) as MarketStage);
          else if(aisle==='orchard')changeStage(1,'bakery');
@@ -289,48 +294,76 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
         </p>
       </>:task?<>
        <div className="fm-command fm4-command">
-        <span>{stage===2?'🔤':stage===3?'🎧':stage===4?'💬':'🛒'}</span>
-        <div>
-         {stage===2?<><strong>What is this in English?</strong><small>Görseldeki yiyeceğin İngilizce adını bul.</small></>:
-         stage===3?<><strong>Listen and find it!</strong><small>Sesi dinle, doğru görsele dokun.</small></>:
-         stage===4?<><strong>Customer says:</strong><strong className="fm-english">{task.prompt}</strong></>:
-         <><strong>Shopping list · {Math.floor(q/2)+1}/3</strong><strong className="fm-english">
-           Find the {current.questions[Math.floor(q/2)*2]?.target} and the {current.questions[Math.floor(q/2)*2+1]?.target}.
-         </strong><small>İngilizce listedeki ürünleri sırayla sepete koy.</small></>}
+          <span aria-hidden="true">{stage===2?'🔤':stage===3?'🎧':stage===4?'💬':'🛒'}</span>
+          <div>
+           {stage===2?<><strong>What is this in English?</strong><small>Görsele bak; aşağıdaki İngilizce kelimelerden birini seç.</small></>:
+            stage===3?<><strong>Listen and find it!</strong><small>Önce kelimeyi dinle, ardından doğru ürün resmine dokun.</small></>:
+            stage===4?<><strong>Customer says:</strong><small>Müşterinin İngilizce cümlesini dinle ve istediği ürünü ver.</small></>:
+            <><strong>Shopping list · {Math.floor(q/2)+1}/3</strong>
+             <strong className="fm-english fm5-order-sentence">{task.prompt}</strong>
+             <small className="fm5-order-progress">{q%2===0?'1. ürün: FIRST':'2. ürün: THEN'} — Listedeki sırayı takip et.</small>
+            </>}
+          </div>
         </div>
-       </div>
-       {stage===2&&<div className="fm-featured fm4-featured" aria-label="Hangi ürünün adı?">
+        {stage===2&&<div className="fm-featured fm4-featured" role="img"
+          aria-label={`Bu ürünün İngilizcesini seç: ${marketWord(task.target).tr}`}>
          <span className="fm4-featured-stand" aria-hidden="true"><FoodIllustration id={task.target} className="fm4-featured-product"/></span>
          <p>Choose the correct English word</p></div>}
-       {stage===3&&<div className="fm-audio-panel fm4-audio-panel">
-         <button className="fm-audio-button" onClick={()=>speak(task.audio,true)}>
-           {speaking?'🔉 Dinleniyor…':'▶ İngilizceyi Dinle'}</button>
-         <button className="fm-text-hint" onClick={()=>{setHint(true);setFeedback('Yazılı destek etkin; bu yanıt bağımsız dinleme sayılmaz.')}}>Yazılı yardım</button>
-         {hint&&<p>Yazılı destek: <strong>{task.target.toUpperCase()}</strong></p>}
-       </div>}
-       {stage!==3&&<div className="fm-hint-row">
-         <button className="fm-text-hint" onClick={()=>{setHint(true);setFeedback('İpucu kullanıldı; yanıt destekli olarak kaydedilir.')}}>💡 İpucu</button>
-         <button className="fm-text-hint" onClick={()=>speak(task.audio)}>🔊 İngilizceyi Duy</button>
-         {hint&&<span>Türkçesi: {marketWord(task.target).tr}</span>}
-       </div>}
-       {stage===4?
-         <div className="fm-dialogue-choices fm4-dialogue-choices" aria-label="Doğru İngilizce cevabı seç">
-           {task.options.map(id=><button key={id}
-             data-result={success&&selected===id?'correct':lastIncorrect===id?'wrong':undefined}
-              className={`fm-dialogue-option fm4-dialogue-option ${selected===id?'fm-dialogue-correct':''}`}
-             disabled={success||busy} onClick={()=>choose(id)}>
-             <span aria-hidden="true">💬</span> <FoodIllustration id={id} className="fm4-dialogue-art"/> <span>You asked for {marketNounPhrase(id)}.</span>
-           </button>)}
+       {(stage===3||stage===4)&&<div className="fm-audio-panel fm4-audio-panel fm5-customer-audio">
+          <button type="button" className="fm-audio-button" disabled={busy||success} onClick={()=>speak(task.audio,true)}>
+            {speaking?'🔉 Dinleniyor…':stage===4?'▶ Müşteriyi Dinle':'▶ İngilizceyi Dinle'}
+          </button>
+          <button type="button" className="fm-text-hint" disabled={busy||success}
+           onClick={()=>{setHint(true);setFeedback('Yazılı destek açık. Bu cevap bağımsız dinleme olarak sayılmayacak.')}}>
+           Yazılı yardım
+          </button>
+          {hint&&<p className="fm5-assisted-text">Yazılı destek: <strong>{stage===4?task.prompt:task.target.toUpperCase()}</strong></p>}
+          {!heard&&!hint&&<p className="fm5-listen-status">Seçenekler sesi dinledikten sonra açılır.</p>}
+        </div>}
+        {(stage===2||stage===5)&&<div className="fm-hint-row">
+          <button type="button" className="fm-text-hint" disabled={busy||success}
+           onClick={()=>{setHint(true);setFeedback('İpucu kullanıldı; cevap destekli kaydedilecek.')}}>💡 İpucu</button>
+          <button type="button" className="fm-text-hint" disabled={busy||success}
+           onClick={()=>{setHint(true);speak(task.audio);}}>🔊 İngilizceyi Duy</button>
+          {hint&&<span>{stage===2?`İlk harf: ${task.target[0].toUpperCase()}`:`Şimdi: ${marketWord(task.target).tr}`}</span>}
+        </div>}
+        {stage===2?
+         <div className="fm5-word-choices" aria-label="İngilizce kelime seçenekleri">
+          {task.options.map((id,i)=><button key={id} type="button"
+            aria-label={`Seçenek ${i+1}: ${id}`}
+            data-result={success&&selected===id?'correct':wrongIds.includes(id)?'wrong':undefined}
+            className="fm5-word-option"
+            disabled={success||busy||wrongIds.includes(id)}
+            onClick={()=>choose(id)}>
+            <span className="fm5-option-marker" aria-hidden="true">{String.fromCharCode(65+i)}</span>
+            <span className="fm5-word-label">{id.toUpperCase()}</span>
+            {success&&selected===id&&<span aria-hidden="true" className="fm5-answer-check">✓</span>}
+            {wrongIds.includes(id)&&<span aria-hidden="true" className="fm5-answer-check">×</span>}
+          </button>)}
+         </div>:
+         stage===4?
+         <div className="fm-dialogue-choices fm4-dialogue-choices fm5-dialogue-choices" aria-label="Müşterinin istediği ürünü seç">
+          {task.options.map((id,i)=><button key={id} type="button"
+            aria-label={`Seçenek ${i+1}: ${marketWord(id).tr} görseli`}
+            data-result={success&&selected===id?'correct':wrongIds.includes(id)?'wrong':undefined}
+            className="fm-dialogue-option fm4-dialogue-option fm5-dialogue-option"
+            disabled={success||busy||wrongIds.includes(id)||(!heard&&!hint)}
+            onClick={()=>choose(id)}>
+            <FoodIllustration id={id} className="fm4-dialogue-art"/>
+            <span className="fm5-dialogue-option-label">{i+1}</span>
+            {success&&selected===id&&<span className="fm5-answer-check" aria-hidden="true">✓</span>}
+          </button>)}
          </div>:
          <div className={`fm-products fm4-products fm-choices ${stage===5?'fm-supermarket-grid':''}`}>
-           {(stage===5?current.words:task.options).map(id=><Item key={id} id={id} showEnglish={stage===2}
-             active={success&&id===task.target} selected={selected===id} wrong={lastIncorrect===id}
-             disabled={success||busy||(stage===3&&!heard&&!hint)}
-             draggable={stage===5}
-             onDragStart={event=>{event.dataTransfer.setData('text/plain',id);event.dataTransfer.effectAllowed='move';}}
-             onClick={()=>choose(id)}/>)}
+          {(stage===5?current.words:task.options).map(id=><Item key={id} id={id}
+            active={success&&id===task.target} selected={selected===id} wrong={wrongIds.includes(id)}
+            disabled={success||busy||wrongIds.includes(id)||(stage===3&&!heard&&!hint)||
+              (stage===5&&answers.some(a=>a.kind==='application'&&a.wordId===id))}
+            draggable={stage===5}
+            onDragStart={event=>{event.dataTransfer.setData('text/plain',id);event.dataTransfer.effectAllowed='move';}}
+            onClick={()=>choose(id)}/>)}
          </div>}
-       {stage===5&&<div className="fm-basket-target fm4-basket-target" role="region"
+        {stage===5&&<div className="fm-basket-target fm4-basket-target" role="region"
          aria-label="Pazar sepeti. Bir ürünü sürükleyip buraya bırakabilir veya ürüne dokunabilirsin."
          onDragOver={event=>event.preventDefault()}
          onDrop={event=>{event.preventDefault();const id=event.dataTransfer.getData('text/plain');
@@ -339,7 +372,7 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
            <div><strong>Drop it in the basket!</strong>
              <small>Ürünü sepete sürükle veya kartına dokun.</small></div>
          </div>}
-       {stage===3&&!heard&&!hint&&<p className="fm-instruction">Önce sesi dinle. Cihazda ses yoksa “Yazılı yardım” seçeneğiyle devam et.</p>}
+       {(stage===3||stage===4)&&!heard&&!hint&&<p className="fm-instruction">Önce sesi dinle. Ses açılmazsa “Yazılı yardım” ile devam edebilirsin; bu cevap destekli kaydedilir.</p>}
        {stage===5&&<div className="fm-basket fm4-basket" role="status" aria-label="Sepetteki öğrenilmiş ürünler">
           <span>SEPETTE · {answers.filter(x=>x.kind==='application').length}/{current.questions.length}</span>
           <div className="fm4-basket-products">
