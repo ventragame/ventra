@@ -42,10 +42,13 @@ test('Portal is now an English sentence adventure without prices, arithmetic or 
  assert.match(ui,/\['I','see',englishNumber\(current.target\),'stars'\]/);
 });
 test('Correct answers automatically advance, but keep chapter success and retry safely',()=>{
- assert.match(ui,/setTimeout\(\(\)=>next\(\),1050\)/);
- assert.match(ui,/clearTimeout\(timer\)/);
+ assert.match(ui,/useAutoQuestionAdvance\(/);
+ assert.match(ui,/ready:awaitingNext/);
+ assert.match(ui,/delayMs:1050/);
+ assert.match(ui,/blocked:saving\|\|completed\|\|Boolean\(saveError\)/);
+ assert.match(ui,/ready:stage===1/);
  assert.doesNotMatch(ui,/Sonraki Görev →|Görevi Kaydet →/);
- assert.match(ui,/Görev Tamamlandı!/);
+ assert.match(ui,/tamamlandı!/);
  assert.match(ui,/Tekrar kaydet/);
  assert.match(ui,/soundService.playSfx\('correct'\)/);
  assert.match(ui,/soundService.playSfx\('gentle_retry'\)/);
@@ -67,4 +70,47 @@ test('Feedback score uses distinct original musical motifs with restrained timin
  assert.match(music,/private shimmer/);
  assert.match(music,/tempo:118/);
  assert.match(music,/setPaused\(value:boolean\)/);
+});
+
+test('NV5 bundles five distinct offline fantasy landscapes, not external image services',()=>{
+ const world=read('../src/components/learning/activities/NumberValleyScenery.tsx');
+ const css=read('../src/components/learning/activities/number-valley-v5.css');
+ const scenes=['crystal-meadow','light-bridge','star-orchard','echo-canyon','portal-temple'];
+ const art=scenes.map(name=>read('../public/assets/numbers/'+name+'-v5.svg'));
+ assert.equal(new Set(art).size,5);
+ for(const [i,svg] of art.entries()){
+  assert.match(svg,/^<svg /);
+  assert.match(svg,/<\/svg>$/);
+  assert.match(svg,/viewBox="0 0 1280 720"/);
+  assert.doesNotMatch(svg,/href=["']https?:/,'all art is bundled, scene '+scenes[i]);
+  assert.ok(Buffer.byteLength(svg)<60000,'scene size should stay reasonable');
+  assert.match(world,new RegExp(scenes[i]+'-v5\\.svg'));
+ }
+ assert.match(world,/aria-hidden="true"/);
+ assert.match(world,/draggable=\{false\}/);
+ assert.match(css,/object-fit:cover/);
+ assert.match(css,/@media\(max-width:767px\)/);
+ assert.match(css,/@media\(max-width:359px\)/);
+ assert.match(css,/orientation:landscape/);
+ assert.match(css,/prefers-reduced-motion:reduce/);
+ assert.match(css,/focus-visible/);
+});
+test('NV5 keeps grade-aware language engine and safe touch-first play',()=>{
+ const style=read('../src/components/learning/activities/number-valley-v5.css');
+ assert.match(ui,/nv5-landscape/);
+ assert.match(ui,/nv5-crystal-tile/);
+ assert.match(ui,/nv5-chapter/);
+ assert.match(ui,/nv5-band/);
+ assert.match(ui,/nv5-answer-grid/);
+ assert.match(ui,/nv5-finale/);
+ assert.match(ui,/nv5-discovery-auto/);
+ assert.match(ui,/soundService\.hasEnglishSpeech\(\)/);
+ assert.match(ui,/soundService\.cancelSpeech\(\)/);
+ assert.match(ui,/data-result=\{awaitingNext/);
+ assert.match(ui,/onClick=\{\(\)=>choose\(value\)\}/);
+ assert.match(ui,/onClick=\{\(\)=>chooseWordTile\(i\)\}/);
+ assert.match(ui,/saveError&&<p role="alert"/);
+ assert.doesNotMatch(ui,/Keşfi Tamamla/);
+ assert.match(style,/env\(safe-area-inset-bottom/);
+ assert.match(style,/touch-action:manipulation/);
 });
