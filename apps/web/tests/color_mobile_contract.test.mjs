@@ -48,3 +48,28 @@ test('Mobile Color Grove audio controls detect Capacitor speech and honor sound 
  assert.match(view,/setSpeechError\(true\)/);
  assert.match(view,/onPointerDown=\{\(event\) => event.stopPropagation\(\)\}/);
 });
+
+test('Color Grove v4 preserves accessible answers while updating the illustration and stage',()=>{
+ const world=file('MobileColorGroveWorld.tsx');
+ const css=file('color-grove-v4.css');
+ const desktop=file('ColorGroveScene.tsx');
+ const adventure=file('ColorGroveAdventure.tsx');
+ assert.match(world,/cg4-stage/);
+ assert.match(world,/cg4-discovery-grid/);
+ assert.match(world,/cg4-choice-grid/);
+ assert.match(world,/variant = 'garden'/);
+ assert.match(world,/data-found=\{discovered\}/);
+ assert.match(world,/data-wrong=\{wrongId===word.id\}/);
+ assert.match(world,/data-correct=\{correctId===word.id\}/);
+ assert.match(world,/aria-label=\{isPainting\?/);
+ assert.match(world,/onClick=\{\(\)=>onChoose\?\.\(word.id\)\}/);
+ assert.match(css,/grove-stage-v4\.svg/);
+ assert.match(css,/@media\(max-width:359px\)/);
+ assert.match(css,/prefers-reduced-motion:reduce/);
+ assert.match(css,/focus-visible/);
+ assert.match(desktop,/grove-stage-v4\.svg/);
+ assert.match(adventure,/variant=\{currentQuestion.scene\}/);
+ assert.match(adventure,/cg4-discovery-note/);
+ assert.match(adventure,/ready:step===1&&Boolean\(activePlan\?\.colors.length\)/);
+ assert.doesNotMatch(adventure,/onClick=\{\(\) => void finish\(discovered.length\)\}/);
+});

@@ -24,7 +24,7 @@ export function ColorGroveScene({
   const colors = getGroveTreeColors(mode, paintedIds);
 
   return (
-    <div className="vg-scene relative isolate mx-auto w-full overflow-hidden rounded-[1.75rem] border border-white/30 shadow-[0_22px_70px_rgba(5,28,33,0.35)]">
+    <div className="vg-scene cg4-desktop-scene relative isolate mx-auto w-full overflow-hidden rounded-[1.75rem] border border-white/30 shadow-[0_22px_70px_rgba(5,28,33,0.35)]">
       <svg viewBox="0 0 820 340" width="100%" role="img"
         aria-label={mode === 'discovery' ? 'Rengârenk çiçeklerle dolu, ağaçlı bir koru' :
           mode === 'matching' ? 'Ortadaki çiçeğin rengini İngilizce eşleştir' :
@@ -48,17 +48,8 @@ export function ColorGroveScene({
             <feDropShadow dx="0" dy="7" stdDeviation="5" floodColor="#174b44" floodOpacity=".27" />
           </filter>
         </defs>
-        <rect width="820" height="340" fill="url(#vg-sky)" />
-        <circle cx="681" cy="65" r="88" fill="url(#vg-sun-glow)" />
-        <circle cx="681" cy="65" r="28" fill="#fff8ca" />
-        <g fill="#fff" opacity=".82">
-          <ellipse cx="123" cy="77" rx="52" ry="15" /><circle cx="105" cy="69" r="20"/><circle cx="145" cy="67" r="22"/>
-          <ellipse cx="425" cy="57" rx="56" ry="15" /><circle cx="403" cy="48" r="20"/><circle cx="448" cy="46" r="19"/>
-        </g>
-        <path d="M0 214 Q137 127 301 202 Q472 142 633 192 Q730 142 820 197 V340 H0Z" fill="#8fcf8d" />
-        <path d="M0 255 Q179 191 343 247 Q491 175 820 246 V340 H0Z" fill="url(#vg-hill)" />
-        <path d="M0 303 Q196 261 333 303 Q537 256 820 303 V340 H0Z" fill="#286d53" opacity=".6"/>
-        <path d="M305 340 Q364 289 421 266 Q462 260 516 340" fill="#ebdfab" opacity=".65"/>
+        <image href="/assets/colors/grove-stage-v4.svg" x="0" y="0" width="820" height="340" preserveAspectRatio="xMidYMid slice" />
+        <rect width="820" height="340" fill="#145653" opacity=".08" />
         {trunks.map((x,i) => (
           <g key={x} filter="url(#vg-soft-shadow)">
             <rect x={x - 11} y={163 + (i%2)*17} width="22" height="99" rx="9" fill="#80513f"/>
@@ -90,7 +81,7 @@ export function ColorGroveScene({
             <path d="M402 151 Q378 103 368 118 M416 151 Q441 104 453 119" fill="none" stroke="#60443c" strokeWidth="5" strokeLinecap="round"/>
           </g>
         )}
-        {mode === 'matching' && targetHex && variant !== 'butterfly' && (
+        {mode === 'matching' && targetHex && variant === 'garden' && (
           <g className={highlight ? 'vg-correct-pop' : ''} filter="url(#vg-soft-shadow)">
             <circle cx="409" cy="177" r="80" fill="#fff" opacity=".88"/>
             {Array.from({length:8},(_,i)=><ellipse key={i} cx="409" cy="118" rx="24" ry="52"
@@ -98,6 +89,14 @@ export function ColorGroveScene({
             <circle cx="409" cy="177" r="37" fill="#fff0a6" stroke="#fff" strokeWidth="5"/>
             <circle cx="397" cy="173" r="4" fill="#80513f"/><circle cx="422" cy="173" r="4" fill="#80513f"/>
             <path d="M399 190 q10 11 22 0" stroke="#80513f" strokeWidth="3" fill="none" strokeLinecap="round"/>
+          </g>
+        )}
+        {mode === 'matching' && targetHex && variant === 'paint' && (
+          <g className={highlight ? 'vg-correct-pop' : ''} filter="url(#vg-soft-shadow)">
+            <circle cx="409" cy="174" r="95" fill="#fff5d5" opacity=".82" />
+            <path d="M409 70 L483 129 L460 237 L409 280 L358 237 L335 129 Z" fill={targetHex} stroke="#fff9d8" strokeWidth="9"/>
+            <path d="M409 70L409 280L460 237L483 129Z" fill="#1c4750" opacity=".17"/>
+            <path d="M358 129L409 70L370 162Z" fill="#fff" opacity=".48"/>
           </g>
         )}
         {mode === 'painting' && (

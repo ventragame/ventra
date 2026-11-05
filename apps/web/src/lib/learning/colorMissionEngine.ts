@@ -181,13 +181,16 @@ export function planColorMission(args: {
     )[0] ?? sequence.length;
     sequence.splice(position, 0, target);
   }
+  // Rotate three garden motifs without altering adaptive question selection.
+  const sceneOffset = Math.floor(rnd() * 3);
+  const sceneVariants = ['garden', 'butterfly', 'paint'] as const;
   const questions = sequence.map((target, index) => {
     const distractors = weightedShuffle(allowed.filter(id => id !== target), () => 1, rnd).slice(0, policy.choiceCount-1);
     const choices = weightedShuffle([target, ...distractors], () => 1, rnd);
     return {
       target,
       choices,
-      scene: ((index + Math.floor(rnd() * 3)) % 3 === 0 ? 'butterfly' : args.mission === 3 ? 'paint' : 'garden') as ColorMissionQuestion['scene']
+      scene: sceneVariants[(index + sceneOffset) % sceneVariants.length]
     };
   });
   const reviewColorIds = review;

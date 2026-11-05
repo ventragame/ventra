@@ -236,6 +236,13 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
   };
   useAutoQuestionAdvance({ready:awaitingAdvance,blocked:saving||complete||Boolean(saveError)||!activePlan,
     delayMs:1100,onAdvance:advance});
+  // Discovery saves automatically after the final tapped color; reward screens
+  // between chapters still require an intentional next-mission choice.
+  useAutoQuestionAdvance({
+    ready:step===1&&Boolean(activePlan?.colors.length)&&discovered.length===activePlan?.colors.length,
+    blocked:saving||complete||Boolean(saveError)||!activePlan,
+    delayMs:900,onAdvance:()=>{void finish(discovered.length);}
+  });
   const explore = (id: string) => {
     if (saving || complete) return;
     if (!muted) {
@@ -260,7 +267,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
       onPointerMove={(event) => event.stopPropagation()}
       onPointerUp={(event) => event.stopPropagation()}
       onWheel={(event) => event.stopPropagation()}
-      className="cg-shell fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-gradient-to-b from-[#10294a] via-[#234b65] to-[#123b37] text-white">
+      className="cg-shell cg4-shell fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-gradient-to-b from-[#10294a] via-[#234b65] to-[#123b37] text-white">
       <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden="true">
         <div className="absolute -left-40 top-0 h-96 w-96 rounded-full bg-cyan-300/10 blur-3xl" />
         <div className="absolute -right-28 bottom-0 h-96 w-96 rounded-full bg-lime-300/10 blur-3xl" />
@@ -373,20 +380,22 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
                 <button key={word.id} onClick={() => explore(word.id)} disabled={saving}
                   aria-label={`${word.tr}, İngilizce ${word.id}, telaffuzu dinlemek için dokun`}
                   aria-pressed={discovered.includes(word.id)}
-                  className={`vg-answer-card group min-h-40 rounded-3xl border bg-slate-950/35 p-3 text-center shadow-lg transition-transform hover:-translate-y-0.5 disabled:opacity-60 sm:p-4 ${discovered.includes(word.id) ? 'border-lime-300/80 bg-emerald-500/20' : 'border-white/25 hover:border-sky-200'}`}>
-                  <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-3xl border-4 border-white/40 text-2xl shadow-2xl sm:h-24 sm:w-24" style={{ backgroundColor: word.hex }}>
-                    {discovered.includes(word.id) && <span className="rounded-full bg-emerald-950/80 px-2 py-1 text-sm text-lime-100">✓</span>}
-                  </div>
+                  className={`cg4-desktop-discover vg-answer-card group min-h-40 rounded-3xl border bg-slate-950/35 p-3 text-center shadow-lg transition-transform hover:-translate-y-0.5 disabled:opacity-60 sm:p-4 ${discovered.includes(word.id) ? 'border-lime-300/80 bg-emerald-500/20' : 'border-white/25 hover:border-sky-200'}`}>
+                  <div className="cg4-desktop-crystal" style={{ '--cg4-color': word.hex } as React.CSSProperties} aria-hidden="true">
+                     <span className="cg4-desktop-crystal-glint"/>
+                     {discovered.includes(word.id) && <span className="cg4-desktop-crystal-check">✓</span>}
+                   </div>
                   <div className="mt-3 text-base font-black tracking-wide">{word.id.toUpperCase()} {speechAvailable && !muted && <span aria-hidden="true">🔊</span>}</div>
                   <div className="text-sm text-white/80">{word.tr}</div>
                   {activePlan.freshColorIds.includes(word.id) && <span className="mt-2 inline-block rounded-full border border-lime-200/50 bg-lime-400/20 px-3 py-1 text-[10px] font-black text-lime-100">YENİ KEŞİF</span>}
                 </button>
               ))}
             </div>
-            <button onClick={() => void finish(discovered.length)} disabled={saving || complete || discovered.length !== activePlan.colors.length}
-              className="vg-answer-card mt-5 min-h-14 w-full rounded-2xl bg-lime-300 px-5 py-4 font-black text-emerald-950 shadow-[0_8px_30px_rgba(190,242,100,0.2)] disabled:cursor-not-allowed disabled:opacity-40">
-              {saving ? 'Kaydediliyor…' : `Renkleri Tamamla (${discovered.length}/${activePlan.colors.length})`}
-            </button>
+            <p className="cg4-discovery-note" role="status" aria-live="polite">
+              {discovered.length === activePlan.colors.length
+                ? (saving ? 'Keşif kaydediliyor…' : 'Tüm renkler keşfedildi! Görev otomatik tamamlanıyor…')
+                : 'Çiçeklere dokun; İngilizce isimlerini keşfet. Son renkten sonra görev kendiliğinden tamamlanır.'}
+            </p>
           </section>
         ) : currentQuestion ? (
           <section className="cg-quiz-panel mx-auto max-w-4xl rounded-3xl border border-white/20 bg-slate-950/20 p-3 sm:p-6">
@@ -446,7 +455,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
                 mode={step === 2 ? 'matching' : 'painting'}
                 words={currentQuestion.choices.map(getWord)}
                 targetHex={getWord(currentQuestion.target).hex}
-                paintedIds={paintedIds}
+                paintedIds={paintedIds} variant={currentQuestion.scene}
                 correctId={answerHighlight} wrongId={wrongAnswerId}
                 disabled={saving || awaitingAdvance} onChoose={choose}
               />
@@ -458,10 +467,8 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
                   <button key={id} onClick={() => choose(id)} disabled={saving || awaitingAdvance}
                     aria-label={step === 2 ? `${word.id} rengini seç` : `${word.tr} rengini seç`}
                     aria-pressed={answerHighlight === id}
-                    className={`vg-answer-card min-h-24 rounded-2xl border bg-slate-950/45 p-2 text-center transition hover:scale-[1.02] disabled:opacity-60 sm:min-h-28 sm:p-4 ${answerHighlight === id ? 'border-lime-300 bg-lime-300/20 ring-2 ring-lime-300/60' : wrongAnswerId === id ? 'border-rose-300 bg-rose-500/20 ring-2 ring-rose-300/50' : 'border-white/25 hover:border-yellow-200'}`}>
-                    {step === 3 && <div className="mx-auto mb-2 flex h-14 w-14 items-center justify-center rounded-full border-4 border-white/40 shadow-lg" style={{ background: word.hex }}>
-                      <span className="text-xl drop-shadow-lg" aria-hidden="true">🖌️</span>
-                    </div>}
+                    className={`cg4-desktop-answer vg-answer-card min-h-24 rounded-2xl border bg-slate-950/45 p-2 text-center transition hover:scale-[1.02] disabled:opacity-60 sm:min-h-28 sm:p-4 ${answerHighlight === id ? 'border-lime-300 bg-lime-300/20 ring-2 ring-lime-300/60' : wrongAnswerId === id ? 'border-rose-300 bg-rose-500/20 ring-2 ring-rose-300/50' : 'border-white/25 hover:border-yellow-200'}`}>
+                    {step === 3 && <div className="cg4-desktop-paint" style={{ '--cg4-color': word.hex } as React.CSSProperties} aria-hidden="true"/>}
                     <div className="text-xs font-black sm:text-lg">{step === 2 ? word.id.toUpperCase() : word.tr}</div>
                   </button>
                 );

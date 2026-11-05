@@ -203,3 +203,18 @@
  .cg-quiz-panel{max-width:850px}
  .cg-quiz-panel>.cg-desktop-view .vg-scene{max-height:300px}
 }
+
+/* Renk Korusu v4 desktop — same art direction as the mobile stage. */
+.cg-shell.cg4-shell{background:radial-gradient(ellipse at 50% 0%,#337785 0%,transparent 62%),linear-gradient(180deg,#103848 0%,#175c5a 65%,#0e4140 100%)}
+.cg4-desktop-scene{border:3px solid #ffefc8;box-shadow:0 6px 0 #16616a,0 18px 37px #051e2f5c}
+.cg4-desktop-discover{position:relative;overflow:hidden;color:#164a47;background:linear-gradient(155deg,#fffdf4,#d9f6e3)!important;border:2px solid #ffefd7!important;box-shadow:0 5px 0 #2b746b,0 12px 18px #0b373b55}
+.cg4-desktop-crystal{position:relative;display:grid;place-items:center;width:92px;height:92px;margin:0 auto;border:5px solid #fff;border-radius:35% 48% 36% 48%;transform:rotate(-11deg);background:radial-gradient(circle at 27% 19%,#fffeefae,transparent 35%),var(--cg4-color);box-shadow:inset -11px -12px 15px #24425257,0 7px 12px #19594e5c}
+.cg4-desktop-crystal-glint{position:absolute;left:15%;top:15%;width:34%;height:11%;background:#fff9;border-radius:100%;transform:rotate(-35deg)}
+.cg4-desktop-crystal-check{display:grid;place-items:center;width:35px;height:35px;border-radius:50%;background:#145646e8;color:#fff;font-weight:900;transform:rotate(11deg)}
+.cg4-desktop-answer{border:2px solid #fff0d1!important;border-radius:22px!important;background:linear-gradient(155deg,#fffff9,#ddf5e8)!important;color:#18464b!important;box-shadow:0 5px 0 #276862,0 11px 17px #113d4555}
+.cg4-desktop-answer:disabled{opacity:.76}
+.cg4-desktop-answer:focus-visible,.cg4-desktop-discover:focus-visible{outline:3px solid #fff6af;outline-offset:3px}
+.cg4-desktop-answer .text-xs{color:#194b4b}
+.cg4-desktop-paint{width:58px;height:58px;margin:0 auto 8px;border:4px solid #fff;border-radius:50% 50% 48% 12%;transform:rotate(-45deg);background:radial-gradient(circle at 25% 20%,#fff9,transparent 48%),var(--cg4-color);box-shadow:inset -8px -9px 7px #24415044,0 6px 10px #21595055}
+.cg4-discovery-note{margin:16px 0 4px;min-height:48px;border:1px solid #fff2cd73;border-radius:14px;padding:11px 13px;background:#103e4cd4;color:#fff5cb;font-size:13px;font-weight:800;text-align:center}
+@media(max-width:767px){.cg4-discovery-note{margin-top:9px;font-size:11px;padding:9px 10px}}
