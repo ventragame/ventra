@@ -1,6 +1,6 @@
 import type {FamilyAnswerEvidence,GameCompletedPayload} from '@ventra/shared';
 import type {IProgressRepository} from './types.ts';
-import {VILLAGE_GAME_ID,VILLAGE_OFFSETS,VILLAGE_TOTAL,VILLAGE_KINDS,villageWord,validVillageAnswers,
+import {VILLAGE_GAME_ID,VILLAGE_OFFSETS,VILLAGE_TOTAL,VILLAGE_KINDS,villageWord,validVillageAnswers,villageMissionStars,
  type VillageDistrict,type VillageStage} from '../learning/familyVillageEngine.ts';
 
 export type FamilyVillageProgress={
@@ -35,7 +35,7 @@ export async function saveFamilyVillageMission(repo:IProgressRepository,profileI
   district==='objects'&&previous.completedByDistrict.rooms<5||
   district==='routines'&&previous.completedByDistrict.objects<5)
   throw Error('Önce önceki Aile Köyü sokağını tamamla.');
- const stars=mistakes===0?3:mistakes<=2?2:1;
+ const stars=villageMissionStars(mistakes,answers);
  const attempts=answers.length+mistakes;
  const payload:GameCompletedPayload={
   profileId,sessionId,gameId:VILLAGE_GAME_ID,levelId:VILLAGE_OFFSETS[district]+stage,

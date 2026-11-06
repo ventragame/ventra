@@ -141,11 +141,24 @@ export function planVillageMission(args:{district:VillageDistrict;stage:VillageS
  if(stage===1)return {district,stage,words,questions:[]};
  const count=gradeLevel!=null&&gradeLevel<=2?4:6;
  const sequence=shuffle(Array.from({length:count},(_,i)=>words[i%words.length]),rng);
- return {district,stage,words,questions:sequence.map(id=>{
-  const word=villageWord(id),options=shuffle([id,...shuffle(all.filter(w=>w.id!==id),rng).slice(0,2).map(w=>w.id)],rng);
+ return {district,stage,words,questions:sequence.map((id,i)=>{
+  const word=villageWord(id);
+  // Avoid testing unfamiliar distractors before teaching them; the selected
+  // mission words are already known to the learner or eligible on first play.
+  const candidates=pool.length>=3?pool:all;
+  const others=shuffle(candidates.filter(w=>w.id!==id),rng).slice(0,2).map(w=>w.id);
+  const options=shuffle([id,...others],rng);
+  // Older children occasionally need to parse a negation as well as a noun.
+  // Use only a visible distractor, and retain the original simple form for
+  // beginners and for family relations that images cannot express unambiguously.
+  const compare=stage===4&&englishLevel==='A2'&&gradeLevel!=null&&gradeLevel>=5&&
+    (district==='objects'||district==='rooms')&&i%2===1;
+  const instruction=compare?
+    district==='objects'? `Don't touch the ${others[0]}. Touch the ${word.id}.`:
+    `Don't go to the ${others[0]}. Go to the ${word.id}.`:word.command;
   return {target:id,options,prompt:stage===2?word.tr:
-    stage===3?'Listen carefully':stage===4?word.command:word.tr,
-    audio:stage===3?word.id:stage===4?word.command:word.phrase};
+    stage===3?'Listen carefully':stage===4?instruction:word.tr,
+    audio:stage===3?word.id:stage===4?instruction:word.phrase};
  })};
 }
 export function validVillageAnswers(v:unknown):v is FamilyAnswerEvidence[]{
@@ -154,4 +167,11 @@ export function validVillageAnswers(v:unknown):v is FamilyAnswerEvidence[]{
   Number.isInteger(x.mistakes)&&x.mistakes>=0&&
   typeof x.hintUsed==='boolean'&&typeof x.firstTryCorrect==='boolean'&&
   typeof x.timestamp==='string'&&Number.isFinite(Date.parse(x.timestamp)));
+}
+
+/** Assisted answers remain valid practice, but a perfect three-star result
+ * requires independent responses with no errors. Discovery is exposure. */
+export function villageMissionStars(mistakes:number,answers:readonly FamilyAnswerEvidence[]):1|2|3{
+ const assisted=answers.filter(x=>x.hintUsed).length;
+ return mistakes===0&&assisted===0?3:mistakes<=2&&assisted<=2?2:1;
 }

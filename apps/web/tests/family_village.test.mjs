@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {VILLAGE_WORDS,VILLAGE_DISTRICTS,VILLAGE_STAGES,VILLAGE_TOTAL,VILLAGE_GAME_ID,
- eligibleVillageWords,planVillageMission,villageResumePoint,validVillageAnswers
+ eligibleVillageWords,planVillageMission,villageResumePoint,validVillageAnswers,villageMissionStars
 } from '../src/lib/learning/familyVillageEngine.ts';
 import {saveFamilyVillageMission,getFamilyVillageProgress} from '../src/lib/progress/familyVillageProgress.ts';
 import {MemoryProgressRepository} from '../src/lib/progress/MemoryProgressRepository.ts';
@@ -116,7 +116,8 @@ test('G2 child-friendly interface includes authored house SVG, accessible voice 
  const scene=fs.readFileSync(new URL('../src/components/learning/activities/FamilyVillageScenery.tsx',import.meta.url),'utf8');
  const ui=fs.readFileSync(new URL('../src/components/learning/activities/FamilyVillageAdventure.tsx',import.meta.url),'utf8');
  const map=fs.readFileSync(new URL('../src/components/learning/WordGardenDistrictMap.tsx',import.meta.url),'utf8');
- assert.match(scene,/MY HOME/);assert.match(scene,/viewBox="0 0 1000 350"/);
+ assert.match(scene,/scenes\/family-v3\.svg/);assert.match(scene,/scenes\/rooms-v3\.svg/);
+ assert.match(scene,/scenes\/objects-v3\.svg/);assert.match(scene,/scenes\/routines-v3\.svg/);
  assert.match(ui,/soundService\.speakEnglish\(text/);
  assert.match(ui,/onEnd:.*setHeard\(true\)/);
  assert.match(ui,/if\(requireFullAudio\)setHeard\(true\)/);
@@ -127,4 +128,113 @@ test('G2 child-friendly interface includes authored house SVG, accessible voice 
  const theme=fs.readFileSync(new URL('../src/components/learning/world/gardenTheme.ts',import.meta.url),'utf8');
  assert.match(theme,/60 kavram/);
  assert.match(map,/onEnterFamily/);
+});
+
+test('G3 all 60 family/home/routine concepts have bundled illustrations and four distinct scene files',()=>{
+ const sprite=fs.readFileSync(new URL('../public/assets/family-village/family-word-sprite-v3.svg',import.meta.url),'utf8');
+ const ids=[...sprite.matchAll(/<symbol id="fv-([^"]+)" viewBox=/g)].map(x=>x[1]);
+ assert.equal(ids.length,60);
+ assert.equal(new Set(ids).size,60);
+ assert.deepEqual(new Set(ids),new Set(VILLAGE_WORDS.map(w=>w.id.replace(/\s+/g,'-'))));
+ assert.equal((sprite.match(/<\/symbol>/g)||[]).length,60);
+ assert.doesNotMatch(sprite,/href=["']https?:/);
+ const visuals=fs.readFileSync(new URL('../src/components/learning/activities/FamilyVillageWordArt.tsx',import.meta.url),'utf8');
+ assert.match(visuals,/family-word-sprite-v3\.svg#fv-/);
+ assert.doesNotMatch(visuals,/fv-emoji-art|item\.icon|id==='table'/);
+ const assets=['family','rooms','objects','routines'].map(id=>
+  fs.readFileSync(new URL('../public/assets/family-village/scenes/'+id+'-v3.svg',import.meta.url),'utf8'));
+ assert.equal(new Set(assets).size,4);
+ for(const scene of assets){
+  assert.match(scene,/viewBox="0 0 1280 720"/);
+  assert.match(scene,/<\/svg>$/);
+  assert.ok(scene.length>8500);
+ }
+});
+
+test('G3 answer channels never duplicate the prompt in answer options',()=>{
+ const ui=fs.readFileSync(new URL('../src/components/learning/activities/FamilyVillageAdventure.tsx',import.meta.url),'utf8');
+ const style=fs.readFileSync(new URL('../src/components/learning/activities/family-village-premium-v3.css',import.meta.url),'utf8');
+ assert.match(ui,/fv3-featured/);
+ assert.match(ui,/\(stage===2\|\|stage===5\)/);
+ assert.match(ui,/task\.options\.map\(id=><WordChoice/);
+ assert.doesNotMatch(ui,/stage===4\?current\.words:task\.options/);
+ assert.match(ui,/mode=\{stage===2\?'english':stage===3\?\(district==='family'\?'translation':'icon'\):stage===4\?'icon':'phrase'\}/);
+ assert.match(ui,/showRelation=w\.district==='family'/);
+ assert.match(ui,/fv-choice-label/);
+ assert.match(ui,/\(mode==='english'\|\|mode==='phrase'\|\|showRelation\)/);
+ assert.doesNotMatch(ui,/stage===5\?villageWord\(task.target\)\.phrase:villageWord\(task.target\)\.tr/);
+ assert.match(style,/safe-area-inset-bottom/);
+ assert.match(style,/@media\(max-width:359px\)/);
+ assert.match(style,/orientation:landscape/);
+ assert.match(style,/prefers-reduced-motion:reduce/);
+ assert.match(style,/touch-action:manipulation/);
+ assert.match(style,/focus-visible/);
+});
+test('G3 native speech, auto-discovery and guarded answers retain save semantics',()=>{
+ const ui=fs.readFileSync(new URL('../src/components/learning/activities/FamilyVillageAdventure.tsx',import.meta.url),'utf8');
+ assert.match(ui,/soundService\.hasEnglishSpeech\(\)/);
+ assert.match(ui,/soundService\.cancelSpeech\(\)/);
+ assert.match(ui,/ready:stage===1&&Boolean\(current\?\.words.length\)/);
+ assert.match(ui,/onAdvance:\(\)=>\{void complete\(answers\);\}/);
+ assert.match(ui,/onAdvance:advance/);
+ assert.match(ui,/Boolean\(saveError\)/);
+ assert.match(ui,/visitedRef\.current\.has\(id\)/);
+ assert.match(ui,/visitedRef\.current\.add\(id\)/);
+ assert.match(ui,/answerLock\.current=true/);
+ assert.match(ui,/answerLock\.current=false/);
+ assert.match(ui,/wrongRef\.current\.has\(id\)/);
+ assert.match(ui,/wrongRef\.current\.add\(id\)/);
+ assert.match(ui,/wrongIds\.includes\(id\)/);
+ assert.match(ui,/if\(stage===3&&!heard&&!hint\)return/);
+ assert.match(ui,/await onSave\(district,stage,mistakes/);
+ assert.match(ui,/Kaydetmeyi Tekrar Dene/);
+ assert.doesNotMatch(ui,/Hepsini Keşfettim/);
+});
+test('G3 family relatives are taught with relation labels when illustration alone is ambiguous',()=>{
+ const ui=fs.readFileSync(new URL('../src/components/learning/activities/FamilyVillageAdventure.tsx',import.meta.url),'utf8');
+ assert.match(ui,/district==='family'&&<span className="fv3-featured-label"/);
+ assert.match(ui,/mode==='translation'/);
+ assert.match(ui,/showRelation/);
+ const a=VILLAGE_WORDS.filter(w=>w.district==='family');
+ assert.ok(a.some(w=>w.id==='aunt'));
+ assert.ok(a.some(w=>w.id==='daughter'));
+ assert.ok(a.some(w=>w.id==='cousin'));
+});
+test('G3 advanced negated context requires parsing, beginners remain simple',()=>{
+ for(const district of ['rooms','objects']){
+  const p=planVillageMission({district,stage:4,gradeLevel:7,englishLevel:'A2',history:[],seed:881});
+  const contrasts=p.questions.filter(q=>q.prompt.startsWith("Don't "));
+  assert.ok(contrasts.length>=2);
+  for(const q of contrasts){
+   assert.equal(q.audio,q.prompt);
+   assert.ok(q.prompt.includes(q.target));
+   assert.ok(q.options.some(id=>id!==q.target&&q.prompt.includes(id)));
+  }
+  const easy=planVillageMission({district,stage:4,gradeLevel:1,englishLevel:'Pre-A1',history:[],seed:881});
+  assert.ok(easy.questions.every(q=>!q.prompt.startsWith("Don't ")));
+ }
+});
+test('G3 assisted answers reduce star rating and independent replay can improve stars',async()=>{
+ assert.equal(villageMissionStars(0,[sample('mother','recognition')]),3);
+ assert.equal(villageMissionStars(0,[sample('mother','recognition',0,true)]),2);
+ assert.equal(villageMissionStars(0,Array.from({length:3},()=>sample('mother','recognition',0,true))),1);
+ assert.equal(villageMissionStars(3,[sample('mother','recognition')]),1);
+ const repo=new MemoryProgressRepository();
+ const p=await repo.createProfile({nickname:'Village assisted case',avatarId:'avatar_explorer'});
+ await saveFamilyVillageMission(repo,p.id,'family',1,0,20,answers('family',1),'discovery-first');
+ const hinted=answers('family',2);
+ hinted[0]={...hinted[0],hintUsed:true,firstTryCorrect:false};
+ await saveFamilyVillageMission(repo,p.id,'family',2,0,20,hinted,'hinted');
+ assert.equal((await getFamilyVillageProgress(repo,p.id)).starsByLevel[2],2);
+ await saveFamilyVillageMission(repo,p.id,'family',2,0,20,answers('family',2),'independent');
+ assert.equal((await getFamilyVillageProgress(repo,p.id)).starsByLevel[2],3);
+});
+test('G3 question options use discovered vocabulary when enough words have been learned',()=>{
+ const history=['mother','father','brother','sister'].map(id=>sample(id,'discovery'));
+ for(const stage of [2,3,4,5]){
+  const plan=planVillageMission({district:'family',stage,gradeLevel:1,englishLevel:'Pre-A1',history,seed:91});
+  const allowed=new Set(history.map(x=>x.wordId));
+  assert.ok(plan.questions.every(q=>allowed.has(q.target)));
+  assert.ok(plan.questions.every(q=>q.options.every(x=>allowed.has(x))));
+ }
 });
