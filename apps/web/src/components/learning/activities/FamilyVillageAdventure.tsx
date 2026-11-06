@@ -290,7 +290,7 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
              aria-label={`Bu kavramı İngilizce ifade et: ${villageWord(task.target).tr}`}>
              <FamilyWordArt id={task.target}/>
              {district==='family'&&<span className="fv3-featured-label">{villageWord(task.target).tr}</span>}
-            </div>
+            </div>}
             {stage===3&&<div className="fv-audio-task fv3-audio-task">
               <button type="button" onClick={()=>speak(task.audio,true)} disabled={busy||answered}
                 className="fv-listen">{speaking?'🔉 Dinleniyor…':'▶ İngilizceyi Dinle'}</button>
@@ -312,7 +312,7 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
                 stage===4?villageWord(task.target).tr:
                 `Türkçesi: ${villageWord(task.target).tr}`
               }</span>}
-            </div>
+            </div>}
             <div className={`fv-grid fv3-answer-grid ${stage===4?'fv-grid-scene':stage===5?'fv-grid-dialogue':''}`}
               role="group" aria-label={stage===4?'Yönergeye uygun görseli seç':stage===5?'İngilizce cümle seçenekleri':'Kelime seçenekleri'}>
               {task.options.map(id=><WordChoice key={id} id={id}
