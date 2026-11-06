@@ -92,7 +92,7 @@ export const VILLAGE_DISTRICTS=[
 export const VILLAGE_STAGES=[
  {stage:1,title:'Evi Keşfet',kind:'discovery',icon:'🔎',description:'Yeni İngilizce kelimeleri gör ve dinle.'},
  {stage:2,title:'Kelimeyi Hatırla',kind:'recognition',icon:'🔠',description:'Türkçe anlamı için İngilizce kelimeyi seç.'},
- {stage:3,title:'Kim Konuşuyor?',kind:'listening',icon:'🎧',description:'İngilizce sesi dinle ve doğru nesneyi bul.'},
+ {stage:3,title:'Dinle ve Bul',kind:'listening',icon:'🎧',description:'İngilizce sesi dinle, karşılığını gösteren görseli veya aile ilişkisini seç.'},
  {stage:4,title:'Evin İçinde Bul',kind:'context',icon:'🏠',description:'İngilizce yönergeyi gerçek sahnede uygula.'},
  {stage:5,title:'Günlük Konuşma',kind:'dialogue',icon:'💬',description:'Doğru İngilizce ifadeyle cevap ver.'}
 ] as const;

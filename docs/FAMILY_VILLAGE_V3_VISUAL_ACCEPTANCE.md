@@ -32,3 +32,9 @@
 - [ ] 7–12 yaş öğrenci testi ve 7 gün sonra öğrenme kalıcılığı.
 
 **Not:** 60 özgün vektör ikonun hepsinin pedagojik temsil gücü eşit değildir. Özellikle *cousin/aunt/daughter* gibi akrabalık ilişkilerini tek bir portreden ayırt etmek mümkün değildir. Bu yüzden soru tasarımında ilişki etiketleri gerekir. CI, gerçek kullanıcı testinin yerine geçmez. Production'a otomatik deployment bu görev kapsamında yapılmaz.
+
+### G3.2 tamamlayıcı akış denetimi
+- Keşifte son kartın telaffuzu tamamlanmadan sonuç ekranına otomatik geçilmez (en fazla ortak hook ses bekleme sınırı uygulanır).
+- Keşfedilen karta tekrar dokunularak aynı kelimenin telaffuzu yenilenebilir; kanıtı tekrarlanmadan.
+- Kayıt sırasında Köy'den geri çıkma düğmesi pasifleşir.
+- Üçüncü aşamanın adı 'Kim Konuşuyor?' yerine 'Dinle ve Bul' olarak değiştirilmiştir; etkinlik sadece insan seslerini değil oda/eşya/rutinleri de öğretir.

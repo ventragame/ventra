@@ -238,3 +238,13 @@ test('G3 question options use discovered vocabulary when enough words have been 
   assert.ok(plan.questions.every(q=>q.options.every(x=>allowed.has(x))));
  }
 });
+
+test('G3.2 spoken discovery finishes after pronunciation and may replay sound safely',()=>{
+ const code=fs.readFileSync(new URL('../src/components/learning/activities/FamilyVillageAdventure.tsx',import.meta.url),'utf8');
+ assert.match(code,/onAdvance:\(\)=>\{void complete\(answers\);\},delayMs:950,speaking/);
+ assert.match(code,/disabled=\{busy\}/);
+ assert.doesNotMatch(code,/disabled=\{busy\|\|visited\.length===current\.words\.length\}/);
+ assert.match(code,/visitedRef\.current\.has\(id\)/);
+ assert.match(code,/disabled=\{busy\} onClick=\{\(\)=>\{cancelSpeech\(\);onBack\(\);\}\}/);
+ assert.equal(VILLAGE_STAGES[2].title,'Dinle ve Bul');
+});

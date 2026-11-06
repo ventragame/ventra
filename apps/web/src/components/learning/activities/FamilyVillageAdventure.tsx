@@ -191,7 +191,7 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
    ready:stage===1&&Boolean(current?.words.length)&&
      visited.length===current?.words.length&&answers.length===current?.words.length,
    blocked:busy||saved||Boolean(saveError)||!current,
-   onAdvance:()=>{void complete(answers);},delayMs:950
+   onAdvance:()=>{void complete(answers);},delayMs:950,speaking
  });
  const access=(index:number)=>index===0||(index===1?progress.completedByDistrict.family===5:
    index===2?progress.completedByDistrict.rooms===5:progress.completedByDistrict.objects===5);
@@ -199,7 +199,7 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
    className="fv-screen fv3-screen">
   <div className="fv-shell fv3-shell">
     <header className="fv-top fv3-top">
-      <button onClick={()=>{cancelSpeech();onBack();}} className="fv-back fv3-back" aria-label="Kelime Bahçesi’ne dön">
+      <button disabled={busy} onClick={()=>{cancelSpeech();onBack();}} className="fv-back fv3-back" aria-label="Kelime Bahçesi’ne dön">
        <span aria-hidden="true" className="fv3-back-arrow">‹</span><span className="fv3-back-label">Kelime Bahçesi</span>
       </button>
       <div className="fv-heading fv3-heading"><span>VENTRA • ENGLISH WORLD</span><h1>🏡 Aile Köyü</h1>
@@ -267,7 +267,7 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
             <small>Her kutuya dokun, İngilizce kelimeyi öğren.</small></div>
           </div><div className="fv-grid fv-grid-discover fv3-grid-discover">
            {current.words.map(id=><button key={id} type="button"
-             disabled={busy||visited.length===current.words.length}
+             disabled={busy}
              onClick={()=>discover(id)} aria-pressed={visited.includes(id)}
              className={`fv-discovery fv3-discovery ${visited.includes(id)?'fv-visited':''}`}>
              <span aria-hidden="true"><FamilyWordArt id={id}/></span>
