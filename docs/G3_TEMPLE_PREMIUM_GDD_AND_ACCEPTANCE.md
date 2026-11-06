@@ -38,3 +38,41 @@
 - [ ] Yayın öncesi dependency security audit, Google Play/Apple çocuk ürünleri ve gerçek satın alım politika kontrolü.
 
 **Sonuç:** G3 kodu oynanabilir ve CI başarılı; fiziksel cihaz ve ticari yayın kabulü yapılmış değildir.
+
+
+---
+
+## G3 V6 — Her salonda premium görsel ve pedagojik denetim (6 Kasım 2026)
+
+Bu bölüm önceki G3 kabul kayıtlarını tarihselleştirir; V6 uygulamasının gerçek kapsamını açıklar.
+
+### Görsel/etkileşim
+- Rün Ormanı, Yankı Galerisi, Bereket Salonu, Hatıra Odaları ve Kristal Taht için beş ayrı, yerel 1280×720 SVG salon çizimi. Aynı yapının yalnız rengini değiştirme yerine farklı ağaç, kristal, masa, hafıza nişi ve taç silueti kullanılır.
+- Hayvanlar önceki hayvan illüstrasyonlarını; 45 yiyecek önceki Lezzet Pazarı sprite'ını; 60 aile/eşya/rutin önceki Aile Köyü sprite'ını kullanır. Sayılar kendi okunaklı yazılı rünü, renkler ayırt edilebilir renk kristali olmaya devam eder. Dış görsel CDN'i kullanılmaz.
+- Tasarım mobil önceliklidir: beş salon küçük ekranda yatay kaydırılabilir, beş görev tek sırada, kartlar büyük dokunma hedefli; 320px, safe-area, landscape, klavye odağı, azaltılmış hareket desteklenir.
+- Ders alanı İngilizcedir. Sahne görseli öğrenme ölçümü değil motivasyon ve yönlendirme aracıdır.
+
+### Gerçek beceriyi ölçen görevler
+- **Keşif:** Görsel + yazım + ses maruziyeti. Keşfedilen rune tekrar dinlenebilir, fakat aynı keşif kanıtı iki kez yazılmaz. Son telaffuz bittiğinde otomatik kayıt.
+- **Yazıt:** Türkçe anlam ve tek görsel örneği → yalnız İngilizce metin seçenekleri. Görselin kopyası seçeneklere konulmaz.
+- **Dinleme:** Ses tamamlanmadan seçenekler açılmaz. İngilizce ses → görsel seçenekler; aile bağıntıları gibi portreden tek başına tanınamayan kavramlar için Türkçe anlam kullanılır. Yazılı destek bağımsız dinleme sayılmaz.
+- **Cümle:** Türkçe bağlama uyan İngilizce cümleyi token'larla sıralama; her token benzersiz indeksle izlenir, hızlı çift dokunma aynı token'ı iki kez eklemez, doğru dizilimde sesli tüm cümle dinletilir.
+- **Mühür:** İngilizce FIRST ve THEN iki kelime, görsel/anlam seçenekleri arasından sırayla seçilir. Kelimeler en baştan gösterilir, fakat cevap resimde de yazılı olarak kopyalanmaz. Aile akrabalığına yalnızca portreden karar verilmez.
+- Bilinen kelime sayısı yeterliyse yanlış seçenekler daha önce keşfedilmiş/uygun müfredattandır; farklı dünyalardaki aynı İngilizce/Türkçe etiketli iki kavram tek soruda çift doğru olamaz.
+- Hızlı çift doğru/aynı yanlış dokunuşlarını engelleyen referans kilitleri korunur. İpucu veya cevapla ilgili ses yardımıyla tamamlanan görevler sıfır hata olsa bile otomatik üç yıldız almaz.
+
+### Korumalar ve sınırlar
+- Kanonik oyun kimliği, beş salonun 25 bölümü, maksimum 75 yıldız, ilk tamamlama coin politikası, P3 kanıt alanı, Supabase/IndexedDB profil izolasyonu ve oturum idempotency değiştirilmez.
+- Henüz özgün stüdyo ses paketleri veya hareketli 3D karakterler eklenmedi. SVG çizimler stilize vektör illüstrasyonlardır.
+- Görsellerin özellikle dış SVG fragment sembolleri WebView/Safari'de gerçek cihaz üzerinde doğrulanmalıdır.
+- Production deployment yapılmaz. Gerçek Android/iPhone, çocuklarla etkileşim testi ve çevrimdışı→çevrimiçi eşitleme kabulü hâlâ açık.
+
+### Kabul listesi
+- [ ] TypeScript, Node öğrenme/regresyon/profil testleri.
+- [ ] Web production build, mobil web export, Android debug APK ve iOS Simulator build.
+- [ ] 320/360/390/430px ekranlarda, safe-area ve yatay kullanımda hiçbir taşma olmamalı.
+- [ ] Beş salon, beş görev, ipuçları, ses yok/sessiz fallback, hata sonrası kaydetme tekrarı.
+- [ ] Farklı sınıf ve dil düzeylerinde tekrar oynama; cevap sızıntısı, aynı etiket ve yanlış ödül sayımı olmamalı.
+- [ ] İki gerçek cihaz, çocuk profili, offline/online merge; 7–12 yaş çocuklarla öğrenme kalıcılığı.
+
+**CI başarısı görsel/ses kalitesinin ve pedagojik etkinin fiziksel cihazda doğrulandığı anlamına gelmez.**

@@ -1,7 +1,7 @@
 import type {GameCompletedPayload,TempleAnswerEvidence} from '@ventra/shared';
 import type {IProgressRepository} from './types.ts';
 import {TEMPLE_TOTAL,TEMPLE_GAME_ID,TEMPLE_CHAMBERS,TEMPLE_OFFSETS,TEMPLE_KINDS,
- validTempleAnswers,templeWord,type TempleStage,type TempleChamber} from '../learning/templeEngine.ts';
+ validTempleAnswers,templeWord,templeMissionStars,type TempleStage,type TempleChamber} from '../learning/templeEngine.ts';
 export type TempleProgress={completedLevels:number;totalLevels:number;
  completedByChamber:Record<TempleChamber,number>;starsByLevel:Record<number,number>};
 export async function getTempleProgress(repo:IProgressRepository,profileId:string):Promise<TempleProgress>{
@@ -38,7 +38,7 @@ export async function saveTempleMission(repo:IProgressRepository,profileId:strin
  const payload:GameCompletedPayload={
   profileId,sessionId,gameId:TEMPLE_GAME_ID,levelId:TEMPLE_OFFSETS[chamber]+stage,
   outcomeId:'en.a1.vocab.temple_review',skillId:stage===1?undefined:'en.a1.vocab.temple_review',
-  score:Math.round(100*answers.length/attempts),success:true,starsEarned:mistakes===0?3:mistakes<=2?2:1,
+  score:Math.round(100*answers.length/attempts),success:true,starsEarned:templeMissionStars(mistakes,answers),
   metrics:{durationSeconds:Math.round(durationSeconds),attemptsCount:attempts,
     accuracyRate:answers.length/attempts,wrongAttempts:mistakes,templeAnswers:answers},
   completedAt:new Date().toISOString()

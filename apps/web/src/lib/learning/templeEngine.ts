@@ -122,7 +122,21 @@ export function planTempleMission(input:{chamber:TempleChamber;stage:TempleStage
  const rounds=stage===5?6:(gradeLevel!=null&&gradeLevel<=2?4:6);
  const targets=shuffle(Array.from({length:rounds},(_,i)=>chosen[i%chosen.length]),random);
  const questions=targets.map((w,i)=>{
-  const distractors=shuffle(all.filter(other=>other.id!==w.id&&other.en!==w.en&&other.tr!==w.tr),random).filter((item,i,arr)=>arr.findIndex(other=>other.en===item.en||other.tr===item.tr)===i).slice(0,2).map(w=>w.id);
+  // Assess earlier discoveries before introducing unfamiliar distractors.
+  // Fall back to grade-scoped vocabulary only if unique choices are scarce.
+  // Same-label cross-world homonyms must never create two correct options.
+  const safe=(other:TempleWord)=>other.id!==w.id&&other.en.toLowerCase()!==w.en.toLowerCase()&&
+    other.tr.toLowerCase()!==w.tr.toLowerCase();
+  const preferred=shuffle(pool.filter(safe),random);
+  const fallback=shuffle(all.filter(safe),random);
+  const unique=new Map<string,TempleWord>();
+  for(const candidate of [...preferred,...fallback]){
+   if([...unique.values()].some(p=>p.en.toLowerCase()===candidate.en.toLowerCase()||
+      p.tr.toLowerCase()===candidate.tr.toLowerCase()))continue;
+   unique.set(candidate.id,candidate);
+   if(unique.size>=2)break;
+  }
+  const distractors=[...unique.keys()];
   const options=shuffle([w.id,...distractors],random);
   const sentence=sentenceFor(w);
   return {target:w.id,options,prompt:stage===2?w.tr:
@@ -150,6 +164,12 @@ export function sentenceFor(w:TempleWord):string[]{
  if(w.en==='parents')return ['These','are','my','parents.'];
  if(FAMILY_MEMBERS.has(w.en))return ['This','is','my',w.en+'.'];
  return ['This','is','the',w.en+'.'];
+}
+/** Three-star mastery requires zero mistakes AND zero assistance.
+ * Discovery measures exposure, not independent language proficiency. */
+export function templeMissionStars(mistakes:number,proof:readonly TempleAnswerEvidence[]):1|2|3{
+ const aided=proof.filter(answer=>answer.hintUsed).length;
+ return mistakes===0&&aided===0?3:mistakes<=2&&aided<=2?2:1;
 }
 export function validTempleAnswers(value:unknown):value is TempleAnswerEvidence[]{
  return Array.isArray(value)&&value.every(x=>x&&typeof x.wordId==='string'&&

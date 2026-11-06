@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {TEMPLE_GAME_ID,TEMPLE_TOTAL,TEMPLE_WORDS,TEMPLE_STAGES,TEMPLE_CHAMBERS,
- templeAllowedWords,templeResumePoint,planTempleMission,sentenceFor,templeWeakWords,templeWord,validTempleAnswers
+ templeAllowedWords,templeResumePoint,planTempleMission,sentenceFor,templeWeakWords,templeWord,validTempleAnswers,templeMissionStars
 } from '../src/lib/learning/templeEngine.ts';
 import {getTempleProgress,saveTempleMission} from '../src/lib/progress/templeProgress.ts';
 import {MemoryProgressRepository} from '../src/lib/progress/MemoryProgressRepository.ts';
@@ -166,4 +166,80 @@ test('G3: cross-world homonyms never create ambiguous same-label correct/incorre
    }
   }
  }
+});
+
+test('G3 V6 all five offline illustrated halls have their own complete scene and no remote image dependency',()=>{
+ const scene=fs.readFileSync(new URL('../src/components/learning/activities/TempleScenery.tsx',import.meta.url),'utf8');
+ for(const chamber of TEMPLE_CHAMBERS){
+  const path='../public/assets/temple/temple-'+chamber.id+'-v6.svg';
+  const svg=fs.readFileSync(new URL(path,import.meta.url),'utf8');
+  assert.match(svg,/^<svg /);
+  assert.match(svg,/<\/svg>$/);
+  assert.match(svg,/viewBox="0 0 1280 720"/);
+  assert.ok(svg.length>5000);
+  assert.doesNotMatch(svg,/href=["']https?:/);
+  assert.ok(scene.includes('temple-'+chamber.id+'-v6.svg'));
+ }
+});
+test('G3 V6 use earlier illustration packages for food and family rather than legacy emoji and avoid kinship guesses',()=>{
+ const ui=fs.readFileSync(new URL('../src/components/learning/activities/TempleAdventure.tsx',import.meta.url),'utf8');
+ assert.match(ui,/food-sprite-v4\.svg#food-\$\{slug\}/);
+ assert.match(ui,/family-word-sprite-v3\.svg#fv-\$\{slug\}/);
+ assert.match(ui,/word\.image\?<img/);
+ assert.match(ui,/word\.color\?<span/);
+ assert.match(ui,/needsRelationshipText\(id\)\?'tr':'icon'/);
+ assert.match(ui,/const KINSHIP=new Set/);
+ assert.doesNotMatch(ui,/tp-emoji-glyph/);
+});
+test('G3 V6 protects independent mastery stars but allows supported completion and future replay',async()=>{
+ assert.equal(templeMissionStars(0,[proof('animals:cat')]),3);
+ assert.equal(templeMissionStars(0,[proof('animals:cat','recognition',0,true)]),2);
+ assert.equal(templeMissionStars(0,Array.from({length:3},()=>proof('animals:cat','recognition',0,true))),1);
+ assert.equal(templeMissionStars(3,[proof('animals:cat')]),1);
+ const repo=new MemoryProgressRepository();
+ const child=await repo.createProfile({nickname:'Temple V6',avatarId:'avatar_explorer'});
+ await saveTempleMission(repo,child.id,'rune',1,0,12,completeAnswers('rune',1),'v6-discovery');
+ const helped=completeAnswers('rune',2);helped[0]={...helped[0],hintUsed:true,firstTryCorrect:false};
+ await saveTempleMission(repo,child.id,'rune',2,0,12,helped,'v6-assisted');
+ assert.equal((await getTempleProgress(repo,child.id)).starsByLevel[2],2);
+ await saveTempleMission(repo,child.id,'rune',2,0,13,completeAnswers('rune',2),'v6-independent');
+ assert.equal((await getTempleProgress(repo,child.id)).starsByLevel[2],3);
+});
+test('G3 V6 safe distractors use explored words when available and never create duplicate English/Turkish labels',()=>{
+ for(const chamber of TEMPLE_CHAMBERS){
+  const known=templeAllowedWords(chamber.id,1,'Pre-A1').slice(0,6);
+  const history=known.map(w=>proof(w.id,'discovery'));
+  for(const stage of [2,3,4,5]){
+   const plan=planTempleMission({chamber:chamber.id,stage,gradeLevel:1,englishLevel:'Pre-A1',history,seed:901});
+   for(const question of plan.questions){
+    assert.ok(question.options.every(id=>known.some(w=>w.id===id)));
+    assert.equal(new Set(question.options.map(id=>templeWord(id).en.toLowerCase())).size,3);
+    assert.equal(new Set(question.options.map(id=>templeWord(id).tr.toLowerCase())).size,3);
+   }
+  }
+ }
+});
+test('G3 V6 voice, double-tap protection, auto-discovery, ordered two-seal flow and safe-area contracts',()=>{
+ const read=relative=>fs.readFileSync(new URL(relative,import.meta.url),'utf8');
+ const ui=read('../src/components/learning/activities/TempleAdventure.tsx');
+ const css=read('../src/components/learning/activities/temple-v6.css');
+ assert.match(ui,/soundService\.hasEnglishSpeech\(\)/);
+ assert.match(ui,/soundService\.cancelSpeech\(\)/);
+ assert.match(ui,/visitedRef\.current\.has\(id\)/);
+ assert.match(ui,/wrongRef\.current\.has\(id\)/);
+ assert.match(ui,/answerLock\.current=true/);
+ assert.match(ui,/answerLock\.current=false/);
+ assert.match(ui,/tokensRef\.current\.includes\(index\)/);
+ assert.match(ui,/ready:stage===1&&Boolean\(current\?\.words.length\)/);
+ assert.match(ui,/onAdvance:\(\)=>\{void complete\(answers\);\},delayMs:850,speaking/);
+ assert.doesNotMatch(ui,/Rünleri Açtım ✓/);
+ assert.match(ui,/i===0\?'FIRST':'THEN'/);
+ assert.match(ui,/onClick=\{\(\)=>\{setHint\(true\);speak\(task\.audio\);\}\}/);
+ assert.match(ui,/templeMissionStars\(mistakes,answers\)/);
+ assert.match(css,/safe-area-inset-bottom/);
+ assert.match(css,/max-width:359px/);
+ assert.match(css,/orientation:landscape/);
+ assert.match(css,/prefers-reduced-motion:reduce/);
+ assert.match(css,/touch-action:manipulation/);
+ assert.match(css,/focus-visible/);
 });

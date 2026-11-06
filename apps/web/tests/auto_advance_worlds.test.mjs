@@ -47,7 +47,7 @@ test('All worlds still require deliberate chapter reward navigation and persiste
  assert.match(color,/onClick=\{\(\) => \{/);
  assert.match(food,/finished\?<div className="fm-win(?: fm4-win)?"/);
  assert.match(family,/saved\?<div className="fv-celebrate(?: fv3-celebrate)?"/);
- assert.match(temple,/finished\?<div className="tp-finished"/);
+ assert.match(temple,/finished\?<div className="tp-finished(?: tp6-finished)?"/);
  for(const code of [animal,color,food,family,temple]){
   assert.match(code,/onSave\(/,'persistence still required');
  }

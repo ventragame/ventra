@@ -6,11 +6,12 @@ import {getProgressRepository} from '@/lib/progress';
 import {soundService} from '@/lib/audio/SoundService';
 import {useAutoQuestionAdvance} from '@/lib/learning/useAutoQuestionAdvance';
 import {TEMPLE_CHAMBERS,TEMPLE_STAGES,TEMPLE_OFFSETS,TEMPLE_TOTAL,
- templeWord,templeResumePoint,planTempleMission,templeWeakWords,
+ templeWord,templeResumePoint,planTempleMission,templeWeakWords,templeMissionStars,
  type TemplePlan,type TempleChamber,type TempleStage} from '@/lib/learning/templeEngine';
 import type {TempleProgress} from '@/lib/progress/templeProgress';
 import {TempleScenery} from './TempleScenery';
 import './temple-adventure.css';
+import './temple-v6.css';
 import {GardenHelp} from '../GardenHelp';
 
 type Props={profileId:string;gradeLevel:number|null;englishLevel:EnglishPlacement;
@@ -20,19 +21,34 @@ type Props={profileId:string;gradeLevel:number|null;englishLevel:EnglishPlacemen
 const idFor=(profile:string,room:TempleChamber,stage:TempleStage)=>
  `temple:${profile}:${room}:${stage}:${Date.now()}:${Math.random().toString(36).slice(2)}`;
 
-function Rune({id,mode='icon',active=false,visited=false,disabled=false,onClick}:{
- id:string;mode?:'icon'|'en'|'tr';active?:boolean;visited?:boolean;disabled?:boolean;onClick?:()=>void
-}){
+const KINSHIP=new Set(['mother','father','sister','brother','baby','grandmother','grandfather',
+ 'family','aunt','uncle','cousin','parents','daughter','son','grandchild']);
+const needsRelationshipText=(id:string)=>{
  const word=templeWord(id);
+ return word.domain==='family'&&KINSHIP.has(word.en);
+};
+function Rune({id,mode='icon',active=false,wrong=false,visited=false,disabled=false,onClick}:{
+ id:string;mode?:'icon'|'en'|'tr';active?:boolean;wrong?:boolean;
+ visited?:boolean;disabled?:boolean;onClick?:()=>void
+}){
+ const word=templeWord(id),slug=word.en.replace(/\s+/g,'-');
  return <button type="button" onClick={onClick} disabled={disabled} aria-pressed={active||visited}
-   aria-label={mode==='en'?word.en:mode==='tr'?word.tr:word.tr+' sembolü'}
-   className={`tp-rune tp-rune-${word.domain} ${active?'tp-rune-lit':''} ${visited?'tp-rune-seen':''}`}>
-   {mode==='icon'?<span className="tp-rune-art" aria-hidden="true">
-     {word.color?<span className="tp-color-crystal" style={{background:word.color}}/>:
-      word.image?<img className="tp-rune-animal" src={word.image} alt="" draggable={false}/>:
-      <span className={word.domain==='numbers'?'tp-number-glyph':'tp-emoji-glyph'}>{word.icon}</span>}
-   </span>:<span className="tp-rune-text">{mode==='en'?word.en:word.tr}</span>}
+   data-result={active?'correct':wrong?'wrong':undefined}
+   aria-label={mode==='en'?word.en:mode==='tr'?word.tr:word.tr+' görseli'}
+   className={`tp-rune tp6-rune tp-rune-${word.domain} ${active?'tp-rune-lit':''} ${visited?'tp-rune-seen':''}`}>
+   {mode==='icon'?<span className="tp-rune-art tp6-rune-art" aria-hidden="true">
+     {word.color?<span className="tp-color-crystal tp6-color-crystal" style={{background:word.color}}/>:
+      word.image?<img className="tp-rune-animal tp6-rune-animal" src={word.image} alt="" draggable={false}/>:
+      word.domain==='food'||word.domain==='family'?
+       <svg className="tp6-sprite" viewBox="0 0 200 200" focusable="false" aria-hidden="true">
+        <use href={word.domain==='food'?
+          `/assets/foods/food-sprite-v4.svg#food-${slug}`:
+          `/assets/family-village/family-word-sprite-v3.svg#fv-${slug}`}/>
+       </svg>:
+      <span className="tp-number-glyph tp6-number-glyph">{word.icon}</span>}
+   </span>:<span className="tp-rune-text tp6-rune-text">{mode==='en'?word.en:word.tr}</span>}
    {(active||visited)&&<span className="tp-rune-check" aria-hidden="true">✓</span>}
+   {wrong&&<span className="tp6-wrong-mark" aria-hidden="true">×</span>}
  </button>;
 }
 export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBack,onSave}:Props){
@@ -50,6 +66,7 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
  const [question,setQuestion]=useState(0);
  const [chosenTokens,setChosenTokens]=useState<number[]>([]);
  const [selected,setSelected]=useState<string|null>(null);
+ const [wrongIds,setWrongIds]=useState<string[]>([]);
  const [correct,setCorrect]=useState(false);
  const [finished,setFinished]=useState(false);
  const [busy,setBusy]=useState(false);
@@ -60,6 +77,10 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
  const [notice,setNotice]=useState('');
  const [muted,setMuted]=useState(()=>soundService.getMuted());
  const started=useRef(Date.now()),locked=useRef(false),run=useRef(0);
+ const visitedRef=useRef<Set<string>>(new Set());
+ const wrongRef=useRef<Set<string>>(new Set());
+ const answerLock=useRef(false);
+ const tokensRef=useRef<number[]>([]);
  const session=useRef(idFor(profileId,initial.chamber,initial.stage));
  const scrollRef=useRef<HTMLDivElement>(null);
  const key=`${profileId}/${chamber}/${stage}/${gradeLevel}/${englishLevel}/${revision}`;
@@ -71,7 +92,7 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
  const stepCount=stage===1?visited.length:question+Number(correct);
  const stopAudio=useCallback(()=>{
   run.current++;setSpeaking(false);
-  if(typeof window!=='undefined'&&'speechSynthesis' in window)soundService.cancelSpeech();
+  soundService.cancelSpeech();
  },[]);
  useEffect(()=>{
   let alive=true;
@@ -89,15 +110,14 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
   }).catch(err=>{console.error('Keşif Tapınağı planı oluşturulamadı',err);if(alive)setLoadError(true);});
   return()=>{alive=false};
  },[key,profileId,gradeLevel,englishLevel,chamber,stage]);
- useEffect(()=>()=>{run.current++;if(typeof window!=='undefined'&&'speechSynthesis' in window)soundService.cancelSpeech()},[]);
+ useEffect(()=>()=>{run.current++;soundService.cancelSpeech()},[]);
  useEffect(()=>{
   scrollRef.current?.scrollTo({top:0,behavior:'instant'});
   setHeard(false);setSpeaking(false);
  },[chamber,stage,question,revision]);
  function speak(text:string,requireFullAudio=false){
   stopAudio();
-  if(muted||typeof window==='undefined'||!('speechSynthesis' in window)||
-    typeof SpeechSynthesisUtterance==='undefined'){
+  if(muted||!soundService.hasEnglishSpeech()){
    if(requireFullAudio){setHint(true);setNotice('Ses yok; yazılı ipucuyla devam edebilirsin.');}
    return;
   }
@@ -115,13 +135,13 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
  }
  function enter(nextChamber:TempleChamber,nextStage:TempleStage){
   if(busy)return;
-  stopAudio();locked.current=false;
+  stopAudio();locked.current=false;answerLock.current=false;visitedRef.current.clear();wrongRef.current.clear();tokensRef.current=[];
   session.current=idFor(profileId,nextChamber,nextStage);
   started.current=Date.now();
   setChamber(nextChamber);setStage(nextStage);setRevision(n=>n+1);
   setPlan(null);setLoadedKey('');setLoadError(false);
   setVisited([]);setAnswers([]);setMistakes(0);setRoundMistakes(0);
-  setQuestion(0);setChosenTokens([]);setSelected(null);setCorrect(false);
+  setQuestion(0);setChosenTokens([]);setSelected(null);setWrongIds([]);setCorrect(false);
   setFinished(false);setBusy(false);setSaveError('');setHint(false);setHeard(false);setNotice('');
  }
  function record(id:string,kind:TempleAnswerEvidence['kind'],wrong:number,assisted:boolean):TempleAnswerEvidence{
@@ -132,22 +152,26 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
   if(!current||stage!==1||busy||finished)return;
   speak(templeWord(id).en);
   setNotice(templeWord(id).en.toUpperCase()+' · '+templeWord(id).tr);
-  if(visited.includes(id))return;
+  if(visitedRef.current.has(id))return;
+  visitedRef.current.add(id);
   setVisited(v=>[...v,id]);
   setAnswers(v=>[...v,record(id,'discovery',0,false)]);
  }
  function markCorrect(id:string,kind:TempleAnswerEvidence['kind']){
-  if(!current||!task||correct||busy||locked.current)return;
+  if(!current||!task||correct||busy||locked.current||answerLock.current)return;
+  answerLock.current=true;
   setAnswers(v=>[...v,record(id,kind,roundMistakes,hint||(stage===3&&!heard))]);
   setSelected(id);setCorrect(true);
   soundService.playSfx('correct',0.75);
   setNotice('✓ '+templeWord(id).en+' — doğru!');
-  if(stage!==3)speak(templeWord(id).en);
+  if(stage===4&&task.sentenceAnswer)speak(task.sentenceAnswer.join(' '));
+  else if(stage!==3)speak(templeWord(id).en);
  }
  function pick(id:string){
-  if(!task||!current||finished||correct||busy||locked.current)return;
+  if(!task||!current||finished||correct||busy||locked.current||answerLock.current||wrongRef.current.has(id))return;
   if(stage===3&&!heard&&!hint)return;
   if(id!==task.target){
+   wrongRef.current.add(id);setWrongIds([...wrongRef.current]);
    setMistakes(v=>v+1);setRoundMistakes(v=>v+1);
    soundService.playSfx('gentle_retry',0.65);
    setNotice('Bu mühür değil. Yeniden dene veya ipucunu aç.');
@@ -156,14 +180,14 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
   markCorrect(id,stage===2?'recognition':stage===3?'listening':'sequence');
  }
  function chooseToken(index:number){
-  if(stage!==4||!task?.sentenceTokens||!task.sentenceAnswer||correct||busy||chosenTokens.includes(index))return;
-  const next=[...chosenTokens,index];
+  if(stage!==4||!task?.sentenceTokens||!task.sentenceAnswer||correct||busy||answerLock.current||tokensRef.current.includes(index))return;
+  const next=[...tokensRef.current,index];tokensRef.current=next;
   if(next.length<task.sentenceAnswer.length){setChosenTokens(next);return;}
   if(next.every((v,i)=>task.sentenceTokens?.[v]===task.sentenceAnswer?.[i])){
    setChosenTokens(next);markCorrect(task.target,'sentence');
   }else{
    setMistakes(n=>n+1);setRoundMistakes(n=>n+1);
-   setChosenTokens([]);soundService.playSfx('gentle_retry',0.65);
+   tokensRef.current=[];setChosenTokens([]);soundService.playSfx('gentle_retry',0.65);
    setNotice('Cümlenin sırası henüz doğru değil. Yeniden kur!');
   }
  }
@@ -183,114 +207,132 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
  function advance(){
   if(!correct||!current||busy)return;
   if(question+1>=current.questions.length){void complete(answers);return;}
-  stopAudio();setQuestion(x=>x+1);setCorrect(false);setSelected(null);
+  stopAudio();answerLock.current=false;tokensRef.current=[];wrongRef.current.clear();setWrongIds([]);setQuestion(x=>x+1);setCorrect(false);setSelected(null);
   setChosenTokens([]);setHint(false);setHeard(false);setRoundMistakes(0);setNotice('');
  }
  useAutoQuestionAdvance({ready:correct,blocked:busy||finished||Boolean(saveError)||!current,
-   onAdvance:advance,delayMs:1450,speaking});
+   onAdvance:advance,delayMs:1150,speaking});
+ useAutoQuestionAdvance({
+  ready:stage===1&&Boolean(current?.words.length)&&
+   visited.length===current?.words.length&&answers.length===current?.words.length,
+  blocked:busy||finished||Boolean(saveError)||!current,
+  onAdvance:()=>{void complete(answers);},delayMs:850,speaking
+ });
  const canEnter=(i:number)=>i===0||progress.completedByChamber[TEMPLE_CHAMBERS[i-1].id]===5;
  const pairQuestions=stage===5&&current?current.questions.slice(Math.floor(question/2)*2,Math.floor(question/2)*2+2):[];
- return <div className="tp-screen" role="dialog" aria-modal="true"
+ return <div className="tp-screen tp6-screen" role="dialog" aria-modal="true"
   aria-label="Keşif Tapınağı İngilizce final dünyası" ref={scrollRef}>
-  <div className="tp-shell">
-   <header className="tp-header">
-    <button className="tp-return" onClick={()=>{stopAudio();onBack()}}>← Kelime Bahçesi</button>
-    <div className="tp-title"><span>VENTRA • THE ENGLISH TEMPLE</span>
+  <div className="tp-shell tp6-shell">
+   <header className="tp-header tp6-header">
+    <button className="tp-return tp6-return" disabled={busy} aria-label="Kelime Bahçesine dön"
+     onClick={()=>{stopAudio();onBack()}}><span className="tp6-back-icon" aria-hidden="true">‹</span>
+     <span className="tp6-back-text">Kelime Bahçesi</span></button>
+    <div className="tp-title tp6-title"><span>VENTRA • THE ENGLISH TEMPLE</span>
      <h1>✨ Keşif Tapınağı</h1><p className="sr-only">Explore · Listen · Build · Unlock</p>
     </div>
-    <div className="tp-score">⭐ {Object.values(progress.starsByLevel).reduce((sum,v)=>sum+v,0)} / 75</div>
+    <div className="tp-score tp6-score">⭐ {Object.values(progress.starsByLevel).reduce((sum,v)=>sum+v,0)} / 75</div>
    </header>
-   <nav className="tp-chambers" aria-label="Keşif Tapınağı bölümleri">
+   <nav className="tp-chambers tp6-chambers" aria-label="Keşif Tapınağı bölümleri">
     {TEMPLE_CHAMBERS.map((room,i)=><button type="button" key={room.id}
        disabled={!canEnter(i)||busy} aria-pressed={chamber===room.id}
        className={`tp-chamber ${chamber===room.id?'tp-active-chamber':''}`}
        onClick={()=>enter(room.id,Math.min(5,progress.completedByChamber[room.id]+1) as TempleStage)}>
-       <span>{canEnter(i)?room.icon:'🔒'}</span>
+       <span aria-hidden="true">{room.icon}</span>
        <strong>{room.title}</strong>
-       <small>{canEnter(i)?`${progress.completedByChamber[room.id]}/5 görev`:'Mühür kilitli'}</small>
+       <small>{canEnter(i)?`${progress.completedByChamber[room.id]}/5 görev`:'Kilitli 🔒'}</small>
      </button>)}
    </nav>
-   <nav className="tp-trials" aria-label="Bölümün beş dil görevi">
+   <nav className="tp-trials tp6-trials" aria-label="Bölümün beş dil görevi">
     {TEMPLE_STAGES.map(trial=><button type="button" key={trial.stage}
      disabled={trial.stage>completedSteps+1||busy} aria-pressed={trial.stage===stage}
      className={`tp-trial ${trial.stage===stage?'tp-active-trial':''}`}
      onClick={()=>enter(chamber,trial.stage as TempleStage)}>
-     <span>{trial.icon}</span><small>{trial.stage}. {trial.title}</small>
+     <span aria-hidden="true">{trial.icon}</span><small>{trial.stage}. {trial.title}</small><small className="tp6-trial-index">{trial.stage}/5</small>
      {progress.starsByLevel[TEMPLE_OFFSETS[chamber]+trial.stage]>0&&<b>★</b>}
     </button>)}
    </nav>
-   <section className="tp-quest">
-    <div className="tp-scenery">
+   <section className="tp-quest tp6-quest">
+    <div className="tp-scenery tp6-scenery">
      <TempleScenery chamber={chamber} cleared={completedSteps}/>
-     <div className="tp-scene-label"><span>{roomInfo.icon}</span><div>
+     <div className="tp-scene-label tp6-scene-label"><span>{roomInfo.icon}</span><div>
       <strong>{roomInfo.title}</strong><small>{roomInfo.subtitle}</small></div></div>
-     <div className="tp-mission-tag">✦ TRIAL {TEMPLE_OFFSETS[chamber]+stage}/{TEMPLE_TOTAL}</div>
+     <div className="tp-mission-tag tp6-mission-tag">✦ GÖREV {TEMPLE_OFFSETS[chamber]+stage}/{TEMPLE_TOTAL}</div>
     </div>
-    <div className="tp-workbench">
-     <div className="tp-panel-head"><div><span className="tp-eyebrow">THE LEGEND OF WORDS</span>
+    <div className="tp-workbench tp6-workbench">
+     <div className="tp-panel-head tp6-panel-head"><div><span className="tp-eyebrow">VENTRA · ENGLISH QUEST</span>
       <h2>{stageInfo.icon} {stageInfo.title}</h2><GardenHelp>{stageInfo.desc}</GardenHelp></div>
       <button className="tp-mute" aria-label={muted?'Sesi aç':'Sesi kapat'}
        onClick={()=>{const m=!muted;setMuted(m);soundService.toggleMute();if(m)stopAudio();}}>
        {muted?'🔇':'🔊'}</button>
      </div>
-     <div className="tp-meter" role="progressbar" aria-label="Görev ilerlemesi" aria-valuemin={0}
+     <div className="tp-meter tp6-meter" role="progressbar" aria-label="Görev ilerlemesi" aria-valuemin={0}
        aria-valuemax={Math.max(1,stepTotal)} aria-valuenow={stepCount}>
        <span style={{width:`${100*stepCount/Math.max(1,stepTotal)}%`}}/></div>
-     <p className="tp-step-count">{stepCount}/{stepTotal} · Tapınak rünü</p>
+     <p className="tp-step-count tp6-step-count">{stepCount}/{stepTotal} · Tapınak rünü</p>
      {loadError?<div className="tp-error" role="alert">Tapınak planı yüklenemedi.
       <button onClick={()=>enter(chamber,stage)}>Tekrar Dene</button></div>:
      !current?<p className="tp-loading" role="status">Tapınağın kristalleri hazırlanıyor…</p>:
-     finished?<div className="tp-finished">
+     finished?<div className="tp-finished tp6-finished">
       <div className="tp-trophy">{chamber==='crown'&&stage===5?'👑':'🏆'}</div>
       <h2>{chamber==='crown'&&stage===5?'The English Temple is yours!':'Crystal unlocked!'}</h2>
       <p>{chamber==='crown'&&stage===5?
        'İngilizce maceranın büyük finalini tamamladın! Eski kelimelerini yeni görevlerde tekrar kullanabilirsin.':
        'İngilizce mührü açtın; kazanımların ve yıldızların kaydedildi.'}</p>
-      <strong>⭐ {mistakes===0?'⭐⭐⭐':mistakes<=2?'⭐⭐':'⭐'}</strong>
+      <strong className="tp6-stars" aria-label={`${templeMissionStars(mistakes,answers)} yıldız kazanıldı`}>
+      {'⭐'.repeat(templeMissionStars(mistakes,answers))}</strong>
+      <span className="tp6-performance">{answers.length} alıştırma · {mistakes} hata · {answers.filter(a=>a.hintUsed).length} yardım</span>
       <button className="tp-primary" onClick={()=>{
        if(stage<5)enter(chamber,(stage+1) as TempleStage);
        else if(chamber!=='crown')enter(TEMPLE_CHAMBERS[TEMPLE_CHAMBERS.findIndex(w=>w.id===chamber)+1].id,1);
        else onBack();
       }}>{stage<5?'Sonraki Görev →':chamber==='crown'?'Bahçeye Dön':'Yeni Salonu Aç →'}</button>
       <button className="tp-secondary" onClick={()=>enter(chamber,stage)}>↻ Tekrar Oyna</button>
-     </div>:<div className="tp-play">
-      {stage===1?<><div className="tp-command"><span>🗺️</span><div>
-        <strong>Touch every lost rune!</strong><small>Sembolü keşfet, İngilizce adını dinle.</small>
+     </div>:<div className="tp-play tp6-play">
+      {stage===1?<><div className="tp-command tp6-command"><span>🗺️</span><div>
+        <strong>Keşfet ve Dinle!</strong><small>Her rüne dokun, İngilizce telaffuzunu dinle.</small>
        </div></div>
-       <div className="tp-grid tp-discovery">
-        {current.words.map(id=><div key={id} className="tp-discovery-cell">
-         <Rune id={id} visited={visited.includes(id)} onClick={()=>discover(id)}/>
+       <div className="tp-grid tp-discovery tp6-discovery">
+        {current.words.map(id=><div key={id} className="tp-discovery-cell tp6-discovery-cell">
+         <Rune id={id} visited={visited.includes(id)} disabled={busy} onClick={()=>discover(id)}/>
          {visited.includes(id)&&<div className="tp-reveal"><strong>{templeWord(id).en}</strong>
           <small>{templeWord(id).tr}</small></div>}
         </div>)}
        </div>
-       <button className="tp-primary" disabled={visited.length<current.words.length||busy}
-        onClick={()=>void complete(answers)}>Rünleri Açtım ✓</button>
-      </>:task?<><div className="tp-command"><span>{stageInfo.icon}</span><div>
-       {stage===2?<><strong>Translate the mysterious inscription!</strong>
-        <small>Türkçe: <b>{task.prompt}</b> — doğru İngilizce kelimeyi bul.</small></>:
-       stage===3?<><strong>Listen to the crystal!</strong>
-        <small>İngilizce sesi sonuna kadar dinle, doğru sembolü seç.</small></>:
-       stage===4?<><strong>Build the English bridge!</strong>
+       <p role="status" aria-live="polite" className="tp6-discovery-guide">
+        {busy?'Mühür kaydediliyor…':visited.length===current.words.length?
+         'Tüm rünler keşfedildi. Telaffuzdan sonra otomatik kaydedilecek.':
+         'Her sembole dokun. Dinle, öğren; son sembolden sonra görev kendiliğinden tamamlanır.'}
+       </p>
+      </>:task?<><div className="tp-command tp6-command"><span>{stageInfo.icon}</span><div>
+       {stage===2?<><strong>Gizemli Kelimeyi Bul!</strong>
+        <small>Türkçe: <b>{task.prompt}</b> — İngilizce kelimeyi seç.</small></>:
+       stage===3?<><strong>Yankı Kristalini Dinle!</strong>
+        <small>Ses tamamlanınca görseli veya aile ilişkisini seç.</small></>:
+       stage===4?<><strong>İngilizce Cümle Köprüsü</strong>
         <small>Bu ifadeyi İngilizce bir cümle olarak sırala: <b>{templeWord(task.target).tr}</b></small></>:
-       <><strong>The secret seal · {Math.floor(question/2)+1}/3</strong>
-        <small>İngilizce mühürleri sırayla topla:</small>
-        <strong className="tp-code">{pairQuestions.map(q=>templeWord(q.target).en).join(' ✧ ')}</strong>
-        <small>Şimdi {question%2===0?'ilk':'ikinci'} sembolü bul.</small></>}
+       <><strong>Mühür Kapısı · {Math.floor(question/2)+1}/3</strong>
+        <small>İki İngilizce kelimeyi sırayla anla:</small>
+        <strong className="tp-code tp6-code">{pairQuestions.map((q,i)=>
+          `${i===0?'FIRST':'THEN'}: ${templeWord(q.target).en.toUpperCase()}`).join(' · ')}</strong>
+        <small>Şimdi {question%2===0?'FIRST · birinci':'THEN · ikinci'} mühür için doğru anlamı veya görseli bul.</small></>}
        </div></div>
-       {stage===3&&<div className="tp-listen-panel">
-        <button className="tp-listen" onClick={()=>speak(task.audio,true)}>
+       {stage===2&&<div className="tp6-featured" role="img" aria-label={`Kavram: ${templeWord(task.target).tr}`}>
+         <Rune id={task.target} disabled/>
+         <span>{templeWord(task.target).tr}</span>
+        </div>}
+       {stage===3&&<div className="tp-listen-panel tp6-listen-panel">
+        <button className="tp-listen" disabled={busy||correct} onClick={()=>speak(task.audio,true)}>
          {speaking?'🔉 Listening…':'▶ Listen in English'}</button>
-        <button className="tp-help" onClick={()=>{setHint(true);setNotice('Yazılı yardım etkin: bağımsız dinleme sayılmaz.');}}>
+        <button className="tp-help" disabled={busy||correct} onClick={()=>{setHint(true);setNotice('Yazılı yardım etkin: bağımsız dinleme sayılmaz.');}}>
          Yazılı yardım</button>
         {hint&&<p>English: <strong>{templeWord(task.target).en}</strong></p>}
        </div>}
-       {stage!==3&&<div className="tp-controls">
-        <button className="tp-help" onClick={()=>{setHint(true);setNotice('İpucu açıldı: yanıt destekli olarak kaydedilecek.');}}>💡 İpucu</button>
-        <button className="tp-help" onClick={()=>speak(task.audio)}>🔊 İngilizceyi Duy</button>
+       {stage!==3&&<div className="tp-controls tp6-controls">
+        <button className="tp-help" disabled={busy||correct} onClick={()=>{setHint(true);setNotice('İpucu açıldı: yanıt destekli olarak kaydedilecek.');}}>💡 İpucu</button>
+        <button className="tp-help" disabled={busy||correct} onClick={()=>{setHint(true);speak(task.audio);}}>🔊 İngilizceyi Duy</button>
         {hint&&<span>İpucu: {stage===4?task.sentenceAnswer?.join(' '):templeWord(task.target).en}</span>}
        </div>}
-       {stage===4?<div className="tp-sentence">
+       {stage===4?<div className="tp-sentence tp6-sentence">
         <div className="tp-sentence-line" role="group" aria-label="Oluşturulan İngilizce cümle">
          {chosenTokens.length===0?<em>İngilizce kelimelere sırayla dokun…</em>:
           chosenTokens.map((index,i)=><span key={index} className="tp-sentence-token">{task.sentenceTokens?.[index]}</span>)}
@@ -301,17 +343,21 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
            className="tp-word-token">{word}</button>)}
         </div>
         {!correct&&chosenTokens.length>0&&<button className="tp-secondary"
-          onClick={()=>setChosenTokens([])}>↺ Cümleyi Sıfırla</button>}
+          onClick={()=>{tokensRef.current=[];setChosenTokens([]);}}>↺ Baştan Dene</button>}
        </div>:
        <div className={`tp-grid ${stage===5?'tp-seal-grid':''}`} role="group" aria-label="İngilizce büyülü seçenekler">
         {(stage===5?current.words:task.options).map(id=><Rune key={id} id={id}
-         mode={stage===2?'en':'icon'} active={selected===id}
-         disabled={busy||correct||(stage===3&&!heard&&!hint)} onClick={()=>pick(id)}/>)}
+         mode={stage===2?'en':needsRelationshipText(id)?'tr':'icon'} active={selected===id}
+         wrong={wrongIds.includes(id)}
+         disabled={busy||correct||wrongIds.includes(id)||(stage===3&&!heard&&!hint)}
+         onClick={()=>pick(id)}/>)}
        </div>}
        {stage===3&&!heard&&!hint&&<p className="tp-info">Önce dinle; cihazda ses yoksa yazılı yardımla devam et.</p>}
        {stage===5&&<div className="tp-collected" role="status">
         <span>🔐</span><strong>Toplanan mühürler</strong>
-        <span>{answers.filter(x=>x.kind==='sequence').map(e=>templeWord(e.wordId).icon).join('  ')||'Henüz mühür yok'}</span>
+        <span className="tp6-collected-chips">{answers.filter(x=>x.kind==='sequence').length===0?
+         'Henüz mühür yok':answers.filter(x=>x.kind==='sequence').map((e,i)=>
+          <b className="tp6-collected-chip" key={i}>{templeWord(e.wordId).en}</b>)}</span>
        </div>}
        {correct&&!saveError&&<p role="status" aria-live="polite" className="tp-notice">
         ✨ {question+1===current.questions.length?'Mühür kaydediliyor…':'Yeni İngilizce mühür açılıyor…'}
