@@ -37,7 +37,7 @@ test('Auto transition cleans up timers on unmount, save errors, page visibility 
  assert.match(hook,/advanced=true/);
  assert.match(hook,/Math\.max\(850,delayMs\)/);
 });
-test('All worlds still require explicit actions for chapter rewards and discovery completion',()=>{
+test('All worlds still require deliberate chapter reward navigation and persisted completions',()=>{
  const animal=read('AnimalMeadowAdventure');
  const color=read('ColorGroveAdventure');
  const food=read('FoodMarketAdventure');
@@ -46,7 +46,7 @@ test('All worlds still require explicit actions for chapter rewards and discover
  assert.match(animal,/onClick=\{\(\)=>\{if\(stage===5\)onAllCompleted\(\);else reset/);
  assert.match(color,/onClick=\{\(\) => \{/);
  assert.match(food,/finished\?<div className="fm-win(?: fm4-win)?"/);
- assert.match(family,/saved\?<div className="fv-celebrate"/);
+ assert.match(family,/saved\?<div className="fv-celebrate(?: fv3-celebrate)?"/);
  assert.match(temple,/finished\?<div className="tp-finished"/);
  for(const code of [animal,color,food,family,temple]){
   assert.match(code,/onSave\(/,'persistence still required');
