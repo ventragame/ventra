@@ -1,0 +1,58 @@
+/* V4 modular Word Garden — same artwork in navigable map and card covers.
+   All map/world semantics remain in Phaser, never baked into decorative WebP. */
+.wg-modular-screen .wg-main-map{
+ background:linear-gradient(140deg,#124456,#0a4b55);
+ border:2px solid #ffe0a1;
+ box-shadow:0 9px 0 #062d38,0 20px 40px #03222c86;
+}
+.wg-modular-screen .wg-map-stage{
+ border:3px solid #fff0bb;border-radius:23px;
+ box-shadow:inset 0 0 0 2px #145c69,0 9px 20px #002e3766;
+ background:#378977;
+}
+.wg-modular-screen .wg-play-strip{min-height:123px;padding:16px 20px}
+.wg-modular-screen .wg-map-heading{padding:7px 13px 12px}
+.wg-modular-screen .wg-world-grid{gap:16px}
+.wg-modular-screen .wg-world-card{
+ border:2px solid #f9e7b6;
+ border-radius:23px;
+ background:linear-gradient(150deg,#134f57,#0b3748);
+ box-shadow:0 6px 0 #0b3a42,0 13px 25px #06242e81;
+}
+.wg-modular-screen .wg-card-top{
+ background:radial-gradient(ellipse at 50% 50%,#b8ebc4,#5b9d9c 85%);
+ height:170px;
+}
+.wg-modular-screen .wg-card-media{display:grid;place-items:center;overflow:hidden}
+.wg-modular-screen .wg-card-artwork{
+ width:100%;height:100%;object-fit:contain;object-position:center center;
+ filter:drop-shadow(0 6px 5px #073f4059);
+ transform:none;
+}
+.wg-modular-screen .wg-world-card:hover:not(:disabled) .wg-card-artwork{
+ transform:scale(1.045);filter:drop-shadow(0 8px 7px #073f406b);
+}
+.wg-modular-screen .wg-card-top::after{
+ background:linear-gradient(180deg,transparent 58%,#0a465330);
+}
+.wg-modular-screen .wg-card-body{padding:12px 16px 14px}
+.wg-modular-screen .wg-world-card.wg-card-disabled{
+ opacity:.83;filter:none;
+}
+.wg-modular-screen .wg-card-disabled .wg-card-artwork{
+ filter:saturate(.72) contrast(.96);
+}
+@media(max-width:630px){
+ .wg-modular-screen .wg-play-strip{min-height:140px;padding:12px}
+ .wg-modular-screen .wg-map-stage{border-width:2px;border-radius:17px}
+ .wg-modular-screen .wg-world-grid{gap:9px}
+ .wg-modular-screen .wg-card-top{height:125px}
+ .wg-modular-screen .wg-card-body{padding:9px}
+}
+@media(max-width:360px){
+ .wg-modular-screen .wg-card-top{height:110px}
+}
+@media(prefers-reduced-motion:reduce){
+ .wg-modular-screen .wg-card-artwork{transition:none!important}
+ .wg-modular-screen .wg-world-card:hover:not(:disabled) .wg-card-artwork{transform:none}
+}

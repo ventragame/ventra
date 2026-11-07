@@ -14,10 +14,10 @@ export function DistrictPreviewArt({id}:{id:GardenDistrictId}){
   id==='food'?'Meyve ve ekmek tezgâhlı pazar':
   id==='family'?'Renkli aile köyü':
   id==='sanctuary'?'Işıklı keşif tapınağı':'Kelime Bahçesi';
- const base='/assets/word-garden/premium-v2/'+id;
+ const base='/assets/word-garden/modular-v4/'+id;
  return <picture className="wg-card-media" title={description}>
-  <source media="(max-width: 630px)" type="image/webp" srcSet={base+'_mobile.webp'}/>
-  <img className="wg-card-artwork" src={base+'.webp'} width={1040} height={488}
+  <source media="(max-width: 630px)" type="image/webp" srcSet={base+'.webp'}/>
+  <img className="wg-card-artwork" src={base+'.webp'} width={720} height={360}
    alt="" aria-hidden="true" loading="lazy" decoding="async"/>
  </picture>;
 }

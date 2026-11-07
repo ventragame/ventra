@@ -42,3 +42,24 @@ test('art is responsive and decorative without changing learning or accessibilit
  assert.match(worldArt,/@media\(max-width:767px\)/);
  assert.match(fs.readFileSync(path.resolve(here,'../src/components/learning/LearningPathModal.tsx'),'utf8'),/word-garden-world-art\.css/);
 });
+
+
+test('V4 card and interactive map reuse identical source illustrations',()=>{
+ const scene=fs.readFileSync(path.resolve(here,'../src/components/learning/world/ExplorerScene.ts'),'utf8');
+ const art=fs.readFileSync(path.resolve(here,'../src/components/learning/DistrictPreviewArt.tsx'),'utf8');
+ assert.match(scene,/modular-v4\//);
+ assert.match(art,/modular-v4\//);
+ const root4=path.resolve(here,'../public/assets/word-garden/modular-v4');
+ const ids=['animals','colors','numbers','food','family','sanctuary'];
+ for(const id of ids){
+   const file=path.join(root4,id+'.webp');
+   const bytes=fs.readFileSync(file);
+   assert.equal(bytes.toString('ascii',0,4),'RIFF');
+   assert.equal(bytes.toString('ascii',8,12),'WEBP');
+   assert.ok(bytes.length>20000&&bytes.length<150000);
+   assert.ok(!fs.existsSync(path.join(root4,id+'_mobile.webp')),'one shared hero asset per world');
+ }
+ const ground=fs.readFileSync(path.join(root4,'garden-ground.webp'));
+ assert.equal(ground.toString('ascii',8,12),'WEBP');
+ assert.ok(ground.length<500000);
+});

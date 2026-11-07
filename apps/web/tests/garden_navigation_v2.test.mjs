@@ -38,7 +38,7 @@ test('The map scene routes touch travel, keeps callbacks and honors reduced moti
  assert.match(scene,/onInteract\(object\)/);
  assert.match(scene,/onInspect\(object\)/);
  assert.match(scene,/this.reducedMotion/);
- assert.match(scene,/garden_ground_v3/);
+ assert.match(scene,/garden_ground_v4/);
  assert.match(scene,/this.leftBoot.setAngle/);
  assert.match(scene,/const fit=Math.max/);
  assert.doesNotMatch(scene,/fillEllipse\(-104,55,208,65/);
@@ -50,8 +50,8 @@ test('The map scene routes touch travel, keeps callbacks and honors reduced moti
 test('Cohesive V3 world artwork, rigged motion, and walkable meadow corridor stay in sync',()=>{
  const art=fs.readFileSync(new URL('../src/components/learning/world/GardenWorldArt.ts',import.meta.url),'utf8');
  const scene=fs.readFileSync(new URL('../src/components/learning/world/ExplorerScene.ts',import.meta.url),'utf8');
- const base=new URL('../public/assets/word-garden/premium-v3/',import.meta.url);
- for(const file of ['garden-ground.webp','foreground.webp']){
+ const base=new URL('../public/assets/word-garden/modular-v4/',import.meta.url);
+ for(const file of ['garden-ground.webp','animals.webp','colors.webp','numbers.webp','food.webp','family.webp','sanctuary.webp']){
   const bytes=fs.readFileSync(new URL(file,base));
   assert.equal(bytes.toString('ascii',0,4),'RIFF');
   assert.equal(bytes.toString('ascii',8,12),'WEBP');
@@ -59,8 +59,8 @@ test('Cohesive V3 world artwork, rigged motion, and walkable meadow corridor sta
  }
  const landmark=art.slice(art.indexOf('export function createGardenLandmark('),art.indexOf('export function addGardenAmbient('));
  assert.doesNotMatch(landmark,/fillEllipse|drawGardenPortal|image\('/);
- assert.match(scene,/garden_ground_v3/);
- assert.doesNotMatch(scene,/garden_ground_v2/);
+ assert.match(scene,/garden_ground_v4/);
+ assert.doesNotMatch(scene,/garden_ground_v3/);
  assert.match(scene,/Math\.max\(w\/WORLD_WIDTH,height\/WORLD_HEIGHT\)/);
  assert.match(scene,/fit\*1\.12/);
  assert.match(scene,/this\.leftBoot\.setAngle\(swing\)/);
@@ -74,4 +74,18 @@ test('Cohesive V3 world artwork, rigged motion, and walkable meadow corridor sta
  assert.doesNotMatch(torso,/M92 220|M78 273/);
  const route=planGardenRoute(PLAYER_START.garden,'animals',DISTRICTS.find(x=>x.id==='animals'));
  assert.ok(route.some(p=>p.x===466&&p.y===486),'meadow path must traverse the painted farm trail');
+});
+
+
+test('V4 modular map uses the same six tiles as the game cards and paints true traversable paths',()=>{
+ const scene=fs.readFileSync(new URL('../src/components/learning/world/ExplorerScene.ts',import.meta.url),'utf8');
+ const preview=fs.readFileSync(new URL('../src/components/learning/DistrictPreviewArt.tsx',import.meta.url),'utf8');
+ assert.match(scene,/drawGardenRoads/);
+ assert.match(scene,/GARDEN_ROAD_EDGES/);
+ assert.match(scene,/garden_district_'/);
+ assert.match(scene,/goToObject\(object\.id\)/);
+ assert.match(scene,/this\.reducedMotion/);
+ assert.match(preview,/modular-v4/);
+ assert.match(preview,/base\+'\.webp'/);
+ assert.doesNotMatch(preview,/premium-v2/);
 });

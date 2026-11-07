@@ -4,8 +4,8 @@ import {
   walkTowards,distanceBetween,clampToWorld,
   type WorldArea,type WorldObject,type Point
 } from './worldLayout';
-import {paintGardenWorld,createGardenLandmark,addGardenAmbient} from './GardenWorldArt';
-import {planGardenRoute,planGardenTapRoute,isGardenWalkable} from './GardenNavigation';
+import {paintGardenWorld,addGardenAmbient} from './GardenWorldArt';
+import {planGardenRoute,planGardenTapRoute,isGardenWalkable,GARDEN_ROAD_NODES,GARDEN_ROAD_EDGES} from './GardenNavigation';
 
 const ANIMALS=['cat','dog','bird','rabbit','cow','fish','horse','duck','sheep','frog','bee','butterfly','lion','elephant','monkey','penguin','turtle','fox','bear','owl','zebra','giraffe','panda','tiger','crocodile','hippo','rhino','kangaroo','koala','deer','wolf','hedgehog','squirrel','snake','dolphin','whale','shark','octopus','crab','parrot'];
 type ActivityCallback=(object:WorldObject)=>void;
@@ -50,8 +50,9 @@ export class ExplorerScene extends Phaser.Scene {
   preload():void {
     this.load.svg('p4_explorer','/assets/kids/explorer-avatar.svg',{width:150,height:175});
     if(this.area==='garden'){
-      this.load.image('garden_ground_v3','/assets/word-garden/premium-v3/garden-ground.webp');
-      this.load.image('garden_canopy_v3','/assets/word-garden/premium-v3/foreground.webp');
+      this.load.image('garden_ground_v4','/assets/word-garden/modular-v4/garden-ground.webp');
+      for(const id of ['animals','colors','numbers','food','family','sanctuary'])
+        this.load.image('garden_district_'+id,'/assets/word-garden/modular-v4/'+id+'.webp');
       this.load.svg('garden_avatar_torso','/assets/kids/explorer-avatar-torso.svg',{width:150,height:175});
       this.load.svg('garden_avatar_leg_l','/assets/kids/explorer-avatar-left-leg.svg',{width:150,height:175});
       this.load.svg('garden_avatar_leg_r','/assets/kids/explorer-avatar-right-leg.svg',{width:150,height:175});
@@ -64,12 +65,10 @@ export class ExplorerScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#83cfca');
     this.cameras.main.setBounds(0,0,WORLD_WIDTH,WORLD_HEIGHT);
     if(this.area==='garden'){
-      if(this.textures.exists('garden_ground_v3')){
-        this.add.image(WORLD_WIDTH/2,WORLD_HEIGHT/2,'garden_ground_v3')
+      if(this.textures.exists('garden_ground_v4')){
+        this.add.image(WORLD_WIDTH/2,WORLD_HEIGHT/2,'garden_ground_v4')
           .setDisplaySize(WORLD_WIDTH,WORLD_HEIGHT).setDepth(-20);
-        if(this.textures.exists('garden_canopy_v3'))
-          this.add.image(WORLD_WIDTH/2,WORLD_HEIGHT/2,'garden_canopy_v3')
-            .setDisplaySize(WORLD_WIDTH,WORLD_HEIGHT).setDepth(1200);
+        this.drawGardenRoads();
       }else paintGardenWorld(this);
     }else this.drawLandscape();
     this.bloomLayer=this.add.graphics().setDepth(2);
@@ -119,6 +118,30 @@ export class ExplorerScene extends Phaser.Scene {
     const zoom=Math.max(0.53,Math.min(1.35,w/(w<640?680:1050)));
     this.cameras.main.setZoom(zoom);
     this.cameras.main.setBounds(0,0,WORLD_WIDTH,WORLD_HEIGHT);
+  }
+  /** The visible cream paths use exactly the existing deterministic navigation graph. */
+  private drawGardenRoads():void {
+    const road=this.add.graphics().setDepth(-9);
+    for(const [from,to] of GARDEN_ROAD_EDGES){
+      const a=GARDEN_ROAD_NODES[from],b=GARDEN_ROAD_NODES[to];
+      // A soft shadow, pale stone trail and dotted stepping-stones.
+      road.lineStyle(43,0x206252,.32);road.lineBetween(a.x,a.y+5,b.x,b.y+5);
+      road.lineStyle(32,0xf9e2ab,.96);road.lineBetween(a.x,a.y,b.x,b.y);
+      road.lineStyle(24,0xfff3d2,.98);road.lineBetween(a.x,a.y,b.x,b.y);
+      const distance=Math.hypot(b.x-a.x,b.y-a.y);
+      const steps=Math.max(1,Math.floor(distance/34));
+      for(let n=1;n<steps;n++){
+        const t=n/steps, x=a.x+(b.x-a.x)*t, y=a.y+(b.y-a.y)*t;
+        road.fillStyle(0xe4bf7b,.6);road.fillCircle(x,y,2.6);
+      }
+    }
+    for(const [nodeId,point] of Object.entries(GARDEN_ROAD_NODES)){
+      if(['center','bridge','meadowTurn','numberFork','familyBridge'].includes(nodeId)){
+        road.fillStyle(0x0a756c,.24);road.fillCircle(point.x,point.y+3,19);
+        road.fillStyle(0xffe4a3,.98);road.fillCircle(point.x,point.y,12);
+        road.lineStyle(3,0xfff8dc,1);road.strokeCircle(point.x,point.y,12);
+      }
+    }
   }
   private drawLandscape():void {
     const g=this.add.graphics();
@@ -228,36 +251,40 @@ export class ExplorerScene extends Phaser.Scene {
     const node=this.add.container(object.x,object.y);
     const locked=object.unlocked===false;
     if(this.area==='garden'&&object.kind==='district'){
-      // Native interactive state over a single cohesive illustration. No
-      // duplicated cut-out photos, oval portals or baked-in score badges.
-      const ornament=createGardenLandmark(this,object);
-      node.add(ornament);
-      const n=Math.max(0,object.completed??0),total=Math.max(1,object.total??1);
-      const stage=locked?'🔒':n>=total?'✓':'▶';
-      const plate=this.add.graphics();
-      plate.fillStyle(0x102d4c,.91);plate.fillRoundedRect(-91,14,182,55,13);
-      plate.lineStyle(2,locked?0x9aabb4:0xffe1a0,.93);plate.strokeRoundedRect(-91,14,182,55,13);
-      plate.fillStyle(0x274b5b,.96);plate.fillRoundedRect(-72,62,144,3,2);
-      if(n>0){
-        plate.fillStyle(0xffd776,.98);
-        plate.fillRoundedRect(-72,62,Math.max(2,144*Math.min(1,n/total)),3,2);
+      // Each landmark uses exactly the same optimized WebP as its world card.
+      // Neither progress numbers nor labels are baked into the image.
+      const frame=this.add.graphics();
+      frame.fillStyle(0x0a3347,.22);frame.fillRoundedRect(-143,-132,286,211,31);
+      frame.fillStyle(0x0b4854,.97);frame.fillRoundedRect(-139,-139,278,207,27);
+      frame.lineStyle(3,locked?0xbed0cc:0xffe8aa,.98);
+      frame.strokeRoundedRect(-139,-139,278,207,27);
+      frame.fillStyle(0x164a57,.97);frame.fillRoundedRect(-133,5,266,60,17);
+      node.add(frame);
+      const texture='garden_district_'+object.id;
+      if(this.textures.exists(texture)){
+        node.add(this.add.image(0,-67,texture).setDisplaySize(268,134));
+      }else{
+        node.add(this.add.text(0,-70,object.label,{fontSize:'22px',color:'#fff5ce'}).setOrigin(.5));
       }
-      node.add(plate);
-      const label=this.add.text(0,30,object.label,{
+      const n=Math.max(0,object.completed??0),total=Math.max(1,object.total??1);
+      const state=locked?'🔒 KİLİTLİ':n>=total?'✓ TAMAMLANDI':n>0?`▶ ${n}/${total} · DEVAM`:'▶ OYNA';
+      node.add(this.add.text(0,22,object.label,{
         fontFamily:'Arial, sans-serif',fontStyle:'bold',fontSize:'17px',
-        color:locked?'#dce5e8':'#fff9e6',align:'center'
-      }).setOrigin(.5);
-      const state=locked?'KİLİTLİ':n>=total?'TAMAMLANDI':n>0?`${n}/${total} · DEVAM`:'OYNA';
-      const meta=this.add.text(0,50,`${stage} ${state}`,{
+        color:'#fff9e3',align:'center'
+      }).setOrigin(.5));
+      node.add(this.add.text(0,44,state,{
         fontFamily:'Arial, sans-serif',fontStyle:'bold',fontSize:'12px',
-        color:locked?'#d4dbe4':'#ffe9a6',align:'center'
-      }).setOrigin(.5);
-      node.add([label,meta]);
-      const hit=this.add.rectangle(0,-12,194,144,0xffffff,.001)
+        color:locked?'#d0dade':'#ffe39e',align:'center'
+      }).setOrigin(.5));
+      const bar=this.add.graphics();
+      bar.fillStyle(0x426a6b,.9);bar.fillRoundedRect(-109,58,218,4,2);
+      if(n>0){bar.fillStyle(0xfdd477,1);bar.fillRoundedRect(-109,58,218*Math.min(1,n/total),4,2);}
+      node.add(bar);
+      const hit=this.add.rectangle(0,-35,276,200,0xffffff,.001)
         .setInteractive({useHandCursor:true});
       node.add(hit);
       hit.on('pointerover',()=>{
-        if(!this.reducedMotion)this.tweens.add({targets:node,scale:1.045,duration:160});
+        if(!this.reducedMotion)this.tweens.add({targets:node,scale:1.038,duration:160});
       });
       hit.on('pointerout',()=>{
         if(!this.reducedMotion)this.tweens.add({targets:node,scale:1,duration:170});

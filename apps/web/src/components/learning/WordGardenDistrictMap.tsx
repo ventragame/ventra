@@ -8,6 +8,7 @@ import {DistrictPreviewArt} from './DistrictPreviewArt';
 import {GARDEN_ORDER,GARDEN_THEMES,decorateWorldObjects,districtPercent,districtStatus,
  districtStatusLabel,mapProgress,type GardenDistrictId,type GardenDistrictProgress} from './world/gardenTheme';
 import './word-garden-premium.css';
+import './word-garden-modular-v4.css';
 import {describeLearnerRoute} from '@/lib/learning/learningJourney';
 import type {EnglishPlacement} from '@/lib/learning/gradeAwareLearningPolicy';
 
@@ -82,7 +83,7 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
  return <div role="dialog" aria-modal="true" aria-labelledby="wg-world-title"
   onPointerDown={e=>e.stopPropagation()} onPointerMove={e=>e.stopPropagation()}
   onPointerUp={e=>e.stopPropagation()} onWheel={e=>e.stopPropagation()}
-  className="wg-premium-screen">
+  className="wg-premium-screen wg-modular-screen">
   <div className="wg-sky-orb wg-sky-orb-one" aria-hidden="true"/>
   <div className="wg-sky-orb wg-sky-orb-two" aria-hidden="true"/>
   <div className="wg-shell">
@@ -145,7 +146,7 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
      <div className="wg-map-stage">
       <ExplorerCanvas key="premium-garden" area="garden" objects={objects}
        progress={Math.round(summary.percent/100*12)}
-       caption="Büyülü Keşif Haritası" height={570} onInteract={enter} onInspect={obj=>enter(obj)}/>
+       caption="Altı Dünya · Canlı Patika" height={620} onInteract={enter} onInspect={obj=>enter(obj)}/>
      </div>
     </section>
     {notice&&<div className="wg-notice" role="status"><span aria-hidden="true">🧭</span>{notice}
