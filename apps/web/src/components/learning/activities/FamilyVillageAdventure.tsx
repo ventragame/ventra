@@ -13,6 +13,7 @@ import {FamilyVillageScenery} from './FamilyVillageScenery';
 import {FamilyWordArt} from './FamilyVillageWordArt';
 import './family-village.css';
 import './family-village-premium-v3.css';
+import './family-village-showcase-v4.css';
 import {GardenHelp} from '../GardenHelp';
 
 type Props={
@@ -196,29 +197,36 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
  const access=(index:number)=>index===0||(index===1?progress.completedByDistrict.family===5:
    index===2?progress.completedByDistrict.rooms===5:progress.completedByDistrict.objects===5);
  return <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Aile Köyü İngilizce öğrenme dünyası"
-   className="fv-screen fv3-screen">
-  <div className="fv-shell fv3-shell">
+   className="fv-screen fv3-screen fv4-screen">
+  <div className="fv-shell fv3-shell fv4-shell">
     <header className="fv-top fv3-top">
       <button disabled={busy} onClick={()=>{cancelSpeech();onBack();}} className="fv-back fv3-back" aria-label="Kelime Bahçesi’ne dön">
        <span aria-hidden="true" className="fv3-back-arrow">‹</span><span className="fv3-back-label">Kelime Bahçesi</span>
       </button>
-      <div className="fv-heading fv3-heading"><span>VENTRA • ENGLISH WORLD</span><h1>🏡 Aile Köyü</h1>
-        <p className="sr-only">My Family · My Home · My Day</p></div>
-      <div className="fv-stars fv3-stars">⭐ {Object.values(progress.starsByLevel).reduce((n,v)=>n+v,0)} / 60</div>
+      <div className="fv-heading fv3-heading fv4-heading">
+        <span className="fv4-heading-kicker">VENTRA · WORD GARDEN</span>
+        <h1><span className="fv4-heading-mark" aria-hidden="true">🏡</span> Aile Köyü</h1>
+        <p className="sr-only">My Family · My Home · My Day</p>
+      </div>
+      <div className="fv-stars fv3-stars fv4-stars" aria-label={`${Object.values(progress.starsByLevel).reduce((n,v)=>n+v,0)} / 60 yıldız`}>
+        <span aria-hidden="true">⭐</span> {Object.values(progress.starsByLevel).reduce((n,v)=>n+v,0)} / 60
+      </div>
     </header>
     <nav className="fv-district-nav fv3-district-nav" aria-label="Aile Köyü mahalleleri">
       {VILLAGE_DISTRICTS.map((part,i)=><button key={part.id} type="button"
         aria-pressed={district===part.id} disabled={!access(i)||busy}
         className={`fv-district fv3-district ${district===part.id?'fv-district-current':''}`}
         onClick={()=>start(Math.min(5,progress.completedByDistrict[part.id]+1) as VillageStage,part.id)}>
-        <span className="fv-district-icon">{part.icon}</span>
-        <span><strong>{part.title}</strong><small>{access(i)?`${progress.completedByDistrict[part.id]}/5 bölüm`:'Önceki mahalleyi keşfet'}</small></span>
+        <span className="fv-district-icon" aria-hidden="true">{part.icon}</span>
+        <span className="fv4-district-copy"><strong>{part.title}</strong><small>{access(i)?`${progress.completedByDistrict[part.id]}/5 bölüm`:'Önceki mahalleyi keşfet'}</small></span>
+        {!access(i)&&<span className="fv4-district-lock" aria-hidden="true">🔒</span>}
       </button>)}
     </nav>
     <nav className="fv-stepnav fv3-stepnav" aria-label="İngilizce görev adımları">
       {VILLAGE_STAGES.map(item=><button key={item.stage} type="button"
         disabled={item.stage>currentCompleted+1||busy}
         aria-pressed={item.stage===stage}
+        aria-current={item.stage===stage?'step':undefined}
         onClick={()=>start(item.stage as VillageStage)}
         className={`fv-step fv3-step ${stage===item.stage?'fv-step-current':''}`}>
         <span className="fv3-step-icon" aria-hidden="true">{item.icon}</span><small className="fv3-step-title">{item.stage}. {item.title}</small><small className="fv3-step-index">{item.stage}/5</small>
@@ -228,9 +236,11 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
     <main className="fv-card fv3-card">
       <div className="fv-scene fv3-scene">
         <FamilyVillageScenery district={district}/>
-        <div className="fv-place fv3-place"><span>{lane.icon}</span><div>
+        <div className="fv-place fv3-place"><span aria-hidden="true">{lane.icon}</span><div>
          <strong>{lane.title}</strong><small>{lane.subtitle}</small></div></div>
-        <span className="fv-mission-label fv3-mission-label">{stageMeta.icon} GÖREV {VILLAGE_OFFSETS[district]+stage} / 20</span>
+        <span className="fv-mission-label fv3-mission-label">
+          <span aria-hidden="true">📋</span> GÖREV {VILLAGE_OFFSETS[district]+stage} / 20
+        </span>
       </div>
       <div className="fv-panel fv3-panel">
         <div className="fv-panel-head fv3-panel-head"><div>
@@ -243,7 +253,7 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
          aria-valuenow={progressSteps} aria-valuemin={0} aria-valuemax={Math.max(1,total)}>
           <span style={{width:`${Math.round(100*progressSteps/Math.max(1,total))}%`}}/>
         </div>
-        <p className="fv-count fv3-count">{progressSteps} / {total} adım</p>
+        <p className="fv-count fv3-count" aria-live="polite">{progressSteps} / {total} adım</p>
         {loadError?<div role="alert" className="fv-error">Görev yüklenemedi.
           <button onClick={()=>start(stage)}>Tekrar Dene</button></div>:
         !current?<p className="fv-loading" role="status">Aile Köyü hazırlanıyor…</p>:
@@ -333,7 +343,7 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
         </div>}
       </div>
     </main>
-    <footer className="fv-footer fv3-footer">Aile Köyü · İngilizce öğrenme dünyası · Her kelime yeni bir macera 🌻</footer>
+    <footer className="fv-footer fv3-footer">Ventra Kids · Aile Köyü · İngilizceyi keşfederek öğren 🌻</footer>
   </div>
  </div>;
 }

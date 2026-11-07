@@ -1,0 +1,373 @@
+/* Aile Köyü V4 — approved storybook / fantasy-village visual direction.
+   Keep decorative artwork separate from real, keyboard-accessible controls. */
+.fv-screen.fv3-screen.fv4-screen{
+  --fv4-purple:#32205c;--fv4-night:#101f55;--fv4-lavender:#66509c;
+  --fv4-gold:#ffdf8f;--fv4-cream:#fff2d7;--fv4-ink:#392453;
+  --fv4-aqua:#7cc7d3;
+  background:
+    radial-gradient(ellipse 55% 28% at 50% -6%,#467bd4ad,transparent 78%),
+    radial-gradient(ellipse 35% 35% at 0% 40%,#6550b475,transparent 100%),
+    radial-gradient(ellipse 30% 35% at 100% 75%,#6842b17c,transparent 100%),
+    linear-gradient(160deg,#112b58 0%,#1a315b 42%,#2a2257 100%);
+  font-family:ui-rounded,"Trebuchet MS",system-ui,sans-serif;
+  color:#fffaf4;
+  padding:max(10px,env(safe-area-inset-top,0px)) 12px max(24px,env(safe-area-inset-bottom,0px));
+}
+.fv4-screen .fv4-shell{max-width:1320px;margin:0 auto}
+/* Scenic masthead and layered wooden village signage */
+.fv4-screen .fv3-top{
+  position:relative;top:auto;isolation:isolate;
+  min-height:92px;margin:0 0 16px;padding:12px 18px;gap:16px;overflow:hidden;
+  border-radius:22px;border:2px solid #bba5dbb0;
+  background:linear-gradient(90deg,#122346c9,#2c2154c7 51%,#112d4fc9),
+    url('/assets/word-garden/premium-v2/family.webp') center 40%/cover;
+  box-shadow:0 6px 0 #0e2040,0 14px 30px #060f2c6e, inset 0 1px 0 #ffffff65;
+  backdrop-filter:none;
+}
+.fv4-screen .fv3-top::after{
+  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
+  background:linear-gradient(180deg,#090d360d,transparent 50%,#0f194371);
+}
+.fv4-screen .fv4-heading{
+  position:relative;isolation:isolate;flex:0 1 465px;min-width:0;
+  margin:0 auto;padding:11px 32px 14px;border:4px solid #f6c885;
+  border-radius:18px 19px 24px 20px;
+  transform:rotate(-.4deg);
+  background:
+   repeating-linear-gradient(3deg,transparent 0 17px,#4a2d2a18 18px 20px),
+   linear-gradient(178deg,#bd7540 0%,#96522f 45%,#794126 88%,#9d5939 100%);
+  box-shadow:inset 0 2px 2px #ffe2a88f,inset 0 -5px 0 #482b285c,
+    0 7px 0 #4b2f44,0 13px 20px #101b3c70;
+}
+.fv4-screen .fv4-heading::before,.fv4-screen .fv4-heading::after{
+  position:absolute;top:50%;transform:translateY(-50%) rotate(-9deg);
+  font-size:29px;filter:drop-shadow(0 2px 2px #1a3c2b70);z-index:1;
+  pointer-events:none;
+}
+.fv4-screen .fv4-heading::before{content:"🌿";left:-18px}
+.fv4-screen .fv4-heading::after{content:"🌿";right:-18px;transform:translateY(-50%) scaleX(-1)}
+.fv4-screen .fv4-heading-kicker{display:block;color:#ffe7b4;letter-spacing:.17em;
+  font-size:9px;font-weight:900;text-shadow:0 2px 3px #502821;margin:0 0 2px}
+.fv4-screen .fv4-heading h1{
+  margin:0;color:#fff2da;font-size:clamp(29px,3.9vw,46px);
+  font-weight:1000;letter-spacing:-.035em;line-height:1.08;
+  -webkit-text-stroke:.3px #52305b;
+  text-shadow:0 3px 0 #573466,0 5px 5px #442731,1px 1px #fff2c5;
+}
+.fv4-heading-mark{display:inline-block;transform:rotate(5deg);
+  font-size:.75em;vertical-align:.08em;filter:drop-shadow(0 2px 1px #51302d)}
+.fv4-screen .fv3-back,.fv4-screen .fv4-stars{
+  flex:none;min-height:49px;padding:10px 15px;border:2px solid #d9c8ff;
+  background:linear-gradient(145deg,#142c6fe8,#201a57f0);
+  color:#fff9e8;border-radius:100px;box-shadow:0 4px 0 #291b5e,0 6px 15px #04163085;
+  font-size:13px;font-weight:950;white-space:nowrap;
+}
+.fv4-screen .fv3-back:hover{background:#3c387d}
+.fv4-screen .fv4-stars{border-color:#ffd67f;color:#fff4cc;font-size:14px}
+.fv4-screen .fv4-stars>span{font-size:18px;margin-right:3px}
+.fv4-screen .fv4-back-arrow{font-size:25px}
+/* Navigation cards: deep violet unselected / glowing parchment selected. */
+.fv4-screen .fv3-district-nav{gap:12px;margin-bottom:13px}
+.fv4-screen .fv3-district{
+  min-height:82px;display:flex;align-items:center;justify-content:flex-start;
+  position:relative;gap:12px;padding:11px 15px;overflow:hidden;
+  border:2px solid #8189d1ad;border-radius:21px;
+  background:linear-gradient(140deg,#273d7d,#222b65 73%,#2a285a);
+  color:#fdf4ff;
+  box-shadow:inset 0 1px 0 #cfdbff4d,0 5px 0 #19285b,0 11px 19px #0b143f85;
+  text-align:left;transition:transform .18s,filter .18s,box-shadow .18s;
+}
+.fv4-screen .fv3-district.fv-district-current{
+  background:linear-gradient(135deg,#ffede0,#f4c9e8 56%,#d9b8ff);
+  border-color:#ffe3a2;
+  box-shadow:inset 0 0 0 2px #fffafa9a,0 5px 0 #9d75c5,0 11px 26px #d4aaff62;
+  color:#52265b;
+}
+.fv4-screen .fv3-district:disabled{opacity:.68;filter:saturate(.75);
+ box-shadow:0 5px 0 #192858,0 9px 13px #09133880}
+.fv4-screen .fv3-district:hover:enabled{transform:translateY(-2px)}
+.fv4-screen .fv3-district .fv-district-icon{
+ width:50px;height:51px;flex:none;background:radial-gradient(circle at 30% 20%,#fff6e9,#c6b2fa);
+ border:2px solid #fae2b7;border-radius:16px;font-size:29px;
+ box-shadow:0 4px 0 #7d6da5,0 6px 11px #19194255;
+}
+.fv4-screen .fv3-district strong{display:block;color:#fff9e9;font-size:clamp(11px,1.5vw,17px);
+  line-height:1.22;text-shadow:0 2px 3px #18224eaa}
+.fv4-screen .fv3-district small{display:block;font-size:11px;color:#d5defe;line-height:1.22;margin-top:5px}
+.fv4-screen .fv3-district.fv-district-current strong{color:#452565;text-shadow:none}
+.fv4-screen .fv3-district.fv-district-current small{color:#5c427b}
+.fv4-district-copy{min-width:0;flex:1}
+.fv4-district-lock{position:absolute;top:9px;right:9px;
+  line-height:1;font-size:15px;filter:drop-shadow(0 2px 2px #11193e85)}
+/* Five sturdy quest controls, still actual buttons with disabled states. */
+.fv4-screen .fv3-stepnav{gap:10px;margin-bottom:15px}
+.fv4-screen .fv3-step{
+ min-width:0;min-height:73px;gap:5px;
+ border:2px solid #768acaa1;border-radius:19px;
+ background:linear-gradient(175deg,#1a4c70,#183152 68%,#1b2955);
+ color:#f1f6ff;padding:8px 6px;
+ box-shadow:inset 0 1px 0 #e5f9ff45,0 5px 0 #12254f,0 10px 17px #07162f70;
+ transition:transform .18s,background .18s;
+}
+.fv4-screen .fv3-step:hover:enabled{transform:translateY(-2px)}
+.fv4-screen .fv3-step.fv-step-current{
+ background:linear-gradient(140deg,#fff6d9,#ffe1a0 70%,#ffc789);
+ border-color:#fff3c6;color:#34264b;
+ box-shadow:inset 0 1px 0 #ffffffbd,0 5px 0 #ad7c5b,0 8px 20px #f1c07a63;
+}
+.fv4-screen .fv3-step:disabled{opacity:.62}
+.fv4-screen .fv3-step-icon{font-size:26px;filter:drop-shadow(0 2px 1px #1e2c5066)}
+.fv4-screen .fv3-step-title{font-size:clamp(11px,1.28vw,14px);color:inherit;font-weight:950}
+.fv4-screen .fv3-step-index{color:inherit}
+/* Keep the poster art entirely decorative. Scene-specific dynamic labels float
+   above it, so they never get frozen into the media asset. */
+.fv4-screen .fv3-card{
+ border:3px solid #dfc9ffcf;border-radius:31px;
+ background:#3d2c6c;overflow:hidden;
+ box-shadow:0 7px 0 #20184f,0 19px 40px #080f329c,inset 0 2px 2px #fff6;
+}
+.fv4-screen .fv3-scene{
+ height:clamp(190px,24.5vw,320px);
+ border-bottom:5px solid #f8d19b;background:#cde8d1;
+}
+.fv4-screen .fv3-landscape,.fv4-screen .fv3-landscape picture{position:absolute;inset:0}
+.fv4-screen .fv3-landscape picture{display:block}
+.fv4-screen .fv3-landscape img{display:block;inset:0;width:100%;height:100%;
+  object-fit:cover;object-position:center 53%}
+.fv4-screen .fv3-scene::after{background:linear-gradient(180deg,#fff9d800 25%,#190d3c13 63%,#1e174868)}
+.fv4-screen .fv3-place{
+ bottom:16px;left:17px;gap:10px;padding:11px 17px;
+ background:linear-gradient(175deg,#a2633b,#633a29);
+ border:3px solid #f1c588;border-radius:15px;
+ box-shadow:inset 0 1px 0 #ffe4ba,0 5px 0 #4e3028,0 9px 16px #1d203a74;
+ backdrop-filter:none;transform:rotate(-1deg);
+}
+.fv4-screen .fv3-place strong{color:#fff6e4;text-shadow:0 2px 2px #563326;font-size:17px}
+.fv4-screen .fv3-place small{color:#ffe9bc;font-size:11px}
+.fv4-screen .fv3-place>span{font-size:26px}
+.fv4-screen .fv3-mission-label{
+ z-index:5;top:14px;right:14px;
+ background:linear-gradient(145deg,#fff9e8,#ffe6b6);color:#5b306f;
+ border:2px solid #ffd49c;padding:8px 14px;font-size:13px;
+ border-radius:100px;box-shadow:0 4px 0 #bd9c92,0 7px 12px #121f4f5c;
+}
+/* A purple, theatrical but legible learning panel resembling approved mockup. */
+.fv4-screen .fv3-panel{
+ position:relative;isolation:isolate;overflow:hidden;
+ padding:23px clamp(12px,3.2vw,37px) 30px;
+ background:
+  radial-gradient(circle at 12% 11%,#9468c482,transparent 24%),
+  radial-gradient(circle at 96% 95%,#9151a25f,transparent 30%),
+  linear-gradient(145deg,#58428e,#3f2d78 53%,#31295e);
+ color:#fffaf5;
+}
+.fv4-screen .fv3-panel:before,.fv4-screen .fv3-panel:after{
+ content:"";pointer-events:none;position:absolute;z-index:-1;
+ width:150px;height:115px;bottom:-37px;opacity:.46;
+ background:radial-gradient(ellipse at 44% 78%,#67a64a 0 14%,transparent 15%),
+ radial-gradient(ellipse at 31% 40%,#76b964 0 15%,transparent 16%),
+ radial-gradient(ellipse at 70% 25%,#91cc72 0 14%,transparent 15%),
+ radial-gradient(ellipse at 80% 66%,#5c9c56 0 15%,transparent 16%);
+}
+.fv4-screen .fv3-panel:before{left:-31px;transform:rotate(-16deg)}
+.fv4-screen .fv3-panel:after{right:-32px;transform:scaleX(-1) rotate(-16deg)}
+.fv4-screen .fv3-panel-head{position:relative;align-items:center;gap:15px}
+.fv4-screen .fv3-panel-head h2{
+ color:#fff5e3;font-weight:1000;font-size:clamp(24px,3.2vw,35px);
+ text-shadow:0 3px 0 #37245f,0 4px 8px #1a1b48a3;margin:0}
+.fv4-screen .fv3-panel-head .fv-eyebrow{color:#e2cbff;font-size:9px;letter-spacing:.15em}
+.fv4-screen .fv3-panel-head p{color:#e5dff9}
+.fv4-screen .fv3-panel-head .wg-game-help{color:#ffedc9}
+.fv4-screen .fv3-audio-toggle{
+ border-radius:23px;width:62px;height:62px;min-width:62px;min-height:62px;
+ border:3px solid #e7c3ff;background:linear-gradient(150deg,#b47cfc,#6836c8);
+ color:#fff9f4;font-size:28px;
+ box-shadow:inset 0 1px 0 #fff6fe,0 5px 0 #5431a4,0 9px 17px #18143d8c;
+}
+.fv4-screen .fv3-meter{
+ margin-top:17px;height:13px;
+ border:2px solid #988fdb;background:#231d60;border-radius:20px;
+ box-shadow:inset 0 2px 5px #10103b7b;
+}
+.fv4-screen .fv3-meter span{
+ background:linear-gradient(90deg,#76e354,#d6f46e 55%,#ffe397);
+ box-shadow:0 0 12px #d1eb80a8;
+}
+.fv4-screen .fv3-count{color:#fff5e5;font-size:12px;font-weight:950}
+/* Cream prompt card: text is real and changes with current question. */
+.fv4-screen .fv3-prompt{
+ max-width:825px;margin:16px auto 14px;min-height:93px;padding:14px 22px;
+ border:3px solid #ffdeac;border-radius:25px;
+ background:linear-gradient(125deg,#fff5dd,#ffe2b5 62%,#fff2d7);
+ color:#583067;
+ box-shadow:inset 0 2px 0 #ffffffb8,0 6px 0 #a47a9a,0 12px 24px #190f3e4d;
+ gap:16px;
+}
+.fv4-screen .fv3-prompt>span{
+ width:51px;height:51px;display:grid;place-items:center;
+ flex:none;padding:4px;border:2px solid #fae5d2;border-radius:15px;
+ background:linear-gradient(145deg,#a5e4ff,#b6a0ff);
+ font-size:31px;box-shadow:0 3px 0 #9679c2,0 7px 12px #735f984b;
+}
+.fv4-screen .fv3-prompt strong{color:#512b67;font-size:clamp(19px,2.5vw,26px);line-height:1.18}
+.fv4-screen .fv3-prompt small{color:#765780;font-weight:700;font-size:13px}
+.fv4-screen .fv3-prompt .fv-english{color:#652b77}
+.fv4-screen .fv3-featured{
+ max-width:270px;margin:15px auto 17px;padding:12px 15px;
+ border:4px solid #ffdb9d;border-radius:29px;
+ background:radial-gradient(circle at 50% 17%,#fff9ed,#f1dfff 72%,#d7c6f0);
+ box-shadow:0 6px 0 #a98ed5,0 13px 24px #1c184960,0 0 21px #ffe6b370;
+}
+.fv4-screen .fv3-featured .fv3-word-art{
+ max-width:180px;max-height:165px;width:180px;height:165px;
+ filter:drop-shadow(0 7px 5px #7b69954d);
+}
+.fv4-screen .fv3-featured-label{color:#502969;font-weight:950;font-size:14px}
+/* Answer tiles: bright, clear, separated; correctness is never color-only. */
+.fv4-screen .fv3-answer-grid{max-width:825px;margin:16px auto 17px;gap:13px}
+.fv4-screen .fv3-choice,.fv4-screen .fv3-discovery{
+ min-width:0;border-radius:21px;border:3px solid #e8e0ff;
+ background:linear-gradient(145deg,#fffefb,#e1e6fc);
+ color:#463064;
+ box-shadow:inset 0 1px 0 #ffffff,0 6px 0 #847ac2,0 12px 19px #131d4b69;
+ transition:transform .18s,filter .18s;
+}
+.fv4-screen .fv3-choice:hover:enabled,.fv4-screen .fv3-discovery:hover:enabled{transform:translateY(-3px)}
+.fv4-screen .fv3-choice.fv-choice-english{
+ min-height:89px;background:linear-gradient(145deg,#fff9e6,#f2e2fa);
+ border-color:#ffe6b7;
+}
+.fv4-screen .fv3-choice.fv-choice-english .fv-choice-label{
+ color:#54316f;font-size:clamp(14px,2.2vw,20px);text-shadow:none}
+.fv4-screen .fv3-choice.fv-choice-phrase{background:linear-gradient(145deg,#fff7e7,#e7e5fb);min-height:100px}
+.fv4-screen .fv3-choice.fv-choice-phrase .fv-choice-label{
+ font-size:clamp(13px,2vw,18px);color:#453068}
+.fv4-screen .fv3-choice.fv-choice-icon,.fv4-screen .fv3-choice.fv-choice-translation{
+ background:linear-gradient(145deg,#fffbed,#e2e9f4)}
+.fv4-screen .fv3-choice .fv-choice-label{color:#59417a;font-weight:950}
+.fv4-screen .fv3-choice.fv-choice-correct,.fv4-screen .fv3-discovery.fv-visited{
+ border-color:#b2e798;background:linear-gradient(150deg,#f6ffdc,#c5efc9);
+ box-shadow:0 6px 0 #75af84,0 12px 19px #122e3670;
+}
+.fv4-screen .fv3-choice[data-wrong=true]{border-color:#f4b4b7;background:#ffe2e7;box-shadow:0 5px 0 #cc8799}
+.fv4-screen .fv3-discovery{min-height:155px}
+.fv4-screen .fv3-discovery strong{color:#4a326e}
+.fv4-screen .fv3-discovery small{color:#725b85}
+.fv4-screen .fv3-audio-task p{color:#f0e6fe}
+.fv4-screen .fv3-audio-task .fv-listen{
+ min-height:54px;border:3px solid #ffe6a1;border-radius:17px;
+ background:linear-gradient(135deg,#ffefb5,#f9c875);color:#5f376b;
+ box-shadow:0 5px 0 #b38863,0 10px 20px #1813447b;
+}
+.fv4-screen .fv-hint-button{
+ background:linear-gradient(145deg,#ece3ff,#d8cdf3);color:#483268;
+ border:2px solid #fff5e3;box-shadow:0 3px 0 #7e6fb2;
+ min-height:45px;
+}
+.fv4-screen .fv3-hint-reveal{background:#fff3d5;color:#5b466e;border:2px solid #f7d49a}
+.fv4-screen .fv3-audio-task p,.fv4-screen .fv-instruction{color:#e8dbf9}
+.fv4-screen .fv-notice{color:#fffce8;background:#523c8f;border:1px solid #bda8f0}
+.fv4-screen .fv-error{color:#79314b;background:#ffe4e3;border:2px solid #f9b7ba}
+.fv4-screen .fv-loading{color:#f8efff}
+.fv4-screen .fv3-discovery-status{color:#523a69;background:#fff2d6;border-color:#f2d3ab}
+.fv4-screen .fv3-celebrate{position:relative}
+.fv4-screen .fv3-celebrate h2{color:#fff4dc;text-shadow:0 2px 0 #432768}
+.fv4-screen .fv3-celebrate>p{color:#e9defa}
+.fv4-screen .fv3-celebrate .fv-result{color:#fff1af}
+.fv4-screen .fv-primary{
+ border:3px solid #f5e3ff;background:linear-gradient(140deg,#e3bbff,#a17ae7);
+ color:#3b2369;box-shadow:0 5px 0 #744bb5,0 10px 21px #1913437b;
+}
+.fv4-screen .fv-secondary{background:#d5c6fa;color:#40306d;border:2px solid #f0e1ff}
+.fv4-screen .fv3-footer{color:#d8cefa;text-shadow:0 1px 3px #161a45}
+/* Tablet and phone: keep navigational labels legible and tap targets >=44px. */
+@media(max-width:900px){
+ .fv4-screen .fv3-top{min-height:76px;padding:10px 12px}
+ .fv4-screen .fv4-heading{flex-basis:340px;padding:8px 23px 10px}
+ .fv4-screen .fv4-heading h1{font-size:clamp(23px,4vw,34px)}
+ .fv4-screen .fv3-district-nav{gap:7px}
+ .fv4-screen .fv3-district{min-height:70px;padding:8px 7px;gap:6px}
+ .fv4-screen .fv3-district .fv-district-icon{width:38px;height:39px;font-size:24px;border-radius:11px}
+ .fv4-screen .fv3-district strong{font-size:11px}
+ .fv4-screen .fv3-district small{font-size:10px}
+ .fv4-screen .fv3-stepnav{gap:6px}
+ .fv4-screen .fv3-step{min-height:65px}
+ .fv4-screen .fv3-step-title{font-size:11px}
+}
+@media(max-width:680px){
+ .fv-screen.fv3-screen.fv4-screen{padding:max(6px,env(safe-area-inset-top,0px)) 6px max(20px,env(safe-area-inset-bottom,0px))}
+ .fv4-screen .fv3-top{min-height:69px;padding:7px 7px;gap:6px;margin:0 0 11px;border-radius:15px}
+ .fv4-screen .fv3-back,.fv4-screen .fv4-stars{
+  min-height:44px;border-radius:13px;padding:7px 9px;font-size:10px}
+ .fv4-screen .fv4-heading{flex:1;min-width:0;padding:8px 7px 9px;border-width:2px;border-radius:12px}
+ .fv4-screen .fv4-heading h1{font-size:clamp(18px,4.8vw,27px);white-space:nowrap}
+ .fv4-screen .fv4-heading-kicker{font-size:7px;letter-spacing:.045em}
+ .fv4-screen .fv4-heading::before,.fv4-screen .fv4-heading::after{display:none}
+ .fv4-screen .fv3-district-nav{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-bottom:9px}
+ .fv4-screen .fv3-district{
+  flex-direction:column;justify-content:center;text-align:center;
+  min-height:74px;padding:6px 2px;gap:4px;border-radius:13px}
+ .fv4-screen .fv3-district .fv-district-icon{width:31px;height:31px;font-size:19px;border-width:1px;box-shadow:none}
+ .fv4-screen .fv3-district strong{font-size:9px;line-height:1.12;text-shadow:none}
+ .fv4-screen .fv3-district small{display:none}
+ .fv4-district-lock{font-size:10px;top:4px;right:4px}
+ .fv4-screen .fv3-stepnav{gap:5px;margin-bottom:9px}
+ .fv4-screen .fv3-step{min-height:58px;padding:5px 1px;border-radius:12px}
+ .fv4-screen .fv3-step-icon{font-size:22px}
+ .fv4-screen .fv3-step-title{display:none}
+ .fv4-screen .fv3-step-index{display:block;font-size:10px}
+ .fv4-screen .fv3-card{border-radius:19px;border-width:2px}
+ .fv4-screen .fv3-scene{height:clamp(135px,29vw,175px);border-bottom-width:3px}
+ .fv4-screen .fv3-landscape img{object-position:center 52%}
+ .fv4-screen .fv3-place{bottom:8px;left:8px;padding:6px 9px;border-width:2px;border-radius:10px;gap:5px}
+ .fv4-screen .fv3-place>span{font-size:18px}
+ .fv4-screen .fv3-place strong{font-size:11px}
+ .fv4-screen .fv3-place small{display:none}
+ .fv4-screen .fv3-mission-label{top:8px;right:8px;font-size:9px;padding:6px 9px;border-width:1px}
+ .fv4-screen .fv3-panel{padding:13px 9px 18px}
+ .fv4-screen .fv3-panel-head h2{font-size:clamp(21px,5vw,27px)}
+ .fv4-screen .fv3-panel-head .fv-eyebrow{font-size:8px}
+ .fv4-screen .fv3-audio-toggle{width:48px;height:48px;min-width:48px;min-height:48px;font-size:21px;border-radius:15px;border-width:2px}
+ .fv4-screen .fv3-meter{height:10px;margin-top:11px}
+ .fv4-screen .fv3-count{font-size:10px}
+ .fv4-screen .fv3-prompt{min-height:74px;padding:10px 10px;gap:9px;border-radius:16px;border-width:2px;margin:10px auto}
+ .fv4-screen .fv3-prompt>span{width:36px;height:39px;border-radius:10px;font-size:22px}
+ .fv4-screen .fv3-prompt strong{font-size:clamp(15px,3.8vw,19px)}
+ .fv4-screen .fv3-prompt small{font-size:11px}
+ .fv4-screen .fv3-featured{max-width:198px;margin:9px auto 11px;padding:7px;border-width:3px;border-radius:19px}
+ .fv4-screen .fv3-featured .fv3-word-art{width:119px;height:113px;max-width:119px;max-height:113px}
+ .fv4-screen .fv3-featured-label{font-size:12px}
+ .fv4-screen .fv3-answer-grid{gap:6px;margin:11px auto 14px}
+ .fv4-screen .fv3-choice{border-width:2px;border-radius:13px}
+ .fv4-screen .fv3-choice.fv-choice-english{min-height:76px}
+ .fv4-screen .fv3-choice.fv-choice-english .fv-choice-label{font-size:clamp(11px,3.3vw,16px)}
+ .fv4-screen .fv3-choice.fv-choice-phrase{min-height:84px}
+ .fv4-screen .fv3-choice.fv-choice-phrase .fv-choice-label{font-size:clamp(10px,2.9vw,14px)}
+ .fv4-screen .fv3-choice.fv-choice-icon,.fv4-screen .fv3-choice.fv-choice-translation{min-height:114px}
+ .fv4-screen .fv3-choice .fv3-word-art{max-height:75px;max-width:79px}
+ .fv4-screen .fv3-discovery{min-height:110px;border-width:2px;border-radius:13px}
+ .fv4-screen .fv3-discovery strong{font-size:10px}
+ .fv4-screen .fv-hint-button{min-height:44px;font-size:11px}
+}
+@media(max-width:359px){
+ .fv4-screen .fv4-heading{padding:8px 2px 9px}
+ .fv4-screen .fv4-heading h1{font-size:17px}
+ .fv4-screen .fv4-heading-kicker{display:none}
+ .fv4-screen .fv3-back,.fv4-screen .fv4-stars{padding:7px 7px;font-size:9px}
+ .fv4-screen .fv3-district strong{font-size:8px}
+ .fv4-screen .fv3-district{min-height:69px}
+ .fv4-screen .fv3-scene{height:128px}
+ .fv4-screen .fv3-prompt strong{font-size:14px}
+}
+@media(max-width:680px) and (max-height:530px) and (orientation:landscape){
+ .fv4-screen .fv3-top{min-height:62px}
+ .fv4-screen .fv3-scene{height:110px}
+ .fv4-screen .fv3-district{min-height:60px}
+}
+@media(prefers-reduced-motion:reduce){
+ .fv4-screen *, .fv4-screen *::before, .fv4-screen *::after{
+   animation:none!important;transition:none!important;scroll-behavior:auto!important}
+ .fv4-screen .fv3-step:hover:enabled,.fv4-screen .fv3-district:hover:enabled,
+ .fv4-screen .fv3-choice:hover:enabled,.fv4-screen .fv3-discovery:hover:enabled{transform:none!important}
+}
+.fv4-screen button:focus-visible{outline:3px solid #ffe5a7!important;outline-offset:3px!important}
