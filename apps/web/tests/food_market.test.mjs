@@ -233,7 +233,7 @@ test('G4 native-capable voice, product artwork, retry and tap safety contracts',
  const code=read('../src/components/learning/activities/FoodMarketAdventure.tsx');
  const css=read('../src/components/learning/activities/food-market-v4.css');
  assert.match(code,/food-sprite-v4\.svg#food-/);
- assert.match(code,/market-orchard-v4\.svg/);
+ assert.match(code,/market-orchard-v6\.webp/);
  assert.match(code,/market-bakery-v4\.svg/);
  assert.match(code,/market-cafe-v4\.svg/);
  assert.match(code,/function FoodIllustration/);
