@@ -138,7 +138,8 @@ test('M1 premium Phaser world fits six landmarks on desktop and still follows ex
  assert.match(scene,/this\.cameras\.main\.stopFollow\(\)/);
  assert.match(scene,/this\.cameras\.main\.startFollow\(this\.player/);
  assert.match(scene,/paintGardenWorld\(this\)/);
- assert.match(scene,/createGardenLandmark\(this,object\)/);
+ assert.match(scene,/garden_district_'/);
+ assert.match(scene,/drawGardenRoads/);
  assert.match(theme,/object\.id==='sanctuary'/);
  assert.match(theme,/object\.id==='animals'/);
  assert.match(theme,/object\.id==='family'/);
