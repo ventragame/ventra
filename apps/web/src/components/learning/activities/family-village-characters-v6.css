@@ -1,0 +1,53 @@
+/* Aile Köyü V6: one coherent, locally bundled cameo system.
+   The portrait itself contains the gold circular frame; don't double-frame it. */
+.fv5-screen .fv6-character-art{
+ display:block;object-fit:contain;object-position:center;
+ width:min(100%,122px);height:auto;max-width:122px;max-height:122px;
+ aspect-ratio:1/1;overflow:visible;flex:none;
+ filter:drop-shadow(0 5px 7px #22124b5a);
+}
+.fv5-screen .fv3-discovery .fv6-character-art{
+ width:min(100%,112px);max-width:112px;max-height:112px;
+}
+.fv5-screen .fv3-discovery .fv-visited .fv6-character-art{filter:drop-shadow(0 5px 6px #2c754380)}
+.fv5-screen .fv5-answer-grid .fv6-character-art{
+ width:min(100%,105px);max-width:105px;max-height:105px;
+}
+.fv5-screen .fv5-featured.fv5-featured-portrait{
+ display:flex;flex-direction:column;align-items:center;justify-content:center;
+ max-width:260px;margin:6px auto 10px;padding:0 8px 8px;
+ background:transparent;border:0;box-shadow:none;
+}
+.fv5-screen .fv5-featured-portrait .fv6-character-art{
+ width:192px;height:192px;max-width:100%;max-height:192px;
+ filter:drop-shadow(0 7px 11px #1a125b83);
+}
+.fv5-screen .fv5-featured-portrait .fv3-featured-label{
+ display:inline-block;margin:0;padding:5px 13px;
+ background:#ffefc5;border:2px solid #d4b2ef;border-radius:999px;
+ color:#4b2469;font-size:12px;line-height:1.15;font-weight:950;
+ box-shadow:0 3px 0 #7859ae;
+}
+.fv5-screen .fv3-discovery .fv3-word-art.fv6-character-art,
+.fv5-screen .fv3-choice .fv3-word-art.fv6-character-art{
+ object-fit:contain;
+}
+/* A small reveal effect only; respect users who reduce motion. */
+.fv5-screen .fv3-discovery.fv-visited .fv6-character-art{
+ transform:scale(1.025);transition:transform .18s ease-out;
+}
+@media(max-width:680px){
+ .fv5-screen .fv3-discovery .fv6-character-art{width:min(100%,78px);max-width:78px;max-height:78px}
+ .fv5-screen .fv5-answer-grid .fv6-character-art{width:min(100%,72px);max-width:72px;max-height:72px}
+ .fv5-screen .fv5-featured.fv5-featured-portrait{max-width:196px;margin:5px auto 8px}
+ .fv5-screen .fv5-featured-portrait .fv6-character-art{width:135px;height:135px;max-height:135px}
+ .fv5-screen .fv5-featured-portrait .fv3-featured-label{font-size:11px;padding:4px 10px}
+}
+@media(max-width:359px){
+ .fv5-screen .fv3-discovery .fv6-character-art{max-width:69px;max-height:69px}
+ .fv5-screen .fv5-answer-grid .fv6-character-art{max-width:65px;max-height:65px}
+ .fv5-screen .fv5-featured-portrait .fv6-character-art{width:116px;height:116px;max-height:116px}
+}
+@media(prefers-reduced-motion:reduce){
+ .fv5-screen .fv3-discovery.fv-visited .fv6-character-art{transform:none;transition:none}
+}

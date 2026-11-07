@@ -278,8 +278,8 @@ test('V5 scene and illustrated grandmother use exact reference crops and mobile 
  assert.match(scene,/district==='family'/);
  assert.match(scene,/aria-hidden="true"/);
  for(const slug of ['rooms','objects','routines'])assert.match(scene,new RegExp(slug+'-v3\\.svg'));
- assert.match(portrait,/if\(id==='grandmother'\)/);
- assert.match(portrait,/village-grandmother-card\.webp/);
+ assert.match(portrait,/familyCharacterArtPath\(id\)/);
+ assert.match(portrait,/characters-v6/);
  assert.match(portrait,/family-word-sprite-v3\.svg/);
 });
 test('V5 matching UI uses real responsive controls instead of a static screenshot',()=>{
@@ -315,4 +315,40 @@ test('V5 matching UI uses real responsive controls instead of a static screensho
  assert.match(css,/safe-area-inset-bottom/);
  assert.match(css,/prefers-reduced-motion:reduce/);
  assert.match(css,/focus-visible/);
+});
+
+test('G6 eight generated 3D family portraits are real, compressed, transparent WebP files',()=>{
+ const root=new URL('../public/assets/family-village/characters-v6/',import.meta.url);
+ const names=['mother','father','sister','brother','baby','grandmother','grandfather','family'];
+ let total=0;
+ for(const name of names){
+  const bytes=fs.readFileSync(new URL(name+'.webp',root));
+  assert.ok(bytes.length>10000&&bytes.length<95000,name+' size');
+  assert.equal(bytes.toString('ascii',0,4),'RIFF',name+' RIFF');
+  assert.equal(bytes.toString('ascii',8,12),'WEBP',name+' WEBP');
+  total+=bytes.length;
+ }
+ assert.ok(total<550000,'eight cameos must not bloat mobile app');
+});
+test('G6 the family village uses the same premium cameo in discovery, recognition, and visual choices',()=>{
+ const art=fs.readFileSync(new URL('../src/components/learning/activities/FamilyVillageWordArt.tsx',import.meta.url),'utf8');
+ const ui=fs.readFileSync(new URL('../src/components/learning/activities/FamilyVillageAdventure.tsx',import.meta.url),'utf8');
+ const css=fs.readFileSync(new URL('../src/components/learning/activities/family-village-characters-v6.css',import.meta.url),'utf8');
+ const allFamily=VILLAGE_WORDS.filter(w=>w.district==='family').map(w=>w.id);
+ const defined=art.slice(art.indexOf('const CHARACTER_CAMEOS:'),art.indexOf('export function familyCharacterArtPath'));
+ for(const word of allFamily)assert.match(defined,new RegExp('\\b'+word+':'),word+' has premium cameo or explicit relationship reuse');
+ for(const word of ['mother','father','sister','brother','baby','grandmother','grandfather','family'])
+  assert.match(defined,new RegExp('\\b'+word+":'"+word+"'"),word+' has its own individual WebP');
+ assert.match(art,/word\.district==='family'\?familyCharacterArtPath\(id\):null/);
+ assert.match(art,/alt=\{word\.tr\}/);
+ assert.match(art,/fv6-character-art/);
+ assert.match(ui,/current\.words\.map\(id=><button/);
+ assert.match(ui,/task\.options\.map\(id=><WordChoice/);
+ assert.match(ui,/district==='family'\?'fv5-featured-portrait'/);
+ assert.match(ui,/family-village-characters-v6\.css/);
+ assert.match(css,/\.fv3-discovery \.fv6-character-art/);
+ assert.match(css,/\.fv5-answer-grid \.fv6-character-art/);
+ assert.match(css,/\.fv5-featured-portrait \.fv6-character-art/);
+ assert.match(css,/prefers-reduced-motion:reduce/);
+ assert.match(css,/max-width:359px/);
 });

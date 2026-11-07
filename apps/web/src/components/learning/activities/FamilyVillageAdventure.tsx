@@ -15,6 +15,7 @@ import './family-village.css';
 import './family-village-premium-v3.css';
 import './family-village-showcase-v4.css';
 import './family-village-reference-v5.css';
+import './family-village-characters-v6.css';
 import {GardenHelp} from '../GardenHelp';
 
 type Props={
@@ -315,7 +316,7 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
              stage===4?<><strong className="fv-english">{task.prompt}</strong><small>İngilizce yönergeye uyan görseli seç.</small></>:
              <><strong>Say it in English!</strong><small>Görsele uygun İngilizce cümleyi seç.</small></>}
             </div></div>
-            {(stage===2||stage===5)&&<div className={`fv3-featured fv5-featured ${task.target==='grandmother'?'fv5-featured-portrait':''}`} role="img"
+            {(stage===2||stage===5)&&<div className={`fv3-featured fv5-featured ${district==='family'?'fv5-featured-portrait':''}`} role="img"
              aria-label={`Bu kavramı İngilizce ifade et: ${villageWord(task.target).tr}`}>
              <FamilyWordArt id={task.target}/>
              {district==='family'&&<span className="fv3-featured-label">{villageWord(task.target).tr}</span>}
