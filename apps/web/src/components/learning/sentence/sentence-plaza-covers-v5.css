@@ -1,7 +1,7 @@
 /* Cümle Meydanı V5 — sharper, cohesive card covers, mission cards only.
  * Genuine state (unlocked/complete) comes from progress, not from artwork.
  * Changing this file must not affect lesson/play scenes or their CSS. */
-.sp-v5-home .sp-v5-grid{
+.sp-v2 .sp-v5-home .sp-v5-grid{
  grid-template-columns:repeat(3,minmax(0,1fr));
  gap:clamp(12px,1.65vw,20px);
  align-items:stretch;
@@ -139,7 +139,7 @@
  outline-offset:4px;
 }
 @media(max-width:960px){
- .sp-v5-home .sp-v5-grid{
+ .sp-v2 .sp-v5-home .sp-v5-grid{
   grid-template-columns:repeat(2,minmax(0,1fr));
   gap:13px;
  }
@@ -150,7 +150,7 @@
  }
 }
 @media(max-width:560px){
- .sp-v5-home .sp-v5-grid{
+ .sp-v2 .sp-v5-home .sp-v5-grid{
   grid-template-columns:minmax(0,1fr);
   gap:14px;
  }
@@ -174,7 +174,7 @@
  }
 }
 @media(max-width:359px){
- .sp-v5-home .sp-v5-grid{gap:11px}
+ .sp-v2 .sp-v5-home .sp-v5-grid{gap:11px}
  .sp-v5-home .sp-v5-mission .sp-mission-top span{
   flex-basis:60px;min-width:60px;width:60px;
   min-height:61px;height:61px;font-size:20px;

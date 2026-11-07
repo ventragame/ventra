@@ -304,6 +304,7 @@ test('V5 premium covers are 6 distinct real WebPs; responsive cards preserve pro
  assert.match(css,/aspect-ratio:1120 \/ 390/);
  assert.match(css,/@media\(max-width:960px\)/);
  assert.match(css,/@media\(max-width:560px\)/);
+ assert.match(css,/\.sp-v2 \.sp-v5-home \.sp-v5-grid\{/,'V5 grid must override V4 mobile CSS');
  assert.match(css,/grid-template-columns:minmax\(0,1fr\)/);
  assert.match(css,/prefers-reduced-motion:reduce/);
  assert.match(page,/saveSentencePlazaMission/);
