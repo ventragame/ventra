@@ -365,3 +365,25 @@ test('G5 higher A2 customer orders require selecting requested rather than rejec
   assert.ok(beginner.questions.every(q=>!q.prompt.includes("I don't want ")));
  }
 });
+
+test('G1 visual V6 keeps market assets resolvable and UI design independent of engine',()=>{
+ const ui=fs.readFileSync(new URL('../src/components/learning/activities/FoodMarketAdventure.tsx',import.meta.url),'utf8');
+ const css=fs.readFileSync(new URL('../src/components/learning/activities/food-market-visual-v6.css',import.meta.url),'utf8');
+ assert.match(ui,/import '\.\/food-market-visual-v6\.css'/);
+ assert.match(ui,/className="fm-screen fm4-screen fm6-screen"/);
+ assert.match(ui,/data-aisle=\{aisle\}/);
+ assert.match(ui,/data-current=\{lane\.id===aisle\}/);
+ assert.match(ui,/data-completed=\{progress\.starsByLevel/);
+ assert.match(ui,/useAutoQuestionAdvance/);
+ assert.match(ui,/await onSave\(aisle,stage,wrong/);
+ for(const asset of ['market-orchard-v4.svg','market-bakery-v4.svg','market-cafe-v4.svg']){
+  assert.ok(fs.existsSync(new URL('../public/assets/foods/'+asset,import.meta.url)),asset);
+  assert.ok(ui.includes(asset),'scene art must reference an existing local asset');
+ }
+ for(const selector of ['.fm6-screen','.fm6-lane-art','.fm4-stage-pill','.fm4-product','.fm5-word-option','.fm4-scenery']){
+  assert.ok(css.includes(selector),'V6 lacks '+selector);
+ }
+ assert.match(css,/@media\(max-width:680px\)/);
+ assert.match(css,/@media\(max-width:359px\)/);
+ assert.match(css, /prefers-reduced-motion:reduce/);
+});
