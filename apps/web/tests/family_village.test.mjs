@@ -249,50 +249,68 @@ test('G3.2 spoken discovery finishes after pronunciation and may replay sound sa
  assert.equal(VILLAGE_STAGES[2].title,'Dinle ve Bul');
 });
 
-test('V4 illustrated village uses local responsive WebP art, not a static UI screenshot',()=>{
+
+test('V5 approved reference images are binary WebP artwork committed to public/',()=>{
+ const root='../public/assets/family-village/reference-v5/';
+ const names=[
+  'village-storybook-hero.webp','village-storybook-hero-mobile.webp',
+  'village-landscape-masthead.webp','village-wooden-brand.webp',
+  'village-grandmother-card.webp','village-flower-left.webp',
+  'village-flower-right.webp','village-ref-icons.webp'
+ ];
+ for(const name of names){
+  const bytes=fs.readFileSync(new URL(root+name,import.meta.url));
+  assert.ok(bytes.length>3000,name+' is not a placeholder');
+  assert.equal(bytes.toString('ascii',0,4),'RIFF',name+' RIFF signature');
+  assert.equal(bytes.toString('ascii',8,12),'WEBP',name+' WebP signature');
+ }
+ const desktop=fs.statSync(new URL(root+'village-storybook-hero.webp',import.meta.url));
+ const mobile=fs.statSync(new URL(root+'village-storybook-hero-mobile.webp',import.meta.url));
+ assert.ok(mobile.size<desktop.size);
+});
+test('V5 scene and illustrated grandmother use exact reference crops and mobile art',()=>{
  const scene=fs.readFileSync(new URL('../src/components/learning/activities/FamilyVillageScenery.tsx',import.meta.url),'utf8');
- const desktop=fs.statSync(new URL('../public/assets/word-garden/premium-v2/family.webp',import.meta.url));
- const mobile=fs.statSync(new URL('../public/assets/word-garden/premium-v2/family_mobile.webp',import.meta.url));
- assert.ok(desktop.size>100000&&desktop.size<300000,'desktop scenery is compressed and bundled');
- assert.ok(mobile.size>10000&&mobile.size<100000,'mobile art is compact');
- assert.ok(mobile.size<desktop.size,'mobile picture source must be the smaller file');
+ const portrait=fs.readFileSync(new URL('../src/components/learning/activities/FamilyVillageWordArt.tsx',import.meta.url),'utf8');
  assert.match(scene,/<picture>/);
+ assert.match(scene,/village-storybook-hero\.webp/);
+ assert.match(scene,/village-storybook-hero-mobile\.webp/);
  assert.match(scene,/<source media="\(max-width: 680px\)"/);
- assert.match(scene,/family_mobile\.webp/);
- assert.match(scene,/family\.webp/);
  assert.match(scene,/district==='family'/);
  assert.match(scene,/aria-hidden="true"/);
- assert.match(scene,/rooms-v3\.svg/);
- assert.match(scene,/objects-v3\.svg/);
- assert.match(scene,/routines-v3\.svg/);
+ for(const slug of ['rooms','objects','routines'])assert.match(scene,new RegExp(slug+'-v3\\.svg'));
+ assert.match(portrait,/if\(id==='grandmother'\)/);
+ assert.match(portrait,/village-grandmother-card\.webp/);
+ assert.match(portrait,/family-word-sprite-v3\.svg/);
 });
-test('V4 recreates the approved poster with real dynamic accessible interactive controls',()=>{
+test('V5 matching UI uses real responsive controls instead of a static screenshot',()=>{
  const ui=fs.readFileSync(new URL('../src/components/learning/activities/FamilyVillageAdventure.tsx',import.meta.url),'utf8');
- const css=fs.readFileSync(new URL('../src/components/learning/activities/family-village-showcase-v4.css',import.meta.url),'utf8');
- assert.match(ui,/import '\.\/family-village-showcase-v4\.css'/);
- assert.match(ui,/fv-screen fv3-screen fv4-screen/);
- assert.match(ui,/fv4-heading/);
- assert.match(ui,/fv4-stars/);
- assert.match(ui,/fv4-district-lock/);
+ const css=fs.readFileSync(new URL('../src/components/learning/activities/family-village-reference-v5.css',import.meta.url),'utf8');
+ assert.match(ui,/family-village-reference-v5\.css/);
+ assert.match(ui,/fv5-screen/);
+ assert.match(ui,/village-wooden-brand\.webp/);
+ assert.match(ui,/fv5-district-icon-\$\{part\.id\}/);
+ assert.match(ui,/fv5-step-icon-\$\{item\.stage\}/);
+ assert.match(ui,/fv5-hud-progress/);
+ assert.match(ui,/aria-valuenow=\{progressSteps\}/);
  assert.match(ui,/aria-current=\{item\.stage===stage\?'step':undefined\}/);
  assert.match(ui,/FamilyVillageScenery district=\{district\}/);
- assert.match(ui,/progress\.starsByLevel/);
  assert.match(ui,/task\.options\.map\(id=><WordChoice/);
+ assert.match(ui,/progress\.starsByLevel/);
  assert.match(ui,/useAutoQuestionAdvance/);
  assert.match(ui,/await onSave\(district,stage,mistakes/);
- assert.doesNotMatch(ui,/data:image\/png;base64|<canvas/,'controls must not be painted into a static screenshot');
- assert.match(css,/family\.webp/);
- assert.match(css,/family_mobile\.webp/);
- assert.match(css,/fv4-heading/);
- assert.match(css,/fv3-district/);
- assert.match(css,/fv3-step/);
- assert.match(css,/fv3-prompt/);
- assert.match(css,/fv3-answer-grid/);
- assert.match(css,/fv3-meter/);
- assert.match(css,/fv3-landscape picture/);
- assert.match(css,/@media\(max-width:900px\)/);
- assert.match(css,/@media\(max-width:680px\)/);
- assert.match(css,/@media\(max-width:359px\)/);
+ assert.ok(ui.includes('Türkçesi:'));
+ assert.match(ui,/fv5-featured-portrait/);
+ assert.match(ui,/fv5-top-actions/);
+ assert.match(ui,/<GardenHelp label="Nasıl Oynanır\?">/);
+ assert.doesNotMatch(ui,/data:image\/png;base64|<canvas/);
+ for(const name of [
+  'village-landscape-masthead.webp','village-flower-left.webp',
+  'village-flower-right.webp','village-ref-icons.webp'])
+  assert.ok(css.includes(name),name+' unused');
+ for(const marker of ['fv5-hud','fv5-prompt','fv5-answer-grid','fv5-district-nav',
+  'fv5-stepnav','fv5-brand','fv5-scene','fv5-audio-toggle','fv5-top-actions'])
+  assert.ok(css.includes(marker),marker);
+ for(const bp of [1040,680,359])assert.ok(css.includes('max-width:'+bp+'px'));
  assert.match(css,/orientation:landscape/);
  assert.match(css,/safe-area-inset-bottom/);
  assert.match(css,/prefers-reduced-motion:reduce/);

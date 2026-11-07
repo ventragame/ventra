@@ -1,0 +1,389 @@
+/* V5: pixel-informed layout using actual image crops from the approved reference.
+   No screenshot-as-UI: buttons, labels, progression and questions remain live DOM. */
+.fv-screen.fv3-screen.fv4-screen.fv5-screen{
+  --fv5-blue:#071d61;--fv5-violet:#422976;--fv5-gold:#ffe29b;
+  background:radial-gradient(ellipse 72% 40% at 50% 0%,#1371c0 0%,#104780 55%,transparent 100%),
+    linear-gradient(180deg,#093c85,#10154e 53%,#251353);
+  font-family:ui-rounded,"Trebuchet MS",system-ui,sans-serif;
+  padding:max(0px,env(safe-area-inset-top,0px)) 8px max(12px,env(safe-area-inset-bottom,0px));
+  color:#fff8ed;
+}
+.fv5-screen .fv5-shell{width:min(100%,1548px);max-width:1548px!important;margin:0 auto}
+/* The background and central nameplate are ACTUAL crops from the reference. */
+.fv5-screen .fv5-top{
+  position:relative;top:auto;isolation:isolate;min-height:97px;max-height:117px;
+  margin:0 0 9px;padding:4px 18px;display:flex;justify-content:space-between;
+  align-items:center;gap:16px;border:0;border-radius:0;background:none;box-shadow:none;
+  overflow:visible;backdrop-filter:none;
+}
+.fv5-screen .fv5-top:before{
+  content:"";position:absolute;z-index:-2;inset:0 -18px -8px;
+  background:url('/assets/family-village/reference-v5/village-landscape-masthead.webp') center 35%/cover no-repeat;
+  pointer-events:none;
+}
+.fv5-screen .fv5-top:after{display:none}
+.fv5-screen .fv5-brand{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  pointer-events:none;z-index:1}
+.fv5-screen .fv5-brand img{width:min(450px,35vw);height:auto;max-height:105px;object-fit:contain;
+  display:block;filter:drop-shadow(0 6px 5px #06194380)}
+.fv5-screen .fv5-back{
+  position:relative;z-index:2;flex:none;display:flex;justify-content:center;align-items:center;
+  gap:12px;padding:11px 19px;min-height:54px;
+  color:#fffaf6!important;font-size:17px;font-weight:1000;
+  background:linear-gradient(170deg,#07509b,#051950 70%,#062465);
+  border:3px solid #66beff;border-radius:40px;
+  box-shadow:inset 0 2px 0 #f9f6fe8c,0 5px 0 #0c2f64,0 9px 20px #03173588;
+  text-shadow:0 2px 3px #030c2d;
+}
+.fv5-screen .fv5-back-arrow{font-size:27px;font-weight:1000;line-height:1}
+.fv5-screen .fv5-top-actions{z-index:2;position:relative;display:flex;align-items:center;justify-content:flex-end;gap:13px}
+.fv5-screen .fv5-stars{
+  display:flex;align-items:center;gap:6px;padding:10px 17px;
+  min-height:53px;border:3px solid #77c9ff;border-radius:40px;
+  color:#fff9e9;font-size:17px;font-weight:1000;
+  background:linear-gradient(145deg,#0d56a7,#061b59 73%);
+  box-shadow:inset 0 2px 0 #f8fcff82,0 5px 0 #173677,0 9px 19px #06153d85;
+}
+.fv5-screen .fv5-stars>span{font-size:27px;margin:0}
+.fv5-screen .fv5-top-actions .wg-game-help{position:relative;max-width:none;margin:0;color:#fff}
+.fv5-screen .fv5-top-actions .wg-game-help summary{
+  display:flex;gap:8px;align-items:center;justify-content:center;
+  min-height:53px;padding:9px 19px;white-space:nowrap;border:3px solid #69b9fc;
+  border-radius:40px;background:linear-gradient(145deg,#0d4d9b,#071b60 75%);
+  color:#fff9f2;box-shadow:inset 0 2px 0 #ffffffa3,0 5px 0 #153677,0 9px 15px #02143c78;
+  font-size:16px;font-weight:1000;text-shadow:0 2px 3px #071039;
+}
+.fv5-screen .fv5-top-actions .wg-game-help summary:after{content:"Nasıl Oynanır?"}
+.fv5-screen .fv5-top-actions .wg-game-help-body{
+ position:absolute;z-index:40;top:calc(100% + 8px);right:0;width:min(360px,85vw);
+ padding:15px;border-radius:15px;background:#fff5e2;color:#33275e;
+ border:3px solid #ffc7a8;box-shadow:0 12px 32px #041644ad;
+ font-size:13px;
+}
+/* Reference artwork icons, cropped into a 9-cell sprite, not random emoji. */
+.fv5-screen .fv5-district-icon,.fv5-screen .fv5-step-icon,.fv5-screen .fv5-heading-icon{
+  display:block;flex:none;width:61px;height:61px;max-width:none;max-height:none;
+  padding:0;border:0;border-radius:0;
+  background-color:transparent;
+  background-image:url('/assets/family-village/reference-v5/village-ref-icons.webp');
+  background-size:900% 100%;
+  background-repeat:no-repeat;
+  box-shadow:none;filter:drop-shadow(0 3px 3px #0715417a);
+}
+.fv5-screen .fv5-district-icon-family{background-position:0% 50%}
+.fv5-screen .fv5-district-icon-rooms{background-position:12.5% 50%}
+.fv5-screen .fv5-district-icon-objects{background-position:25% 50%}
+.fv5-screen .fv5-district-icon-routines{background-position:37.5% 50%}
+.fv5-screen .fv5-step-icon-1,.fv5-screen .fv5-heading-icon.fv5-step-icon-1{background-position:50% 50%}
+.fv5-screen .fv5-step-icon-2,.fv5-screen .fv5-heading-icon.fv5-step-icon-2{background-position:62.5% 50%}
+.fv5-screen .fv5-step-icon-3,.fv5-screen .fv5-heading-icon.fv5-step-icon-3{background-position:75% 50%}
+.fv5-screen .fv5-step-icon-4,.fv5-screen .fv5-heading-icon.fv5-step-icon-4{background-position:87.5% 50%}
+.fv5-screen .fv5-step-icon-5,.fv5-screen .fv5-heading-icon.fv5-step-icon-5{background-position:100% 50%}
+/* Strongly match the selected pink-violet and unlocked deep blue tiles. */
+.fv5-screen .fv5-district-nav{
+ display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:13px;margin:2px 25px 11px;
+}
+.fv5-screen .fv5-district-nav .fv3-district{
+ min-height:88px;display:flex;flex-direction:row;text-align:left;justify-content:flex-start;
+ padding:10px 13px;gap:9px;overflow:hidden;
+ border:3px solid #729de6;border-radius:23px;
+ background:linear-gradient(155deg,#304b8a,#142f6b 57%,#0f275d);
+ box-shadow:inset 0 2px 0 #c3d9ff6b,0 4px 0 #08215b,0 10px 22px #05194b8c;
+ opacity:1;color:#fff9f2;filter:none;
+}
+.fv5-screen .fv5-district-nav .fv3-district.fv-district-current{
+ border-color:#ffe99b;background:linear-gradient(145deg,#fff7e7,#f3c7eb 61%,#be84f4);
+ box-shadow:0 0 0 2px #ffffffba,inset 0 2px 0 #fff,0 5px 0 #9876ca,0 9px 22px #ffd993a6;
+ color:#39255e;opacity:1;
+}
+.fv5-screen .fv5-district-nav .fv3-district:disabled{opacity:.8;filter:none}
+.fv5-screen .fv5-district-nav .fv3-district strong{
+ color:#fff7eb;font-size:clamp(13px,1.35vw,21px);line-height:1.08;
+ text-shadow:0 2px 3px #10163e;
+}
+.fv5-screen .fv5-district-nav .fv3-district small{
+ color:#e1e2ff;font-size:clamp(10px,1vw,14px);line-height:1.2;margin-top:5px;
+}
+.fv5-screen .fv5-district-nav .fv3-district.fv-district-current strong{color:#3b2065;text-shadow:none}
+.fv5-screen .fv5-district-nav .fv3-district.fv-district-current small{color:#5b3781}
+.fv5-screen .fv5-district-nav .fv4-district-lock{right:10px;top:9px;font-size:21px}
+.fv5-screen .fv5-stepnav{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin:0 4px 10px}
+.fv5-screen .fv5-stepnav .fv3-step{
+ min-height:69px;display:flex;flex-direction:row;justify-content:center;align-items:center;gap:6px;
+ padding:6px 9px;border-radius:23px;border:3px solid #63b2ef;background:linear-gradient(155deg,#074a93,#071b5b);
+ box-shadow:inset 0 2px 0 #c3f0ff8a,0 5px 0 #122968,0 11px 19px #0719447d;
+ color:#fff7f0;opacity:1;
+}
+.fv5-screen .fv5-stepnav .fv3-step.fv-step-current{
+ border-color:#fff0b8;background:linear-gradient(150deg,#fffdf1,#ffe9b1 77%,#f9d39e);
+ color:#2d2461;box-shadow:0 0 0 2px #fff9e3b5,0 0 21px #ffd77aaa,0 5px 0 #d0a675;
+}
+.fv5-screen .fv5-stepnav .fv3-step:disabled{opacity:.78}
+.fv5-screen .fv5-stepnav .fv3-step-icon{width:47px;height:47px}
+.fv5-screen .fv5-stepnav .fv3-step-title{display:block;color:inherit;font-size:clamp(10px,1.16vw,15px);font-weight:1000;
+ text-shadow:0 1px 2px #1924476f;line-height:1.1}
+.fv5-screen .fv5-stepnav .fv3-step.fv-step-current .fv3-step-title{text-shadow:none}
+.fv5-screen .fv5-stepnav .fv3-step-index{display:none}
+.fv5-screen .fv5-stepnav .fv3-step b{position:absolute;right:5px;top:3px}
+/* Scenic focus: no more generic pastel house. This is the exact crop from the
+   reference containing the grandma, dog, flowers, cottage and hanging cat. */
+.fv5-screen .fv5-card{
+ border:4px solid #d3b6ff;border-radius:31px;overflow:hidden;
+ background:#312063;box-shadow:inset 0 2px 0 #fff8e3,0 6px 0 #24174c,0 22px 43px #071441aa;
+}
+.fv5-screen .fv5-scene{height:clamp(165px,15.2vw,245px);
+ border-bottom:0;background:#94c7a4;isolation:isolate}
+.fv5-screen .fv5-scene .fv3-landscape picture{display:block;position:absolute;inset:0}
+.fv5-screen .fv5-scene .fv3-landscape img{inset:0;display:block;width:100%;height:100%;object-fit:cover;object-position:center}
+.fv5-screen .fv5-scene:after{display:none}
+.fv5-screen .fv5-scene .fv3-light{display:none}
+.fv5-screen .fv5-scene .fv3-place{
+ background:linear-gradient(160deg,#a97140,#754729);
+ border:3px solid #ffe2a8;color:#fff3e6;border-radius:16px;
+ box-shadow:0 4px 0 #422d32,0 8px 16px #121c4670;
+}
+.fv5-screen .fv5-scene .fv3-mission-label{
+ top:14px;right:15px;z-index:4;min-width:180px;
+ display:flex;align-items:center;justify-content:center;gap:8px;
+ padding:10px 14px;background:linear-gradient(130deg,#fff9e5,#ffe8bb);
+ border:3px solid #ffdb91;border-radius:999px;color:#462164;
+ font-size:clamp(12px,1.23vw,17px);font-weight:1000;
+ box-shadow:inset 0 2px 0 #fff8,0 5px 0 #bea68b,0 8px 15px #11285076;
+}
+/* Reference purple stage deck with actual cropped flowering corners. */
+.fv5-screen .fv5-panel{
+ position:relative;isolation:isolate;padding:13px clamp(12px,2.9vw,38px) 17px;
+ color:#fff6e8;
+ background:radial-gradient(ellipse 47% 35% at 50% 94%,#8854be 0%,#493282 70%,transparent 110%),
+  linear-gradient(135deg,#453479,#3a2c78 48%,#332664);
+ border-top:4px solid #cfb5ff;
+}
+.fv5-screen .fv5-panel::before,.fv5-screen .fv5-panel::after{
+ content:"";position:absolute;z-index:-1;pointer-events:none;
+ bottom:0;height:196px;width:275px;opacity:1;
+ background-size:contain;background-position:bottom;background-repeat:no-repeat;
+}
+.fv5-screen .fv5-panel::before{
+ left:0;background-image:url('/assets/family-village/reference-v5/village-flower-left.webp');
+ mask-image:linear-gradient(90deg,#000 20%,transparent 100%);}
+.fv5-screen .fv5-panel::after{
+ right:0;background-image:url('/assets/family-village/reference-v5/village-flower-right.webp');
+ mask-image:linear-gradient(270deg,#000 20%,transparent 100%);}
+.fv5-screen .fv5-hud{display:grid;grid-template-columns:minmax(210px,.85fr) minmax(200px,1.15fr) 74px;
+ align-items:center;gap:17px;max-width:100%;margin:1px auto 10px}
+.fv5-screen .fv5-hud-title{display:flex;flex-direction:column;justify-content:center;min-width:0}
+.fv5-screen .fv5-heading-line{display:flex;align-items:center;gap:12px}
+.fv5-screen .fv5-heading-icon{width:58px;height:58px;filter:drop-shadow(0 3px 2px #1c174f)}
+.fv5-screen .fv5-heading-line h2{
+ color:#fff4dc;font-size:clamp(22px,2.65vw,37px);line-height:1.08;font-weight:1000;
+ text-shadow:0 4px 0 #2b225c,0 6px 9px #1510459e;
+}
+.fv5-screen .fv5-hud-title .wg-game-help{margin:0 0 0 5px;max-width:100%}
+.fv5-screen .fv5-hud-title .wg-game-help summary{
+ min-height:42px;min-width:42px;width:42px;height:42px;
+ background:linear-gradient(150deg,#6653b4,#2c206f);color:#fff9e2;
+ border:2px solid #ffddad;border-radius:50%;font-size:20px;
+ box-shadow:inset 0 2px 0 #fff4,0 4px 0 #3b2571,0 7px 12px #141446;
+}
+.fv5-screen .fv5-hud-title .wg-game-help-body{
+ max-width:550px;padding:10px 12px;border:2px solid #e6c9f4;
+ border-radius:12px;background:#f9ebd7;color:#392254;font-size:12px
+}
+.fv5-screen .fv5-hud-progress{align-self:center;min-width:0}
+.fv5-screen .fv5-hud-progress .fv3-meter{
+ margin:0;height:18px;background:#1e1453;border:3px solid #958de0;
+ border-radius:30px;box-shadow:inset 0 3px 3px #0a104ca6,0 2px 0 #ffffff37;
+}
+.fv5-screen .fv5-hud-progress .fv3-meter span{
+ background:linear-gradient(90deg,#3cec23,#a1f136 47%,#fef265 78%,#ffe09d);
+ box-shadow:inset 0 2px 0 #ffffffc5,0 0 12px #d0f9a57b;
+ border-radius:inherit;
+}
+.fv5-screen .fv5-hud-progress .fv3-count{color:#fff4ed;font-size:clamp(11px,1.1vw,15px);margin:7px 0 0;
+ text-align:right;text-shadow:0 2px 4px #121043;font-weight:1000}
+.fv5-screen .fv5-audio-toggle{
+ display:grid;place-items:center;width:71px;height:71px;min-width:71px;min-height:71px;
+ font-size:31px;color:#fff9f4;border:4px solid #dca8ff;border-radius:24px;
+ background:linear-gradient(135deg,#cb9bff,#913df0 64%,#6f25c2);
+ box-shadow:inset 0 3px 0 #f9e7ff,0 6px 0 #6a38ba,0 10px 23px #1410449b;
+}
+/* One real card for the prompt, one portrait for the correct concept,
+   followed by 3 big real options. */
+.fv5-screen .fv5-prompt{
+ max-width:905px;min-height:75px;margin:7px auto 10px;padding:10px 20px;
+ border:4px solid #ffdfae;border-radius:26px;
+ background:linear-gradient(130deg,#fff8e9,#ffe4b7 72%,#fff3d6);color:#53226f;
+ box-shadow:inset 0 3px 0 #fff,0 5px 0 #c0938e,0 9px 22px #170e4d8f;
+}
+.fv5-screen .fv5-prompt>span{width:48px;height:48px;flex:none;padding:4px;display:grid;place-items:center;
+ background:linear-gradient(145deg,#7bc3ff,#855fe0);color:white;border:3px solid #f3dcbb;
+ border-radius:14px;box-shadow:0 3px 0 #7753a6;font-size:26px}
+.fv5-screen .fv5-prompt strong{color:#512069;font-size:clamp(17px,2.15vw,29px);
+ text-shadow:none;font-weight:1000}
+.fv5-screen .fv5-prompt small{color:#68377e;font-size:clamp(11px,1.15vw,16px);
+ font-weight:850}
+.fv5-screen .fv5-featured{position:relative;max-width:285px;margin:7px auto 9px;
+ background:linear-gradient(150deg,#fff7d5,#e5c9fb);border:4px solid #ffe9b9;border-radius:28px;
+ padding:7px;box-shadow:0 4px 0 #a67ac8,0 9px 20px #1b1455a1}
+.fv5-screen .fv5-featured .fv3-word-art{width:150px;height:136px;max-width:100%;max-height:144px;object-fit:contain}
+.fv5-screen .fv5-featured.fv5-featured-portrait{
+ max-width:315px;border:0;padding:0;background:none;box-shadow:none;
+}
+.fv5-screen .fv5-featured-portrait .fv5-grandmother-art{
+ width:100%;height:auto;max-height:170px;max-width:315px;
+ object-fit:contain;filter:drop-shadow(0 4px 10px #2614568a);
+}
+.fv5-screen .fv5-featured-portrait .fv3-featured-label{
+ display:none; /* grandmother portrait already shows the requested relation in the prompt */
+}
+.fv5-screen .fv5-activity .fv3-actions{margin:6px auto 9px}
+.fv5-screen .fv5-activity .fv-hint-button{
+ background:linear-gradient(135deg,#ecdcff,#d5b9fb);color:#3b1b68;
+ min-height:41px;padding:7px 13px;border:2px solid #f8e0bb;border-radius:13px;
+ box-shadow:0 3px 0 #7f5bb1;font-size:11px;font-weight:950;
+}
+.fv5-screen .fv5-answer-grid{max-width:1000px;margin:8px auto 8px;gap:13px}
+.fv5-screen .fv5-answer-grid .fv3-choice{
+ min-height:65px;border:4px solid #fff2c8;border-radius:26px;
+ padding:8px 12px;color:#55206d;
+ background:linear-gradient(145deg,#fffaf0,#ffe9b9);
+ box-shadow:inset 0 2px 0 #fff9,0 5px 0 #c68a88,0 9px 18px #1b134c80;
+}
+.fv5-screen .fv5-answer-grid .fv-choice-english{min-height:65px}
+.fv5-screen .fv5-answer-grid .fv-choice-english .fv-choice-label{
+ font-size:clamp(15px,1.9vw,26px);color:#54206b;letter-spacing:-.015em;
+ text-transform:uppercase;text-shadow:none;font-weight:1000;
+}
+.fv5-screen .fv5-answer-grid .fv3-choice.fv-choice-correct{
+ border-color:#87f229;background:linear-gradient(135deg,#f0ff9b,#99ed26);
+ box-shadow:0 0 0 3px #ffffff88,0 0 16px #bfff52a8,0 5px 0 #63a730;
+}
+.fv5-screen .fv5-answer-grid .fv3-choice.fv-choice-correct .fv-choice-label{color:#24621f}
+.fv5-screen .fv5-answer-grid .fv3-choice[data-wrong=true]{
+ border-color:#ffa0a0;background:#ffe2e0;box-shadow:0 5px 0 #c98191}
+.fv5-screen .fv5-answer-grid .fv3-choice .fv-check{
+ font-size:19px;right:9px;top:50%;transform:translateY(-50%);border-radius:50%;
+ padding:4px 8px;border:2px solid #e5ffb4;background:#32ac29;
+}
+.fv5-screen .fv5-answer-grid .fv3-choice.fv-choice-icon,
+.fv5-screen .fv5-answer-grid .fv3-choice.fv-choice-translation{min-height:132px}
+.fv5-screen .fv5-answer-grid .fv3-choice.fv-choice-phrase{min-height:82px}
+.fv5-screen .fv3-discovery{min-height:140px}
+.fv5-screen .fv5-activity .fv-notice{color:#fff8e5;background:#543689}
+.fv5-screen .fv3-celebrate h2{color:#fff4da}
+.fv5-screen .fv3-celebrate>p{color:#f5e7ff}
+.fv5-screen .fv3-footer{margin:10px 0;color:#dfe8ff}
+/* A mobile crop retains the grandma and dog; hero is never a screenshot of
+   tappable controls. On mobile all choices remain accessible and scrollable. */
+@media(max-width:1040px){
+ .fv5-screen .fv5-shell{width:100%}
+ .fv5-screen .fv5-district-nav{margin-left:0;margin-right:0;gap:7px}
+ .fv5-screen .fv5-top{padding:4px 8px;gap:6px;min-height:79px}
+ .fv5-screen .fv5-back,.fv5-screen .fv5-stars{font-size:12px;padding:8px 10px;min-height:47px}
+ .fv5-screen .fv5-top-actions .wg-game-help summary{font-size:12px;min-height:47px;padding:8px 10px}
+ .fv5-screen .fv5-brand img{width:min(370px,32vw)}
+ .fv5-screen .fv5-district-nav .fv3-district{min-height:76px;padding:6px 8px;gap:4px}
+ .fv5-screen .fv5-district-nav .fv3-district strong{font-size:11px}
+ .fv5-screen .fv5-district-nav .fv3-district small{font-size:9px}
+ .fv5-screen .fv5-district-icon{width:44px;height:44px}
+ .fv5-screen .fv5-stepnav .fv3-step{min-height:63px;padding:4px}
+ .fv5-screen .fv5-stepnav .fv3-step-icon{width:39px;height:39px}
+ .fv5-screen .fv5-stepnav .fv3-step-title{font-size:10px}
+ .fv5-screen .fv5-hud{grid-template-columns:minmax(155px,.85fr) minmax(100px,1fr) 58px;gap:10px}
+ .fv5-screen .fv5-heading-line h2{font-size:clamp(19px,3vw,28px)}
+ .fv5-screen .fv5-audio-toggle{height:58px;width:58px;min-width:58px;min-height:58px;font-size:25px;border-radius:18px}
+}
+@media(max-width:680px){
+ .fv-screen.fv3-screen.fv4-screen.fv5-screen{
+  padding:max(4px,env(safe-area-inset-top,0px)) 5px max(16px,env(safe-area-inset-bottom,0px));
+ }
+ .fv5-screen .fv5-top{min-height:65px;margin-bottom:7px;padding:3px 5px}
+ .fv5-screen .fv5-top:before{
+   inset:0 -5px -5px;background-position:center center;background-size:cover;
+ }
+ .fv5-screen .fv5-brand img{width:min(46vw,210px);max-height:59px}
+ .fv5-screen .fv5-back{min-height:44px;padding:7px 8px;font-size:10px;border-width:2px;gap:4px}
+ .fv5-screen .fv5-back-arrow{font-size:20px}
+ .fv5-screen .fv5-back-text{display:none}
+ .fv5-screen .fv5-top-actions{gap:5px}
+ .fv5-screen .fv5-stars{min-height:44px;font-size:10px;border-width:2px;padding:7px 8px}
+ .fv5-screen .fv5-stars>span{font-size:15px}
+ .fv5-screen .fv5-top-actions .wg-game-help summary{
+  padding:6px 9px;min-height:44px;border-width:2px;border-radius:15px}
+ .fv5-screen .fv5-top-actions .wg-game-help summary:after{display:none}
+ .fv5-screen .fv5-district-nav{grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;margin:0 0 7px}
+ .fv5-screen .fv5-district-nav .fv3-district{
+  min-height:69px;flex-direction:column;gap:2px;justify-content:center;
+  text-align:center;border-width:2px;border-radius:12px;padding:3px 2px}
+ .fv5-screen .fv5-district-icon{width:35px;height:35px}
+ .fv5-screen .fv5-district-nav .fv3-district strong{font-size:9px}
+ .fv5-screen .fv5-district-nav .fv3-district small{display:none}
+ .fv5-screen .fv5-district-nav .fv4-district-lock{font-size:10px;top:3px;right:3px}
+ .fv5-screen .fv5-stepnav{gap:4px;margin:0 0 7px}
+ .fv5-screen .fv5-stepnav .fv3-step{min-height:54px;border-width:2px;border-radius:11px;
+  flex-direction:column;gap:0;padding:4px 1px}
+ .fv5-screen .fv5-stepnav .fv3-step-icon{width:31px;height:31px}
+ .fv5-screen .fv5-stepnav .fv3-step-title{display:none}
+ .fv5-screen .fv5-stepnav .fv3-step-index{display:block;color:inherit;font-size:9px}
+ .fv5-screen .fv5-card{border:2px solid #d1b6ff;border-radius:19px}
+ .fv5-screen .fv5-scene{height:150px}
+ .fv5-screen .fv5-scene .fv3-landscape img{object-position:center center}
+ .fv5-screen .fv5-scene .fv3-mission-label{top:7px;right:7px;min-width:98px;padding:5px 7px;
+  font-size:9px;border:2px solid #ffda99}
+ .fv5-screen .fv5-scene .fv3-place{left:6px;bottom:7px;padding:4px 8px;border-width:2px}
+ .fv5-screen .fv5-panel{border-top-width:3px;padding:10px 9px 16px}
+ .fv5-screen .fv5-panel::before,.fv5-screen .fv5-panel::after{width:114px;height:95px;opacity:.8}
+ .fv5-screen .fv5-hud{grid-template-columns:1fr 52px;grid-template-rows:auto auto;
+  column-gap:7px;row-gap:4px;margin:0 0 8px}
+ .fv5-screen .fv5-hud-title{grid-column:1;grid-row:1}
+ .fv5-screen .fv5-heading-line{gap:5px}
+ .fv5-screen .fv5-heading-icon{width:38px;height:38px}
+ .fv5-screen .fv5-heading-line h2{font-size:clamp(17px,4.8vw,25px)}
+ .fv5-screen .fv5-hud-title .wg-game-help{margin:1px 0 0 2px}
+ .fv5-screen .fv5-hud-title .wg-game-help summary{width:32px;height:32px;min-width:32px;min-height:32px;
+  font-size:17px}
+ .fv5-screen .fv5-audio-toggle{grid-column:2;grid-row:1;width:49px;height:49px;min-width:49px;min-height:49px;
+  border-width:2px;border-radius:15px;font-size:22px}
+ .fv5-screen .fv5-hud-progress{grid-column:1 / -1;grid-row:2}
+ .fv5-screen .fv5-hud-progress .fv3-meter{height:11px;border-width:2px}
+ .fv5-screen .fv5-hud-progress .fv3-count{font-size:10px;margin-top:2px}
+ .fv5-screen .fv5-prompt{min-height:69px;margin:9px auto 6px;padding:8px 10px;gap:8px;
+  border-width:2px;border-radius:15px}
+ .fv5-screen .fv5-prompt>span{width:34px;height:37px;font-size:20px;border-width:2px;border-radius:10px}
+ .fv5-screen .fv5-prompt strong{font-size:clamp(15px,4.1vw,20px)}
+ .fv5-screen .fv5-prompt small{font-size:10px}
+ .fv5-screen .fv5-featured{max-width:175px;margin:7px auto;padding:5px;border-width:2px}
+ .fv5-screen .fv5-featured .fv3-word-art{width:110px;height:95px;max-height:95px}
+ .fv5-screen .fv5-featured-portrait{max-width:210px}
+ .fv5-screen .fv5-featured-portrait .fv5-grandmother-art{width:100%;height:auto;max-width:210px;max-height:113px}
+ .fv5-screen .fv5-activity .fv3-actions{margin:5px auto 7px;gap:4px}
+ .fv5-screen .fv5-activity .fv-hint-button{min-height:42px;padding:7px 8px;font-size:10px}
+ .fv5-screen .fv5-answer-grid{gap:5px;margin:7px auto}
+ .fv5-screen .fv5-answer-grid .fv3-choice{min-height:64px;padding:5px 4px;border-radius:13px;border-width:2px}
+ .fv5-screen .fv5-answer-grid .fv-choice-english .fv-choice-label{font-size:clamp(10px,3.2vw,15px)}
+ .fv5-screen .fv5-answer-grid .fv3-choice .fv-check{padding:2px 4px;font-size:11px;right:2px}
+ .fv5-screen .fv5-answer-grid .fv3-choice.fv-choice-icon,
+ .fv5-screen .fv5-answer-grid .fv3-choice.fv-choice-translation{min-height:112px}
+ .fv5-screen .fv5-answer-grid .fv3-choice.fv-choice-phrase{min-height:75px}
+ .fv5-screen .fv5-activity .fv-notice{font-size:11px}
+}
+@media(max-width:359px){
+ .fv5-screen .fv5-scene{height:130px}
+ .fv5-screen .fv5-district-nav .fv3-district strong{font-size:8px}
+ .fv5-screen .fv5-prompt strong{font-size:14px}
+ .fv5-screen .fv5-back{padding:6px 5px}
+ .fv5-screen .fv5-stars{font-size:9px;padding:6px}
+ .fv5-screen .fv5-heading-line h2{font-size:17px}
+ .fv5-screen .fv5-answer-grid .fv-choice-english .fv-choice-label{font-size:10px}
+}
+@media(max-width:680px) and (max-height:530px) and (orientation:landscape){
+ .fv5-screen .fv5-top{min-height:58px}
+ .fv5-screen .fv5-scene{height:116px}
+ .fv5-screen .fv5-district-nav .fv3-district{min-height:58px}
+}
+@media(prefers-reduced-motion:reduce){
+ .fv5-screen *, .fv5-screen *::before,.fv5-screen *::after{transition:none!important;
+  animation:none!important;scroll-behavior:auto!important}
+}
+.fv5-screen button:focus-visible,.fv5-screen summary:focus-visible{
+ outline:3px solid #ffe49a!important;outline-offset:3px!important}
