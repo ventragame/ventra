@@ -127,59 +127,18 @@ export function WishFestivalStage({chapter,guest,chosen,secondary,served,avoided
      </pattern>
      <filter id="wf-shadow"><feDropShadow dx="0" dy="9" stdDeviation="11" floodColor="#233356" floodOpacity=".45"/></filter>
     </defs>
-    <rect width="1200" height="660" fill="url(#wf-skylight)"/>
-    <ellipse cx="976" cy="100" rx="230" ry="200" fill="url(#wf-sunglow)"/>
-    <g opacity=".7" fill="#fbe7d9"><path d="M-30 155q32-60 85-16q55-60 109-5q48-29 87 21Z"/>
-     <path d="M557 117q39-55 84-14q51-52 104-4q42-23 90 18Z"/></g>
-    <path d="M0 391q138-151 282-45q132-126 268-61q195-111 331-2q145-69 319 7V660H0Z" fill="#5b849a" opacity=".58"/>
-    <path d="M0 448q150-77 324-28q157-104 327-29q134-82 305-27q130-48 244 5V660H0Z" fill="#6da3a1"/>
-    {/* A distant fairytale city and lighted central clock tower */}
-    <g opacity=".82" filter="url(#wf-shadow)">
-     {[[76,263,92],[206,242,80],[875,249,95],[1036,235,116]].map(([x,y,w],i)=>
-      <g key={i}><rect x={x} y={y} width={w} height={420-y} fill={i%2?'#beafc1':'#e5c4b9'}/>
-       <path d={'M'+(x-14)+' '+(y+8)+'l'+(w/2+14)+' -45 '+(w/2+14)+' 45'} fill="#53648f" stroke="#e6cfbd" strokeWidth="4"/>
-       {[0,1,2].map(j=><rect key={j} x={x+19+j*20} y={y+35} width="12" height="24" rx="6" fill="#ffebbc"/>)}
-      </g>)}
-     <rect x="492" y="172" width="140" height="235" fill="#debdc6"/>
-     <path d="M474 186l88-94 88 94Z" fill="#6e6b9d" stroke="#fff1d2" strokeWidth="5"/>
-     <circle cx="564" cy="228" r="31" fill="#fff5d4" stroke="#9a7d9b" strokeWidth="6"/>
-     <path d="M564 209v19l15 9" fill="none" stroke="#96718b" strokeWidth="4" strokeLinecap="round"/>
-     <rect x="544" y="305" width="40" height="76" rx="20" fill="#6d658d"/>
-    </g>
-    {/* Magical fairground pennant line */}
-    <path d="M-10 80Q560 216 1210 74" fill="none" stroke="#fff4ca" strokeWidth="5"/>
-    {Array.from({length:17},(_,i)=><g key={i} transform={'translate('+(i*75-8)+' '+(80+68*Math.sin(i/16*Math.PI))+')'}>
-     <path d="M0 0l21 44 21-39Z" fill={['#f3acac','#9bd9cf','#ffd47c','#baa2e6'][i%4]}
-      stroke="#fff6d5" strokeWidth="2"/>
-     <circle cy="-8" r="5" fill="#ffecb9" className="wf-lamp"/></g>)}
-    <path d="M0 465q207-65 408-24q157-58 327-15q159-66 465-10V660H0Z" fill="#6aa68f"/>
-    <path d="M0 521q286-76 534-30q239-75 666-17V660H0Z" fill="#b49397"/>
-    <path d="M0 521q286-76 534-30q239-75 666-17V660H0Z" fill="url(#wf-stones)"/>
-    <ellipse cx="600" cy="592" rx="420" ry="66" fill="#ffe6bd" opacity=".24"/>
-    {/* Three ornate market booths */}
-    {[[44,392,360,'#d985a6'],[421,361,369,'#8ebec3'],[810,395,346,'#f4ba84']].map(([x,y,w,col],i)=>
-     <g key={i} filter="url(#wf-shadow)">
-      <rect x={Number(x)+8} y={Number(y)-46} width={Number(w)-16} height="178"
-       rx="18" fill="#f5e0c8" stroke="#fff1cd" strokeWidth="6"/>
-      <path d={'M'+x+' '+(Number(y)-60)+'l'+(Number(w)/2)+' -93 '+(Number(w)/2)+' 93v32H'+x+'Z'}
-       fill={String(col)} stroke="#ffe9c7" strokeWidth="7"/>
-      {Array.from({length:7},(_,j)=><path key={j}
-       d={'M'+(Number(x)+j*(Number(w)/7))+' '+(Number(y)-60)+'v32q25 28 '+(Number(w)/7)+' 0v-32'}
-       fill={j%2?'#fff0c9':String(col)} stroke="#f9e5cd" strokeWidth="1"/>)}
-      <rect x={Number(x)+22} y={Number(y)+25} width={Number(w)-44} height="107"
-       rx="13" fill="url(#wf-counter)" stroke="#fff0d6" strokeWidth="7"/>
-      <rect x={Number(x)+35} y={Number(y)+54} width={Number(w)-70} height="10" rx="4" fill="#fff0d1" opacity=".55"/>
-      <path d={'M'+(Number(x)+42)+' '+(Number(y)+108)+'h'+(Number(w)-85)}
-       stroke="#ffe3bb" strokeWidth="5" opacity=".54"/>
-     </g>)}
-    {/* Decorative flourishes and glow */}
-    {Array.from({length:29},(_,i)=>{
-     const x=(i*197+43)%1200,y=320+(i*71)%250;
-     return <g key={i} opacity=".67" className="wf-firefly" style={{animationDelay:(i%7)*.31+'s'}}>
-      <circle cx={x} cy={y} r={i%4?3:5} fill="#fff3b9"/>
-      <path d={'M'+(x-7)+' '+y+'h14M'+x+' '+(y-7)+'v14'} stroke="#f8edb5" strokeWidth="2" opacity=".5"/>
-     </g>;
-    })}
+    {/* V6 market painting replaces the prior generic vector square.
+       Basket, character, choices and spoken dialogue remain live HTML/SVG. */}
+    <image href="/assets/sentence-plaza/scenes-v6/scene-5-market.webp"
+      x="0" y="0" width="1200" height="660" preserveAspectRatio="xMidYMid slice"/>
+    {served&&<g className="wf-v6-reward" aria-hidden="true">
+      {Array.from({length:12},(_,i)=>{
+       const x=130+(i*233)%1000,y=115+(i*107)%320;
+       return <path key={i} d={`M${x-9} ${y}h18M${x} ${y-9}v18`}
+        stroke={i%2===0?'#ffde91':'#b2fae4'} strokeWidth="5"
+        strokeLinecap="round"/>;
+      })}
+    </g>}
    </svg>
    <div className="wf-guest-wrap">
     <GuestPortrait guest={guest} large/>

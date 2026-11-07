@@ -42,69 +42,22 @@ export function MovementMagicStage({chapter,actor,verb,color,place,selectedPlace
     <filter id="mm-blur"><feGaussianBlur stdDeviation="16"/></filter>
     <pattern id="mm-bricks" width="40" height="22" patternUnits="userSpaceOnUse"><path d="M0 0H40M20 0V11M0 11H40M0 11V22M40 11V22" fill="none" stroke="#8a7990" strokeOpacity=".28" strokeWidth="2"/></pattern>
    </defs>
-   <rect width="1200" height="670" fill="url(#mm-sky)"/>
-   <ellipse className="mm-halo" cx="918" cy="146" rx="246" ry="220" fill="url(#mm-sun)"/>
-   <circle cx="945" cy="140" r="45" fill="#fff1cc" opacity=".8"/>
-   <g className="mm-clouds" fill="#fff3e4" opacity=".65">
-    <path d="M-33 130q54-58 97-9q50-60 102-10q53-23 88 28H-33Z"/>
-    <path d="M568 106q50-53 89-12q50-65 107-13q48-22 79 28H568Z"/>
-    <path d="M975 222q35-39 73-9q53-41 98-4q29-18 61 17H975Z"/>
+   {/* V6 painting is the stage; location markers remain visible and can be
+       selected using the existing accessible HTML hotspots below. */}
+   <image href="/assets/sentence-plaza/scenes-v6/scene-4-movement.webp"
+    x="0" y="0" width="1200" height="670" preserveAspectRatio="xMidYMid slice"/>
+   <g className="mm-v6-stations" aria-hidden="true">
+    {HOTSPOTS.map(([id,label,symbol])=>{
+      const [x,y]=POS[id];
+      return <g key={id} transform={`translate(${x} ${y-50})`}>
+       <ellipse cy="27" rx="49" ry="13" fill="#123d48" opacity=".3"/>
+       <rect x="-39" y="-70" width="78" height="77" rx="20" fill="#0c4b63" fillOpacity=".84"
+        stroke="#ffe6af" strokeWidth="4"/>
+       <text y="-25" fontSize="36" textAnchor="middle">{symbol}</text>
+       <text y="-10" fontSize="12" fontWeight="900" textAnchor="middle" fill="#fff0d1">{label}</text>
+      </g>;
+    })}
    </g>
-   <path d="M0 359q119-108 233-28q100-140 222-46q127-98 246 10q142-110 256-21q110-73 243 35V670H0Z" fill="#456f92" opacity=".72"/>
-   <path d="M0 422q128-75 224-25q107-83 212-18q143-82 274-14q180-104 307-19q81-54 183 0V670H0Z" fill="#548d8e"/>
-   <path d="M0 486q185-89 336-38q138-93 300-35q157-85 291-33q168-61 273 21V670H0Z" fill="url(#mm-hill)"/>
-   <path d="M0 544q176-57 310-28q167-69 348-28q180-66 322-20q138-36 220-24V670H0Z" fill="#3b9787"/>
-   <path d="M0 590Q140 558 266 591T529 571T790 587T1200 554V670H0Z" fill="#277b79" opacity=".7"/>
-   {/* Reflecting pond and cascading stream */}
-   <path d="M738 512q114-40 244 1q122 39 218-1v158H655q9-80 83-158Z" fill="url(#mm-water)"/>
-   <path d="M736 514q112-38 248 0q98 27 192 1" fill="none" stroke="#b6e8e5" strokeWidth="9" opacity=".75"/>
-   <path className="mm-ripple" d="M792 556q92-25 177-1m-178 33q111-30 219-3m-171 28q66-11 125-1" fill="none" stroke="#a5eeff" strokeWidth="6" opacity=".64" strokeLinecap="round"/>
-   {/* Mossy paths */}
-   <path d="M518 670q-36-70-23-137t-20-64q53-38 103-6q-2 47 24 66q-16 67 22 141Z" fill="#b8a38d" opacity=".8"/>
-   <path d="M532 670q-30-72-20-135l-22-60" fill="none" stroke="#e8c9a8" strokeWidth="7" strokeDasharray="18 17" opacity=".8"/>
-   {/* Castle tower: windows, masonry, turrets */}
-   <g filter="url(#mm-shadow)">
-    <path d="M921 463V224l59-55 70 56V463Z" fill="url(#mm-castle)" stroke="#ffe7d2" strokeWidth="7"/>
-    <path d="M896 231l86-97 92 97-23 6-70-77-65 78Z" fill="#425b9e" stroke="#c4d3ed" strokeWidth="6"/>
-    <path d="M961 156v-41h35v41" fill="#d7a4bf"/><path d="M954 114l25-42 26 42" fill="#51649f" stroke="#ead6c2" strokeWidth="4"/>
-    <path d="M921 464V224l59-55 70 56V463Z" fill="url(#mm-bricks)" opacity=".65"/>
-    <path d="M956 463v-65q23-36 48 0v65" fill="#53456f" stroke="#ffebc8" strokeWidth="6"/>
-    <circle cx="981" cy="283" r="29" fill="#fff4d2" stroke="#866f94" strokeWidth="7"/>
-    <path d="M981 266v17l15 8" fill="none" stroke="#7a6383" strokeWidth="4" strokeLinecap="round"/>
-    <rect x="939" y="332" width="18" height="38" rx="9" fill="#d8f9fb" opacity=".85"/>
-    <rect x="1008" y="332" width="18" height="38" rx="9" fill="#d8f9fb" opacity=".85"/>
-    <path d="M1047 467l-8-157 24-36 30 23-3 168Z" fill="#b18eba" stroke="#f5d7d1" strokeWidth="4"/>
-    <path d="M1035 299l33-53 37 53" fill="#486da6" stroke="#c4d6d7" strokeWidth="4"/>
-   </g>
-   {/* Old wishing tree with braided roots and glowing treehouse */}
-   <g filter="url(#mm-shadow)">
-    <path d="M284 531l-17-143q-21-52-43-72m62 95q34-61 60-87" fill="none" stroke="#745a62" strokeWidth="31" strokeLinecap="round"/>
-    <path d="M276 499q-36 26-69 38m75-34q51 35 87 32" stroke="#95746a" strokeWidth="14" fill="none" strokeLinecap="round"/>
-    <ellipse cx="255" cy="315" rx="125" ry="109" fill="#2d7978"/>
-    <ellipse cx="193" cy="304" rx="86" ry="82" fill="#49a59a"/>
-    <ellipse cx="311" cy="289" rx="98" ry="91" fill="#58b89b"/>
-    <ellipse cx="274" cy="247" rx="88" ry="77" fill="#75c6a1"/>
-    <ellipse cx="228" cy="257" rx="61" ry="65" fill="#8dd3ad" opacity=".62"/>
-    <rect x="237" y="333" width="76" height="61" rx="12" fill="#ae779a" stroke="#ffe4b9" strokeWidth="5"/>
-    <path d="M230 335l45-42 46 42" fill="#5b5c99" stroke="#ffe6c1" strokeWidth="5"/>
-    <circle cx="275" cy="352" r="12" fill="#fff1b6"/>
-    <path d="M220 394q-4 43 18 69" fill="none" stroke="#f7dfac" strokeWidth="6" strokeDasharray="8 11"/>
-   </g>
-   {/* Floating stones + stone bridge */}
-   <g filter="url(#mm-shadow)">
-    <path d="M437 525q112-106 296-16l-3 46q-161-84-290 20Z" fill="url(#mm-bridge)" stroke="#ffe0c4" strokeWidth="7"/>
-    <path d="M468 505q112-82 230-6" fill="none" stroke="#fff1d1" strokeWidth="12" strokeLinecap="round"/>
-    <path d="M485 509v46m55-70v51m66-52v48m58-43v47m35-26v44" stroke="#a6748e" strokeWidth="6" opacity=".85"/>
-    <path d="M435 531q120-106 297-12" fill="none" stroke="#9d6a8a" strokeWidth="7" opacity=".9"/>
-   </g>
-   {/* Magic runes on plinths */}
-   {[[115,514],[1101,485],[409,476],[795,445]].map(([x,y],i)=>
-    <g key={i} className="mm-rune" style={{animationDelay:i*.32+'s'}}>
-     <ellipse cx={x} cy={y+20} rx="35" ry="12" fill="#193e60" opacity=".48"/>
-     <path d={'M'+(x-29)+' '+y+'l29-15 29 15-29 16Z'} fill="#b7a9ce" stroke="#e2d0f3" strokeWidth="3"/>
-     <ellipse cx={x} cy={y-24} rx="35" ry="35" fill="url(#mm-portal)"/>
-     <path d={'M'+x+' '+(y-45)+'l16 22-16 23-16-23z'} fill={['#91e9d9','#ffd195','#f2b3ee','#a7d8ff'][i]} stroke="#ffffff" strokeWidth="2"/>
-    </g>)}
    {/* Playable creature. Original SVG character art, no external fonts or images. */}
    <g transform={'translate('+target[0]+' '+target[1]+')'}>
     <ellipse cx="0" cy="23" rx="78" ry="17" fill="#123f59" opacity=".4"/>

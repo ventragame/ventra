@@ -18,6 +18,7 @@ import './sentence-plaza-v2.css';
 import './sentence-clarity-v3.css';
 import './sentence-plaza-home-v4.css';
 import './sentence-plaza-covers-v5.css';
+import './sentence-plaza-scenes-v6.css';
 
 interface Props{
  profileId:string;gradeLevel:number|null;englishLevel:EnglishPlacement;
@@ -390,6 +391,10 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
     <div className="sp-game-layout">
      <div>
       <SentencePlazaScene effect={sceneEffect} awaken={awakened} chapter={mission}
+        sceneChoices={mission===3&&task.mode==='scene'?task.sceneChoices:undefined}
+        selectedChoice={selectedScene}
+        onSceneChoice={mission===3&&task.mode==='scene'?selectScene:undefined}
+        interactionDisabled={busy||awakened||Boolean(saveError)}
         onInteract={awakened?()=>soundService.speakEnglish(task.sentence,{rate:.82}):undefined}/>
       <details className="sp-v2-details sp-v2-scene-help">
         <summary>📖 Yapı yardımı</summary><p>{task.explanation}</p>

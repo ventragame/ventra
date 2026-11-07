@@ -77,7 +77,7 @@ test('V3 ships real original local WebP files, never references missing artwork'
   assert.equal(bytes.toString('ascii',8,12),'WEBP',file);
   assert.ok(bytes.length>11000&&bytes.length<200000,file);
  }
- assert.match(source('SentencePlazaScene.tsx'),/sentence-plaza\/v3\/plaza-world\.webp/);
+ assert.match(source('SentencePlazaScene.tsx'),/sentence-plaza\/scenes-v6\/scene-1-colors\.webp/);
  assert.match(source('SentencePlazaScene.tsx'),/sp-v3-effect-house/);
  assert.match(source('SentencePlazaScene.tsx'),/sp-v3-effect-lanterns/);
  const css=source('sentence-clarity-v3.css');

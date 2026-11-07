@@ -230,8 +230,8 @@ test('Cümle Meydanı V2 visual-first scene, 6 genuine WebP covers and compact t
  assert.match(ui,/onClick=\{listenTask\}>🔊 Dinle/);
  assert.match(ui,/nextTimer\.current=setTimeout/);
  assert.match(ui,/saveSentencePlazaMission/);
- assert.match(scene,/plaza-world\.webp/);
- assert.match(scene,/sp-static-scenery/);
+ assert.match(scene,/scene-1-colors\.webp/);
+ assert.doesNotMatch(scene,/sp-static-scenery/);
  assert.match(scene,/showAnimal&&/);
  assert.match(scene,/awaken&&effect\?\.actor==='balloon'/);
  assert.match(css,/sp-static-scenery\{display:none\}/);
@@ -309,4 +309,67 @@ test('V5 premium covers are 6 distinct real WebPs; responsive cards preserve pro
  assert.match(css,/prefers-reduced-motion:reduce/);
  assert.match(page,/saveSentencePlazaMission/);
  assert.match(page,/nextTimer\.current=setTimeout/);
+});
+
+test('V6 all six missions have distinct local optimized scenic WebPs and no shared plaza scene',()=>{
+ const names=['colors','friends','locations','movement','market','lanterns'];
+ const stage=fs.readFileSync(new URL('../src/components/learning/sentence/SentencePlazaScene.tsx',import.meta.url),'utf8');
+ const adventure=fs.readFileSync(new URL('../src/components/learning/sentence/SentencePlazaAdventure.tsx',import.meta.url),'utf8');
+ const css=fs.readFileSync(new URL('../src/components/learning/sentence/sentence-plaza-scenes-v6.css',import.meta.url),'utf8');
+ const paths=new Set();
+ for(let i=0;i<names.length;i++){
+  const name=`scene-${i+1}-${names[i]}.webp`;
+  const bytes=fs.readFileSync(new URL('../public/assets/sentence-plaza/scenes-v6/'+name,import.meta.url));
+  assert.equal(bytes.toString('ascii',0,4),'RIFF',name);
+  assert.equal(bytes.toString('ascii',8,12),'WEBP',name);
+  assert.ok(bytes.length>=100000&&bytes.length<=280000,'optimized scene '+name);
+  paths.add(bytes.toString('base64').slice(0,350));
+  const path='scenes-v6/'+name;
+  const specialized=[
+    '../src/components/learning/sentence/MovementMagicStage.tsx',
+    '../src/components/learning/sentence/WishFestivalStage.tsx',
+    '../src/components/learning/sentence/LanternFestivalStage.tsx'
+  ];
+  const source=i<3?stage:fs.readFileSync(new URL(specialized[i-3],import.meta.url),'utf8');
+  assert.ok(source.includes(path),'every game must render its own world: '+name);
+ }
+ assert.equal(paths.size,6,'6 individually identifiable scene paintings');
+ assert.doesNotMatch(stage,/plaza-world\.webp/);
+ assert.doesNotMatch(stage,/sp-static-scenery/);
+ assert.doesNotMatch(stage,/sp-v3-decorations/);
+ assert.match(stage,/CHAPTER_ART\[chapter\]/);
+ assert.match(stage,/showAnimal&&/);
+ assert.match(stage,/effect\?\.actor==='balloon'/);
+ assert.match(stage,/effect\?\.actor==='house'/);
+ assert.match(stage,/effect\?\.actor==='lantern'/);
+ assert.match(stage,/sp-v6-hotspots/);
+ assert.match(stage,/LOCATION_HOTSPOTS/);
+ for(const location of ['under the tree','behind the house','next to the fountain','near the tree']){
+  assert.ok(stage.includes(location),'real location hotspot mapping: '+location);
+ }
+ assert.match(adventure,/onSceneChoice=\{mission===3&&task\.mode==='scene'\?selectScene:undefined\}/);
+ assert.match(adventure,/selectedChoice=\{selectedScene\}/);
+ assert.match(css,/max-width:740px/);
+ assert.match(css,/prefers-reduced-motion:reduce/);
+});
+test('V6 specialized games preserve hotspots, meaningful animated responses and saved progress',()=>{
+ const read=p=>fs.readFileSync(new URL('../src/components/learning/sentence/'+p,import.meta.url),'utf8');
+ const move=read('MovementMagicStage.tsx');
+ const wish=read('WishFestivalStage.tsx');
+ const festival=read('LanternFestivalStage.tsx');
+ assert.match(move,/mm-v6-stations/);
+ assert.match(move,/mm-hotspots/);
+ assert.match(move,/mm-hero-animate/);
+ assert.match(move,/mm-magic-awaken/);
+ assert.match(wish,/wf-stage/);
+ assert.match(wish,/wf-basket/);
+ assert.match(wish,/wf-food-grid/);
+ assert.match(wish,/wf-v6-reward/);
+ assert.match(festival,/lf-v6-landmarks/);
+ assert.match(festival,/lf-hotspots/);
+ assert.match(festival,/lf-primary-lantern/);
+ assert.match(festival,/lf-floating/);
+ assert.match(festival,/lf-lightburst/);
+ assert.match(read('SentencePlazaAdventure.tsx'),/saveSentencePlazaMission/);
+ assert.match(read('SentencePlazaAdventure.tsx'),/nextTimer\.current=setTimeout/);
 });
