@@ -7,12 +7,14 @@ import {getProgressRepository} from '@/lib/progress';
 import {saveSentencePlazaMission} from '@/lib/progress/sentencePlazaProgress';
 import {plazaWordTiles} from '@/lib/learning/sentencePlazaEngine';
 import {LanternFestivalStage} from './LanternFestivalStage';
+import {sentenceStart,visibleWord,visibleRepairWord} from './sentencePresentation';
 import {LANTERN_CHAPTERS,LANTERN_COLORS,LANTERN_PLACES,LANTERN_ANIMALS,
  lanternRoundsForGrade,planLanternFestival,checkLanternColor,checkLanternPlace,
  checkLanternAnimal,checkLanternRepair,checkLanternSentence,
  type LanternPlan,type LanternTrial,type LanternColor,type LanternPlace,type LanternAnimal}
  from '@/lib/learning/lanternFestivalEngine';
 import './lantern-festival.css';
+import './sentence-clarity-v3.css';
 
 type Phase='welcome'|'lesson'|'play'|'reward';
 interface Props{
@@ -364,10 +366,10 @@ export function LanternFestivalAdventure({profileId,gradeLevel,englishLevel,hist
      </>:trial&&question?<>
       <div className="lf-eyebrow">🎯 {chapter}. DÜNYA · {index%per+1}/{per} GÖREV</div>
       <h2>Doğru anlamı İngilizceyle kur.</h2>
-      <div className="lf-cue-wrap"><h3 className="lf-cue" tabIndex={-1}>{question.cue}</h3>
+      <div className="lf-cue-wrap"><h3 className="lf-cue" tabIndex={-1}>{sentenceStart(question.cue)}</h3>
        <p>{chapter===1?'Rengi seç. Ardından feneri İngilizce tarif et.':
         chapter===2?'Sahnede doğru yerin üzerine dokun, ardından cümleyi kur.':
-        chapter===3?'Hatalı kelimeyi keşfet, sonra cümlenin doğru hâlini kur.':
+        chapter===3?'Türkçe anlama uymayan İngilizce kelimeyi seç. Sonra cümleyi kur.':
          'Rengi, karakteri ve konumu doğru seç; final cümlesini oluştur.'}</p></div>
       {showPalette&&<div className="lf-choice-block" role="group" aria-label="Fener rengini seç">
        <strong>✦ Işık kristalinin rengini seç</strong>
@@ -387,10 +389,10 @@ export function LanternFestivalAdventure({profileId,gradeLevel,englishLevel,hist
          '👆 Ağaç, köprü, kule veya çeşme etiketine sahnede dokun.'}
       </div>}
       {showRepair&&trial.brokenWords&&<div className="lf-choice-block">
-       <strong>🔎 Bu İngilizce cümlede bir kelime yanlış. Hangisi?</strong>
+       <strong>🔎 İngilizce cümlede bir dil bilgisi hatası var. Yanlış kelimeyi seç.</strong>
        <div className="lf-repair" role="group" aria-label="Yanlış İngilizce sözcüğü işaretle">
         {trial.brokenWords.map((part,i)=><button key={i} type="button" className="lf-repair-token"
-         disabled={lit||saving} onClick={()=>pickError(i)}>{part}</button>)}</div></div>}
+         disabled={lit||saving} onClick={()=>pickError(i)}>{visibleRepairWord(part,i,trial.brokenWords.length,question.sentence)}</button>)}</div></div>}
       {prepared&&<div className="lf-builder">
        <div className="lf-builder-head"><strong>✦ CÜMLE İNŞASI</strong>
         <span>{picked.length}/{question.tokens.length} kelime</span></div>
@@ -400,7 +402,7 @@ export function LanternFestivalAdventure({profileId,gradeLevel,englishLevel,hist
          data-error={wrongSlot===i}
          aria-label={chosenWords[i]?chosenWords[i]+' kelimesini çıkar':'Boş kelime alanı'}
          onClick={()=>{setPicked(old=>old.filter((_,j)=>j!==i));setWrongSlot(-1);}}>
-         {chosenWords[i]??'✧'}</button>)}</div>
+         {chosenWords[i]?visibleWord(chosenWords[i],i):'✧'}</button>)}</div>
        <div className="lf-tiles" role="group" aria-label="Cümleye eklenebilecek kelimeler">
         {tiles.map(t=><button type="button" key={t.id} className="lf-tile"
          disabled={picked.includes(t.id)||picked.length>=question.tokens.length||lit||saving}
@@ -411,8 +413,8 @@ export function LanternFestivalAdventure({profileId,gradeLevel,englishLevel,hist
        <button type="button" className="lf-tool" disabled={!picked.length||lit||saving}
         onClick={()=>{setPicked(old=>old.slice(0,-1));setWrongSlot(-1);}}>↶ Geri Al</button>
        <button type="button" className="lf-tool" disabled={lit||saving}
-        onClick={()=>speak(question.sentence,true)}>🔊 Tam Cümleyi Dinle</button>
-       <button type="button" className="lf-tool" disabled={lit||saving} onClick={hint}>💡 Dil İpucu</button>
+        onClick={()=>speak(question.sentence,true)}>🔊 Dinle</button>
+       <button type="button" className="lf-tool" disabled={lit||saving} onClick={hint}>💡 İpucu</button>
       </div>
       {feedback&&<div className="lf-message" data-error={feedbackError} role="status" aria-live="polite">{feedback}</div>}
       {saveError&&<div className="lf-message" data-error="true" role="alert">{saveError}
@@ -420,7 +422,7 @@ export function LanternFestivalAdventure({profileId,gradeLevel,englishLevel,hist
         onClick={()=>{if(retryRows.current)void finish(retryRows.current);}}>Ödülü Güvenle Kaydet</button></div>}
       {!lit&&<button type="button" className="lf-primary"
        disabled={!prepared||picked.length!==question.tokens.length||saving||Boolean(saveError)}
-       onClick={submit}>🏮 İngilizce Cümleyle Feneri Yak</button>}
+       onClick={submit}>🏮 Feneri Yak</button>}
       {lit&&<div className="lf-success" role="status">✨ Fener ışıldıyor; sıradaki görev otomatik başlıyor.</div>}
       <p className="lf-small">Süre baskısı yok. İpucuyla veya tam cevap dinleyerek çözdüğün görevler
        bağımsız öğrenme başarısından ayrı değerlendirilir.</p>

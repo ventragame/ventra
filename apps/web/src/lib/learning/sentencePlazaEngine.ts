@@ -172,12 +172,38 @@ function buildV2(mission:PlazaMission,level:EnglishPlacement):PlazaQuestion[]{
   const stock=['are','is','can','not','in','on','want','wants','but','because','has','do','does','where','the','a'];
   const decoys=stock.filter(w=>!words.has(w)).slice(0,3);
   const mode=d.mode??'construct';
-  const wrongAt=Math.max(1,Math.floor(tokens.length/2));
-  const wrong=decoys.find(word=>word!==tokens[wrongAt])??'are';
+  // Replace ONE meaningful word, not an arbitrary grammar token.
+  // The child compares a valid English sentence against the displayed Turkish goal:
+  // "Is the dog UNDER the house?" -> "Köpek evin ARKASINDA mı?"
+  // Both are grammatical, but only one expresses the target meaning.
+  const alternatives:Record<string,string>={
+   red:'blue',blue:'green',green:'yellow',yellow:'purple',purple:'orange',orange:'red',
+   cat:'dog',dog:'cat',bird:'rabbit',rabbit:'bird',cats:'dogs',dogs:'cats',
+   birds:'rabbits',rabbits:'birds',
+   under:'behind',behind:'under',near:'under',next:'near',
+   fly:'jump',jump:'run',run:'sleep',sleep:'fly',
+   flying:'jumping',jumping:'running',running:'sleeping',sleeping:'flying',
+   apples:'bananas',bananas:'apples',carrots:'oranges',oranges:'carrots',
+   pears:'grapes',grapes:'pears',strawberries:'peaches',peaches:'strawberries',
+   lemons:'apples'
+  };
+  const priority:Record<PlazaMission,readonly string[]>={
+   1:V2_COLORS.map(c=>c.en),
+   2:[...V2_COLORS.map(c=>c.en),'cat','dog','bird','rabbit','cats','dogs','birds','rabbits'],
+   3:['behind','under','near','cat','dog','bird','rabbit'],
+   4:['fly','jump','run','sleep','flying','jumping','running','sleeping'],
+   5:V2_FOODS.map(f=>f.en),
+   6:['cat','dog','bird','rabbit',...V2_COLORS.map(c=>c.en)]
+  };
+  const replacementIndex=priority[mission]
+    .map(w=>tokens.findIndex(t=>t===w)).find(i=>i>=1)??-1;
+  const wrongAt=replacementIndex>=0?replacementIndex:Math.max(1,Math.floor(tokens.length/2));
+  const wrong=alternatives[tokens[wrongAt]]??decoys.find(word=>word!==tokens[wrongAt])??'are';
   const corrupted=tokens.map((w,i)=>i===wrongAt?wrong:w).join(' ')+(d.sentence.endsWith('?')?'?':'.');
   results.push({id:'plaza:v2:'+mission+':'+level+':'+d.key,mission,
    skill:SENTENCE_PLAZA_MISSIONS[mission-1].skill,englishLevel:level,
-   kind:d.kind,mode,scene:d.scene,sentence:d.sentence,cue:d.cue,
+   kind:d.kind,mode,scene:d.scene,sentence:d.sentence,
+   cue:d.cue.replace(/^(\p{L})/u,ch=>ch.toLocaleUpperCase('tr-TR')),
    tokens,decoys,explanation:d.explanation,vocabulary:d.vocabulary,
    ...(mode==='repair'?{brokenSentence:corrupted}:{}),
    ...(mode==='scene'?{sceneChoices:d.choices,correctSceneChoice:d.choice}:{})});

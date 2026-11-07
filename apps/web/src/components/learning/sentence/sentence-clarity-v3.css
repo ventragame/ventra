@@ -1,0 +1,70 @@
+/* Cümle Meydanı – kid-readable V3 polish, shared only by sentence-island games.
+ * No changed evaluation, persistence or question content; no network assets. */
+.sp-v3 .sp-v2-art{background:#75bbcb;border-color:#fff2bb}
+.sp-v3 .sp-v2-backdrop{object-position:center center;filter:saturate(1.08) contrast(1.025)}
+.sp-v3 .sp-static-decoration,.sp-v3 .sp-v3-decorations{display:none}
+.sp-v3 .sp-v2-art .sp-scene-caption{background:#063b50f0;box-shadow:0 3px 0 #062838}
+.sp-v3 .sp-v2-art .sp-scene-caption span{font-size:12px}
+.sp-v3 .sp-v2-card-art{filter:saturate(1.1) contrast(1.02)}
+.sp-v3 .sp-v2-hero p{font-size:clamp(13px,1.35vw,16px);font-weight:850}
+.sp-v3 .sp-interaction{border:2px solid #d4e8d1;background:linear-gradient(145deg,#164a64,#123955);padding:13px}
+.sp-v3 .sp-interaction>strong{font-size:clamp(14px,1.55vw,17px);color:#fff2c7}
+.sp-v3 .sp-v3-repair-hint{color:#dcf6e9;font-size:clamp(12px,1.1vw,14px);
+ line-height:1.4;margin:7px 0 12px!important;font-weight:750}
+.sp-v3 .sp-repair-words{display:flex;flex-wrap:wrap;gap:7px}
+.sp-v3 .sp-repair-word{
+ min-width:52px;min-height:48px;padding:9px 13px;font-size:clamp(15px,1.35vw,18px);
+ border:2px solid #f1daa3;border-radius:13px;
+ background:linear-gradient(145deg,#fffaf0,#f7e6c1);color:#1d4c5e;
+ box-shadow:0 4px 0 #bd9f7c,0 8px 15px #09243c61;cursor:pointer;
+}
+.sp-v3 .sp-repair-word:focus-visible{outline:3px solid #ffd763;outline-offset:3px}
+.sp-v3 .sp-repair-word[data-selected=true]{border-color:#60cc9d;background:#d2f8d4;color:#1a554d}
+.sp-v3 .sp-v3-waiting{
+ display:flex;align-items:center;justify-content:center;gap:12px;
+ min-height:64px;padding:12px 14px;margin:13px 0 7px;
+ border:2px dashed #c1e3dc;border-radius:15px;
+ background:#0a4159;color:#f4f4d8;
+ font-size:clamp(12px,1.25vw,15px);line-height:1.4;font-weight:850;
+}
+.sp-v3 .sp-v3-waiting span:first-child{font-size:22px}
+.sp-v3 .sp-cue{font-size:clamp(17px,1.8vw,22px);color:#5e3c31}
+.sp-v3 .sp-v2-steps span{min-height:39px;display:grid;place-items:center}
+.sp-v3 .sp-slot,.sp-v3 .sp-tile{font-family:inherit;letter-spacing:.01em}
+.sp-v3 .sp-tiles{margin-top:17px}
+.sp-v3 .sp-repair-word:disabled,.sp-v3 .sp-tile:disabled{cursor:not-allowed}
+/* The other three sentence adventures share the same clarity affordances. */
+.mm-root .mm-cue,.wf-root .wf-cue,.lf-root .lf-cue{
+ text-wrap:pretty;letter-spacing:0;line-height:1.38
+}
+.mm-root .mm-repair-token,.lf-root .lf-repair-token{
+ min-height:48px;min-width:49px;font-weight:900;
+ border-radius:13px;box-shadow:0 3px 0 #0a31436b
+}
+.mm-root .mm-repair-token:focus-visible,
+.lf-root .lf-repair-token:focus-visible{
+ outline:3px solid #ffdf8c;outline-offset:3px
+}
+.mm-root .mm-cue-sub,.lf-root .lf-cue-wrap p,.wf-root .wf-cue-wrap p{
+ line-height:1.4;font-size:clamp(12px,1.1vw,14px)
+}
+.mm-root .mm-compact-help,.wf-root .wf-compact-help,.lf-root .lf-compact-help{
+ margin:12px 0 4px;border:1px solid #a6d7cf;border-radius:13px;
+ background:#124760a8;padding:9px 12px;color:#e3f2e8;
+}
+.mm-root .mm-compact-help summary,
+.wf-root .wf-compact-help summary,
+.lf-root .lf-compact-help summary{
+ min-height:30px;cursor:pointer;font-size:12px;font-weight:850
+}
+.mm-root .mm-compact-help p,.wf-root .wf-compact-help p,.lf-root .lf-compact-help p{
+ font-size:12px;line-height:1.5;margin-top:8px!important
+}
+@media(max-width:610px){
+ .sp-v3 .sp-v3-repair-hint{font-size:12px}
+ .sp-v3 .sp-repair-word{min-width:45px;min-height:45px;padding:7px 9px;font-size:14px}
+ .sp-v3 .sp-v3-waiting{min-height:59px;font-size:12px}
+}
+@media(prefers-reduced-motion:reduce){
+ .sp-v3 .sp-v2-backdrop,.sp-v3 .sp-repair-word{transition:none!important;animation:none!important}
+}

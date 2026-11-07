@@ -7,11 +7,13 @@ import {getProgressRepository} from '@/lib/progress';
 import {saveSentencePlazaMission} from '@/lib/progress/sentencePlazaProgress';
 import {plazaWordTiles} from '@/lib/learning/sentencePlazaEngine';
 import {WishFestivalStage} from './WishFestivalStage';
+import {sentenceStart,visibleWord} from './sentencePresentation';
 import {WISH_CHAPTERS,WISH_GUESTS,WISH_FOODS,wishRoundsForGrade,planWishFestival,
  checkWishFood,checkWishSecond,checkWishIntent,checkWishSentence,wishIntentOptions,
  type WishChapter,type WishFood,type WishIntent,type WishPlan}
  from '@/lib/learning/wishFestivalEngine';
 import './wish-festival.css';
+import './sentence-clarity-v3.css';
 
 type Screen='welcome'|'lesson'|'play'|'reward';
 type WishReason='sweet'|'juicy'|'crunchy';
@@ -398,7 +400,7 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
      </>:trial&&question?<>
       <div className="wf-overline">✦ {WISH_GUESTS.find(g=>g.id===trial.guest)?.name} İLE İNGİLİZCE GÖREVİ</div>
       <h2>İsteği anla. Doğru cümleyi kur.</h2>
-      <div className="wf-cue-wrap"><h3 tabIndex={-1} className="wf-cue">{question.cue}</h3>
+      <div className="wf-cue-wrap"><h3 tabIndex={-1} className="wf-cue">{sentenceStart(question.cue)}</h3>
        <p>{chapter===1?'Önce doğru yiyeceği seç, sonra beğeniyi anlat.':
          chapter===2?'Ürünü bul. Nezaket kelimesini seç. Kibarca rica et.':
          chapter===3?'Konuğun sorusuna uygun niyeti seç ve İngilizce yanıt ver.':
@@ -433,7 +435,7 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
          disabled={!selectedWords[i]||served||saving}
          aria-label={selectedWords[i]?selectedWords[i]+' kelimesini çıkar':'Boş kelime alanı'}
          onClick={()=>{setPicked(old=>old.filter((_,j)=>i!==j));setWrongSlot(-1);}}>
-         {selectedWords[i]??'✧'}</button>)}</div>
+         {selectedWords[i]?visibleWord(selectedWords[i],i):'✧'}</button>)}</div>
        <div className="wf-tiles" role="group" aria-label="İngilizce cümle kelimeleri">
         {tiles.map(item=><button key={item.id} type="button" className="wf-tile"
          disabled={picked.includes(item.id)||picked.length>=question.tokens.length||served||saving}
@@ -445,15 +447,15 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
        <button className="wf-minor" type="button" disabled={!picked.length||served||saving}
         onClick={()=>{setPicked(old=>old.slice(0,-1));setWrongSlot(-1);}}>↶ Geri Al</button>
        <button className="wf-minor" type="button" disabled={served||saving}
-        onClick={()=>speech(question.sentence,true)}>🔊 Tam Cümleyi Dinle</button>
-       <button className="wf-minor" type="button" disabled={served||saving} onClick={hint}>💡 Dil İpucu</button>
+        onClick={()=>speech(question.sentence,true)}>🔊 Dinle</button>
+       <button className="wf-minor" type="button" disabled={served||saving} onClick={hint}>💡 İpucu</button>
       </div>
       {feedback&&<div className="wf-feedback" data-error={feedbackError} role="status" aria-live="polite">{feedback}</div>}
       {saveError&&<div role="alert" className="wf-feedback" data-error="true">{saveError}
        <button type="button" className="wf-primary" disabled={saving}
         onClick={()=>{if(retryRows.current)void finish(retryRows.current);}}>Kaydı Güvenle Tekrar Dene</button></div>}
       {!served&&<button type="button" className="wf-primary" disabled={!ready||picked.length!==question.tokens.length||saving||Boolean(saveError)}
-       onClick={submit}>✦ İngilizceyle Dileği Gerçekleştir</button>}
+       onClick={submit}>✦ Canlandır</button>}
       {served&&<div className="wf-success" role="status">✦ İngilizce cümlen kabul edildi. Sonraki görev otomatik başlıyor.</div>}
       <p className="wf-fine">Süre cezası yok. İpucu veya tam cevap dinleme kullanıldıysa
        çözüm yardım alınmış olarak kaydedilir; yanlışları düzelterek devam edebilirsin.</p>

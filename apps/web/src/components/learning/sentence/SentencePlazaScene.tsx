@@ -19,7 +19,7 @@ export function SentencePlazaScene({effect,awaken,chapter,onInteract}:Props){
  const motion=awaken&&effect?.action;
  return <div className={`sp-art sp-v2-art ${awaken?'sp-art-awaken':''} sp-act-${motion||'idle'}`}
    role="img" aria-label={awaken?`İngilizce cümlen gerçek oldu: ${effect?.actor} sahnede değişti`:'Büyülü meydanda uyandırılmayı bekleyen nesneler ve karakterler'}>
- <img src="/assets/sentence-plaza/v2/plaza-world.webp" className="sp-v2-backdrop"
+ <img src="/assets/sentence-plaza/v3/plaza-world.webp" className="sp-v2-backdrop"
   alt="" aria-hidden="true" draggable={false} decoding="async"/>
  <svg viewBox="0 0 900 478" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" className="sp-world-svg">
   <defs>
@@ -140,7 +140,8 @@ export function SentencePlazaScene({effect,awaken,chapter,onInteract}:Props){
        <path d="M0-14l3-7" stroke="#5e8060" strokeWidth="3"/>
      </g>;
     })}</g>}
-  {/* Responsive sparkles and festival pennants, reduced-motion handled in CSS */}
+  {/* Decorative SVG elements are subdued when the realistic WebP backdrop is active. */}
+  <g className="sp-v3-decorations">
   <path d="M40 149Q450 213 860 142" fill="none" stroke="#f8e9bf" strokeWidth="3" opacity=".8"/>
   {Array.from({length:15},(_,i)=>{
    const x=46+i*55,y=150+31*Math.sin(i/14*Math.PI),shade=['#ffdca4','#88e2d6','#ef9bbc'][i%3];
@@ -151,6 +152,7 @@ export function SentencePlazaScene({effect,awaken,chapter,onInteract}:Props){
    return <path key={i} className="sp-spark" style={{animationDelay:`${i*0.14}s`}}
     d={`M${x} ${y-3}v6M${x-3} ${y}h6`} stroke={i%3?'#fff2c5':'#adf2ff'} strokeWidth="2" opacity=".75"/>;
   })}
+  </g>
  </svg>
  <div className="sp-scene-caption">
   <span className="sp-scene-glyph" aria-hidden="true">✦</span>

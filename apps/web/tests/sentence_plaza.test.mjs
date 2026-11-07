@@ -220,7 +220,7 @@ test('Cümle Meydanı V2 visual-first scene, 6 genuine WebP covers and compact t
  const scene=read('../src/components/learning/sentence/SentencePlazaScene.tsx');
  const css=read('../src/components/learning/sentence/sentence-plaza-v2.css');
  assert.match(ui,/sentence-plaza-v2\.css/);
- assert.match(ui,/className="sp-overlay sp-v2"/);
+ assert.match(ui,/className="sp-overlay sp-v2 sp-v3"/);
  assert.match(ui,/sp-v2-card-art/);
  assert.match(ui,/Gör → Dinle → Kur → Canlandır/);
  assert.match(ui,/sp-v2-vocab/);

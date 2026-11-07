@@ -7,11 +7,13 @@ import {getProgressRepository} from '@/lib/progress';
 import {saveSentencePlazaMission} from '@/lib/progress/sentencePlazaProgress';
 import {plazaWordTiles} from '@/lib/learning/sentencePlazaEngine';
 import {MovementMagicStage} from './MovementMagicStage';
+import {sentenceStart,visibleWord,visibleRepairWord} from './sentencePresentation';
 import {MAGIC_VERBS,MOVEMENT_CHAPTERS,checkMagicAction,checkMagicPlace,
  checkMagicRepair,checkMagicSentence,planMovementMagic,movementQuestionsPerChapter,
  type MagicVerb,type MagicPlace,type MovementPlan,type MovementTrial}
  from '@/lib/learning/movementMagicEngine';
 import './movement-magic.css';
+import './sentence-clarity-v3.css';
 
 type Phase='welcome'|'chapter'|'play'|'reward';
 interface Props{
@@ -407,14 +409,14 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
       <div className="mm-eyebrow">🎯 BÖLÜMÜN {currentChapterRound}. GÖREVİ / {perChapter}</div>
       <h3>İngilizceyle sahneyi yönet.</h3>
       <div className="mm-challenge">
-       <h4 className="mm-cue" tabIndex={-1}>{question.cue}</h4>
+       <h4 className="mm-cue" tabIndex={-1}>{sentenceStart(question.cue)}</h4>
        <p className="mm-cue-sub">{trial.challenge==='action'?
-        '1. Doğru İngilizce eylemi seç. 2. Cümleyi kendi başına oluştur.':
+        'Hareketi seç. Sonra cümleyi kur.':
         trial.challenge==='destination'?
-        '1. Hareketin gerçekleşeceği yeri sahnenin üzerinde bul. 2. Cümleyi kur.':
+        'Sahnedeki yeri seç. Sonra cümleyi kur.':
         trial.challenge==='repair'?
-        '1. Hatalı İngilizce kelimeyi bul. 2. Cümlenin doğrusunu oluştur.':
-        '1. Hareketi seç. 2. Sahnede doğru yeri göster. 3. Cümleyi oluştur.'}</p>
+        'Türkçe anlama uymayan İngilizce kelimeye dokun. Sonra doğru cümleyi kur.':
+        'Hareketi ve yeri seç. Sonra cümleyi kur.'}</p>
       </div>
       {requiredAction&&<div className="mm-verb-grid" role="group" aria-label="İngilizce hareketi seç">
        {MAGIC_VERBS.map(item=><button key={item.id} type="button" className="mm-verb"
@@ -430,11 +432,11 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
        chosenPlace?'✓ Konumu seçtin. Artık İngilizce cümleyi kurabilirsin.':
        '👆 Sahnenin üzerinde ağaç, gölet, köprü veya kuleyi seç.'}</p>}
       {needsRepair&&trial.brokenWords&&<div>
-       <div className="mm-eyebrow" style={{marginTop:13}}>🔎 BU CÜMLEDE BİR DİL BİLGİSİ HATASI VAR</div>
+       <div className="mm-eyebrow" style={{marginTop:13}}>🔎 İngilizce cümlede bir dil bilgisi hatası var. Yanlış kelimeye dokun.</div>
        <div className="mm-repair" role="group" aria-label="Yanlış İngilizce kelimeyi bul">
         {trial.brokenWords.map((word,i)=><button type="button" key={i}
          className="mm-repair-token" data-correct={repairFixed&&i===trial.errorIndex}
-         disabled={repairFixed||activated||saving} onClick={()=>repairChoice(i)}>{word}</button>)}
+         disabled={repairFixed||activated||saving} onClick={()=>repairChoice(i)}>{visibleRepairWord(word,i,trial.brokenWords.length,question.sentence)}</button>)}
        </div></div>}
       {prepared?<div className="mm-builder">
        <div className="mm-builder-label"><span>✦ CÜMLE İNŞASI</span><span>{picked.length}/{question.tokens.length} kelime</span></div>
@@ -443,7 +445,7 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
          className="mm-slot" data-filled={Boolean(selectedWords[i])} data-error={wrongSlot===i}
          disabled={!selectedWords[i]||activated||saving}
          aria-label={selectedWords[i]?selectedWords[i]+' kelimesini kaldır':'Boş kelime alanı'}
-         onClick={()=>removeWord(i)}>{selectedWords[i]??'✧'}</button>)}
+         onClick={()=>removeWord(i)}>{selectedWords[i]?visibleWord(selectedWords[i],i):'✧'}</button>)}
        </div>
        <div className="mm-tile-tray" role="group" aria-label="İngilizce sözcükler">
         {tiles.map(t=><button type="button" key={t.id} className="mm-tile"
@@ -455,9 +457,9 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
        <button type="button" className="mm-tool" disabled={!picked.length||activated||saving}
         onClick={()=>removeWord(picked.length-1)}>↶ Geri Al</button>
        <button type="button" className="mm-tool" disabled={activated||saving}
-        onClick={()=>{soundService.unlockAudio();speak(question.sentence,true);}}>🔊 Tam Cümleyi Dinle</button>
+        onClick={()=>{soundService.unlockAudio();speak(question.sentence,true);}}>🔊 Dinle</button>
        <button type="button" className="mm-tool" disabled={activated||saving}
-        onClick={hint}>💡 Dil İpucu</button>
+        onClick={hint}>💡 İpucu</button>
       </div>
       {feedback&&<div className="mm-feedback" data-error={feedbackError} role="status" aria-live="polite">{feedback}</div>}
       {saveError&&<div className="mm-feedback" data-error="true" role="alert">{saveError}
@@ -466,7 +468,7 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
         Kaydı Yeniden Dene</button></div>}
       {!activated&&<button type="button" className="mm-primary" style={{marginTop:10}}
        disabled={!prepared||!isComplete||saving||Boolean(saveError)}
-       onClick={advanceWithSuccess}>✦ Cümleyle Hareketi Başlat!</button>}
+       onClick={advanceWithSuccess}>✦ Canlandır</button>}
       {activated&&<div className="mm-feedback" role="status">✨ Hareket gerçekleşiyor; sıradaki görev kendiliğinden başlayacak.</div>}
       <p className="mm-caption-text" style={{marginTop:12}}>
        İpucu veya tam cümle dinleme kullanırsan öğrenme kaydında destekli çözüm olarak görünür.

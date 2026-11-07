@@ -9,11 +9,13 @@ import {SENTENCE_PLAZA_MISSIONS,planPlazaMission,plazaWordTiles,evaluatePlazaSen
  type PlazaMission,type PlazaDeck,type PlazaQuestion} from '@/lib/learning/sentencePlazaEngine';
 import {soundService} from '@/lib/audio/SoundService';
 import {SentencePlazaScene} from './SentencePlazaScene';
+import {sentenceStart,visibleWord,visibleRepairWord} from './sentencePresentation';
 import {MovementMagicAdventure} from './MovementMagicAdventure';
 import {WishFestivalAdventure} from './WishFestivalAdventure';
 import {LanternFestivalAdventure} from './LanternFestivalAdventure';
 import './sentence-plaza.css';
 import './sentence-plaza-v2.css';
+import './sentence-clarity-v3.css';
 
 interface Props{
  profileId:string;gradeLevel:number|null;englishLevel:EnglishPlacement;
@@ -221,11 +223,11 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
  function selectRepair(index:number){
   if(!task||task.mode!=='repair'||awaitingTransition.current||busy||repairMarked)return;
   if(index!==repairBadIndex){
-   incorrect('Seçtiğin sözcük yanlış olan değil. Cümledeki dil bilgisi ve sözcük sırasını incele.');
+   incorrect('Bir kez daha dene. Yukarıdaki Türkçe cümleyle karşılaştır.');
    return;
   }
   soundService.playSfx('correct',.35);
-  setRepairMarked(true);setFeedback('Hatalı sözcüğü buldun. Şimdi doğru İngilizce cümleyi baştan kur.');
+  setRepairMarked(true);setFeedback('Evet! Şimdi Türkçe anlamdaki doğru İngilizce cümleyi kur.');
   setFeedbackError(false);
  }
  function submitSentence(){
@@ -279,7 +281,7 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
     }}/>;
  }
  return <div ref={root} role="dialog" aria-modal="true" aria-label="Cümle Meydanı İngilizce macerası"
-  className="sp-overlay sp-v2" onPointerDown={event=>event.stopPropagation()}>
+  className="sp-overlay sp-v2 sp-v3" onPointerDown={event=>event.stopPropagation()}>
   <div className="sp-wrap">
    <header className="sp-top">
     <div className="sp-logo"><div className="sp-logo-emblem" aria-hidden="true">🏰</div>
@@ -316,7 +318,7 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
           aria-label={`${item.title}. ${done?'Tamamlandı, tekrar oyna':unlocked?'Oynamaya hazır':'Kilitli'}`}
           onClick={()=>openMission(item.id)}>
          <img className="sp-v2-card-art" alt="" aria-hidden="true" loading="lazy" draggable={false}
-          src={`/assets/sentence-plaza/v2/mission-${item.id}.webp`}/>
+          src={`/assets/sentence-plaza/v3/mission-${item.id}.webp`}/>
          <div className="sp-mission-top"><span aria-hidden="true">{item.icon}</span><span>{done?'✓':unlocked?'✦':'🔒'}</span></div>
          <strong>{item.id}. {item.title}</strong>
          <small>{done?'✓ Tamamlandı':unlocked?'▶ Oyna':'🔒 Kilitli'}</small>
@@ -371,15 +373,15 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
        </details>
      </div>
      <section className="sp-workshop" aria-label="İngilizce cümle oluşturma atölyesi">
-      <div className="sp-step"><span>✦ {sentenceKindLabels[task.kind]} · {task.mode==='repair'?'Hata avı':task.mode==='scene'?'Sahneyi eşleştir':'Cümle inşa et'}</span>
+      <div className="sp-step"><span>✦ {sentenceKindLabels[task.kind]} · {task.mode==='repair'?'Yanlış kelimeyi seç':task.mode==='scene'?'Sahneyi seç':'Cümleyi kur'}</span>
        <span>{step+1} / {totalQuestions}</span></div>
       <div className="sp-meter" role="progressbar" aria-label="Bölümde tamamlanan cümleler"
        aria-valuemin={0} aria-valuemax={totalQuestions} aria-valuenow={step+(awakened?1:0)}>
        <span style={{width:`${100*(step+(awakened?1:0))/totalQuestions}%`}}/></div>
-      <h3 tabIndex={-1} className="sp-cue">{task.cue}</h3>
+      <h3 tabIndex={-1} className="sp-cue">{sentenceStart(task.cue)}</h3>
       <div className="sp-v2-steps" aria-label="Seç, kur ve canlandır">
-        <span className={taskReady?'sp-v2-step-done':'sp-v2-step-current'}>① Seç</span>
-        <span className={taskReady?'sp-v2-step-current':''}>② Kur</span>
+        <span className={taskReady?'sp-v2-step-done':'sp-v2-step-current'}>① {task.mode==='repair'?'Düzelt':task.mode==='scene'?'Seç':'Bak'}</span>
+        <span className={taskReady&&!awakened?'sp-v2-step-current':awakened?'sp-v2-step-done':''}>② Kur</span>
         <span className={awakened?'sp-v2-step-done':''}>③ Canlandır</span>
        </div>
       {task.mode==='scene'&&task.sceneChoices&&
@@ -399,30 +401,36 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
        </div>}
       {task.mode==='repair'&&task.brokenSentence&&
        <div className="sp-interaction" role="group" aria-label="Yanlış sözcüğü bul ve onar">
-        <strong>🔎 Yanlışı bul</strong>
+        <strong>🔎 Bu İngilizce cümlede bir kelime yanlış.</strong>
+        <p className="sp-v3-repair-hint">Yukarıdaki Türkçe anlamla karşılaştır. Yanlış kelimeye dokun.</p>
         <div className="sp-repair-words">{repairWords.map((word,i)=><button type="button"
          key={i} disabled={repairMarked||awakened||busy}
          data-selected={repairMarked&&i===repairBadIndex}
-         className="sp-repair-word" onClick={()=>selectRepair(i)}>{word}</button>)}</div>
+         className="sp-repair-word" onClick={()=>selectRepair(i)} aria-label={`${visibleRepairWord(word,i,repairWords.length,task.sentence)} kelimesini seç`}>{visibleRepairWord(word,i,repairWords.length,task.sentence)}</button>)}</div>
        </div>}
       {!taskReady&&<p className="sp-caption" style={{marginTop:10}}>
-       {task.mode==='repair'?'Önce yanlış sözcüğü seç.':'Önce sahneyi seç.'}
+       {task.mode==='repair'?'Önce anlamı değiştiren kelimeyi seç.':'Önce sahneyi seç.'}
       </p>}
       <details className="sp-v2-vocab"><summary>📚 Kelimeler</summary>
         <div className="sp-vocab" aria-label="İngilizce kelime desteği">
          {task.vocabulary.map((w,i)=><span key={i}>{w.en} · {w.tr}</span>)}</div>
        </details>
+      {taskReady?<>
       <div className="sp-slots" role="group" aria-live="polite" aria-label="Oluşturduğun İngilizce cümle">
        {task.tokens.map((word,i)=><button type="button" key={i} disabled={!selectedWords[i]||awakened||busy}
         aria-label={selectedWords[i]?'“'+selectedWords[i]+'” kelimesini kaldır':'Boş kelime yuvası'}
         onClick={()=>{setPicked(old=>old.filter((_,index)=>index!==i));setWrongSlot(-1);}}
         data-error={wrongSlot===i}
         className={`sp-slot ${selectedWords[i]?'sp-slot-filled':''}`}>
-        {selectedWords[i]??'✧'}</button>)}</div>
+        {selectedWords[i]?visibleWord(selectedWords[i],i):'✧'}</button>)}</div>
       <div className="sp-tiles" role="group" aria-label="Cümle için kullanılabilecek İngilizce kelimeler">
        {tiles.map(t=><button type="button" key={t.id} className="sp-tile"
         disabled={!taskReady||picked.includes(t.id)||picked.length>=task.tokens.length||awakened||busy||Boolean(saveError)}
         onClick={()=>pickWord(t.id)} aria-label={`“${t.word}” kelimesini cümleye ekle`}>{t.word}</button>)}</div>
+      </>:<div className="sp-v3-waiting" role="status" aria-live="polite">
+        <span aria-hidden="true">🔒</span>
+        <span>{task.mode==='repair'?'Yanlış kelimeyi seçince cümle kurma alanı açılacak.':'Sahneyi seçince cümle kurma alanı açılacak.'}</span>
+       </div>}
       <button type="button" className="sp-primary sp-check" disabled={awakened||busy||!taskReady||picked.length!==task.tokens.length||Boolean(saveError)}
        onClick={submitSentence}>✨ Canlandır</button>
       <div className="sp-tools">
