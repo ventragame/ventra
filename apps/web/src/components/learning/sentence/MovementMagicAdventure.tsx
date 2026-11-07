@@ -436,7 +436,7 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
        <div className="mm-repair" role="group" aria-label="Yanlış İngilizce kelimeyi bul">
         {trial.brokenWords.map((word,i)=><button type="button" key={i}
          className="mm-repair-token" data-correct={repairFixed&&i===trial.errorIndex}
-         disabled={repairFixed||activated||saving} onClick={()=>repairChoice(i)}>{visibleRepairWord(word,i,trial.brokenWords.length,question.sentence)}</button>)}
+         disabled={repairFixed||activated||saving} onClick={()=>repairChoice(i)}>{visibleRepairWord(word,i,(trial.brokenWords?.length??0),question.sentence)}</button>)}
        </div></div>}
       {prepared?<div className="mm-builder">
        <div className="mm-builder-label"><span>✦ CÜMLE İNŞASI</span><span>{picked.length}/{question.tokens.length} kelime</span></div>

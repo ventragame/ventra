@@ -392,7 +392,7 @@ export function LanternFestivalAdventure({profileId,gradeLevel,englishLevel,hist
        <strong>🔎 İngilizce cümlede bir dil bilgisi hatası var. Yanlış kelimeyi seç.</strong>
        <div className="lf-repair" role="group" aria-label="Yanlış İngilizce sözcüğü işaretle">
         {trial.brokenWords.map((part,i)=><button key={i} type="button" className="lf-repair-token"
-         disabled={lit||saving} onClick={()=>pickError(i)}>{visibleRepairWord(part,i,trial.brokenWords.length,question.sentence)}</button>)}</div></div>}
+         disabled={lit||saving} onClick={()=>pickError(i)}>{visibleRepairWord(part,i,(trial.brokenWords?.length??0),question.sentence)}</button>)}</div></div>}
       {prepared&&<div className="lf-builder">
        <div className="lf-builder-head"><strong>✦ CÜMLE İNŞASI</strong>
         <span>{picked.length}/{question.tokens.length} kelime</span></div>
