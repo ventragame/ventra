@@ -11,6 +11,7 @@ import {useAutoQuestionAdvance} from '@/lib/learning/useAutoQuestionAdvance';
 import './food-market.css';
 import './food-market-v4.css';
 import './food-market-logic-v5.css';
+import './food-market-visual-v6.css';
 import {GardenHelp} from '../GardenHelp';
 
 type Props={
@@ -23,7 +24,7 @@ const newSession=(profileId:string,aisle:MarketAisle,stage:MarketStage)=>
   `food:${profileId}:${aisle}:${stage}:${Date.now()}:${Math.random().toString(36).slice(2)}`;
 
 const MARKET_ART:Record<MarketAisle,string>={
- orchard:'/assets/foods/market-orchard-v4.svg',
+ orchard:'/assets/foods/market-orchard-v6.webp',
  bakery:'/assets/foods/market-bakery-v4.svg',
  cafe:'/assets/foods/market-cafe-v4.svg'
 };
@@ -52,7 +53,7 @@ function Item({id,showEnglish=false,selected=false,active=false,disabled=false,o
  {id:string;showEnglish?:boolean;selected?:boolean;active?:boolean;disabled?:boolean;onClick?:()=>void;draggable?:boolean;wrong?:boolean;onDragStart?:(event:React.DragEvent<HTMLButtonElement>)=>void}){
  const w=marketWord(id);
  return <button type="button" onClick={onClick} disabled={disabled} draggable={draggable&&!disabled} onDragStart={onDragStart}
-   aria-pressed={selected} data-wrong={wrong}
+   aria-pressed={selected} data-wrong={wrong} data-aisle={w.aisle}
    aria-label={showEnglish?`${w.id}, ${w.tr}`:`Ürün resmi: ${w.tr}`}
    className={`fm-product fm4-product ${selected?'fm-product-selected':''} ${active?'fm-product-good':''} ${wrong?'fm4-product-wrong':''}`}
    title={showEnglish?w.id:undefined}>
@@ -215,7 +216,7 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
  const allowedAisle=(i:number)=>i===0||(i===1?progress.completedByAisle.orchard===5:progress.completedByAisle.bakery===5);
  const stageEnabled=(n:number)=>n<=usedStage+1;
  return <div ref={dialog} role="dialog" aria-modal="true" aria-label="Lezzet Pazarı İngilizce macerası"
- className="fm-screen fm4-screen">
+ className="fm-screen fm4-screen fm6-screen" data-aisle={aisle}>
   <div className="fm-shell fm4-shell">
    <header className="fm-header fm4-header">
     <button className="fm-back fm4-back" aria-label="Kelime Bahçesi’ne dön" onClick={()=>{cancelVoice();onBack();}}>
@@ -230,8 +231,10 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
      const unlocked=allowedAisle(i);
      return <button key={lane.id} disabled={!unlocked||busy} onClick={()=>changeStage(
       Math.min(5,progress.completedByAisle[lane.id]+1) as MarketStage,lane.id)}
-      data-current={lane.id===aisle}
+      data-current={lane.id===aisle} data-aisle={lane.id}
+      aria-current={lane.id===aisle?'true':undefined}
        className={`fm-lane fm4-lane ${lane.id===aisle?'fm-lane-active':''}`}>
+      <span className="fm6-lane-art" aria-hidden="true"><img src={MARKET_ART[lane.id]} alt="" loading="lazy" decoding="async" draggable={false}/></span>
       <span className="fm-lane-icon" aria-hidden="true">{lane.icon}</span>
       <span className="fm-lane-copy"><strong>{lane.title}</strong><small>{unlocked?`${progress.completedByAisle[lane.id]}/5 görev`:'Önce önceki sokağı tamamla'}</small></span>
      </button>})}
@@ -239,6 +242,8 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
    <section className="fm-stagebar fm4-stagebar" aria-label="Dil görevleri">
     {MARKET_STAGES.map(item=><button key={item.stage} disabled={!stageEnabled(item.stage)||busy}
       data-current={item.stage===stage}
+      data-completed={progress.starsByLevel[MARKET_OFFSETS[aisle]+item.stage]>0}
+      aria-label={`${item.stage}. ${item.title}${stageEnabled(item.stage)?'':' (henüz açılmadı)'}`}
        aria-current={item.stage===stage?'step':undefined}
        className={`fm-stage-pill fm4-stage-pill ${item.stage===stage?'fm-pill-active':''}`}
       onClick={()=>changeStage(item.stage as MarketStage)}>
