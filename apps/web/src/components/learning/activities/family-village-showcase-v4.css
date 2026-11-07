@@ -296,6 +296,10 @@
 }
 @media(max-width:680px){
  .fv-screen.fv3-screen.fv4-screen{padding:max(6px,env(safe-area-inset-top,0px)) 6px max(20px,env(safe-area-inset-bottom,0px))}
+ .fv4-screen .fv3-top{
+  background:linear-gradient(90deg,#122346d9,#2c2154d0 51%,#112d4fd9),
+    url('/assets/word-garden/premium-v2/family_mobile.webp') center 40%/cover;
+ }
  .fv4-screen .fv3-top{min-height:69px;padding:7px 7px;gap:6px;margin:0 0 11px;border-radius:15px}
  .fv4-screen .fv3-back,.fv4-screen .fv4-stars{
   min-height:44px;border-radius:13px;padding:7px 9px;font-size:10px}

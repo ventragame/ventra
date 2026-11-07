@@ -282,6 +282,7 @@ test('V4 recreates the approved poster with real dynamic accessible interactive 
  assert.match(ui,/await onSave\(district,stage,mistakes/);
  assert.doesNotMatch(ui,/data:image\/png;base64|<canvas/,'controls must not be painted into a static screenshot');
  assert.match(css,/family\.webp/);
+ assert.match(css,/family_mobile\.webp/);
  assert.match(css,/fv4-heading/);
  assert.match(css,/fv3-district/);
  assert.match(css,/fv3-step/);
