@@ -63,7 +63,7 @@ test('All four sentence adventures clarify repairs, first-word case and progress
  assert.match(plaza,/taskReady\?<\>/);
  assert.match(plaza,/sp-v3-waiting/);
  assert.match(plaza,/nextTimer\.current=setTimeout/);
- assert.match(plaza,/src=\{`\/assets\/sentence-plaza\/v3\/mission-/);
+ assert.match(plaza,/src=\{`\/assets\/sentence-plaza\/v5\/mission-/);
  assert.match(move,/İngilizce cümlede bir dil bilgisi hatası var/);
  assert.match(lantern,/İngilizce cümlede bir dil bilgisi hatası var/);
  assert.match(wish,/wf-compact-help/);

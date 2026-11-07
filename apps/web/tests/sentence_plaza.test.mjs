@@ -249,14 +249,14 @@ test('V4 sentence plaza home has no oversized artwork; all mission covers and ga
  const game=ui.slice(last);
  assert.doesNotMatch(map,/<SentencePlazaScene/,'do not render the giant home image');
  assert.doesNotMatch(map,/plaza-world\.webp/);
- assert.match(map,/className="sp-v4-home"/);
+ assert.match(map,/className="sp-v4-home sp-v5-home"/);
  assert.match(map,/aria-label="Oyunun dört adımı"/);
  for(const word of ['Gör','Dinle','Kur','Canlandır'])assert.ok(map.includes(word));
  assert.match(map,/role="progressbar"/);
  assert.match(map,/aria-valuenow=\{progress\.completedLevels\}/);
  assert.match(map,/openMission\(Math\.min\(6,progress\.completedLevels\+1\) as PlazaMission\)/);
  assert.match(map,/SENTENCE_PLAZA_MISSIONS\.map/);
- assert.match(map,/src=\{`\/assets\/sentence-plaza\/v3\/mission-\$\{item\.id\}\.webp`\}/);
+ assert.match(map,/src=\{`\/assets\/sentence-plaza\/v5\/mission-\$\{item\.id\}\.webp`\}/);
  assert.match(map,/data-status=\{done\?'completed':unlocked\?'available':'locked'\}/);
  assert.match(map,/aria-label=\{`\$\{item\.title\}/);
  assert.match(game,/screen==='play'/);
@@ -270,4 +270,42 @@ test('V4 sentence plaza home has no oversized artwork; all mission covers and ga
  assert.match(style,/@media\(max-width:610px\)/);
  assert.match(style,/@media\(max-width:359px\)/);
  assert.match(style,/prefers-reduced-motion:reduce/);
+});
+
+test('V5 premium covers are 6 distinct real WebPs; responsive cards preserve progression',()=>{
+ const read=p=>fs.readFileSync(new URL(p,import.meta.url),'utf8');
+ const page=read('../src/components/learning/sentence/SentencePlazaAdventure.tsx');
+ const css=read('../src/components/learning/sentence/sentence-plaza-covers-v5.css');
+ const base=new URL('../public/assets/sentence-plaza/v5/',import.meta.url);
+ const hashes=new Set();
+ for(let n=1;n<=6;n++){
+  const name='mission-'+n+'.webp';
+  const bytes=fs.readFileSync(new URL(name,base));
+  assert.equal(bytes.toString('ascii',0,4),'RIFF',name);
+  assert.equal(bytes.toString('ascii',8,12),'WEBP',name);
+  assert.ok(bytes.length>=60000&&bytes.length<=200000,name+' needs meaningful detail and optimized size');
+  hashes.add(bytes.toString('base64').slice(0,200));
+ }
+ assert.equal(hashes.size,6,'six worlds must have different images');
+ const mapStart=page.indexOf("screen==='map'?<>");
+ const mapEnd=page.indexOf("</>:screen==='lesson'?<>",mapStart);
+ const overview=page.slice(mapStart,mapEnd);
+ assert.ok(mapStart>=0&&mapEnd>mapStart);
+ assert.match(overview,/className="sp-v4-home sp-v5-home"/);
+ assert.match(overview,/className="sp-map-grid sp-v4-grid sp-v5-grid"/);
+ assert.match(overview,/className="sp-mission sp-v4-mission sp-v5-mission"/);
+ assert.match(overview,/src=\{`\/assets\/sentence-plaza\/v5\/mission-\$\{item\.id\}\.webp`\}/);
+ assert.match(overview,/width=\{1120\} height=\{390\}/);
+ assert.match(overview,/data-status=\{done\?'completed':unlocked\?'available':'locked'\}/);
+ assert.match(overview,/disabled=\{!unlocked\}/);
+ assert.match(overview,/progress\.completedLevels\+1/);
+ assert.doesNotMatch(overview,/<SentencePlazaScene/,'do not reintroduce large plaza image');
+ assert.match(page,/sentence-plaza-covers-v5\.css/);
+ assert.match(css,/aspect-ratio:1120 \/ 390/);
+ assert.match(css,/@media\(max-width:960px\)/);
+ assert.match(css,/@media\(max-width:560px\)/);
+ assert.match(css,/grid-template-columns:minmax\(0,1fr\)/);
+ assert.match(css,/prefers-reduced-motion:reduce/);
+ assert.match(page,/saveSentencePlazaMission/);
+ assert.match(page,/nextTimer\.current=setTimeout/);
 });

@@ -1,0 +1,191 @@
+/* Cümle Meydanı V5 — sharper, cohesive card covers, mission cards only.
+ * Genuine state (unlocked/complete) comes from progress, not from artwork.
+ * Changing this file must not affect lesson/play scenes or their CSS. */
+.sp-v5-home .sp-v5-grid{
+ grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:clamp(12px,1.65vw,20px);
+ align-items:stretch;
+}
+.sp-v5-home .sp-v5-mission{
+ --v5-accent:#ead5a8;
+ position:relative;
+ display:flex;
+ flex-direction:column;
+ min-width:0;min-height:0;
+ overflow:hidden;
+ padding:0;
+ border:2px solid var(--v5-accent);
+ border-radius:20px;
+ background:linear-gradient(180deg,#145b68,#0b384d 90%);
+ color:#fff8e2;
+ text-align:left;
+ box-shadow:0 5px 0 #072b3b,0 14px 23px #071d3191;
+ transition:transform .15s ease,box-shadow .15s ease,border-color .15s ease;
+}
+.sp-v5-home .sp-v5-mission[data-status=completed]{
+ --v5-accent:#8febb0;
+ box-shadow:0 5px 0 #25875d,0 14px 23px #071d3191;
+}
+.sp-v5-home .sp-v5-mission[data-status=available]{
+ --v5-accent:#ffe19b;
+ box-shadow:0 5px 0 #a88744,0 16px 27px #091b3385,0 0 13px #f1d17a24;
+}
+.sp-v5-home .sp-v5-mission[data-status=locked]{
+ --v5-accent:#8baeba;
+ border-color:#87adbbaa;
+}
+.sp-v5-home .sp-v5-mission:disabled{
+ opacity:1;filter:none;cursor:not-allowed;
+}
+.sp-v5-home .sp-v5-mission .sp-v2-card-art{
+ display:block;
+ width:100%;
+ height:auto;
+ aspect-ratio:1120 / 390;
+ max-height:none;
+ object-fit:fill;
+ object-position:center;
+ border-bottom:2px solid #f2deb49c;
+ filter:saturate(1.07) contrast(1.02);
+ transition:filter .17s ease;
+}
+.sp-v5-home .sp-v5-mission[data-status=locked] .sp-v2-card-art{
+ filter:saturate(.73) brightness(.85);
+}
+.sp-v5-home .sp-v5-mission[data-status=completed] .sp-v2-card-art{
+ filter:saturate(1.05);
+}
+/* Fully opaque live badges cover the artwork's previsualized corners so
+ * stale locks/checkmarks can never contradict saved progress. */
+.sp-v5-home .sp-v5-mission .sp-mission-top{
+ position:absolute;
+ inset:0 0 auto 0;
+ z-index:3;
+ display:flex;
+ justify-content:space-between;
+ align-items:flex-start;
+ font-size:24px;
+ filter:none;
+ pointer-events:none;
+}
+.sp-v5-home .sp-v5-mission .sp-mission-top span{
+ display:grid;
+ place-items:center;
+ flex:0 0 66px;
+ width:66px;
+ height:65px;
+ min-width:66px;
+ min-height:65px;
+ padding:5px;
+ border:0;
+ border-right:2px solid #f5ddab;
+ border-bottom:2px solid #f5ddab;
+ border-radius:0 0 17px 0;
+ background:#0a4058;
+ color:#fff5d5;
+ text-shadow:0 1px 2px #061e30;
+ box-shadow:3px 4px 9px #0520358a;
+}
+.sp-v5-home .sp-v5-mission .sp-mission-top span:last-child{
+ border:0;
+ border-left:2px solid #ffe8b3;
+ border-bottom:2px solid #ffe8b3;
+ border-radius:0 0 0 17px;
+ background:#0b3e51;
+ color:#ffdfa0;
+ box-shadow:-3px 4px 9px #0520358a;
+}
+.sp-v5-home .sp-v5-mission[data-status=completed] .sp-mission-top span:last-child{
+ color:#e2ffe4;background:#1a7959;border-color:#baf1c4;
+}
+.sp-v5-home .sp-v5-mission[data-status=available] .sp-mission-top span:last-child{
+ color:#fff1ab;background:#87632a;border-color:#ffdfa0;
+}
+.sp-v5-home .sp-v5-mission[data-status=locked] .sp-mission-top span:last-child{
+ color:#e7eef4;background:#315567;border-color:#a9c4c9;
+}
+.sp-v5-home .sp-v5-mission strong{
+ display:block;
+ padding:12px 14px 4px;
+ color:#fff5d9;
+ font-size:clamp(14px,1.5vw,18px);
+ font-weight:1000;
+ letter-spacing:-.015em;
+ line-height:1.3;
+ text-wrap:balance;
+}
+.sp-v5-home .sp-v5-mission small{
+ display:block;
+ margin-top:auto;
+ padding:0 14px 13px;
+ color:#d8f3ea;
+ font-size:12px;
+ line-height:1.25;
+ font-weight:900;
+}
+.sp-v5-home .sp-v5-mission[data-status=locked] strong,
+.sp-v5-home .sp-v5-mission[data-status=locked] small{
+ color:#d2e1e6;
+}
+.sp-v5-home .sp-v5-mission:not(:disabled):hover{
+ transform:translateY(-2px);
+ box-shadow:0 7px 0 #093748,0 17px 26px #061d35a6;
+}
+.sp-v5-home .sp-v5-mission:not(:disabled):active{
+ transform:translateY(1px);
+}
+.sp-v5-home .sp-v5-mission:focus-visible{
+ outline:3px solid #fce3a5;
+ outline-offset:4px;
+}
+@media(max-width:960px){
+ .sp-v5-home .sp-v5-grid{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  gap:13px;
+ }
+ .sp-v5-home .sp-v5-mission strong{font-size:15px}
+ .sp-v5-home .sp-v5-mission .sp-mission-top span{
+  flex-basis:61px;min-width:61px;width:61px;
+  min-height:61px;height:61px;font-size:22px;
+ }
+}
+@media(max-width:560px){
+ .sp-v5-home .sp-v5-grid{
+  grid-template-columns:minmax(0,1fr);
+  gap:14px;
+ }
+ .sp-v5-home .sp-v5-mission{border-radius:17px}
+ .sp-v5-home .sp-v5-mission .sp-v2-card-art{
+  aspect-ratio:1120 / 390;
+  height:auto;
+  max-height:none;
+ }
+ .sp-v5-home .sp-v5-mission strong{
+  padding:10px 13px 3px;
+  font-size:clamp(15px,4vw,17px);
+ }
+ .sp-v5-home .sp-v5-mission small{
+  padding:0 13px 12px;
+  font-size:12px;
+ }
+ .sp-v5-home .sp-v5-mission .sp-mission-top span{
+  flex-basis:65px;min-width:65px;width:65px;
+  min-height:65px;height:65px;font-size:23px;
+ }
+}
+@media(max-width:359px){
+ .sp-v5-home .sp-v5-grid{gap:11px}
+ .sp-v5-home .sp-v5-mission .sp-mission-top span{
+  flex-basis:60px;min-width:60px;width:60px;
+  min-height:61px;height:61px;font-size:20px;
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ .sp-v5-home .sp-v5-mission,.sp-v5-home .sp-v5-mission .sp-v2-card-art{
+  animation:none!important;transition:none!important;
+ }
+ .sp-v5-home .sp-v5-mission:not(:disabled):hover,
+ .sp-v5-home .sp-v5-mission:not(:disabled):active{
+  transform:none!important;
+ }
+}

@@ -17,6 +17,7 @@ import './sentence-plaza.css';
 import './sentence-plaza-v2.css';
 import './sentence-clarity-v3.css';
 import './sentence-plaza-home-v4.css';
+import './sentence-plaza-covers-v5.css';
 
 interface Props{
  profileId:string;gradeLevel:number|null;englishLevel:EnglishPlacement;
@@ -303,7 +304,7 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
     <button type="button" onClick={onBack} className="sp-primary">Adalar Evreni'ne Dön</button>
    </div>:
    screen==='map'?<>
-    <section className="sp-v4-home" aria-labelledby="sp-v4-title">
+    <section className="sp-v4-home sp-v5-home" aria-labelledby="sp-v4-title">
      <div className="sp-v4-intro">
       <div className="sp-v4-intro-copy">
        <div className="sp-v4-kicker"><span aria-hidden="true">✦</span> BÖLGE 1 / 5 · CÜMLELER ŞEHRİ</div>
@@ -344,15 +345,16 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
        </div>
        <span className="sp-v4-quests-counter">✦ {progress.completedLevels}/6 tamamlandı</span>
       </div>
-      <div className="sp-map-grid sp-v4-grid" aria-label="Uyanan Meydan öğrenme görevleri">
+      <div className="sp-map-grid sp-v4-grid sp-v5-grid" aria-label="Uyanan Meydan öğrenme görevleri">
        {SENTENCE_PLAZA_MISSIONS.map(item=>{
         const unlocked=item.id<=progress.completedLevels+1,done=item.id<=progress.completedLevels;
-        return <button type="button" key={item.id} className="sp-mission sp-v4-mission" disabled={!unlocked}
+        return <button type="button" key={item.id} className="sp-mission sp-v4-mission sp-v5-mission" disabled={!unlocked}
          data-status={done?'completed':unlocked?'available':'locked'}
          aria-label={`${item.title}. ${done?'Tamamlandı, tekrar oyna':unlocked?'Oynamaya hazır':'Kilitli'}`}
          onClick={()=>openMission(item.id)}>
-         <img className="sp-v2-card-art" alt="" aria-hidden="true" loading="lazy" draggable={false}
-          src={`/assets/sentence-plaza/v3/mission-${item.id}.webp`}/>
+         <img className="sp-v2-card-art" alt="" aria-hidden="true" decoding="async"
+          loading={item.id<=3?'eager':'lazy'} draggable={false} width={1120} height={390}
+          src={`/assets/sentence-plaza/v5/mission-${item.id}.webp`}/>
          <div className="sp-mission-top"><span aria-hidden="true">{item.icon}</span>
           <span>{done?'✓':unlocked?'✦':'🔒'}</span></div>
          <strong>{item.id}. {item.title}</strong>
