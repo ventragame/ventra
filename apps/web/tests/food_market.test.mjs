@@ -376,7 +376,7 @@ test('G1 visual V6 keeps market assets resolvable and UI design independent of e
  assert.match(ui,/data-completed=\{progress\.starsByLevel/);
  assert.match(ui,/useAutoQuestionAdvance/);
  assert.match(ui,/await onSave\(aisle,stage,wrong/);
- for(const asset of ['market-orchard-v4.svg','market-bakery-v4.svg','market-cafe-v4.svg']){
+ for(const asset of ['market-orchard-v6.webp','market-bakery-v4.svg','market-cafe-v4.svg']){
   assert.ok(fs.existsSync(new URL('../public/assets/foods/'+asset,import.meta.url)),asset);
   assert.ok(ui.includes(asset),'scene art must reference an existing local asset');
  }
@@ -386,4 +386,15 @@ test('G1 visual V6 keeps market assets resolvable and UI design independent of e
  assert.match(css,/@media\(max-width:680px\)/);
  assert.match(css,/@media\(max-width:359px\)/);
  assert.match(css, /prefers-reduced-motion:reduce/);
+});
+
+test('G1 V6 orchard hero is a real, compressed local WebP connected to the market',()=>{
+ const file=new URL('../public/assets/foods/market-orchard-v6.webp',import.meta.url);
+ const bytes=fs.readFileSync(file);
+ assert.ok(bytes.length>50000&&bytes.length<180000,'hero WebP should be detailed but compressed');
+ assert.equal(bytes.toString('ascii',0,4),'RIFF','RIFF header');
+ assert.equal(bytes.toString('ascii',8,12),'WEBP','WebP signature');
+ const ui=fs.readFileSync(new URL('../src/components/learning/activities/FoodMarketAdventure.tsx',import.meta.url),'utf8');
+ assert.match(ui,/orchard:'\/assets\/foods\/market-orchard-v6\.webp'/);
+ assert.match(ui,/<MarketBackdrop aisle=\{aisle\}\/>/);
 });

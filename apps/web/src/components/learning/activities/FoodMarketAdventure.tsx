@@ -24,7 +24,7 @@ const newSession=(profileId:string,aisle:MarketAisle,stage:MarketStage)=>
   `food:${profileId}:${aisle}:${stage}:${Date.now()}:${Math.random().toString(36).slice(2)}`;
 
 const MARKET_ART:Record<MarketAisle,string>={
- orchard:'/assets/foods/market-orchard-v4.svg',
+ orchard:'/assets/foods/market-orchard-v6.webp',
  bakery:'/assets/foods/market-bakery-v4.svg',
  cafe:'/assets/foods/market-cafe-v4.svg'
 };
