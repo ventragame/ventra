@@ -93,6 +93,34 @@ export function SentencePlazaScene({effect,awaken,chapter,onInteract}:Props){
    {glow&&<g fill={color} opacity=".75" filter="url(#sp-glow)"><circle cx="65" cy="249" r="31"/><circle cx="834" cy="249" r="31"/></g>}
   </g>
   </g>
+  {/* Premium static environment is in the WebP. The following visual mutations
+      stay separate and are driven ONLY by a verified full sentence. */}
+  {awaken&&effect?.actor==='house'&&<g className="sp-v3-effect-house" transform="translate(96 202)">
+    <ellipse cx="90" cy="153" rx="97" ry="17" fill="#244d5a" opacity=".32"/>
+    <path d="M18 140V53L90 8l71 45v87Z" fill={color} opacity=".96"
+      stroke="#fff7d2" strokeWidth="7" strokeLinejoin="round"/>
+    <path d="M3 58L90 0l86 58" stroke="#ffe39c" strokeWidth="15"
+      fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+    <rect x="71" y="84" width="39" height="56" rx="9" fill="#f8e9bb"
+      stroke="#c99063" strokeWidth="5"/>
+    <rect x="29" y="77" width="29" height="30" rx="6" fill="#a4eeff"
+      stroke="#fffbe4" strokeWidth="5"/>
+    <rect x="122" y="77" width="27" height="30" rx="6" fill="#a4eeff"
+      stroke="#fffbe4" strokeWidth="5"/>
+    <path d="M14 147L90 155 166 147" stroke="#fff8cf" strokeWidth="6"
+      fill="none" strokeLinecap="round"/>
+  </g>}
+  {awaken&&effect?.actor==='lantern'&&<g className="sp-v3-effect-lanterns">
+   {[{x:145,y:269},{x:757,y:262}].map(({x,y},i)=><g key={i}>
+     <circle cx={x} cy={y} r="51" fill={color} opacity=".55" filter="url(#sp-glow)"/>
+     <path d={`M${x-19} ${y-18}h38l-5 40h-28Z`} fill={color}
+       stroke="#fff7d4" strokeWidth="5" strokeLinejoin="round"/>
+     <path d={`M${x-9} ${y-22}q9-20 18 0`} fill="none"
+       stroke="#ffe3ac" strokeWidth="5" strokeLinecap="round"/>
+     <path d={`M${x-2} ${y-32}v-9 M${x-43} ${y-3}h-11 M${x+43} ${y-3}h11`}
+       stroke="#fff0a9" strokeWidth="5" strokeLinecap="round"/>
+   </g>)}
+  </g>}
   {/* Real response to color / scene language */}
   {awaken&&effect?.actor==='flower'&&<g className="sp-effect-bloom">
    {Array.from({length:5},(_,i)=><g key={i} transform={`translate(${565+i*26},${366+(i%2)*13})`}>

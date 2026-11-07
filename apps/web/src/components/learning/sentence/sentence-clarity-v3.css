@@ -68,3 +68,20 @@
 @media(prefers-reduced-motion:reduce){
  .sp-v3 .sp-v2-backdrop,.sp-v3 .sp-repair-word{transition:none!important;animation:none!important}
 }
+
+/* Verified sentence effects remain animated after replacing the old SVG scenery. */
+.sp-v3 .sp-v3-effect-house{
+ filter:drop-shadow(0 6px 12px #103b4e9c);
+ transform-box:fill-box;transform-origin:center bottom;
+ animation:sp-v3-arrive .7s cubic-bezier(.18,1.25,.3,1) both;
+}
+.sp-v3 .sp-v3-effect-lanterns{
+ animation:sp-v3-light .85s ease-out both;
+}
+@keyframes sp-v3-arrive{from{opacity:0;scale:.75}to{opacity:1;scale:1}}
+@keyframes sp-v3-light{from{opacity:0}to{opacity:1}}
+@media(prefers-reduced-motion:reduce){
+ .sp-v3 .sp-v3-effect-house,.sp-v3 .sp-v3-effect-lanterns{
+  animation:none!important;transition:none!important;
+ }
+}
