@@ -160,20 +160,17 @@ export function ExplorerCanvas({
     style={{height:`min(${height}px, 72dvh)`,minHeight:'340px'}}>
     <div ref={host} aria-hidden="true" className="absolute inset-0 overflow-hidden"
       style={{touchAction:'none',userSelect:'none'}}/>
-    <div className="pointer-events-none absolute left-3 top-3 rounded-xl border border-[#fff4db]/70 bg-[#163b55]/90 px-3 py-2 text-[10px] font-extrabold tracking-wide text-white shadow-lg sm:text-xs">
-      🧭 {area==='garden'?'Keşfet':(caption??'Hayvan Dostları')}
-    </div>
     {area==='garden'&&<button type="button" onClick={showAll}
       aria-label="Altı dünyanın tamamını haritada göster" title="Haritanın tamamı"
-      className="absolute left-3 top-[61px] flex min-h-11 min-w-11 items-center justify-center rounded-xl border-2 border-amber-100/85 bg-[#20516a]/90 px-3 text-xl text-white shadow-xl backdrop-blur-sm focus-visible:outline focus-visible:outline-amber-200">
+      className="absolute left-2 top-2 flex min-h-11 min-w-11 items-center justify-center rounded-xl border-2 border-amber-100/85 bg-[#20516a]/90 px-3 text-xl text-white shadow-xl backdrop-blur-sm focus-visible:outline focus-visible:outline-amber-200">
       🗺️
     </button>}
     <button type="button" onClick={toggleAmbience} aria-pressed={ambienceOn}
       aria-label={ambienceOn?'Ortam sesini kapat':'Ortam sesini aç'}
-      className="absolute right-3 top-3 min-h-11 rounded-xl border border-white/60 bg-[#164958]/90 px-3 py-2 text-xs font-black text-white shadow-lg backdrop-blur-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-200">
-      {ambienceOn?'♪ Ortam Açık':'♪ Ortam Sesi'}
+      className="absolute right-2 top-2 grid min-h-11 min-w-11 place-items-center rounded-xl border border-white/70 bg-[#164958]/95 px-2 py-2 text-lg font-black text-white shadow-lg backdrop-blur-sm focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-amber-200">
+      <span aria-hidden="true">{ambienceOn?'🔊':'🔈'}</span>
     </button>
-    <div role="status" aria-live="polite" className="pointer-events-none absolute left-3 right-3 bottom-3 flex justify-start">
+    <div role="status" aria-live="polite" className="sr-only">
       <div className="max-w-[65%] rounded-xl border border-white/25 bg-[#134454]/85 px-3 py-2 text-[11px] font-bold text-white shadow-lg backdrop-blur-sm sm:text-xs">
         {engineFailed?'Sahne açılamadı. Aşağıdaki oyunlardan seç.':ready?hint:'🌿 Dünya hazırlanıyor…'}
       </div>

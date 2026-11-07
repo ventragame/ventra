@@ -4,35 +4,35 @@
 import type {Point} from './worldLayout';
 
 export const GARDEN_ROAD_NODES={
- center:{x:675,y:647},
- bridge:{x:745,y:662},
- market:{x:598,y:566},
- meadowTurn:{x:466,y:486},
- meadowGate:{x:353,y:433},
- animals:{x:290,y:407},
- colorsFork:{x:531,y:419},
- colors:{x:505,y:280},
- numberFork:{x:717,y:449},
- numbers:{x:826,y:358},
- templeBridge:{x:972,y:336},
- sanctuary:{x:1150,y:246},
- familyBridge:{x:878,y:642},
- family:{x:1130,y:651}
+  // A wide, open central promenade; six short branches terminate at each card.
+  west:{x:305,y:448},
+  westMid:{x:505,y:448},
+  center:{x:700,y:448},
+  eastMid:{x:895,y:448},
+  east:{x:1095,y:448},
+  animals:{x:305,y:370},
+  colors:{x:700,y:370},
+  numbers:{x:1095,y:370},
+  food:{x:305,y:533},
+  family:{x:700,y:533},
+  sanctuary:{x:1095,y:533}
 } as const;
 export type RoadNodeId=keyof typeof GARDEN_ROAD_NODES;
 export const GARDEN_ROAD_EDGES:readonly (readonly [RoadNodeId,RoadNodeId])[]=[
- ['center','market'],['center','bridge'],['market','meadowTurn'],
- ['meadowTurn','meadowGate'],['meadowGate','animals'],
- ['meadowTurn','colorsFork'],['colorsFork','colors'],
- ['market','numberFork'],['numberFork','numbers'],
- ['numbers','templeBridge'],['templeBridge','sanctuary'],
- ['bridge','familyBridge'],['familyBridge','family'],
- ['market','colorsFork'],['bridge','numberFork']
+  ['west','westMid'],['westMid','center'],['center','eastMid'],['eastMid','east'],
+  ['west','animals'],['center','colors'],['east','numbers'],
+  ['west','food'],['center','family'],['east','sanctuary']
 ];
 export const GARDEN_DESTINATION_NODES:Record<string,RoadNodeId>={
  animals:'animals',colors:'colors',numbers:'numbers',
- food:'market',family:'family',sanctuary:'sanctuary'
+ food:'food',family:'family',sanctuary:'sanctuary'
 };
+/** Top-row gates are below the cards; bottom-row gates are above them.
+ * No road crosses through a destination's illustration or label.
+ */
+export function gardenDistrictEntrance(id:string,destination:Point):Point{
+ return {x:destination.x,y:destination.y+(['food','family','sanctuary'].includes(id)?-145:88)};
+}
 export const ROAD_CLEARANCE=55;
 const dist=(a:Point,b:Point)=>Math.hypot(a.x-b.x,a.y-b.y);
 export function closestRoadPoint(point:Point):{point:Point;distance:number;from:RoadNodeId;to:RoadNodeId}{
@@ -92,13 +92,11 @@ function bestRoadEntry(point:Point):{entry:Point;node:RoadNodeId}{
 function compactRoute(points:Point[]):Point[]{
  return points.filter((p,i)=>i===0||dist(p,points[i-1])>3);
 }
-/** Route from current position to a district's reachable entrance.
- * The entrance remains 76 units below its landmark for safe interaction.
- */
+/** Route through the central promenade to a visible gate outside a tile. */
 export function planGardenRoute(from:Point,districtId:string,destination:Point):Point[]{
  const goal=GARDEN_DESTINATION_NODES[districtId];
  if(!goal||!Number.isFinite(from.x)||!Number.isFinite(from.y))return [];
- const entrance={x:destination.x,y:destination.y+76};
+ const entrance=gardenDistrictEntrance(districtId,destination);
  if(dist(from,entrance)<85)return [entrance];
  const start=bestRoadEntry(from);
  const segments=shortestGraphRoute(start.node,goal);

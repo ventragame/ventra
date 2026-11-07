@@ -50,7 +50,7 @@ export class ExplorerScene extends Phaser.Scene {
   preload():void {
     this.load.svg('p4_explorer','/assets/kids/explorer-avatar.svg',{width:150,height:175});
     if(this.area==='garden'){
-      this.load.image('garden_ground_v4','/assets/word-garden/modular-v4/garden-ground.webp');
+      this.load.image('garden_ground_v5','/assets/word-garden/modular-v5/garden-ground.webp');
       for(const id of ['animals','colors','numbers','food','family','sanctuary'])
         this.load.image('garden_district_'+id,'/assets/word-garden/modular-v4/'+id+'.webp');
       this.load.svg('garden_avatar_torso','/assets/kids/explorer-avatar-torso.svg',{width:150,height:175});
@@ -62,11 +62,11 @@ export class ExplorerScene extends Phaser.Scene {
     }
   }
   create():void {
-    this.cameras.main.setBackgroundColor('#83cfca');
+    this.cameras.main.setBackgroundColor('#91bf60');
     this.cameras.main.setBounds(0,0,WORLD_WIDTH,WORLD_HEIGHT);
     if(this.area==='garden'){
-      if(this.textures.exists('garden_ground_v4')){
-        this.add.image(WORLD_WIDTH/2,WORLD_HEIGHT/2,'garden_ground_v4')
+      if(this.textures.exists('garden_ground_v5')){
+        this.add.image(WORLD_WIDTH/2,WORLD_HEIGHT/2,'garden_ground_v5')
           .setDisplaySize(WORLD_WIDTH,WORLD_HEIGHT).setDepth(-20);
         this.drawGardenRoads();
       }else paintGardenWorld(this);
@@ -106,9 +106,9 @@ export class ExplorerScene extends Phaser.Scene {
     const height=this.scale.height;
     if(this.area==='garden'){
       // All six districts visible at once on desktop; follow the explorer on phones.
-      const overview=w>=750&&height>=430;
+      const overview=w>=680&&height>=300;
       // Cover the complete viewport: the old contain-fit exposed a cyan strip.
-      const fit=Math.max(w/WORLD_WIDTH,height/WORLD_HEIGHT)*1.009;
+      const fit=Math.min(w/1300,height/690);
       this.cameras.main.setZoom(overview?fit:Math.max(.59,Math.min(.94,fit*1.12)));
       this.cameras.main.setBounds(0,0,WORLD_WIDTH,WORLD_HEIGHT);
       if(overview){this.cameras.main.stopFollow();this.cameras.main.centerOn(WORLD_WIDTH/2,WORLD_HEIGHT/2);}
@@ -120,27 +120,27 @@ export class ExplorerScene extends Phaser.Scene {
     this.cameras.main.setBounds(0,0,WORLD_WIDTH,WORLD_HEIGHT);
   }
   /** The visible cream paths use exactly the existing deterministic navigation graph. */
+  /** Visible trails are derived from the same graph used by touch and keyboard movement. */
   private drawGardenRoads():void {
     const road=this.add.graphics().setDepth(-9);
     for(const [from,to] of GARDEN_ROAD_EDGES){
       const a=GARDEN_ROAD_NODES[from],b=GARDEN_ROAD_NODES[to];
-      // A soft shadow, pale stone trail and dotted stepping-stones.
-      road.lineStyle(43,0x206252,.32);road.lineBetween(a.x,a.y+5,b.x,b.y+5);
-      road.lineStyle(32,0xf9e2ab,.96);road.lineBetween(a.x,a.y,b.x,b.y);
-      road.lineStyle(24,0xfff3d2,.98);road.lineBetween(a.x,a.y,b.x,b.y);
+      road.lineStyle(28,0x326a4c,.23);road.lineBetween(a.x,a.y+4,b.x,b.y+4);
+      road.lineStyle(22,0xe7c993,.97);road.lineBetween(a.x,a.y,b.x,b.y);
+      road.lineStyle(15,0xfff2cf,1);road.lineBetween(a.x,a.y,b.x,b.y);
       const distance=Math.hypot(b.x-a.x,b.y-a.y);
       const steps=Math.max(1,Math.floor(distance/34));
-      for(let n=1;n<steps;n++){
-        const t=n/steps, x=a.x+(b.x-a.x)*t, y=a.y+(b.y-a.y)*t;
-        road.fillStyle(0xe4bf7b,.6);road.fillCircle(x,y,2.6);
+      for(let i=1;i<steps;i++){
+        const t=i/steps,x=a.x+(b.x-a.x)*t,y=a.y+(b.y-a.y)*t;
+        road.fillStyle(0xcba67c,.44);road.fillEllipse(x,y,4,3);
       }
     }
-    for(const [nodeId,point] of Object.entries(GARDEN_ROAD_NODES)){
-      if(['center','bridge','meadowTurn','numberFork','familyBridge'].includes(nodeId)){
-        road.fillStyle(0x0a756c,.24);road.fillCircle(point.x,point.y+3,19);
-        road.fillStyle(0xffe4a3,.98);road.fillCircle(point.x,point.y,12);
-        road.lineStyle(3,0xfff8dc,1);road.strokeCircle(point.x,point.y,12);
-      }
+    for(const id of ['west','center','east']){
+      const point=GARDEN_ROAD_NODES[id];
+      road.fillStyle(0x185c52,.21);road.fillCircle(point.x,point.y+3,21);
+      road.fillStyle(0xffe6a8,1);road.fillCircle(point.x,point.y,14);
+      road.lineStyle(3,0xfff9de,1);road.strokeCircle(point.x,point.y,14);
+      road.fillStyle(0xe9c66d,.85);road.fillCircle(point.x,point.y,4);
     }
   }
   private drawLandscape():void {
@@ -253,6 +253,8 @@ export class ExplorerScene extends Phaser.Scene {
     if(this.area==='garden'&&object.kind==='district'){
       // Each landmark uses exactly the same optimized WebP as its world card.
       // Neither progress numbers nor labels are baked into the image.
+      const platform=this.add.ellipse(0,68,235,26,0x215c48,.18);
+      node.add(platform);
       const frame=this.add.graphics();
       frame.fillStyle(0x0a3347,.22);frame.fillRoundedRect(-143,-132,286,211,31);
       frame.fillStyle(0x0b4854,.97);frame.fillRoundedRect(-139,-139,278,207,27);
@@ -389,7 +391,7 @@ export class ExplorerScene extends Phaser.Scene {
     this.pendingTarget=null;this.path=null;this.waypoints=[];
     this.clearTravelTrail();
     this.cameras.main.stopFollow();
-    const fit=Math.max(this.scale.width/WORLD_WIDTH,this.scale.height/WORLD_HEIGHT)*1.009;
+    const fit=Math.min(this.scale.width/1300,this.scale.height/690);
     if(this.reducedMotion){
       this.cameras.main.setZoom(fit);
       this.cameras.main.centerOn(WORLD_WIDTH/2,WORLD_HEIGHT/2);
@@ -461,7 +463,7 @@ export class ExplorerScene extends Phaser.Scene {
         this.pendingTarget=null;
         if(id){
           const object=this.targets.find(t=>t.id===id);
-          if(object && distanceBetween(next,{x:object.x,y:object.y})<INTERACTION_DISTANCE+25){
+          if(object && distanceBetween(next,{x:object.x,y:object.y})<(this.area==='garden'?170:INTERACTION_DISTANCE+25)){
             if(!this.reducedMotion){
               const pop=this.add.text(object.x,object.y-120,'✦',{fontSize:'38px',color:'#fff1a7'}).setDepth(950);
               this.tweens.add({targets:pop,alpha:0,y:pop.y-55,duration:650,

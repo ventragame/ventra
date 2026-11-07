@@ -20,16 +20,16 @@ export const WORLD_HEIGHT = 940;
 export const WALK_SPEED = 240;
 export const INTERACTION_DISTANCE = 72;
 export const PLAYER_START: Record<WorldArea,Point> = {
-  garden:{x:675,y:647},
+  garden:{x:700,y:448},
   meadow:{x:705,y:525}
 };
 export const DISTRICTS:readonly WorldObject[] = [
-  {id:'animals',kind:'district',label:'Hayvan Çayırı',x:290,y:331,unlocked:true,tint:0x81da81},
-  {id:'colors',kind:'district',label:'Renk Korusu',x:505,y:204,unlocked:false,tint:0xec9bdb},
-  {id:'numbers',kind:'district',label:'Sayı Vadisi',x:826,y:282,unlocked:false,tint:0x80cef4},
-  {id:'food',kind:'district',label:'Lezzet Pazarı',x:598,y:490,unlocked:false,tint:0xf1b577},
-  {id:'family',kind:'district',label:'Aile Köyü',x:1130,y:575,unlocked:false,tint:0xcab0ff},
-  {id:'sanctuary',kind:'district',label:'Keşif Tapınağı',x:1150,y:170,unlocked:false,tint:0x91ded2}
+  {id:'animals',kind:'district',label:'Hayvan Çayırı',x:305,y:282,unlocked:true,tint:0x81da81},
+  {id:'colors',kind:'district',label:'Renk Korusu',x:700,y:282,unlocked:false,tint:0xec9bdb},
+  {id:'numbers',kind:'district',label:'Sayı Vadisi',x:1095,y:282,unlocked:false,tint:0x80cef4},
+  {id:'food',kind:'district',label:'Lezzet Pazarı',x:305,y:678,unlocked:false,tint:0xf1b577},
+  {id:'family',kind:'district',label:'Aile Köyü',x:700,y:678,unlocked:false,tint:0xcab0ff},
+  {id:'sanctuary',kind:'district',label:'Keşif Tapınağı',x:1095,y:678,unlocked:false,tint:0x91ded2}
 ] as const;
 export const ANIMAL_POSITIONS:Record<string,Point> = {
   cat:{x:332,y:314}, dog:{x:550,y:290}, bird:{x:795,y:248},

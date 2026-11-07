@@ -63,3 +63,15 @@ test('V4 card and interactive map reuse identical source illustrations',()=>{
  assert.equal(ground.toString('ascii',8,12),'WEBP');
  assert.ok(ground.length<500000);
 });
+
+test('V5 quiet meadow is a separate valid WebP without baked landmarks',()=>{
+ const asset=path.resolve(here,'../public/assets/word-garden/modular-v5/garden-ground.webp');
+ const buf=fs.readFileSync(asset);
+ assert.equal(buf.toString('ascii',0,4),'RIFF');
+ assert.equal(buf.toString('ascii',8,12),'WEBP');
+ assert.ok(buf.length>30000&&buf.length<200000);
+ const scene=fs.readFileSync(path.resolve(here,'../src/components/learning/world/ExplorerScene.ts'),'utf8');
+ assert.match(scene,/garden-ground\.webp/);
+ assert.match(scene,/modular-v5/);
+ for(const id of names) assert.match(scene,new RegExp("garden_district_"));
+});
