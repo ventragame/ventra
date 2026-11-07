@@ -457,8 +457,8 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
       {!served&&<button type="button" className="wf-primary" disabled={!ready||picked.length!==question.tokens.length||saving||Boolean(saveError)}
        onClick={submit}>✦ Canlandır</button>}
       {served&&<div className="wf-success" role="status">✦ İngilizce cümlen kabul edildi. Sonraki görev otomatik başlıyor.</div>}
-      <p className="wf-fine">Süre cezası yok. İpucu veya tam cevap dinleme kullanıldıysa
-       çözüm yardım alınmış olarak kaydedilir; yanlışları düzelterek devam edebilirsin.</p>
+      <details className="wf-compact-help"><summary>📖 Öğrenme yardımı</summary>
+        <p>Süre cezası yok. İpucu ve dinleme desteği ayrı kaydedilir.</p></details>
      </>:null}
     </aside></div>
    </>}
