@@ -17,8 +17,10 @@ export function SentencePlazaScene({effect,awaken,chapter,onInteract}:Props){
  const houseTint=awaken&&effect?.actor==='house'?color:'#de96c6';
  const glow=awaken&&effect?.action==='glow';
  const motion=awaken&&effect?.action;
- return <div className={`sp-art ${awaken?'sp-art-awaken':''} sp-act-${motion||'idle'}`}
+ return <div className={`sp-art sp-v2-art ${awaken?'sp-art-awaken':''} sp-act-${motion||'idle'}`}
    role="img" aria-label={awaken?`İngilizce cümlen gerçek oldu: ${effect?.actor} sahnede değişti`:'Büyülü meydanda uyandırılmayı bekleyen nesneler ve karakterler'}>
+ <img src="/assets/sentence-plaza/v2/plaza-world.webp" className="sp-v2-backdrop"
+  alt="" aria-hidden="true" draggable={false} decoding="async"/>
  <svg viewBox="0 0 900 478" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" className="sp-world-svg">
   <defs>
    <linearGradient id="sp-sky" x1="0" y1="0" x2="0.18" y2="1"><stop stopColor="#2b4e94"/><stop offset=".42" stopColor="#7b9dc3"/><stop offset="1" stopColor="#f9c49f"/></linearGradient>
@@ -31,6 +33,7 @@ export function SentencePlazaScene({effect,awaken,chapter,onInteract}:Props){
    <filter id="sp-soft"><feDropShadow dx="0" dy="7" stdDeviation="8" floodColor="#24365b" floodOpacity=".4"/></filter>
    <pattern id="sp-stones" width="58" height="29" patternUnits="userSpaceOnUse"><path d="M0 0H58 M29 0V15 M0 15H58 M4 15V29 M50 15V29" stroke="#ac8290" strokeOpacity=".25" fill="none" strokeWidth="2"/></pattern>
   </defs>
+  <g className="sp-static-scenery" aria-hidden="true">
   <rect width="900" height="478" fill="url(#sp-sky)"/>
   <ellipse cx="702" cy="75" rx="174" ry="126" fill="url(#sp-sun)"/>
   <g opacity=".34" fill="#eaf5ff"><path d="M-24 116q34-44 69-8q39-52 83 2q43-31 82 8z"/><path d="M623 117q43-41 80-6q38-51 88-1q36-25 74 9z"/></g>
@@ -88,6 +91,7 @@ export function SentencePlazaScene({effect,awaken,chapter,onInteract}:Props){
    <path d="M65 330v-72M834 330v-72" stroke="#69526c" strokeWidth="8"/>
    <path d="M49 266h32l-5-38H54Z M818 266h32l-5-38h-22Z" fill={glow?color:'#bcb6bc'} stroke="#f6e2bb" strokeWidth="4"/>
    {glow&&<g fill={color} opacity=".75" filter="url(#sp-glow)"><circle cx="65" cy="249" r="31"/><circle cx="834" cy="249" r="31"/></g>}
+  </g>
   </g>
   {/* Real response to color / scene language */}
   {awaken&&effect?.actor==='flower'&&<g className="sp-effect-bloom">
@@ -150,7 +154,7 @@ export function SentencePlazaScene({effect,awaken,chapter,onInteract}:Props){
  </svg>
  <div className="sp-scene-caption">
   <span className="sp-scene-glyph" aria-hidden="true">✦</span>
-  <span>{awaken?'Cümlenin anlamı dünyayı değiştirdi!':'Sihir, doğru İngilizce cümleyi bekliyor…'}</span>
+  <span>{awaken?'✨ Canlandı!':'✨ Cümleni kur'}</span>
   {onInteract&&<button type="button" onClick={onInteract} className="sp-scene-speak" aria-label="İngilizce cümleyi tekrar dinle">🔊 Dinle</button>}
  </div>
  </div>;

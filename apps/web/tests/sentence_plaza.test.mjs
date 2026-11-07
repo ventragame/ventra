@@ -206,3 +206,35 @@ test('Commit-to-answer is grammatical and does not reveal the correct word after
  assert.match(ui,/task\.explanation/);
  assert.doesNotMatch(ui,/if\(tile\.word!==task\.tokens\[chosenCount\]\)/);
 });
+
+test('Cümle Meydanı V2 visual-first scene, 6 genuine WebP covers and compact task flow',()=>{
+ const root=new URL('../public/assets/sentence-plaza/v2/',import.meta.url);
+ for(const file of ['plaza-world.webp',...Array.from({length:6},(_,i)=>'mission-'+(i+1)+'.webp')]){
+  const bytes=fs.readFileSync(new URL(file,root));
+  assert.equal(bytes.toString('ascii',0,4),'RIFF',file);
+  assert.equal(bytes.toString('ascii',8,12),'WEBP',file);
+  assert.ok(bytes.length>12000&&bytes.length<500000,file);
+ }
+ const read=p=>fs.readFileSync(new URL(p,import.meta.url),'utf8');
+ const ui=read('../src/components/learning/sentence/SentencePlazaAdventure.tsx');
+ const scene=read('../src/components/learning/sentence/SentencePlazaScene.tsx');
+ const css=read('../src/components/learning/sentence/sentence-plaza-v2.css');
+ assert.match(ui,/sentence-plaza-v2\.css/);
+ assert.match(ui,/className="sp-overlay sp-v2"/);
+ assert.match(ui,/sp-v2-card-art/);
+ assert.match(ui,/Gör → Dinle → Kur → Canlandır/);
+ assert.match(ui,/sp-v2-vocab/);
+ assert.match(ui,/sp-v2-steps/);
+ assert.match(ui,/sp-v2-scene-help/);
+ assert.match(ui,/onClick=\{submitSentence\}>✨ Canlandır/);
+ assert.match(ui,/onClick=\{listenTask\}>🔊 Dinle/);
+ assert.match(ui,/nextTimer\.current=setTimeout/);
+ assert.match(ui,/saveSentencePlazaMission/);
+ assert.match(scene,/plaza-world\.webp/);
+ assert.match(scene,/sp-static-scenery/);
+ assert.match(scene,/showAnimal&&/);
+ assert.match(scene,/awaken&&effect\?\.actor==='balloon'/);
+ assert.match(css,/sp-static-scenery\{display:none\}/);
+ assert.match(css,/@media\(max-width:359px\)/);
+ assert.match(css, /prefers-reduced-motion:reduce/);
+});
