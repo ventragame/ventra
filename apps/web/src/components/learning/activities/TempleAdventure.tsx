@@ -12,6 +12,7 @@ import type {TempleProgress} from '@/lib/progress/templeProgress';
 import {TempleScenery} from './TempleScenery';
 import './temple-adventure.css';
 import './temple-v6.css';
+import './temple-v7.css';
 import {GardenHelp} from '../GardenHelp';
 
 type Props={profileId:string;gradeLevel:number|null;englishLevel:EnglishPlacement;
@@ -220,7 +221,7 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
  });
  const canEnter=(i:number)=>i===0||progress.completedByChamber[TEMPLE_CHAMBERS[i-1].id]===5;
  const pairQuestions=stage===5&&current?current.questions.slice(Math.floor(question/2)*2,Math.floor(question/2)*2+2):[];
- return <div className="tp-screen tp6-screen" role="dialog" aria-modal="true"
+ return <div className="tp-screen tp6-screen tp7-screen" data-chamber={chamber} role="dialog" aria-modal="true"
   aria-label="Keşif Tapınağı İngilizce final dünyası" ref={scrollRef}>
   <div className="tp-shell tp6-shell">
    <header className="tp-header tp6-header">
@@ -237,6 +238,7 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
        disabled={!canEnter(i)||busy} aria-pressed={chamber===room.id}
        className={`tp-chamber ${chamber===room.id?'tp-active-chamber':''}`}
        onClick={()=>enter(room.id,Math.min(5,progress.completedByChamber[room.id]+1) as TempleStage)}>
+       <img className="tp7-chamber-art" src={`/assets/temple/temple-${room.id}-v7.webp`} alt="" draggable={false} decoding="async" loading="lazy"/>
        <span aria-hidden="true">{room.icon}</span>
        <strong>{room.title}</strong>
        <small>{canEnter(i)?`${progress.completedByChamber[room.id]}/5 görev`:'Kilitli 🔒'}</small>

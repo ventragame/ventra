@@ -168,18 +168,27 @@ test('G3: cross-world homonyms never create ambiguous same-label correct/incorre
  }
 });
 
-test('G3 V6 all five offline illustrated halls have their own complete scene and no remote image dependency',()=>{
+test('G3 V7 ships 5 independent optimized offline WebP temple halls without baked UI',()=>{
  const scene=fs.readFileSync(new URL('../src/components/learning/activities/TempleScenery.tsx',import.meta.url),'utf8');
+ const ui=fs.readFileSync(new URL('../src/components/learning/activities/TempleAdventure.tsx',import.meta.url),'utf8');
+ const css=fs.readFileSync(new URL('../src/components/learning/activities/temple-v7.css',import.meta.url),'utf8');
  for(const chamber of TEMPLE_CHAMBERS){
-  const path='../public/assets/temple/temple-'+chamber.id+'-v6.svg';
-  const svg=fs.readFileSync(new URL(path,import.meta.url),'utf8');
-  assert.match(svg,/^<svg /);
-  assert.match(svg,/<\/svg>$/);
-  assert.match(svg,/viewBox="0 0 1280 720"/);
-  assert.ok(svg.length>5000);
-  assert.doesNotMatch(svg,/href=["']https?:/);
-  assert.ok(scene.includes('temple-'+chamber.id+'-v6.svg'));
+  const path='../public/assets/temple/temple-'+chamber.id+'-v7.webp';
+  const bytes=fs.readFileSync(new URL(path,import.meta.url));
+  assert.equal(bytes.toString('ascii',0,4),'RIFF');
+  assert.equal(bytes.toString('ascii',8,12),'WEBP');
+  assert.ok(bytes.length>50000&&bytes.length<350000,chamber.id+' image should be premium but optimized');
+  assert.ok(scene.includes('temple-'+chamber.id+'-v7.webp'));
+  assert.match(ui,/temple-\$\{room.id\}-v7.webp/);
+  assert.ok(css.includes('[data-chamber='+chamber.id+']')||css.includes('[data-chamber="'+chamber.id+'"]'));
  }
+ assert.doesNotMatch(scene,/-v6\.svg/);
+ assert.match(scene,/aria-label="ENGLISH TEMPLE"/);
+ assert.match(ui,/temple-v7\.css/);
+ assert.match(ui,/data-chamber=\{chamber\}/);
+ assert.match(css,/prefers-reduced-motion:reduce/);
+ assert.match(css,/safe-area-inset-bottom/);
+ assert.match(css,/focus-visible/);
 });
 test('G3 V6 use earlier illustration packages for food and family rather than legacy emoji and avoid kinship guesses',()=>{
  const ui=fs.readFileSync(new URL('../src/components/learning/activities/TempleAdventure.tsx',import.meta.url),'utf8');
