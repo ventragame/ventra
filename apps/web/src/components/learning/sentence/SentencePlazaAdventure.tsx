@@ -16,6 +16,7 @@ import {LanternFestivalAdventure} from './LanternFestivalAdventure';
 import './sentence-plaza.css';
 import './sentence-plaza-v2.css';
 import './sentence-clarity-v3.css';
+import './sentence-plaza-home-v4.css';
 
 interface Props{
  profileId:string;gradeLevel:number|null;englishLevel:EnglishPlacement;
@@ -302,50 +303,70 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
     <button type="button" onClick={onBack} className="sp-primary">Adalar Evreni'ne Dön</button>
    </div>:
    screen==='map'?<>
-    <section className="sp-hero sp-v2-hero"><div>
-     <div className="sp-eyebrow">BÖLGE 1 / 5 · CANLANAN CÜMLELER ŞEHRİ</div>
-     <h2>Uyanan Meydan</h2>
-     <p>Bir cümle kur, meydanı canlandır!</p>
-    </div><div className="sp-stars"><strong>{progress.completedLevels}/6</strong>görev tamamlandı</div></section>
-    <div className="sp-layout">
-     <div>
-      <SentencePlazaScene effect={null} awaken={false} chapter={0}/>
-      <div className="sp-map-grid" aria-label="Uyanan Meydan öğrenme görevleri">
+    <section className="sp-v4-home" aria-labelledby="sp-v4-title">
+     <div className="sp-v4-intro">
+      <div className="sp-v4-intro-copy">
+       <div className="sp-v4-kicker"><span aria-hidden="true">✦</span> BÖLGE 1 / 5 · CÜMLELER ŞEHRİ</div>
+       <h2 id="sp-v4-title">Uyanan Meydan</h2>
+       <p>Bir cümle kur, meydanı canlandır!</p>
+      </div>
+      <div className="sp-v4-intro-side">
+       <div className="sp-v4-progress" aria-label={`${progress.completedLevels} / 6 görev tamamlandı`}>
+        <span>GÖREV İLERLEMESİ</span>
+        <strong>{progress.completedLevels}<small> / 6</small></strong>
+        <div className="sp-v4-progress-track" role="progressbar"
+         aria-label="Tamamlanan görevler" aria-valuemin={0} aria-valuemax={6}
+         aria-valuenow={progress.completedLevels}>
+         <span style={{width:`${Math.min(100,(progress.completedLevels/6)*100)}%`}}/>
+        </div>
+       </div>
+       <button type="button" className="sp-v4-start" onClick={()=>
+        openMission(Math.min(6,progress.completedLevels+1) as PlazaMission)}>
+        <span aria-hidden="true">{progress.completedLevels>=6?'↻':'▶'}</span>
+        {progress.completedLevels>=6?'Tekrar Oyna':progress.completedLevels>0?'Devam Et':'Başla'}
+       </button>
+      </div>
+      <div className="sp-v4-journey" aria-label="Oyunun dört adımı">
+       <div><span aria-hidden="true">👀</span> Gör</div>
+       <span className="sp-v4-journey-arrow" aria-hidden="true">→</span>
+       <div><span aria-hidden="true">🔊</span> Dinle</div>
+       <span className="sp-v4-journey-arrow" aria-hidden="true">→</span>
+       <div><span aria-hidden="true">🧩</span> Kur</div>
+       <span className="sp-v4-journey-arrow" aria-hidden="true">→</span>
+       <div><span aria-hidden="true">✨</span> Canlandır</div>
+      </div>
+     </div>
+     <div className="sp-v4-quests">
+      <div className="sp-v4-quests-head">
+       <div>
+        <span className="sp-v4-quests-overline">GÖREVLER</span>
+        <h3>Bir macera seç</h3>
+       </div>
+       <span className="sp-v4-quests-counter">✦ {progress.completedLevels}/6 tamamlandı</span>
+      </div>
+      <div className="sp-map-grid sp-v4-grid" aria-label="Uyanan Meydan öğrenme görevleri">
        {SENTENCE_PLAZA_MISSIONS.map(item=>{
         const unlocked=item.id<=progress.completedLevels+1,done=item.id<=progress.completedLevels;
-        return <button type="button" key={item.id} className="sp-mission" disabled={!unlocked}
+        return <button type="button" key={item.id} className="sp-mission sp-v4-mission" disabled={!unlocked}
          data-status={done?'completed':unlocked?'available':'locked'}
-          aria-label={`${item.title}. ${done?'Tamamlandı, tekrar oyna':unlocked?'Oynamaya hazır':'Kilitli'}`}
-          onClick={()=>openMission(item.id)}>
+         aria-label={`${item.title}. ${done?'Tamamlandı, tekrar oyna':unlocked?'Oynamaya hazır':'Kilitli'}`}
+         onClick={()=>openMission(item.id)}>
          <img className="sp-v2-card-art" alt="" aria-hidden="true" loading="lazy" draggable={false}
           src={`/assets/sentence-plaza/v3/mission-${item.id}.webp`}/>
-         <div className="sp-mission-top"><span aria-hidden="true">{item.icon}</span><span>{done?'✓':unlocked?'✦':'🔒'}</span></div>
+         <div className="sp-mission-top"><span aria-hidden="true">{item.icon}</span>
+          <span>{done?'✓':unlocked?'✦':'🔒'}</span></div>
          <strong>{item.id}. {item.title}</strong>
          <small>{done?'✓ Tamamlandı':unlocked?'▶ Oyna':'🔒 Kilitli'}</small>
         </button>;
        })}
       </div>
-      <div className="sp-future"><h3>Şehrin diğer bölgeleri</h3>
-       <div className="sp-future-grid">{FUTURE.map((name,i)=>
-        <div className="sp-future-item" key={name}>🔒 {i+2}. {name}<br/>Yakında</div>)}</div></div>
      </div>
-     <aside className="sp-side sp-v2-guide">
-       <div className="sp-side-label">✦ BU ADADA</div>
-       <h3>Cümle kur, canlandır!</h3>
-       <div className="sp-v2-flow" aria-label="Gör → Dinle → Kur → Canlandır">
-        <div><span aria-hidden="true">👀</span><strong>Gör</strong></div>
-        <div><span aria-hidden="true">🔊</span><strong>Dinle</strong></div>
-        <div><span aria-hidden="true">🧩</span><strong>Kur</strong></div>
-        <div><span aria-hidden="true">✨</span><strong>Canlandır</strong></div>
-       </div>
-       <details className="sp-v2-details"><summary>Nasıl oynanır?</summary>
-        <p>Doğru cümleyi kurduğunda sahne canlanır. İpuçları ve başarıların ayrı kaydedilir.</p>
-       </details>
-       <button type="button" className="sp-primary sp-v2-play" onClick={()=>openMission(Math.min(6,progress.completedLevels+1) as PlazaMission)}>
-        ✨ {progress.completedLevels>=6?'Tekrar Oyna':'Başla'}
-       </button>
-      </aside>
-    </div>
+     <details className="sp-v4-future">
+      <summary>🔒 Diğer bölgeler <span aria-hidden="true">⌄</span></summary>
+      <div className="sp-future-grid">{FUTURE.map((name,i)=>
+       <div className="sp-future-item" key={name}>🔒 {i+2}. {name} · Yakında</div>)}</div>
+     </details>
+    </section>
    </>:screen==='lesson'?<>
     <section className="sp-hero sp-v2-hero"><div><div className="sp-eyebrow">ÖNCE ÖĞREN · GÖREV {mission} / {chapterTotal}</div>
      <h2>{rule.icon} {rule.title}</h2><p>{rule.story}</p></div></section>

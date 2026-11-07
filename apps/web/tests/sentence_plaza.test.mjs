@@ -27,7 +27,7 @@ test('Uyanan Meydan is a complete six-mission learning product, separate from fo
  assert.match(ui,/FUTURE=\['Büyülü Yapı Atölyesi'/);
  assert.match(ui,/🔒/);
  assert.match(ui,/saveSentencePlazaMission/);
- assert.match(ui,/Gör → Dinle → Kur → Canlandır/);
+ assert.match(ui,/aria-label="Oyunun dört adımı"/);
  assert.match(ui,/aria-live="polite"/);
  assert.doesNotMatch(ui,/Sonraki Soru →/);
 });
@@ -222,7 +222,7 @@ test('Cümle Meydanı V2 visual-first scene, 6 genuine WebP covers and compact t
  assert.match(ui,/sentence-plaza-v2\.css/);
  assert.match(ui,/className="sp-overlay sp-v2 sp-v3"/);
  assert.match(ui,/sp-v2-card-art/);
- assert.match(ui,/Gör → Dinle → Kur → Canlandır/);
+ assert.match(ui,/aria-label="Oyunun dört adımı"/);
  assert.match(ui,/sp-v2-vocab/);
  assert.match(ui,/sp-v2-steps/);
  assert.match(ui,/sp-v2-scene-help/);
@@ -237,4 +237,37 @@ test('Cümle Meydanı V2 visual-first scene, 6 genuine WebP covers and compact t
  assert.match(css,/sp-static-scenery\{display:none\}/);
  assert.match(css,/@media\(max-width:359px\)/);
  assert.match(css, /prefers-reduced-motion:reduce/);
+});
+
+test('V4 sentence plaza home has no oversized artwork; all mission covers and game scenes stay intact',()=>{
+ const ui=fs.readFileSync(new URL('../src/components/learning/sentence/SentencePlazaAdventure.tsx',import.meta.url),'utf8');
+ const style=fs.readFileSync(new URL('../src/components/learning/sentence/sentence-plaza-home-v4.css',import.meta.url),'utf8');
+ const first=ui.indexOf("screen==='map'?<>");
+ const last=ui.indexOf("</>:screen==='lesson'?<>",first);
+ assert.ok(first>=0&&last>first,'map and lesson must remain separate');
+ const map=ui.slice(first,last);
+ const game=ui.slice(last);
+ assert.doesNotMatch(map,/<SentencePlazaScene/,'do not render the giant home image');
+ assert.doesNotMatch(map,/plaza-world\.webp/);
+ assert.match(map,/className="sp-v4-home"/);
+ assert.match(map,/aria-label="Oyunun dört adımı"/);
+ for(const word of ['Gör','Dinle','Kur','Canlandır'])assert.ok(map.includes(word));
+ assert.match(map,/role="progressbar"/);
+ assert.match(map,/aria-valuenow=\{progress\.completedLevels\}/);
+ assert.match(map,/openMission\(Math\.min\(6,progress\.completedLevels\+1\) as PlazaMission\)/);
+ assert.match(map,/SENTENCE_PLAZA_MISSIONS\.map/);
+ assert.match(map,/src=\{`\/assets\/sentence-plaza\/v3\/mission-\$\{item\.id\}\.webp`\}/);
+ assert.match(map,/data-status=\{done\?'completed':unlocked\?'available':'locked'\}/);
+ assert.match(map,/aria-label=\{`\$\{item\.title\}/);
+ assert.match(game,/screen==='play'/);
+ assert.equal((game.match(/<SentencePlazaScene/g)??[]).length,2,'lesson and play keep scene');
+ assert.match(ui,/saveSentencePlazaMission/);
+ assert.match(ui,/nextTimer\.current=setTimeout/);
+ assert.match(ui,/sentence-plaza-home-v4\.css/);
+ assert.match(style,/\.sp-v4-home \.sp-v4-intro/);
+ assert.match(style,/\.sp-v4-home \.sp-v4-mission/);
+ assert.match(style,/@media\(max-width:900px\)/);
+ assert.match(style,/@media\(max-width:610px\)/);
+ assert.match(style,/@media\(max-width:359px\)/);
+ assert.match(style,/prefers-reduced-motion:reduce/);
 });
