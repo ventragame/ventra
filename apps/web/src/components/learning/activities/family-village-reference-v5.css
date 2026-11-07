@@ -21,7 +21,13 @@
   background:url('/assets/family-village/reference-v5/village-landscape-masthead.webp') center 35%/cover no-repeat;
   pointer-events:none;
 }
-.fv5-screen .fv5-top:after{display:none}
+/* The reference header contains an old static back button and star count.
+   Mask those side regions so live values never have duplicates behind them. */
+.fv5-screen .fv5-top:after{
+ content:"";display:block;position:absolute;inset:0 -18px -8px;z-index:-1;pointer-events:none;
+ background:linear-gradient(90deg,#062859f2 0%,#082e62ee 23%,transparent 36%,
+  transparent 66%,#072b65e8 80%,#061e58f2 100%);
+}
 .fv5-screen .fv5-brand{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
   pointer-events:none;z-index:1}
 .fv5-screen .fv5-brand img{width:min(450px,35vw);height:auto;max-height:105px;object-fit:contain;
@@ -143,7 +149,7 @@
  box-shadow:0 4px 0 #422d32,0 8px 16px #121c4670;
 }
 .fv5-screen .fv5-scene .fv3-mission-label{
- top:14px;right:15px;z-index:4;min-width:180px;
+ top:8px;right:7px;z-index:4;min-width:236px;min-height:66px;
  display:flex;align-items:center;justify-content:center;gap:8px;
  padding:10px 14px;background:linear-gradient(130deg,#fff9e5,#ffe8bb);
  border:3px solid #ffdb91;border-radius:999px;color:#462164;

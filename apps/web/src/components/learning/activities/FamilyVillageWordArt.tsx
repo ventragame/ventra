@@ -1,8 +1,8 @@
 'use client';
 import {villageWord} from '@/lib/learning/familyVillageEngine';
 
-/** 60 original, coherent, self-hosted vector illustrations with no emoji
- * fallback, external image host or expensive rendering dependency. */
+/** Reference-sourced grandmother WebP alongside the 59 existing locally bundled
+ * concept illustrations; no remote image dependency. */
 export function FamilyWordArt({id}:{id:string}){
  const word=villageWord(id);
  // This portrait is extracted from the approved Aile Köyü reference, not a
