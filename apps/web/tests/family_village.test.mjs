@@ -352,3 +352,51 @@ test('G6 the family village uses the same premium cameo in discovery, recognitio
  assert.match(css,/prefers-reduced-motion:reduce/);
  assert.match(css,/max-width:359px/);
 });
+
+
+test('G7 every one of 15 family relationships has a unique authored local WebP',()=>{
+ const art=fs.readFileSync(
+  new URL('../src/components/learning/activities/FamilyVillageWordArt.tsx',import.meta.url),'utf8'
+ );
+ const allFamily=VILLAGE_WORDS.filter(w=>w.district==='family').map(w=>w.id);
+ assert.equal(allFamily.length,15,'preserve fifteen original family vocabulary terms');
+ const mappingSource=art.split('const CHARACTER_CAMEOS:')[1]?.split('};')[0];
+ assert.ok(mappingSource,'family art mapping must exist');
+ const mapping=Object.fromEntries(
+  [...mappingSource.matchAll(/(\w+):'(\w+)'/g)].map(([,word,asset])=>[word,asset])
+ );
+ assert.equal(Object.keys(mapping).length,15,'no missing or stray family art mapping');
+ assert.deepEqual(new Set(Object.keys(mapping)),new Set(allFamily));
+ assert.equal(new Set(Object.values(mapping)).size,15,'advanced concepts must not reuse basic portraits');
+ assert.ok(allFamily.every(word=>mapping[word]===word),'each word resolves its own matching art');
+ const root=new URL('../public/assets/family-village/characters-v6/',import.meta.url);
+ const raw=[];
+ let totalBytes=0;
+ for(const word of allFamily){
+  const buf=fs.readFileSync(new URL(word+'.webp',root));
+  assert.ok(buf.length>10000&&buf.length<95000,word+' must be compressed WebP');
+  assert.equal(buf.toString('ascii',0,4),'RIFF');
+  assert.equal(buf.toString('ascii',8,12),'WEBP');
+  assert.equal(buf.toString('ascii',12,16),'VP8X',word+' extended WebP header');
+  assert.equal(buf.readUIntLE(24,3)+1,512,word+' width');
+  assert.equal(buf.readUIntLE(27,3)+1,512,word+' height');
+  assert.ok(buf[20]&0x10,word+' should preserve alpha transparency');
+  totalBytes+=buf.length;
+  for(const previous of raw)assert.notDeepEqual(buf,previous,word+' must not duplicate another art asset');
+  raw.push(buf);
+ }
+ assert.ok(totalBytes<950000,'all fifteen portraits should be reasonably small offline');
+ assert.match(art,/word\.district==='family'\?familyCharacterArtPath\(id\):null/);
+ assert.match(art,/alt=\{word\.tr\}/);
+});
+test('G7 relationship-label pedagogy and existing progression remain unchanged',()=>{
+ const ui=fs.readFileSync(new URL('../src/components/learning/activities/FamilyVillageAdventure.tsx',import.meta.url),'utf8');
+ const eng=fs.readFileSync(new URL('../src/lib/learning/familyVillageEngine.ts',import.meta.url),'utf8');
+ assert.match(ui,/showRelation=w\.district==='family'/);
+ assert.match(ui,/district==='family'&&<span className="fv3-featured-label"/);
+ assert.match(ui,/task\.options\.map\(id=><WordChoice/);
+ assert.match(ui,/current\.words\.map\(id=><button/);
+ assert.match(ui,/await onSave\(district,stage,mistakes/);
+ assert.match(ui,/useAutoQuestionAdvance/);
+ assert.match(eng,/villageMissionStars/);
+});

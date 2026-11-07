@@ -1,5 +1,8 @@
 # Aile Köyü V6 — Premium Character Cameos
 
+> **Arşiv / V7 ile güncellendi:** Bu dosya sekiz temel karakterin ilk teslimini açıklar. Artık yedi ileri seviye kavramın da kendine ait görseli vardır; güncel kabul ve dosya haritası için `FAMILY_VILLAGE_V7_ADVANCED_CHARACTERS.md` belgesine bakın.
+
+
 ## Shipped files
 Eight generated illustrations are integrated as separate, **actual alpha WebP binaries** at `apps/web/public/assets/family-village/characters-v6/`:
 

@@ -2,20 +2,19 @@
 import {villageWord} from '@/lib/learning/familyVillageEngine';
 
 /**
- * Eight production WebP cameos replace the inconsistent flat SVG / cut-out
- * portraits in Aile Köyü. All tier-0 roles have distinct authored artwork.
+ * All fifteen family vocabulary concepts have their own self-hosted WebP
+ * illustration. Do not reuse a different relation's portrait as a fallback:
+ * that would make distinct advanced vocabulary visually indistinguishable.
  *
- * More advanced kinship words express a relationship, not a unique appearance.
- * They intentionally reuse a familiar family member's cameo AND retain their
- * Turkish relationship label throughout visual-choice activities. Never infer
- * aunt, cousin, son etc. from appearance alone.
+ * Kinship is contextual and cannot be inferred solely from someone's face;
+ * family visual-choice questions therefore retain the Turkish relation label.
  */
 const CHARACTER_CAMEOS:Readonly<Record<string,string>>={
   mother:'mother',father:'father',sister:'sister',brother:'brother',
   baby:'baby',grandmother:'grandmother',grandfather:'grandfather',
   family:'family',
-  aunt:'mother',uncle:'father',cousin:'sister',
-  parents:'family',daughter:'sister',son:'brother',grandchild:'baby'
+  aunt:'aunt',uncle:'uncle',cousin:'cousin',
+  parents:'parents',daughter:'daughter',son:'son',grandchild:'grandchild'
 };
 
 export function familyCharacterArtPath(id:string):string|null{
