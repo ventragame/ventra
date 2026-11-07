@@ -135,7 +135,7 @@ export class ExplorerScene extends Phaser.Scene {
         road.fillStyle(0xcba67c,.44);road.fillEllipse(x,y,4,3);
       }
     }
-    for(const id of ['west','center','east']){
+    for(const id of ['west','center','east'] as const){
       const point=GARDEN_ROAD_NODES[id];
       road.fillStyle(0x185c52,.21);road.fillCircle(point.x,point.y+3,21);
       road.fillStyle(0xffe6a8,1);road.fillCircle(point.x,point.y,14);
