@@ -38,7 +38,7 @@ test('The map scene routes touch travel, keeps callbacks and honors reduced moti
  assert.match(scene,/onInteract\(object\)/);
  assert.match(scene,/onInspect\(object\)/);
  assert.match(scene,/this.reducedMotion/);
- assert.match(scene,/garden_ground_v5/);
+ assert.match(scene,/garden_ground_v6/);
  assert.match(scene,/this.leftBoot.setAngle/);
  assert.match(scene,/const fit=Math.min/);
  assert.doesNotMatch(scene,/fillEllipse\(-104,55,208,65/);
@@ -59,9 +59,9 @@ test('Cohesive V3 world artwork, rigged motion, and walkable meadow corridor sta
  }
  const landmark=art.slice(art.indexOf('export function createGardenLandmark('),art.indexOf('export function addGardenAmbient('));
  assert.doesNotMatch(landmark,/fillEllipse|drawGardenPortal|image\('/);
- assert.match(scene,/garden_ground_v5/);
+ assert.match(scene,/garden_ground_v6/);
  assert.doesNotMatch(scene,/garden_ground_v3/);
- assert.match(scene,/Math\.min\(w\/1300,height\/690\)/);
+ assert.match(scene,/Math\.min\(w\/1400,height\/760\)/);
  assert.match(scene,/fit\*1\.12/);
  assert.match(scene,/this\.leftBoot\.setAngle\(swing\)/);
  assert.match(scene,/this\.rightBoot\.setAngle\(-swing\)/);
@@ -73,7 +73,7 @@ test('Cohesive V3 world artwork, rigged motion, and walkable meadow corridor sta
  const torso=fs.readFileSync(new URL('../public/assets/kids/explorer-avatar-torso.svg',import.meta.url),'utf8');
  assert.doesNotMatch(torso,/M92 220|M78 273/);
  const route=planGardenRoute(PLAYER_START.garden,'animals',DISTRICTS.find(x=>x.id==='animals'));
- assert.ok(route.some(p=>p.x===505&&p.y===448),'meadow route must traverse the central walkway');
+ assert.ok(route.some(p=>p.x===505&&p.y===466),'meadow route must traverse the curved central walkway');
 });
 
 
@@ -106,8 +106,20 @@ test('V5 six postcard stations never overlap and every entrance lies outside its
   }
  }
  const ui=fs.readFileSync(new URL('../src/components/learning/world/ExplorerScene.ts',import.meta.url),'utf8');
- assert.match(ui,/garden_ground_v5/);
+ assert.match(ui,/garden_ground_v6/);
  assert.match(ui,/drawGardenRoads/);
- assert.match(ui,/Math\.min\(w\/1300,height\/690\)/);
+ assert.match(ui,/Math\.min\(w\/1400,height\/760\)/);
  assert.match(ui,/this\.area==='garden'\?170/);
+});
+
+test('V6 map destinations have art cutouts instead of boxed image cards',()=>{
+ const source=fs.readFileSync(new URL('../src/components/learning/world/ExplorerScene.ts',import.meta.url),'utf8');
+ const block=source.slice(source.indexOf("if(this.area==='garden'&&object.kind==='district'){"),source.indexOf('const marker=this.add.graphics();'));
+ assert.match(block,/setDisplaySize\(430,220\)/);
+ assert.match(block,/garden_district_'/);
+ assert.match(block,/n\/total/);
+ assert.match(block,/goToObject\(object\.id\)/);
+ assert.doesNotMatch(block,/fillRoundedRect\(-139,-139,278,207/);
+ assert.match(source,/garden_ground_v6/);
+ assert.match(source,/Math\.min\(w\/1400,height\/760\)/);
 });

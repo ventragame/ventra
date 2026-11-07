@@ -6,9 +6,9 @@ import type {Point} from './worldLayout';
 export const GARDEN_ROAD_NODES={
   // A wide, open central promenade; six short branches terminate at each card.
   west:{x:305,y:448},
-  westMid:{x:505,y:448},
+  westMid:{x:505,y:466},
   center:{x:700,y:448},
-  eastMid:{x:895,y:448},
+  eastMid:{x:895,y:427},
   east:{x:1095,y:448},
   animals:{x:305,y:370},
   colors:{x:700,y:370},

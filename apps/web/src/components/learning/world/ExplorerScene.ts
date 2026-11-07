@@ -50,9 +50,9 @@ export class ExplorerScene extends Phaser.Scene {
   preload():void {
     this.load.svg('p4_explorer','/assets/kids/explorer-avatar.svg',{width:150,height:175});
     if(this.area==='garden'){
-      this.load.image('garden_ground_v5','/assets/word-garden/modular-v5/garden-ground.webp');
+      this.load.image('garden_ground_v6','/assets/word-garden/modular-v6/garden-ground.webp');
       for(const id of ['animals','colors','numbers','food','family','sanctuary'])
-        this.load.image('garden_district_'+id,'/assets/word-garden/modular-v4/'+id+'.webp');
+        this.load.image('garden_district_'+id,'/assets/word-garden/modular-v6/'+id+'.webp');
       this.load.svg('garden_avatar_torso','/assets/kids/explorer-avatar-torso.svg',{width:150,height:175});
       this.load.svg('garden_avatar_leg_l','/assets/kids/explorer-avatar-left-leg.svg',{width:150,height:175});
       this.load.svg('garden_avatar_leg_r','/assets/kids/explorer-avatar-right-leg.svg',{width:150,height:175});
@@ -65,8 +65,8 @@ export class ExplorerScene extends Phaser.Scene {
     this.cameras.main.setBackgroundColor('#91bf60');
     this.cameras.main.setBounds(0,0,WORLD_WIDTH,WORLD_HEIGHT);
     if(this.area==='garden'){
-      if(this.textures.exists('garden_ground_v5')){
-        this.add.image(WORLD_WIDTH/2,WORLD_HEIGHT/2,'garden_ground_v5')
+      if(this.textures.exists('garden_ground_v6')){
+        this.add.image(WORLD_WIDTH/2,WORLD_HEIGHT/2,'garden_ground_v6')
           .setDisplaySize(WORLD_WIDTH,WORLD_HEIGHT).setDepth(-20);
         this.drawGardenRoads();
       }else paintGardenWorld(this);
@@ -108,7 +108,7 @@ export class ExplorerScene extends Phaser.Scene {
       // All six districts visible at once on desktop; follow the explorer on phones.
       const overview=w>=680&&height>=300;
       // Cover the complete viewport: the old contain-fit exposed a cyan strip.
-      const fit=Math.min(w/1300,height/690);
+      const fit=Math.min(w/1400,height/760);
       this.cameras.main.setZoom(overview?fit:Math.max(.59,Math.min(.94,fit*1.12)));
       this.cameras.main.setBounds(0,0,WORLD_WIDTH,WORLD_HEIGHT);
       if(overview){this.cameras.main.stopFollow();this.cameras.main.centerOn(WORLD_WIDTH/2,WORLD_HEIGHT/2);}
@@ -251,45 +251,51 @@ export class ExplorerScene extends Phaser.Scene {
     const node=this.add.container(object.x,object.y);
     const locked=object.unlocked===false;
     if(this.area==='garden'&&object.kind==='district'){
-      // Each landmark uses exactly the same optimized WebP as its world card.
-      // Neither progress numbers nor labels are baked into the image.
-      const platform=this.add.ellipse(0,68,235,26,0x215c48,.18);
-      node.add(platform);
-      const frame=this.add.graphics();
-      frame.fillStyle(0x0a3347,.22);frame.fillRoundedRect(-143,-132,286,211,31);
-      frame.fillStyle(0x0b4854,.97);frame.fillRoundedRect(-139,-139,278,207,27);
-      frame.lineStyle(3,locked?0xbed0cc:0xffe8aa,.98);
-      frame.strokeRoundedRect(-139,-139,278,207,27);
-      frame.fillStyle(0x164a57,.97);frame.fillRoundedRect(-133,5,266,60,17);
-      node.add(frame);
+      // V6: standalone transparent 3D diorama, not an image trapped in a box.
+      // Only the dynamic plaque contains text/progress. Save and gate logic is untouched.
+      const shadow=this.add.ellipse(0,52,378,59,0x143d39,.20);
+      const stone=this.add.ellipse(0,36,372,70,0xd6bd85,.95).setStrokeStyle(4,0xffedbc,1);
+      const turf=this.add.ellipse(0,24,361,54,0x79ae5c,.78);
+      node.add([shadow,stone,turf]);
       const texture='garden_district_'+object.id;
       if(this.textures.exists(texture)){
-        node.add(this.add.image(0,-67,texture).setDisplaySize(268,134));
+        node.add(this.add.image(0,-75,texture).setDisplaySize(430,220));
       }else{
-        node.add(this.add.text(0,-70,object.label,{fontSize:'22px',color:'#fff5ce'}).setOrigin(.5));
+        node.add(this.add.text(0,-80,object.label,{
+          fontFamily:'Arial, sans-serif',fontStyle:'bold',fontSize:'24px',
+          color:'#fff4d7',backgroundColor:'#145460'
+        }).setOrigin(.5));
       }
       const n=Math.max(0,object.completed??0),total=Math.max(1,object.total??1);
-      const state=locked?'🔒 KİLİTLİ':n>=total?'✓ TAMAMLANDI':n>0?`▶ ${n}/${total} · DEVAM`:'▶ OYNA';
-      node.add(this.add.text(0,22,object.label,{
-        fontFamily:'Arial, sans-serif',fontStyle:'bold',fontSize:'17px',
-        color:'#fff9e3',align:'center'
+      const state=locked?'🔒 KİLİTLİ':n>=total?'✓ TAMAMLANDI':
+        n>0?`▶ ${n}/${total} · DEVAM`:'▶ OYNA';
+      const plaque=this.add.graphics();
+      plaque.fillStyle(0x082c42,.22);plaque.fillRoundedRect(-134,34,268,74,24);
+      plaque.fillStyle(0x083746,.97);plaque.fillRoundedRect(-133,28,266,73,23);
+      plaque.lineStyle(3,locked?0xb9ccc5:0xffe5a4,.98);
+      plaque.strokeRoundedRect(-133,28,266,73,23);
+      plaque.fillStyle(0x1d5262,.94);plaque.fillRoundedRect(-110,91,220,4,2);
+      if(n>0){
+        plaque.fillStyle(0xffd678,.98);
+        plaque.fillRoundedRect(-110,91,220*Math.min(1,n/total),4,2);
+      }
+      node.add(plaque);
+      node.add(this.add.text(0,43,object.label,{
+        fontFamily:'Arial, sans-serif',fontStyle:'bold',fontSize:'19px',
+        color:'#fff9e9',align:'center'
       }).setOrigin(.5));
-      node.add(this.add.text(0,44,state,{
+      node.add(this.add.text(0,74,state,{
         fontFamily:'Arial, sans-serif',fontStyle:'bold',fontSize:'12px',
-        color:locked?'#d0dade':'#ffe39e',align:'center'
+        color:locked?'#d2ddd9':'#ffe4a5',align:'center'
       }).setOrigin(.5));
-      const bar=this.add.graphics();
-      bar.fillStyle(0x426a6b,.9);bar.fillRoundedRect(-109,58,218,4,2);
-      if(n>0){bar.fillStyle(0xfdd477,1);bar.fillRoundedRect(-109,58,218*Math.min(1,n/total),4,2);}
-      node.add(bar);
-      const hit=this.add.rectangle(0,-35,276,200,0xffffff,.001)
+      const hit=this.add.rectangle(0,-45,396,286,0xffffff,.001)
         .setInteractive({useHandCursor:true});
       node.add(hit);
       hit.on('pointerover',()=>{
-        if(!this.reducedMotion)this.tweens.add({targets:node,scale:1.038,duration:160});
+        if(!this.reducedMotion)this.tweens.add({targets:node,scale:1.035,duration:150});
       });
       hit.on('pointerout',()=>{
-        if(!this.reducedMotion)this.tweens.add({targets:node,scale:1,duration:170});
+        if(!this.reducedMotion)this.tweens.add({targets:node,scale:1,duration:180});
         else node.setScale(1);
       });
       hit.on('pointerdown',(_pointer:Phaser.Input.Pointer,_x:number,_y:number,event:any)=>{
@@ -391,7 +397,7 @@ export class ExplorerScene extends Phaser.Scene {
     this.pendingTarget=null;this.path=null;this.waypoints=[];
     this.clearTravelTrail();
     this.cameras.main.stopFollow();
-    const fit=Math.min(this.scale.width/1300,this.scale.height/690);
+    const fit=Math.min(this.scale.width/1400,this.scale.height/760);
     if(this.reducedMotion){
       this.cameras.main.setZoom(fit);
       this.cameras.main.centerOn(WORLD_WIDTH/2,WORLD_HEIGHT/2);

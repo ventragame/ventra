@@ -47,7 +47,7 @@ test('art is responsive and decorative without changing learning or accessibilit
 test('V4 card and interactive map reuse identical source illustrations',()=>{
  const scene=fs.readFileSync(path.resolve(here,'../src/components/learning/world/ExplorerScene.ts'),'utf8');
  const art=fs.readFileSync(path.resolve(here,'../src/components/learning/DistrictPreviewArt.tsx'),'utf8');
- assert.match(scene,/modular-v4\//);
+ assert.match(scene,/modular-v6\//);
  assert.match(art,/modular-v4\//);
  const root4=path.resolve(here,'../public/assets/word-garden/modular-v4');
  const ids=['animals','colors','numbers','food','family','sanctuary'];
@@ -72,6 +72,20 @@ test('V5 quiet meadow is a separate valid WebP without baked landmarks',()=>{
  assert.ok(buf.length>30000&&buf.length<200000);
  const scene=fs.readFileSync(path.resolve(here,'../src/components/learning/world/ExplorerScene.ts'),'utf8');
  assert.match(scene,/garden-ground\.webp/);
- assert.match(scene,/modular-v5/);
+ assert.match(scene,/modular-v6/);
  for(const id of names) assert.match(scene,new RegExp("garden_district_"));
+});
+
+test('V6 map has one backdrop and six genuine transparent world WebP files',()=>{
+ const root6=path.resolve(here,'../public/assets/word-garden/modular-v6');
+ const scene=fs.readFileSync(path.resolve(here,'../src/components/learning/world/ExplorerScene.ts'),'utf8');
+ for(const name of ['garden-ground',...names]){
+  const file=fs.readFileSync(path.join(root6,name+'.webp'));
+  assert.equal(file.toString('ascii',0,4),'RIFF');
+  assert.equal(file.toString('ascii',8,12),'WEBP');
+  assert.ok(file.length>25000&&file.length<350000,name);
+ }
+ assert.match(scene,/garden_ground_v6/);
+ assert.match(scene,/modular-v6/);
+ assert.match(source,/modular-v4/); // Preserve approved original covers in game grid.
 });
