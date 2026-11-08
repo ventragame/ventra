@@ -1,7 +1,7 @@
 import Phaser from 'phaser';
 import { EventBus } from '@/lib/game/EventBus';
 import { soundService } from '@/lib/audio/SoundService';
-import {archipelagoBadgeAnchor,archipelagoOpticalShiftPixels} from '@/lib/game/archipelagoPresentation';
+import {archipelagoBadgeAnchor,archipelagoOpticalShiftPixels,archipelagoCameraFraming} from '@/lib/game/archipelagoPresentation';
 import {
   ARCHIPELAGO_ISLANDS_CATALOG,
   ARCHIPELAGO_ISLANDS_ORDERED,
@@ -682,6 +682,8 @@ export class WorldScene extends Phaser.Scene {
     if (!entity) return;
 
     this.activeFocusedIslandId = islandId;
+    this.isOverviewMode = false;
+    EventBus.emit('WORLD_OVERVIEW_CHANGED', false);
 
     // Hover durumunu anında sıfırla (seçim sonrasında hiçbir ada takılı kalmaz)
     this.resetAllHoverStates();
@@ -764,20 +766,21 @@ export class WorldScene extends Phaser.Scene {
   private focusCameraOnIsland(islandId: IslandId, duration = 500): void {
     const entity = this.islands.get(islandId);
     if (!entity) return;
-
     this.isOverviewMode = false;
+    EventBus.emit('WORLD_OVERVIEW_CHANGED', false);
     this.cameras.main.useBounds = true;
-
     const { width, height } = this.scale;
-    const isPortrait = height > width;
-
-    const targetX = entity.worldX;
-    const targetY = isPortrait ? entity.worldY + 20 : entity.worldY;
-    const targetZoom = isPortrait ? Math.min(width / 520, 0.72) : Math.min(width / 1300, 1.05);
-
-    if(duration<=0){this.cameras.main.centerOn(targetX,targetY);this.cameras.main.setZoom(targetZoom);}
-    else {this.cameras.main.pan(targetX, targetY, duration, 'Cubic.easeInOut');
-      this.cameras.main.zoomTo(targetZoom, duration, 'Cubic.easeInOut');}
+    const frame = archipelagoCameraFraming({
+      width, height, bounds: this.getCombinedIslandsBounds(), mode: 'focus',
+      target: { x: entity.worldX, y: entity.worldY }
+    });
+    if (duration <= 0) {
+      this.cameras.main.setZoom(frame.zoom);
+      this.cameras.main.centerOn(frame.x, frame.y);
+    } else {
+      this.cameras.main.pan(frame.x, frame.y, duration, 'Cubic.easeInOut');
+      this.cameras.main.zoomTo(frame.zoom, duration, 'Cubic.easeInOut');
+    }
   }
 
   // --- 7. BİRLEŞİK TAKIMADA SINIRLARI (COMBINED ISLAND BOUNDS HESAPLAMASI) ---
@@ -818,73 +821,47 @@ export class WorldScene extends Phaser.Scene {
     };
   }
 
-  // --- 8. DUYARLI VE AUTO-FIT KAMERA BOYUTLANDIRMA ---
-  // Masaüstünde (%100 Tarayıcı Zoom'unda) 6 Adanın Tamamını Kusursuz Şekilde Kadraja Sığdırır
+  // --- 8. CAMERA FIT: PORTRAIT FOCUS OR TRUE SIX-ISLAND OVERVIEW ---
   public fitCameraToViewport(duration = 0): void {
     const { width, height } = this.scale;
-    const isPortrait = height > width;
-
-    if (isPortrait) {
-      // Mobilde aktif adaya konforlu zoom ile odaklan
-      const targetEntity =
-        this.islands.get(this.activeFocusedIslandId) || this.islands.get('word_garden');
-      const targetCenterX = targetEntity ? targetEntity.worldX : 640;
-      const targetCenterY = targetEntity ? targetEntity.worldY + 20 : 550;
-      const targetZoom = Math.min(width / 520, 0.72);
-
-      if (duration > 0) {
-        this.cameras.main.pan(targetCenterX, targetCenterY, duration, 'Cubic.easeOut');
-        this.cameras.main.zoomTo(targetZoom, duration, 'Cubic.easeOut');
-      } else {
-        this.cameras.main.centerOn(targetCenterX, targetCenterY);
-        this.cameras.main.setZoom(targetZoom);
-      }
-      return;
-    }
-
-    // MASAÜSTÜ AUTO-FIT (1280x800, 1440x900, 1920x1080)
-    // 6 Adanın birleşik sınırlarını gerçek sprite ölçüleri üzerinden al
+    const shortLandscape = width <= 900 && height <= 520;
+    const mode = this.isOverviewMode || !(height > width || shortLandscape) ? 'overview' : 'focus';
     const bounds = this.getCombinedIslandsBounds();
-
-    // Üst Header (~70px) ve Alt Gezinme/Detay Kartı (~130px) Güvenli Alanlarını Düş
-    const availableWidth = Math.max(width - 160, 400); // 80px sağ/sol kenar boşluğu
-    const availableHeight = Math.max(height - 240, 300); // 70px üst, 130px alt, 30px marj
-
-    const zoomX = availableWidth / bounds.width;
-    const zoomY = availableHeight / bounds.height;
-    const fitZoom = Phaser.Math.Clamp(Math.min(zoomX, zoomY), 0.45, 1.15);
-
-    // Dikeyde Header ile Alt Kart arasındaki görsel optik merkezi hizala
-    const opticalCenterY = bounds.centerY - 30 / fitZoom;
-    const targetCenterX = bounds.centerX - archipelagoOpticalShiftPixels(width)/fitZoom;
-
+    const entity = this.islands.get(this.activeFocusedIslandId) || this.islands.get('word_garden');
+    const frame = archipelagoCameraFraming({
+      width, height, bounds, mode,
+      target: entity ? { x: entity.worldX, y: entity.worldY } : undefined
+    });
+    const fitZoom = frame.zoom;
+    const targetX = mode === 'overview' && width > 900
+      ? frame.x - archipelagoOpticalShiftPixels(width)/fitZoom
+      : frame.x;
     if (duration > 0) {
-      this.cameras.main.pan(targetCenterX, opticalCenterY, duration, 'Cubic.easeOut');
+      this.cameras.main.pan(targetX, frame.y, duration, 'Cubic.easeOut');
       this.cameras.main.zoomTo(fitZoom, duration, 'Cubic.easeOut');
     } else {
-      this.cameras.main.centerOn(targetCenterX, opticalCenterY);
       this.cameras.main.setZoom(fitZoom);
+      this.cameras.main.centerOn(targetX, frame.y);
     }
   }
 
-  // --- 9. TÜM TAKIMADA GENEL HARİTA GÖRÜNÜMÜ (OVERVIEW / PANORAMA) ---
+  // --- 9. PANORAMA: ON MOBILE, FIT ALL ISLANDS INSTEAD OF REFOCUSING ---
   public showWorldOverview(duration = 600): void {
     this.isOverviewMode = true;
     this.cameras.main.useBounds = false;
-    this.fitCameraToViewport(this.isReducedMotion()?0:duration);
+    EventBus.emit('WORLD_OVERVIEW_CHANGED', true);
+    this.fitCameraToViewport(this.isReducedMotion() ? 0 : duration);
   }
 
   private handleResize(): void {
-    const portrait=this.scale.height>this.scale.width;
-    this.islands.forEach((entity,id)=>{
-      if(entity.badgeContainer){const pos=archipelagoBadgeAnchor(id,portrait);
-        entity.badgeContainer.setPosition(pos.x,pos.y);}
+    const portrait = this.scale.height > this.scale.width;
+    this.islands.forEach((entity,id) => {
+      if (entity.badgeContainer) {
+        const pos = archipelagoBadgeAnchor(id, portrait);
+        entity.badgeContainer.setPosition(pos.x, pos.y);
+      }
     });
-    if (this.isOverviewMode) {
-      this.showWorldOverview(0);
-    } else {
-      this.fitCameraToViewport(0);
-    }
+    this.fitCameraToViewport(0);
   }
 
   // --- 10. KAMERA SÜRÜKLEME / PAN / WHEEL KONTROLLERİ ---
@@ -907,14 +884,26 @@ export class WorldScene extends Phaser.Scene {
 
       if (Math.abs(deltaX) > this.dragThreshold || Math.abs(deltaY) > this.dragThreshold) {
         this.hasDragged = true;
-        this.isOverviewMode = false;
-        this.cameras.main.useBounds = true;
+        this.cameras.main.useBounds = !this.isOverviewMode;
         this.resetAllHoverStates(); // Sürükleme anında asılı hover'ları sıfırla
       }
 
       const zoom = this.cameras.main.zoom;
-      this.cameras.main.scrollX = this.cameraStartX - deltaX / zoom;
-      this.cameras.main.scrollY = this.cameraStartY - deltaY / zoom;
+      const nextX = this.cameraStartX - deltaX / zoom;
+      const nextY = this.cameraStartY - deltaY / zoom;
+      if (this.isOverviewMode) {
+        // Allow inspection of the panorama without losing the islands off-screen.
+        const bounds = this.getCombinedIslandsBounds();
+        const centerX = bounds.centerX - this.scale.width / (2 * zoom);
+        const centerY = bounds.centerY - this.scale.height / (2 * zoom);
+        const travelX = Math.max(60, this.scale.width * 0.12 / zoom);
+        const travelY = Math.max(60, this.scale.height * 0.12 / zoom);
+        this.cameras.main.scrollX = Phaser.Math.Clamp(nextX, centerX - travelX, centerX + travelX);
+        this.cameras.main.scrollY = Phaser.Math.Clamp(nextY, centerY - travelY, centerY + travelY);
+      } else {
+        this.cameras.main.scrollX = nextX;
+        this.cameras.main.scrollY = nextY;
+      }
     });
 
     this.input.on('pointerup', () => {
