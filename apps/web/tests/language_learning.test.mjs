@@ -159,7 +159,7 @@ test('Archipelago V2: State & Publication Separation (unlocked vs contentPublish
   const forest = ARCHIPELAGO_ISLANDS_CATALOG.listening_forest;
   assert.equal(forest.isUnlockedDefault,true,'Hikâyeyi Keşfet ilk oyunu erişilebilir');
   assert.equal(forest.contentPublished,true,'Altı Hikâye Ormanı bölümü yayınlandı');
-  assert.equal(forest.totalPublishedRequiredLevels,6);
+  assert.equal(forest.totalPublishedRequiredLevels,12);
   const lockedIslands = ARCHIPELAGO_ISLANDS_ORDERED.slice(3);
   for (const island of lockedIslands) {
     assert.equal(island.isUnlockedDefault, false, `${island.id} başlangıçta kilitli olmalıdır`);
@@ -356,12 +356,12 @@ test('Archipelago Progress Bar: Active vs Unpublished Island Level Display Invar
   assert.equal(formatWordGardenProgress(1), '1/5 Tamamlandı (%20)');
   assert.equal(formatWordGardenProgress(5), '5/5 Tamamlandı (%100)');
 
-  // 2. Sentence Plaza and Story Forest now have separate six-part progress.
+  // Sentence Plaza has six parts; Story Forest has two separate six-part games.
   const plaza=ARCHIPELAGO_ISLANDS_CATALOG.story_castle;
   assert.equal(plaza.totalPublishedRequiredLevels,6);
   assert.equal(plaza.contentPublished,true);
   const forest=ARCHIPELAGO_ISLANDS_CATALOG.listening_forest;
-  assert.equal(forest.totalPublishedRequiredLevels,6);
+  assert.equal(forest.totalPublishedRequiredLevels,12);
   assert.equal(forest.contentPublished,true);
   const otherIslands = ARCHIPELAGO_ISLANDS_ORDERED.filter(i =>
     i.id !== 'word_garden'&&i.id!=='story_castle'&&i.id!=='listening_forest');
