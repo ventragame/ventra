@@ -15,7 +15,7 @@
 - Emir cümlelerinde hayvan önce başlangıçta görünür. Ancak doğru İngilizce emir onaylandıktan sonra hedefe hareket eder; animasyonları açan doğrulama mekanizması `awaken` kalır.
 - M3'te konum seçmek için yalnızca sahnedeki gerçek düğmeler etkindir. Sağda ikinci bir buton listesi yoktur. Yer etiketleri dokunmatik ekranda da görünür ve erişilebilir.
 - Evin arkası için hayvanın alt kısmı maskelenerek "önde duruyor" izlenimi azaltıldı. Gerçek cihazda yerleşim kabul testi hâlâ gerekir.
-- M1 renk sorularında ilgili nesne önceden renklendirilmiş olarak görünür. M2 hayvan sorularında hayvan resimde bulunur.
+- M1 renk sorularında ilgili nesne bütün soru türlerinde önceden renklendirilmiş olarak görünür. M2'de hayvanlar bütün soru türlerinde resimde bulunur.
 - M4 (ortak motor + bağımsız Hareket Büyüsü) `uçabilir/uçuyor` gibi doğal fiil biçimleri kullanır.
 - M5 (ortak motor + bağımsız İstekler Meydanı) yiyeceklerin genel isim, belirtme ve yönelme biçimlerini karıştırmaz.
 - M6 ortak motorundaki `Put` komutları da nesnenin belirtme ve konumun yönelme ekini doğru kullanır. Bağımsız Fener Festivali şablonları da test kapsamındadır.

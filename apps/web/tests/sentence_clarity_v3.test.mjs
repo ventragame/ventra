@@ -153,7 +153,7 @@ test('V7: child must see the actor, choose its location only once, and then desc
  const ui=source('SentencePlazaAdventure.tsx');
  const scene=source('SentencePlazaScene.tsx');
  const css=source('sentence-plaza-learning-v7.css');
- assert.match(ui,/preview=\{mission===3\|\|task\.mode==='scene'\?task\.scene:null\}/);
+ assert.match(ui,/preview=\{mission<=3\?task\.scene:null\}/);
  assert.match(ui,/previewAtTarget=\{mission===3&&task\.kind!=='instruction'\}/);
  assert.match(ui,/visualLocation&&!selectedScene/);
  assert.match(ui,/task\.sceneChoices&&!visualLocation&&/);

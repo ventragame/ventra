@@ -399,7 +399,7 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
     <div className="sp-game-layout">
      <div>
       <SentencePlazaScene effect={sceneEffect} awaken={awakened} chapter={mission}
-        preview={mission===3||task.mode==='scene'?task.scene:null}
+        preview={mission<=3?task.scene:null}
         previewAtTarget={mission===3&&task.kind!=='instruction'}
         sceneChoices={mission===3&&task.mode==='scene'?task.sceneChoices:undefined}
         selectedChoice={selectedScene}
