@@ -23,7 +23,6 @@ interface Props{
 }
 type View='chapters'|'play'|'reward';
 const EMPTY:ForestProgress={completedLevels:0,totalLevels:6,starsByLevel:{}};
-const cleanWord=(s:string)=>s.replace(/_/g,' ');
 
 /**
  * Episode progress is persisted only after all questions are completed.
@@ -137,13 +136,11 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
   stepLock.current=true;setChosen(id);setFeedback('correct');
   soundService.playSfx('correct',.78);
   const row:ForestAnswer={
-   questionId:task.id,selectedId:id,mode:task.mode,misses:undefined as never,
+   questionId:task.id,selectedId:id,mode:task.mode,
    mistakes:misses,hintUsed,
    firstTryCorrect:misses===0&&!hintUsed,placement:englishLevel,
    timestamp:new Date().toISOString()
   };
-  // Keep only the schema fields in persisted learning evidence.
-  delete (row as unknown as {misses?:unknown}).misses;
   const next=[...answers,row];
   setAnswers(next);
   nextTimer.current=setTimeout(()=>{

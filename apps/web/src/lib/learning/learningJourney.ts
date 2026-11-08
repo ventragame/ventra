@@ -31,14 +31,14 @@ export const ENGLISH_JOURNEY:readonly LearningIslandPlan[]=[
   },
   futureMechanics:['Sahne içinde sözcük kartlarını diz','Nesneleri yerleştirip doğru cümle kur','Anlamı bozan sözcüğü bul'],
   evidence:['word-order','meaningful-sentence','independent-production']},
- {id:'listening_forest',title:'Hikâye Ormanı',goal:'story-comprehension',order:3,playable:false,prerequisites:['vocabulary','sentence-building'],
+ {id:'listening_forest',title:'Hikâye Ormanı',goal:'story-comprehension',order:3,playable:true,prerequisites:['vocabulary','sentence-building'],
   atLevel:{
-   'Pre-A1':['2–3 cümlelik resimli olay','Önce–sonra sıralaması','Karakterin duygusunu tanıma'],
-   'A1':['Kısa karakter diyalogları','Olay örgüsünü takip','Hikâyede nedeni bul'],
-   'A2':['Bağlamdan sonuç çıkar','Konuşmacı niyetini ayır','Alternatif hikâye devamı']
+   'Pre-A1':['Dinlediğin hayvanı resimde bul','Renkli nesneyi sesle eşleştir','Resimli yer yönlerini tanı'],
+   'A1':['Kısa İngilizce ipucu dinle','Hayvanın ne yaptığını bul','Resimdeki konumu tanı'],
+   'A2':['Betimlemeyi sesle eşleştir','Bağlam içinde özelliği tanı','Resimdeki eylemi ayırt et']
   },
   futureMechanics:['Gezilebilir hikâye sahneleri','Olay kartlarını sıralama','Kısa dinleme ve olay seçimi'],
-  evidence:['sequencing','inference','narrative-comprehension']},
+  evidence:['visual-comprehension','listening-recognition','contextual-cues']},
  {id:'speaking_harbor',title:'Diyalog Limanı',goal:'dialogue',order:4,playable:false,prerequisites:['sentence-building','story-comprehension'],
   atLevel:{
    'Pre-A1':['Hello! / Goodbye!','My name is…','Yes, please.'],

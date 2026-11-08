@@ -10,7 +10,7 @@ test('Archipelago keeps both existing maps, all six world destinations and funct
  assert.match(page,/LearningPathModal/);
  assert.match(page,/ARCHIPELAGO_ISLANDS_ORDERED\.map/);
  assert.match(page,/handleFocusIsland\(island.id\)/);
- assert.match(page,/handleOpenLearningPath\(focusedIsland==='story_castle'\?'story_castle':'word_garden'\)/);
+ assert.match(page,/handleOpenLearningPath\(focusedIsland\)/);
  assert.match(page,/isWorldLocked/);
  assert.match(page,/setIsParentGateOpen\(true\)/);
  assert.doesNotMatch(page,/6 Ada \(V2\)/);

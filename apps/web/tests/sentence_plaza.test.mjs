@@ -18,7 +18,7 @@ test('Uyanan Meydan is a complete six-mission learning product, separate from fo
  assert.deepEqual(SENTENCE_PLAZA_MISSIONS.map(m=>m.id),[1,2,3,4,5,6]);
  assert.equal(ARCHIPELAGO_ISLANDS_CATALOG.story_castle.contentPublished,true);
  assert.equal(ARCHIPELAGO_ISLANDS_CATALOG.story_castle.totalPublishedRequiredLevels,6);
- assert.equal(ARCHIPELAGO_ISLANDS_CATALOG.listening_forest.contentPublished,false);
+ assert.equal(ARCHIPELAGO_ISLANDS_CATALOG.listening_forest.contentPublished,true);
  const page=fs.readFileSync(new URL('../src/app/kids/page.tsx',import.meta.url),'utf8');
  assert.match(page,/SentencePlazaAdventure/);
  assert.match(page,/activeRegion==='story_castle'/);

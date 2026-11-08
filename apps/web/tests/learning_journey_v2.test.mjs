@@ -16,7 +16,7 @@ test('Six islands follow vocabulary → sentences → stories → dialogue → w
  assert.deepEqual(JOURNEY_ORDER,ids);
  assert.deepEqual(ARCHIPELAGO_ISLANDS_ORDERED.map(i=>i.id),ids);
  assert.deepEqual(ENGLISH_JOURNEY.map(i=>i.order),[1,2,3,4,5,6]);
- assert.deepEqual(ENGLISH_JOURNEY.map(i=>i.playable),[true,true,false,false,false,false]);
+ assert.deepEqual(ENGLISH_JOURNEY.map(i=>i.playable),[true,true,true,false,false,false]);
  assert.deepEqual(ENGLISH_JOURNEY.map(i=>i.goal),
   ['vocabulary','sentence-building','story-comprehension','dialogue','writing','integrated-mastery']);
  for(const [i,id] of ids.entries()){
