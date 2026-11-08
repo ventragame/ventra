@@ -170,3 +170,43 @@ test('V7: child must see the actor, choose its location only once, and then desc
  assert.match(ui,/saveSentencePlazaMission/);
  assert.match(ui,/nextTimer\.current=setTimeout/);
 });
+
+test('V8 species-specific vector characters never use one anonymous animal placeholder',()=>{
+ const component=source('SentenceAnimalArtwork.tsx');
+ const scene=source('SentencePlazaScene.tsx');
+ const css=source('sentence-plaza-learning-v7.css');
+ for(const species of ['Dog','Cat','Bird','Rabbit']){
+  assert.match(component,new RegExp('function '+species+'\\\\('));
+ }
+ const sections=['Dog','Cat','Bird','Rabbit'].map((name,i,arr)=>{
+  const from=component.indexOf('function '+name+'(');
+  const to=i+1<arr.length?component.indexOf('function '+arr[i+1]+'(',from):component.indexOf('export interface SentenceAnimalArtworkProps',from);
+  assert.ok(from>=0&&to>from,'Dedicated vector markup for '+name);
+  const markup=component.slice(from,to);
+  assert.ok((markup.match(/<path /g)??[]).length>=7,name+' needs clear anatomical silhouette');
+  return markup;
+ });
+ assert.match(sections[0],/collar/); // dog has a recognizable collar, snout and long drooping ears
+ assert.match(sections[0],/rx="12"/);
+ assert.match(sections[1],/whiskers|M93 132L52 126|M151 131L188 126/);
+ assert.match(sections[2],/M156 109 Q180 104 211 121/); // unambiguous bird beak
+ assert.match(sections[3],/M86 89 C65 61 53 7/); // long rabbit ears
+ assert.match(sections[3],/width="10" height="14"/); // buck teeth
+ for(const tint of ['red','blue','green','yellow','purple','orange']){
+  assert.match(component,new RegExp('\\b'+tint+':\\['));
+ }
+ assert.match(component,/NATURAL\[actor\]/);
+ assert.match(component,/data-animal=\{actor\}/);
+ assert.match(component,/data-color=\{color\|\|'natural'\}/);
+ assert.match(component,/actor==='dog'\?<Dog/);
+ assert.match(component,/actor==='cat'\?<Cat/);
+ assert.match(component,/actor==='bird'\?<Bird/);
+ assert.match(scene,/import \{SentenceAnimalArtwork,type SentenceAnimalSpecies\}/);
+ assert.match(scene,/<SentenceAnimalArtwork actor=\{animal as SentenceAnimalSpecies\}/);
+ assert.match(scene,/color=\{shown\?\.color\} index=\{index\}/);
+ assert.match(scene,/data-species=\{animal\}/);
+ assert.doesNotMatch(scene,/animal==='bird'\?<|animal==='rabbit'\?</,'generic stick-figure placeholder must be gone');
+ assert.match(scene,/clipPath=\{actorBehindHouse/);
+ assert.match(css,/sp-v8-actor/);
+ assert.match(css,/prefers-reduced-motion:reduce/);
+});

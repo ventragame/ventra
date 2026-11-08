@@ -56,3 +56,20 @@
   transition:none!important;animation:none!important;
  }
 }
+
+/* V8: species-specific inline SVG characters; scene-scale independent. */
+.sp-v3 .sp-v8-actor .sp-v8-character{
+ filter:drop-shadow(0 5px 4px #073d4da6);
+}
+.sp-v3 .sp-v8-actor.sp-actor-idle .sp-v8-character{
+ transform-origin:center bottom;
+}
+.sp-v3 .sp-v7-location-scene .sp-v8-actor .sp-v8-character{
+ filter:drop-shadow(0 0 7px #fff0adbc) drop-shadow(0 5px 5px #063c51ab);
+}
+@media(prefers-reduced-motion:reduce){
+ .sp-v3 .sp-v8-actor,
+ .sp-v3 .sp-v8-actor .sp-v8-character{
+  animation:none!important;transition:none!important;
+ }
+}

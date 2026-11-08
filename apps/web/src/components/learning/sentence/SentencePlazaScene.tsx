@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import type {PlazaSceneEffect,PlazaActor} from '@/lib/learning/sentencePlazaEngine';
+import {SentenceAnimalArtwork,type SentenceAnimalSpecies} from './SentenceAnimalArtwork';
 interface Props{
  effect:PlazaSceneEffect|null;
  preview?:PlazaSceneEffect|null;
@@ -52,7 +53,7 @@ export function SentencePlazaScene({effect,preview=null,previewAtTarget=false,aw
    chapter===4?'translate(464 346)':
    chapter===6?'translate(508 364)':'translate(526 348)';
  return <div className={`sp-art sp-v2-art sp-v6-scene ${chapter===3&&onSceneChoice?'sp-v7-location-scene':''} ${awaken?'sp-art-awaken':''} sp-act-${motion||'idle'}`}
-   role="group" aria-label={awaken?`${chapterNames[chapter]??'Görev'}: doğru İngilizce cümlenin sahnede oluşturduğu değişim`:`${chapterNames[chapter]??'Görev'}: İngilizce cümleni kurarak bu sahneyi canlandır`}>
+   role="group" aria-label={awaken?`${chapterNames[chapter]??'Görev'}: ${shown?.actor??'nesne'} doğru cevapla canlandı`:`${chapterNames[chapter]??'Görev'}: ${shown?.actor??'nesne'} sahnede; İngilizce cümleyi kur` }>
  <img src={sceneImage} className="sp-v2-backdrop sp-v6-backdrop" width={1280} height={680}
   alt="" aria-hidden="true" draggable={false} decoding="async" loading="eager"/>
  <svg viewBox="0 0 900 478" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" className="sp-world-svg">
@@ -66,7 +67,7 @@ export function SentencePlazaScene({effect,preview=null,previewAtTarget=false,aw
    <filter id="sp-glow"><feGaussianBlur stdDeviation="9"/></filter>
    <filter id="sp-soft"><feDropShadow dx="0" dy="7" stdDeviation="8" floodColor="#24365b" floodOpacity=".4"/></filter>
    <pattern id="sp-stones" width="58" height="29" patternUnits="userSpaceOnUse"><path d="M0 0H58 M29 0V15 M0 15H58 M4 15V29 M50 15V29" stroke="#ac8290" strokeOpacity=".25" fill="none" strokeWidth="2"/></pattern>
-   <clipPath id="sp-v7-peek-clip"><rect x="-52" y="-95" width="112" height="86"/></clipPath>
+   <clipPath id="sp-v7-peek-clip"><rect x="-81" y="-134" width="162" height="111"/></clipPath>
   </defs>
   {/* Each chapter has its own optimized WebP scene. Dynamic SVG effects below
       are rendered only after a verified sentence; no fixed plaza geometry remains. */}
@@ -127,24 +128,17 @@ export function SentencePlazaScene({effect,preview=null,previewAtTarget=false,aw
   </g>}
   {awaken&&effect?.actor==='balloon'&&<g className="sp-effect-float"><path d="M738 310q6-66 0-113" fill="none" stroke="#e8deeb" strokeWidth="2"/><ellipse cx="738" cy="188" rx="34" ry="45" fill={color} stroke="#fff5d9" strokeWidth="5"/></g>}
   {/* Actor shows up or reacts only when the built English has been checked. */}
+  {/* Species-specific original vectors: floppy-eared dog, whiskered cat,
+      beaked bird, tall-eared rabbit. Colors stay tied to the question data. */}
   {showAnimal&&Array.from({length:Math.max(1,Math.min(3,shown?.count??1))},(_,index)=>
-   <g key={index} className={`sp-actor sp-actor-${animal} sp-actor-${motion||'idle'}`}
-   clipPath={actorBehindHouse?'url(#sp-v7-peek-clip)':undefined}
-   transform={actorBase+' translate('+((shown?.count??1)>1?index*66-33:0)+',0)'}>
-   <ellipse cx="0" cy="25" rx="35" ry="9" fill="#2f6573" opacity=".35"/>
-   {animal==='bird'?<>
-    <ellipse cx="0" cy="-16" rx="29" ry="22" fill={shown?.color&&COLOR_MAP[shown.color]||'#87cced'} stroke="#f6f2df" strokeWidth="3"/>
-    <path d="M-10-12q-27-14-29 10q19 15 33 6" fill="#d7edf6"/>
-    <circle cx="14" cy="-21" r="5" fill="#27445c"/><path d="M26-16l15 5-16 5" fill="#f7be6c"/>
-   </>:<>
-    <ellipse cx="0" cy="-6" rx="30" ry="22" fill={shown?.color&&COLOR_MAP[shown.color]||'#f8d19d'} stroke="#f6edda" strokeWidth="3"/>
-    <circle cx="-2" cy="-31" r="23" fill={shown?.color&&COLOR_MAP[shown.color]||'#f8d19d'} stroke="#f6edda" strokeWidth="3"/>
-    {animal==='rabbit'?<><ellipse cx="-15" cy="-63" rx="9" ry="28" fill="#f8d4b8"/><ellipse cx="11" cy="-65" rx="9" ry="28" fill="#f8d4b8"/></>:<><path d="M-24-46l-9-29 29 16" fill="#f3d09e"/><path d="M8-61l25-15-5 31" fill="#f3d09e"/></>}
-    <circle cx="-11" cy="-34" r="3.8" fill="#2c425a"/><circle cx="8" cy="-34" r="3.8" fill="#2c425a"/>
-    <circle cx="-2" cy="-23" r="4" fill="#925a64"/>
-    <path d="M-23 16v12M19 16v12" stroke="#f6e9d8" strokeWidth="8" strokeLinecap="round"/>
-   </>}
-  </g>)}
+   <g key={index}
+      className={`sp-actor sp-actor-${animal} sp-actor-${motion||'idle'} sp-v8-actor`}
+      data-species={animal}
+      clipPath={actorBehindHouse?'url(#sp-v7-peek-clip)':undefined}
+      transform={actorBase+' translate('+((shown?.count??1)>1?index*116-58:0)+',0)'}>
+      <SentenceAnimalArtwork actor={animal as SentenceAnimalSpecies}
+       color={shown?.color} index={index}/>
+   </g>)}
   {awaken&&effect?.actor==='apple'&&<g className="sp-effect-bloom" transform="translate(722 383)">
     <ellipse rx="73" ry="22" fill="#e4bd8d" stroke="#fff0c7" strokeWidth="4"/>
     {effect?.action==='remove'?
