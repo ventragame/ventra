@@ -2,6 +2,29 @@
 import React from 'react';
 import type {ForestActorId,ForestScene} from '@/lib/learning/storyForestEngine';
 
+/** The exact WebP character is used only for its actual English animal identity.
+ * Ineligible roles keep their correctly illustrated SVG fallback.
+ */
+const PREMIUM_ROOT='/assets/story-forest/premium/';
+export const PREMIUM_STORY_CHARACTERS:Readonly<Partial<Record<ForestActorId,string>>> = Object.freeze({
+ rabbit:'characters/rabbit_adventurer.webp',
+ squirrel:'characters/squirrel_acorn.webp',
+ bird:'characters/blue_bird_flying.webp',
+ bird_flying:'characters/blue_bird_flying.webp',
+ cat:'characters/cat_orange.webp',
+ cat_gray_sleeping:'characters/cat_gray_sleeping.webp',
+ cat_white_bow:'characters/cat_white_bow.webp',
+ hedgehog:'characters/hedgehog_happy.webp'
+});
+export const PREMIUM_STORY_SCENES:Readonly<Partial<Record<ForestScene,string>>> = Object.freeze({
+ path:'scenes/forest_path.webp',
+ treehouse:'scenes/forest_treehouse.webp',
+ pond:'scenes/forest_pond.webp',
+ meadow:'scenes/forest_meadow.webp',
+ bridge:'scenes/forest_bridge.webp'
+});
+export const STORY_FOREST_PREMIUM_COVER=PREMIUM_ROOT+'scenes/forest_clearing.webp';
+
 /* All backgrounds are clean, actor-free storybook environments.
    Every answer illustration is drawn independently in StoryForestActor,
    so no invisible duplicate characters can confuse young learners. */
@@ -15,6 +38,10 @@ const TONES:Record<ForestScene,{sky:string;skyEnd:string;hill:string;floor:strin
 };
 const treeXs=[-30,112,250,373,518,692,833,1020,1166,1300];
 export function StoryForestScenery({scene}: {scene:ForestScene}){
+ const premium=PREMIUM_STORY_SCENES[scene];
+ if(premium)return <img className={'sf-scenery sf-premium-scenery sf-scene-'+scene}
+  src={PREMIUM_ROOT+premium} alt="" aria-hidden="true" draggable={false}
+  decoding="async" loading="eager"/>;
  const t=TONES[scene],skyId='forest-sky-'+scene,grassId='forest-grass-'+scene;
  return <svg className="sf-scenery" viewBox="0 0 1200 720" preserveAspectRatio="xMidYMid slice"
    aria-hidden="true" focusable="false">
@@ -117,6 +144,10 @@ const ANIMAL_COLORS:Record<string,{main:string;stroke:string;belly:string}>={
  dog:{main:'#c9a68e',stroke:'#977a74',belly:'#ffe8d0'}
 };
 export function StoryForestActor({id}: {id:ForestActorId}){
+ const premium=PREMIUM_STORY_CHARACTERS[id];
+ if(premium)return <img className="sf-actor-illustration sf-premium-actor"
+   src={PREMIUM_ROOT+premium} alt="" aria-hidden="true" draggable={false}
+   decoding="async" loading="eager"/>;
  const kind=id.startsWith('rabbit_')?'rabbit':
   id.startsWith('bear_')?'bear':id.startsWith('fox_')?'fox':
   id.startsWith('bird_')?'bird':id;
