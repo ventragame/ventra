@@ -72,6 +72,9 @@ export default function VentraKidsWorldPage() {
 
   // Aktif Seçili / Odaklanılan Ada (Navigasyon ve Detay Kartı İçin)
   const [focusedIsland, setFocusedIsland] = useState<IslandId>('word_garden');
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isIslandDetailExpanded, setIsIslandDetailExpanded] = useState(false);
+  const [isWorldOverview, setIsWorldOverview] = useState(false);
 
   // Öğrenme Yolu ve Bulut Geçişi
   const [activeRegion, setActiveRegion] = useState<string | null>(null);
@@ -93,6 +96,41 @@ export default function VentraKidsWorldPage() {
   useEffect(() => {
     EventBus.emit('SET_WORLD_INPUT_LOCKED', isWorldLocked);
   }, [isWorldLocked]);
+
+  useEffect(() => {
+    const onOverviewChange = (overview: boolean) => {
+      setIsWorldOverview(Boolean(overview));
+      if (overview) setIsIslandDetailExpanded(false);
+    };
+    EventBus.on('WORLD_OVERVIEW_CHANGED', onOverviewChange);
+    if (new URLSearchParams(window.location.search).get('overview') === '1') {
+      setIsWorldOverview(true);
+    }
+    return () => EventBus.off('WORLD_OVERVIEW_CHANGED', onOverviewChange);
+  }, []);
+
+  useEffect(() => {
+    setMobileMenuOpen(false);
+    setIsIslandDetailExpanded(false);
+    const dock = document.querySelector<HTMLElement>('.kids-world-dock');
+    const active = dock?.querySelector<HTMLElement>('[data-selected="true"]');
+    if (dock && active && window.matchMedia('(max-width: 900px)').matches) {
+      const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      dock.scrollTo({
+        left: Math.max(0, active.offsetLeft - (dock.clientWidth - active.clientWidth) / 2),
+        behavior: reduced ? 'instant' : 'smooth'
+      });
+    }
+  }, [focusedIsland]);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return;
+    const onEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setMobileMenuOpen(false);
+    };
+    window.addEventListener('keydown', onEscape);
+    return () => window.removeEventListener('keydown', onEscape);
+  }, [mobileMenuOpen]);
 
   useEffect(() => {
     setIsMuted(soundService.getMuted());
@@ -281,6 +319,9 @@ export default function VentraKidsWorldPage() {
 
   // Genel Harita Görünümüne Geç
   const handleShowWorldOverview = useCallback(() => {
+    setMobileMenuOpen(false);
+    setIsWorldOverview(true);
+    setIsIslandDetailExpanded(false);
     soundService.playSfx('whoosh', 0.6);
     EventBus.emit('ZOOM_WORLD_OVERVIEW');
     showToast('🗺️ Takımada Genel Harita Görünümü');
@@ -339,8 +380,8 @@ export default function VentraKidsWorldPage() {
       style={{
         position: 'fixed',
         inset: 0,
-        width: '100vw',
-        height: '100vh',
+        width: '100%',
+        height: '100dvh',
         overflow: 'hidden',
         backgroundColor: '#79c7ef'
       }}
@@ -350,6 +391,7 @@ export default function VentraKidsWorldPage() {
       {/* 1. ÜST GEZİNME VE PROFİL ÇUBUĞU */}
       <header
         aria-hidden={isWorldLocked}
+        inert={isWorldLocked}
         className={`kids-world-hud transition-all duration-300 ${
           isWorldLocked
             ? 'pointer-events-none opacity-0 invisible -translate-y-4'
@@ -462,7 +504,33 @@ export default function VentraKidsWorldPage() {
             <span>Ebeveyn & Bulut</span>
           </button>
         </div>
+        <div className="kids-mobile-actions">
+          <span className="kids-mobile-stars" aria-label={`${totalStars} yıldız`}>⭐ {totalStars}</span>
+          <button className="kids-mobile-icon" type="button"
+            onClick={handleShowWorldOverview} aria-label="Altı adanın genel haritasını göster"
+            title="Genel harita">🗺️</button>
+          <button className="kids-mobile-icon" type="button"
+            onClick={() => setMobileMenuOpen((open) => !open)}
+            aria-expanded={mobileMenuOpen} aria-controls="kids-mobile-tools"
+            aria-label={mobileMenuOpen ? 'Araç menüsünü kapat' : 'Araç menüsünü aç'}
+            title="Araçlar">{mobileMenuOpen ? '✕' : '☰'}</button>
+        </div>
+        {mobileMenuOpen && !isWorldLocked && (
+          <div id="kids-mobile-tools" role="group" aria-label="Adalar Evreni araçları"
+            className="kids-mobile-menu">
+            <strong>Keşif araçları</strong>
+            <button type="button" onClick={handleShowWorldOverview}>🗺️ <span>Genel harita</span></button>
+            <button type="button" onClick={() => { setMobileMenuOpen(false); setIsPassportOpen(true); }}>🪙 <span>Pasaport ve ödüller</span></button>
+            <button type="button" onClick={() => { setMobileMenuOpen(false); soundService.unlockAudio(); setIsAudioSettingsOpen(true); }}>🎚️ <span>Ses ve müzik</span></button>
+            <button type="button" onClick={() => { setMobileMenuOpen(false); setIsModeGateOpen(true); }}>🧭 <span>Oyun yolum</span></button>
+            <button type="button" onClick={() => { setMobileMenuOpen(false); setIsParentGateOpen(true); }}>🛡️ <span>Ebeveyn ve bulut</span></button>
+          </div>
+        )}
       </header>
+      {mobileMenuOpen && !isWorldLocked && (
+        <button type="button" className="kids-mobile-menu-backdrop"
+          aria-label="Araç menüsünü kapat" onClick={() => setMobileMenuOpen(false)} />
+      )}
 
       <div className="kids-world-caption" aria-hidden="true">Altı ada, sonsuz İngilizce macerası</div>
 
@@ -490,12 +558,18 @@ export default function VentraKidsWorldPage() {
       {/* 3. Selected island: meaningful status, child-readable text and one primary action. */}
       <aside
         aria-hidden={isWorldLocked}
+        inert={isWorldLocked}
         aria-label="Seçili ada bilgisi"
-        className={`kids-island-detail ${isWorldLocked
+        className={`kids-island-detail ${isWorldOverview ? 'kids-island-detail--overview' : ''} ${isIslandDetailExpanded ? 'kids-island-detail--expanded' : ''} ${isWorldLocked
           ? 'pointer-events-none opacity-0 invisible translate-y-6'
           : 'opacity-100 visible translate-y-0'}`}
       >
         <div className="kids-island-detail-inner" style={{borderColor:currentIslandDef.accentBorder}}>
+          <button type="button" className="kids-island-expand"
+            onClick={() => setIsIslandDetailExpanded((expanded) => !expanded)}
+            aria-expanded={isIslandDetailExpanded} aria-label={isIslandDetailExpanded ? 'Ada ayrıntılarını daralt' : 'Ada ayrıntılarını göster'}>
+            {isIslandDetailExpanded ? 'Daralt ⌄' : 'Detay ⌃'}
+          </button>
           <div className="kids-island-eyebrow">
             <span>✦ SEÇİLİ MACERA ADASI</span>
             <span className="kids-island-state">{currentIslandDef.contentPublished?'● OYNANABİLİR':'◇ YAKINDA'}</span>
@@ -537,7 +611,7 @@ export default function VentraKidsWorldPage() {
       </aside>
 
       {/* 4. Compact island dock: preserves all six selectable camera destinations. */}
-      <nav aria-label="Altı ada arasında gezin" aria-hidden={isWorldLocked}
+      <nav aria-label="Altı ada arasında gezin" aria-hidden={isWorldLocked} inert={isWorldLocked}
         className={`kids-world-dock ${isWorldLocked?'pointer-events-none opacity-0 invisible translate-y-6':'opacity-100 visible translate-y-0'}`}>
         {ARCHIPELAGO_ISLANDS_ORDERED.map(island=>{
           const selected=focusedIsland===island.id;

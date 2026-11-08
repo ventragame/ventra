@@ -82,3 +82,32 @@ test('R2 independent islands use responsive labels, revised plaques and subtle f
  assert.match(style,/kids-world-dock/);
  assert.match(style,/min-height:48px/);
 });
+
+test('V2 mobile camera has distinct overview and focus framing with reserved UI space',async()=>{
+ const {archipelagoCameraFraming}=await import('../src/lib/game/archipelagoPresentation.ts');
+ const bounds={width:1640,height:1120,centerX:1200,centerY:800};
+ for(const [width,height] of [[320,568],[360,640],[390,844],[430,932],[800,360]]){
+   const target={x:640,y:530};
+   const focused=archipelagoCameraFraming({width,height,bounds,mode:'focus',target});
+   const overview=archipelagoCameraFraming({width,height,bounds,mode:'overview'});
+   assert.ok(overview.zoom<focused.zoom,`overview must fit six islands at ${width}x${height}`);
+   assert.ok(focused.zoom>0.2&&Number.isFinite(focused.y));
+   const screenY=height/2+(target.y-focused.y)*focused.zoom;
+   assert.ok(screenY>55&&screenY<height-75,`island avoids controls at ${width}x${height}`);
+ }
+ assert.match(scene,/WORLD_OVERVIEW_CHANGED/);
+ assert.match(scene,/mode = this\.isOverviewMode \|\|/);
+ assert.match(scene,/this\.cameras\.main\.useBounds = !this\.isOverviewMode/);
+});
+test('V2 mobile sheet, tools and viewport preserve access to six islands',()=>{
+ assert.match(page,/height: '100dvh'/);
+ assert.match(page,/kids-mobile-tools/);
+ assert.match(page,/Ebeveyn ve bulut/);
+ assert.match(page,/kids-island-detail--overview/);
+ assert.match(page,/kids-island-expand/);
+ assert.match(page,/WORLD_OVERVIEW_CHANGED/);
+ assert.match(style,/safe-area-inset-top/);
+ assert.match(style,/kids-mobile-menu-backdrop/);
+ assert.match(style,/kids-world-dock\{scroll-padding-inline/);
+ assert.match(style,/kids-island-detail:not\(\.kids-island-detail--expanded\)/);
+});
