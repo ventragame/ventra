@@ -117,7 +117,7 @@ test('Story UI ships independent illustration layers, offline audio and no manua
  assert.doesNotMatch(ui,/Sonraki Soru/);
  assert.match(art,/Every answer illustration is drawn independently/);
  assert.match(css,/touch-action:manipulation/);
- assert.match(css,/@media(max-width:700px)/);
+ assert.match(css,/@media\(max-width:700px\)/);
  assert.match(css,/sj-path-choices/);
  assert.match(page,/activeRegion==='listening_forest'/);
  assert.match(page,/StoryForestHome/);
