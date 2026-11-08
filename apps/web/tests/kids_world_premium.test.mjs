@@ -115,7 +115,8 @@ test('V2 mobile sheet, tools and viewport preserve access to six islands',()=>{
 test('V3 spotlight isolates selected island on phones and tablets',()=>{
  assert.match(scene,/private updateIslandPresentation\(\): void/);
  assert.match(scene,/entity\.container\.setVisible\(shown\)/);
- assert.match(scene,/entity\.badgeContainer\?\.setVisible\(shown/);
+ assert.match(scene,/entity\.badgeContainer\?\.setVisible\(showBadge\)/);
+ assert.match(scene,/entity\.badgeHit\?\.input\) entity\.badgeHit\.input\.enabled = showBadge/);
  assert.match(scene,/this\.routeDecorations\.forEach/);
  assert.match(scene,/return this\.scale\.width <= 900/);
  assert.match(scene,/this\.updateIslandPresentation\(\)/);
