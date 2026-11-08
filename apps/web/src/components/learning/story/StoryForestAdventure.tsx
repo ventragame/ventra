@@ -45,6 +45,7 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
  const [voiceUnavailable,setVoiceUnavailable]=useState(false);
  const [feedback,setFeedback]=useState<'correct'|'wrong'|null>(null);
  const [chosen,setChosen]=useState<ForestActorId|null>(null);
+ const [wrongChoice,setWrongChoice]=useState<ForestActorId|null>(null);
  const [answers,setAnswers]=useState<ForestAnswer[]>([]);
  const [earnedStars,setEarnedStars]=useState(0);
  const [busy,setBusy]=useState(false);
@@ -102,7 +103,7 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
   stepLock.current=false;savingLock.current=false;
   setEpisode(id);setDeck(nextDeck);setStep(0);setMisses(0);
   setHintUsed(false);setShowText(false);setVoiceUnavailable(false);
-  setFeedback(null);setChosen(null);setAnswers([]);setSaveError('');
+  setFeedback(null);setChosen(null);setWrongChoice(null);setAnswers([]);setSaveError('');
   setEarnedStars(0);setView('play');
   soundService.playSfx('whoosh',.55);
   // Start under the explicit user gesture, not from a background autoplay effect.
@@ -129,11 +130,12 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
   soundService.unlockAudio();
   if(id!==task.targetId){
    setMisses(n=>n+1);
+   setWrongChoice(id);
    setFeedback('wrong');
    soundService.playSfx('gentle_retry',.6);
    return;
   }
-  stepLock.current=true;setChosen(id);setFeedback('correct');
+  stepLock.current=true;setWrongChoice(null);setChosen(id);setFeedback('correct');
   soundService.playSfx('correct',.78);
   const row:ForestAnswer={
    questionId:task.id,selectedId:id,mode:task.mode,
@@ -153,7 +155,7 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
    const nextIndex=step+1;
    stepLock.current=false;
    setStep(nextIndex);setMisses(0);setHintUsed(false);setShowText(false);
-   setVoiceUnavailable(false);setFeedback(null);setChosen(null);
+   setVoiceUnavailable(false);setFeedback(null);setChosen(null);setWrongChoice(null);
    speak(deck.questions[nextIndex]);
   },1400);
  }
@@ -250,7 +252,7 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
        {task.choices.map((id,i)=><button type="button" key={id} onClick={()=>pick(id)}
           disabled={busy||stepLock.current}
           className={'sf-choice '+(chosen===id?'sf-choice-correct':'')+
-           (feedback==='wrong'?' sf-choice-try':'')}
+           (wrongChoice===id?' sf-choice-try':'')}
           aria-label={FOREST_ACTOR_NAMES[id]} title={FOREST_ACTOR_NAMES[id]}>
          <StoryForestActor id={id}/>
          <span className="sf-choice-glint" aria-hidden="true"/>
