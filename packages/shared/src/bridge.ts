@@ -98,6 +98,15 @@ export interface StoryAnswerEvidence {
  placement:'Pre-A1'|'A1'|'A2';
  timestamp:string;
 }
+export interface SequenceAnswerEvidence {
+ frameId:string;
+ slot:number;
+ mistakes:number;
+ hintUsed:boolean;
+ firstTryCorrect:boolean;
+ placement:'Pre-A1'|'A1'|'A2';
+ timestamp:string;
+}
 export interface GameMetrics {
   durationSeconds: number;
   attemptsCount: number;
@@ -112,6 +121,7 @@ export interface GameMetrics {
   templeAnswers?: TempleAnswerEvidence[];
   sentenceAnswers?: SentenceAnswerEvidence[];
   storyAnswers?: StoryAnswerEvidence[];
+  sequenceAnswers?: SequenceAnswerEvidence[];
 }
 
 export interface GameCompletedPayload {

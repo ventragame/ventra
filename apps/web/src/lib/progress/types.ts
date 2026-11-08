@@ -51,6 +51,7 @@ export interface IProgressRepository {
   getAnimalAnswerHistory(profileId: string): Promise<import('@ventra/shared').AnimalAnswerEvidence[]>;
   getSentenceAnswerHistory(profileId:string):Promise<import('@ventra/shared').SentenceAnswerEvidence[]>;
   getStoryAnswerHistory(profileId:string):Promise<import('@ventra/shared').StoryAnswerEvidence[]>;
+  getSequenceAnswerHistory(profileId:string):Promise<import('@ventra/shared').SequenceAnswerEvidence[]>;
 
   // --- İlerleme ve Ustalık Kayıtları (Profil Duyarlı) ---
   recordLearningSession(result: LearningSessionResult, targetProfileId?: string): Promise<RecordLearningSessionResult>;
