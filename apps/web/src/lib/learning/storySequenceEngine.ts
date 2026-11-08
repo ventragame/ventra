@@ -60,8 +60,8 @@ const ARCS:Readonly<Record<ForestEpisode,Arc>>={
   ['cat',undefined,'home','arrive','left','The cat comes home.','The cat visits the tree house.','First, a curious cat arrives at a colourful tree house.'],
   ['bird',undefined,'balloon','discover','right','The bird sees a balloon.','A bird finds a blue balloon.','Then a little bird notices a bright blue balloon outside.'],
   ['rabbit_reading',undefined,'book','read','center','The rabbit reads.','The rabbit opens a story book.','Next, the rabbit sits down to read a story to everyone.'],
-  ['dog','cat','star','help','left','The dog brings a star.','A dog brings a shining star.','After that, a friendly dog brings a golden star to the house.'],
-  ['cat','dog','star','celebrate','center','They are happy.','The cat and dog celebrate together.','Finally, the friends celebrate their wonderful surprise together.']
+  ['cat_white_bow','cat','star','help','left','The white kitten brings a star.','A little white kitten brings a shining star.','After that, a little white kitten with a pink bow brings a golden star to the house.'],
+  ['cat','cat_white_bow','star','celebrate','center','The cats are happy.','The orange cat and white kitten celebrate together.','Finally, the two kittens celebrate their wonderful surprise together.']
  ]],
  3:['Göletin Sırrı',[
   ['fish',undefined,'fish','discover','center','A fish is here.','A little fish appears in the pond.','At first, a little fish appears in the sparkling pond.'],
@@ -74,11 +74,11 @@ const ARCS:Readonly<Record<ForestEpisode,Arc>>={
   ['butterfly',undefined,'flower','discover','left','A butterfly is here.','A butterfly finds a flower.','First, a colourful butterfly lands beside a flower.'],
   ['rabbit',undefined,'flower','arrive','right','The rabbit comes.','The rabbit sees a pink flower.','Next, the rabbit comes to admire the pink flowers.'],
   ['squirrel',undefined,'leaf','find','center','The squirrel finds a leaf.','The squirrel picks up a green leaf.','Then a squirrel notices a bright green leaf on the ground.'],
-  ['deer','butterfly','flower','watch','left','The deer looks.','The deer watches a butterfly.','After that, a deer stops and watches the butterfly dance.'],
-  ['rabbit','deer','flower','share','center','They share flowers.','The rabbit and deer enjoy the flowers.','Finally, the friends enjoy the lovely flowers together.']
+  ['hedgehog','butterfly','flower','watch','left','The hedgehog looks.','The hedgehog watches a butterfly.','After that, a cheerful hedgehog stops and watches the butterfly dance.'],
+  ['rabbit','hedgehog','flower','share','center','They enjoy the flowers.','The rabbit and hedgehog enjoy the flowers.','Finally, the rabbit and the hedgehog enjoy the lovely flowers together.']
  ]],
  5:['Yıldız Kampı',[
-  ['bear_sleeping',undefined,'moon','sleep','left','The bear sleeps.','The bear sleeps under the moon.','At the start of the night, a bear rests under the moonlight.'],
+  ['cat_gray_sleeping',undefined,'moon','sleep','left','The grey cat sleeps.','A grey cat sleeps under the moon.','At the start of the night, a little grey cat is curled up asleep under the moonlight.'],
   ['bird_flying',undefined,'star','move','right','The bird flies.','A bird flies past a bright star.','Soon a blue bird flies past the first shining star.'],
   ['rabbit_reading',undefined,'book','read','center','The rabbit reads.','The rabbit reads near the tent.','Next, the rabbit opens a book by the quiet camp.'],
   ['fox_running',undefined,'star','arrive','left','The fox comes.','The fox runs into the camp.','Then the fox comes running when it sees the golden star.'],

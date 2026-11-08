@@ -10,7 +10,7 @@ export type ForestEpisode = 1 | 2 | 3 | 4 | 5 | 6;
 
 export type ForestActorId =
   | 'rabbit' | 'fox' | 'bird' | 'bear' | 'deer' | 'squirrel' | 'cat' | 'dog'
-  | 'fish' | 'butterfly' | 'rabbit_reading' | 'bear_sleeping' | 'fox_running'
+  | 'fish' | 'butterfly' | 'hedgehog' | 'cat_gray_sleeping' | 'cat_white_bow' | 'rabbit_reading' | 'bear_sleeping' | 'fox_running'
   | 'bird_flying' | 'rabbit_tree' | 'rabbit_rock' | 'rabbit_pond'
   | 'red_apple' | 'yellow_star' | 'blue_balloon' | 'pink_flower'
   | 'purple_flower' | 'green_leaf';
@@ -34,7 +34,8 @@ export const FOREST_EPISODES: readonly ForestEpisodeDefinition[] = Object.freeze
 export const FOREST_ACTOR_NAMES: Readonly<Record<ForestActorId,string>> = {
  rabbit:'Tavşan', fox:'Tilki', bird:'Mavi kuş', bear:'Ayı',
  deer:'Geyik', squirrel:'Sincap', cat:'Kedi', dog:'Köpek',
- fish:'Balık', butterfly:'Kelebek',
+ fish:'Balık', butterfly:'Kelebek', hedgehog:'Kirpi',
+ cat_gray_sleeping:'Uyuyan gri kedi', cat_white_bow:'Beyaz yavru kedi',
  rabbit_reading:'Kitap okuyan tavşan',bear_sleeping:'Uyuyan ayı',
  fox_running:'Koşan tilki',bird_flying:'Uçan kuş',
  rabbit_tree:'Ağaç altındaki tavşan',rabbit_rock:'Kayanın üzerindeki tavşan',

@@ -26,7 +26,7 @@ export interface JourneyPlan{
 }
 const ROUTES:readonly JourneyObject[]=['key','apple','bird','crystal'];
 const CHARACTERS:Record<JourneyObject,readonly [ForestActorId,ForestActorId]>={
- key:['rabbit','fox'],apple:['fox','bear'],bird:['rabbit','squirrel'],crystal:['deer','rabbit']
+ key:['rabbit','hedgehog'],apple:['cat','squirrel'],bird:['rabbit','squirrel'],crystal:['cat','hedgehog']
 };
 const LOCATIONS:Record<ForestScene,JourneyLocation>={
  path:{scene:'path',label:'Orman Patikası'},
@@ -42,7 +42,9 @@ const PAIRS:Readonly<Record<ForestEpisode,readonly [ForestScene,ForestScene]>>={
 };
 const CHARACTER_NAMES:Record<string,string>={
  rabbit:'rabbit',fox:'fox',bird:'bird',bear:'bear',deer:'deer',
- squirrel:'squirrel',cat:'cat',dog:'dog',fish:'fish',butterfly:'butterfly'
+ squirrel:'squirrel',cat:'orange cat',hedgehog:'hedgehog',
+ cat_white_bow:'white kitten',cat_gray_sleeping:'sleeping grey cat',
+ dog:'dog',fish:'fish',butterfly:'butterfly'
 };
 const OBJECT_NAMES:Readonly<Record<JourneyObject,string>>={
  key:'golden key',apple:'red apple',bird:'little blue bird',crystal:'glowing crystal'
@@ -86,7 +88,7 @@ export function planJourneyStory(input:{
   return aLast-bLast; // Least recently used; random tie-break by shuffled order.
  });
  const route=ranked[0];
- const friends:ForestActorId[]=['rabbit','fox','bear','deer','squirrel','cat','dog'];
+ const friends:ForestActorId[]=['rabbit','squirrel','cat','hedgehog','cat_white_bow','cat_gray_sleeping'];
  const distractors=shuffle(friends.filter(x=>x!==route.helper&&x!==route.hero),seed+203);
  const friendChoices=shuffle([route.helper,...distractors.slice(0,2)],seed+301);
  const objectChoices=shuffle(ROUTES.filter(x=>x===route.object).concat(
@@ -97,6 +99,7 @@ export function planJourneyStory(input:{
 export function narrativeFor(plan:JourneyPlan,phase:JourneyPhase,branchScene?:ForestScene):string{
  const route=plan.route,level=plan.englishLevel,hero=CHARACTER_NAMES[route.hero],
  helper=CHARACTER_NAMES[route.helper],object=OBJECT_NAMES[route.object];
+ const heroArticle=/^[aeiou]/i.test(hero)?'an':'a';
  const landscape=route.scene==='treehouse'?'tree house':route.scene==='meadow'?'flower meadow':
   route.scene==='pond'?'pond':route.scene==='camp'?'camp':
   route.scene==='bridge'?'wooden bridge':'forest path';
@@ -105,7 +108,7 @@ export function narrativeFor(plan:JourneyPlan,phase:JourneyPhase,branchScene?:Fo
   dest.scene==='pond'?'pond':dest.scene==='camp'?'camp':
   dest.scene==='bridge'?'bridge':'forest path';
  const pre:Record<JourneyPhase,string>={
-  opening:'One day, a '+hero+' walks along the '+landscape+'.',
+  opening:'One day, '+heroArticle+' '+hero+' walks along the '+landscape+'.',
   discover:'Oh! A '+object+'! Find it.',
   meet:'A friendly '+helper+' comes to help.',
   choose:'Where should they go? Choose a place.',
