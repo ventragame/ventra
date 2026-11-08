@@ -3,6 +3,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {plazaCurriculumPool,planPlazaMission} from '../src/lib/learning/sentencePlazaEngine.ts';
 import {sentenceStart,visibleWord,visibleRepairWord} from '../src/components/learning/sentence/sentencePresentation.ts';
+import {movementMagicPool} from '../src/lib/learning/movementMagicEngine.ts';
+import {wishFestivalPool,WISH_FOODS} from '../src/lib/learning/wishFestivalEngine.ts';
+import {lanternCurriculumPool} from '../src/lib/learning/lanternFestivalEngine.ts';
 
 const source=name=>fs.readFileSync(new URL('../src/components/learning/sentence/'+name,import.meta.url),'utf8');
 const isUpperFirst=value=>/^[A-ZÇĞİÖŞÜ]/u.test(value);
@@ -85,4 +88,85 @@ test('V3 ships real original local WebP files, never references missing artwork'
  assert.match(css,/sp-v3-waiting/);
  assert.match(css,/@media\(max-width:610px\)/);
  assert.match(css,/prefers-reduced-motion:reduce/);
+});
+
+test('V7: every placement has correct Turkish object/destination cases for movement commands',()=>{
+ const objectNames=['Kediyi','Köpeği','Kuşu','Tavşanı'];
+ const destinations=['ağacın altına','evin arkasına','çeşmenin yanına','ağacın yakınına'];
+ let locations=0,festival=0;
+ for(const level of ['Pre-A1','A1','A2'])for(let mission=1;mission<=6;mission++){
+  for(const q of plazaCurriculumPool(mission,level)){
+   assert.ok(isUpperFirst(q.cue),'Uppercase prompt: '+q.id);
+   assert.doesNotMatch(q.cue,/renkte OLMASIN|uçmak yapabilir|zıplamak yapabilir|koşmak yapabilir|uyumak yapabilir|eylemini yapıyor|biraz (elmaları|muzları|portakalları|çilekleri)/i,q.id);
+   if(mission===1&&q.kind==='negative')assert.match(q.cue,/renkte değil\.$/,q.id);
+   if(mission===3&&q.kind==='instruction'){
+    locations++;
+    const re=new RegExp('^('+objectNames.join('|')+') ('+destinations.join('|')+') yerleştir\\.$');
+    assert.match(q.cue,re,q.id+': '+q.cue);
+    assert.ok(q.sentence.startsWith('Put the '));
+   }
+   if(mission===3&&q.mode==='scene'){
+    assert.equal(q.correctSceneChoice,q.scene.place,q.id);
+    assert.equal(q.sceneChoices?.length,4,q.id);
+    assert.match(q.sentence,/^The (cat|dog|bird|rabbit) is (under the tree|behind the house|next to the fountain|near the tree)\.$/);
+   }
+   if(mission===6&&q.kind==='instruction'){
+    festival++;
+    assert.match(q.cue,/^(Kırmızı|Mavi|Sarı|Yeşil|Mor|Turuncu) (kediyi|köpeği|kuşu|tavşanı) (ağacın altına|evin arkasına|çeşmenin yanına) koy\.$/i,q.id+': '+q.cue);
+   }
+   if(mission===4&&q.sentence.includes(' can '))assert.match(q.cue,/uçabilir|zıplayabilir|koşabilir|uyuyabilir|İngilizce sor/,q.id+': '+q.cue);
+   if(mission===5&&q.sentence.startsWith('Can I have'))assert.match(q.cue,/Kibarca İngilizce sor/,q.id);
+  }
+ }
+ assert.ok(locations>=16,'Command variants must remain available');
+ assert.ok(festival>=10,'Transfer commands remain available');
+});
+
+test('V7: independent movement, market and lantern curricula remain readable and consistent',()=>{
+ let checked=0;
+ for(const level of ['Pre-A1','A1','A2'])for(const grade of [1,4,8]){
+  for(const trial of movementMagicPool(level,grade)){
+   const cue=trial.question.cue;
+   assert.doesNotMatch(cue,/uçmak yapabilir|zıplamak yapabilir|koşmak yapabilir|uyumak yapabilir|eylemini yapıyor|ağaç yakınında|gölet yakınında|köprü yakınında|kule yakınında/,cue);
+   if(trial.question.sentence.includes(' can '))assert.match(cue,/uçabilir|zıplayabilir|koşabilir|uyuyabilir|Yanlış sözcüğü düzelt/,cue);
+   checked++;
+  }
+  for(const trial of wishFestivalPool(level,grade)){
+   const cue=trial.question.cue;
+   const bare=WISH_FOODS.find(f=>f.id===trial.food).label.toLocaleLowerCase('tr-TR');
+   const stem=bare==='havuç'?'havu':bare==='armut'?'armu':bare==='çilek'?'çile':bare;
+   assert.ok(cue.toLocaleLowerCase('tr-TR').includes(stem),cue);
+   assert.doesNotMatch(cue,/biraz (elmaları|muzları|portakalları|üzümleri|havuçları|çilekleri|armutları|şeftalileri)/,cue);
+   checked++;
+  }
+  for(const trial of lanternCurriculumPool(level,grade)){
+   const cue=trial.question.cue;
+   assert.ok(cue.length>=15);
+   assert.doesNotMatch(cue,/uçmak yapabilir|zıplamak yapabilir|koşmak yapabilir|uyumak yapabilir/);
+   checked++;
+  }
+ }
+ assert.ok(checked>=300);
+});
+
+test('V7: child must see the actor, choose its location only once, and then describe it',()=>{
+ const ui=source('SentencePlazaAdventure.tsx');
+ const scene=source('SentencePlazaScene.tsx');
+ const css=source('sentence-plaza-learning-v7.css');
+ assert.match(ui,/preview=\{mission===3\|\|task\.mode==='scene'\?task\.scene:null\}/);
+ assert.match(ui,/previewAtTarget=\{mission===3&&task\.kind!=='instruction'\}/);
+ assert.match(ui,/visualLocation&&!selectedScene/);
+ assert.match(ui,/task\.sceneChoices&&!visualLocation&&/);
+ assert.match(ui,/onSceneChoice=\{mission===3&&task\.mode==='scene'\?selectScene:undefined\}/);
+ assert.match(scene,/const shown=awaken\?effect:preview/);
+ assert.match(scene,/const showAnimal=Boolean\(shown/);
+ assert.match(scene,/const actorPlaced=awaken\|\|previewAtTarget/);
+ assert.match(scene,/sp-v7-peek-clip/);
+ assert.match(scene,/sp-v6-hotspots/);
+ assert.match(css,/sp-v7-location-scene/);
+ assert.match(css,/\.sp-v6-hotspot-tooltip/);
+ assert.match(css,/min-width:44px/);
+ assert.match(css,/prefers-reduced-motion:reduce/);
+ assert.match(ui,/saveSentencePlazaMission/);
+ assert.match(ui,/nextTimer\.current=setTimeout/);
 });

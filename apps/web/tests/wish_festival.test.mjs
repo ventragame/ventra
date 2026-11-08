@@ -72,7 +72,9 @@ test('All sentences match the fruit, communicative intent, grammar and scene sem
    const q=t.question;
    assert.equal(q.id,t.id);assert.equal(q.skill,'preference');assert.equal(q.mission,5);
    assert.match(q.sentence,/[.?]$/);assert.ok(q.id.startsWith('wish:v1:'));
-   assert.ok(q.cue.includes(WISH_FOODS.find(f=>f.id===t.food).tr));
+   const bare=WISH_FOODS.find(f=>f.id===t.food).label.toLocaleLowerCase('tr-TR');
+   const stem=bare==='havuç'?'havu':bare==='armut'?'armu':bare==='çilek'?'çile':bare;
+   assert.ok(q.cue.toLocaleLowerCase('tr-TR').includes(stem),'Cue must name the food correctly: '+q.cue);
    assert.ok(q.vocabulary.some(v=>v.en===t.food));
    assert.ok(checkWishFood(t,t.food));assert.ok(checkWishSecond(t,t.second));
    assert.ok(checkWishIntent(t,t.intent));assert.ok(checkWishSentence(t,q.tokens));

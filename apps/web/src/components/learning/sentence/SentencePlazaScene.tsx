@@ -3,6 +3,8 @@ import React from 'react';
 import type {PlazaSceneEffect,PlazaActor} from '@/lib/learning/sentencePlazaEngine';
 interface Props{
  effect:PlazaSceneEffect|null;
+ preview?:PlazaSceneEffect|null;
+ previewAtTarget?:boolean;
  awaken:boolean;
  chapter:number;
  onInteract?:()=>void;
@@ -29,23 +31,27 @@ const LOCATION_HOTSPOTS:Record<string,{left:string;top:string}>={
 };
 /** Original scalable art drawn as semantic SVG layers. Meaningful mutations
  * are driven ONLY by a verified constructed sentence, not by correct-choice CSS. */
-export function SentencePlazaScene({effect,awaken,chapter,onInteract,
+export function SentencePlazaScene({effect,preview=null,previewAtTarget=false,awaken,chapter,onInteract,
  sceneChoices,selectedChoice,onSceneChoice,interactionDisabled=false}:Props){
- const color=effect?.color&&COLOR_MAP[effect.color]||'#ffe6a0';
- const showAnimal=awaken&&effect&&['cat','dog','bird','rabbit'].includes(effect.actor);
- const animal=effect?.actor as PlazaActor;
+ const shown=awaken?effect:preview;
+ const color=shown?.color&&COLOR_MAP[shown.color]||'#ffe6a0';
+ const showAnimal=Boolean(shown&&['cat','dog','bird','rabbit'].includes(shown.actor));
+ const animal=shown?.actor as PlazaActor;
  const motion=awaken&&effect?.action;
  const sceneImage=CHAPTER_ART[chapter]??CHAPTER_ART[1];
  const chapterNames=['','Renk Kristalleri','Dostluk Bahçesi','Gizli Yerler','Hareket Parkuru','Lezzet Pazarı','Fener Festivali'];
- const position=effect?.place??'';
+ const position=shown?.place??'';
+ const actorPlaced=awaken||previewAtTarget;
+ const actorBehindHouse=chapter===3&&actorPlaced&&position==='behind the house';
  const actorBase=chapter===3?
-   position.includes('behind')?'translate(577 312)':
+   !actorPlaced?'translate(440 383)':
+   position.includes('behind')?'translate(577 286)':
    position.includes('under')?'translate(120 375)':
    position.includes('fountain')?'translate(356 389)':'translate(225 353)':
    chapter===2?'translate(560 369)':
    chapter===4?'translate(464 346)':
    chapter===6?'translate(508 364)':'translate(526 348)';
- return <div className={`sp-art sp-v2-art sp-v6-scene ${awaken?'sp-art-awaken':''} sp-act-${motion||'idle'}`}
+ return <div className={`sp-art sp-v2-art sp-v6-scene ${chapter===3&&onSceneChoice?'sp-v7-location-scene':''} ${awaken?'sp-art-awaken':''} sp-act-${motion||'idle'}`}
    role="group" aria-label={awaken?`${chapterNames[chapter]??'Görev'}: doğru İngilizce cümlenin sahnede oluşturduğu değişim`:`${chapterNames[chapter]??'Görev'}: İngilizce cümleni kurarak bu sahneyi canlandır`}>
  <img src={sceneImage} className="sp-v2-backdrop sp-v6-backdrop" width={1280} height={680}
   alt="" aria-hidden="true" draggable={false} decoding="async" loading="eager"/>
@@ -60,6 +66,7 @@ export function SentencePlazaScene({effect,awaken,chapter,onInteract,
    <filter id="sp-glow"><feGaussianBlur stdDeviation="9"/></filter>
    <filter id="sp-soft"><feDropShadow dx="0" dy="7" stdDeviation="8" floodColor="#24365b" floodOpacity=".4"/></filter>
    <pattern id="sp-stones" width="58" height="29" patternUnits="userSpaceOnUse"><path d="M0 0H58 M29 0V15 M0 15H58 M4 15V29 M50 15V29" stroke="#ac8290" strokeOpacity=".25" fill="none" strokeWidth="2"/></pattern>
+   <clipPath id="sp-v7-peek-clip"><rect x="-52" y="-95" width="112" height="86"/></clipPath>
   </defs>
   {/* Each chapter has its own optimized WebP scene. Dynamic SVG effects below
       are rendered only after a verified sentence; no fixed plaza geometry remains. */}
@@ -91,6 +98,25 @@ export function SentencePlazaScene({effect,awaken,chapter,onInteract,
        stroke="#fff0a9" strokeWidth="5" strokeLinecap="round"/>
    </g>)}
   </g>}
+  {/* A real, colored object is visible during the picture-reading question. */}
+  {shown&&!awaken&&chapter===1&&<g className="sp-v7-color-preview" transform="translate(460 306)">
+   {shown.actor==='balloon'?<>
+     <path d="M0 75Q14 33 0 2" stroke="#fff4dc" strokeWidth="3" fill="none"/>
+     <ellipse cy="-43" rx="37" ry="48" fill={color} stroke="#fff1d5" strokeWidth="5"/>
+    </>:shown.actor==='flower'?<>
+     <path d="M0 70v-75" stroke="#1c7758" strokeWidth="8"/>
+     {Array.from({length:6},(_,i)=><ellipse key={i} cx="0" cy="-35" rx="14" ry="28"
+       transform={`rotate(${60*i} 0 -24)`} fill={color} stroke="#fff0d5" strokeWidth="2"/>)}
+     <circle cy="-24" r="14" fill="#f8e8ab"/>
+    </>:shown.actor==='house'?<>
+     <path d="M-65 69v-79L0-59l65 49v79Z" fill={color} stroke="#fff1ca" strokeWidth="6"/>
+     <path d="M-75-10L0-73 75-10" fill="none" stroke="#ffde9d" strokeWidth="12"/>
+     <rect x="-13" y="18" width="26" height="51" rx="7" fill="#f6ead5"/>
+    </>:<>
+     <path d="M-30-58h60l-9 113h-42Z" fill={color} stroke="#ffefd3" strokeWidth="5"/>
+     <path d="M-12-63q12-29 24 0" fill="none" stroke="#ffefd3" strokeWidth="5"/>
+    </>}
+  </g>}
   {/* Real response to color / scene language */}
   {awaken&&effect?.actor==='flower'&&<g className="sp-effect-bloom">
    {Array.from({length:5},(_,i)=><g key={i} transform={`translate(${490+i*26},${351+(i%2)*13})`}>
@@ -101,17 +127,18 @@ export function SentencePlazaScene({effect,awaken,chapter,onInteract,
   </g>}
   {awaken&&effect?.actor==='balloon'&&<g className="sp-effect-float"><path d="M738 310q6-66 0-113" fill="none" stroke="#e8deeb" strokeWidth="2"/><ellipse cx="738" cy="188" rx="34" ry="45" fill={color} stroke="#fff5d9" strokeWidth="5"/></g>}
   {/* Actor shows up or reacts only when the built English has been checked. */}
-  {showAnimal&&Array.from({length:Math.max(1,Math.min(3,effect?.count??1))},(_,index)=>
+  {showAnimal&&Array.from({length:Math.max(1,Math.min(3,shown?.count??1))},(_,index)=>
    <g key={index} className={`sp-actor sp-actor-${animal} sp-actor-${motion||'idle'}`}
-   transform={actorBase+' translate('+((effect?.count??1)>1?index*66-33:0)+',0)'}>
+   clipPath={actorBehindHouse?'url(#sp-v7-peek-clip)':undefined}
+   transform={actorBase+' translate('+((shown?.count??1)>1?index*66-33:0)+',0)'}>
    <ellipse cx="0" cy="25" rx="35" ry="9" fill="#2f6573" opacity=".35"/>
    {animal==='bird'?<>
-    <ellipse cx="0" cy="-16" rx="29" ry="22" fill={effect?.color&&COLOR_MAP[effect.color]||'#87cced'} stroke="#f6f2df" strokeWidth="3"/>
+    <ellipse cx="0" cy="-16" rx="29" ry="22" fill={shown?.color&&COLOR_MAP[shown.color]||'#87cced'} stroke="#f6f2df" strokeWidth="3"/>
     <path d="M-10-12q-27-14-29 10q19 15 33 6" fill="#d7edf6"/>
     <circle cx="14" cy="-21" r="5" fill="#27445c"/><path d="M26-16l15 5-16 5" fill="#f7be6c"/>
    </>:<>
-    <ellipse cx="0" cy="-6" rx="30" ry="22" fill={effect?.color&&COLOR_MAP[effect.color]||'#f8d19d'} stroke="#f6edda" strokeWidth="3"/>
-    <circle cx="-2" cy="-31" r="23" fill={effect?.color&&COLOR_MAP[effect.color]||'#f8d19d'} stroke="#f6edda" strokeWidth="3"/>
+    <ellipse cx="0" cy="-6" rx="30" ry="22" fill={shown?.color&&COLOR_MAP[shown.color]||'#f8d19d'} stroke="#f6edda" strokeWidth="3"/>
+    <circle cx="-2" cy="-31" r="23" fill={shown?.color&&COLOR_MAP[shown.color]||'#f8d19d'} stroke="#f6edda" strokeWidth="3"/>
     {animal==='rabbit'?<><ellipse cx="-15" cy="-63" rx="9" ry="28" fill="#f8d4b8"/><ellipse cx="11" cy="-65" rx="9" ry="28" fill="#f8d4b8"/></>:<><path d="M-24-46l-9-29 29 16" fill="#f3d09e"/><path d="M8-61l25-15-5 31" fill="#f3d09e"/></>}
     <circle cx="-11" cy="-34" r="3.8" fill="#2c425a"/><circle cx="8" cy="-34" r="3.8" fill="#2c425a"/>
     <circle cx="-2" cy="-23" r="4" fill="#925a64"/>

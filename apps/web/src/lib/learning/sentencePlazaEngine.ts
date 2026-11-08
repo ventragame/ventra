@@ -147,19 +147,21 @@ const V2_COLORS:readonly Lex[]=[
  {en:'green',tr:'yeşil'},{en:'purple',tr:'mor'},{en:'orange',tr:'turuncu'}
 ];
 const article=(word:string)=>/^[aeiou]/i.test(word)?'an':'a';
-const V2_ANIMALS:readonly {id:'cat'|'dog'|'bird'|'rabbit';en:string;tr:string;icon:string}[]=[
- {id:'cat',en:'cat',tr:'kedi',icon:'🐱'},{id:'dog',en:'dog',tr:'köpek',icon:'🐶'},
- {id:'bird',en:'bird',tr:'kuş',icon:'🐦'},{id:'rabbit',en:'rabbit',tr:'tavşan',icon:'🐰'}
+const V2_ANIMALS:readonly {id:'cat'|'dog'|'bird'|'rabbit';en:string;tr:string;trAcc:string;icon:string}[]=[
+ {id:'cat',en:'cat',tr:'kedi',trAcc:'kediyi',icon:'🐱'},{id:'dog',en:'dog',tr:'köpek',trAcc:'köpeği',icon:'🐶'},
+ {id:'bird',en:'bird',tr:'kuş',trAcc:'kuşu',icon:'🐦'},{id:'rabbit',en:'rabbit',tr:'tavşan',trAcc:'tavşanı',icon:'🐰'}
 ];
-const V2_PLACES:readonly Lex[]=[
- {en:'under the tree',tr:'ağacın altında'},{en:'behind the house',tr:'evin arkasında'},
- {en:'next to the fountain',tr:'çeşmenin yanında'},{en:'near the tree',tr:'ağacın yakınında'}
+const V2_PLACES:readonly (Lex & {trDestination:string})[]=[
+ {en:'under the tree',tr:'ağacın altında',trDestination:'ağacın altına'},
+ {en:'behind the house',tr:'evin arkasında',trDestination:'evin arkasına'},
+ {en:'next to the fountain',tr:'çeşmenin yanında',trDestination:'çeşmenin yanına'},
+ {en:'near the tree',tr:'ağacın yakınında',trDestination:'ağacın yakınına'}
 ];
-const V2_FOODS:readonly Lex[]=[
- {en:'apples',tr:'elmaları',icon:'🍎'},{en:'bananas',tr:'muzları',icon:'🍌'},
- {en:'carrots',tr:'havuçları',icon:'🥕'},{en:'oranges',tr:'portakalları',icon:'🍊'},
- {en:'pears',tr:'armutları',icon:'🍐'},{en:'grapes',tr:'üzümleri',icon:'🍇'},
- {en:'strawberries',tr:'çilekleri',icon:'🍓'},{en:'peaches',tr:'şeftalileri',icon:'🍑'}
+const V2_FOODS:readonly (Lex & {trBare:string})[]=[
+ {en:'apples',tr:'elmaları',trBare:'elma',icon:'🍎'},{en:'bananas',tr:'muzları',trBare:'muz',icon:'🍌'},
+ {en:'carrots',tr:'havuçları',trBare:'havuç',icon:'🥕'},{en:'oranges',tr:'portakalları',trBare:'portakal',icon:'🍊'},
+ {en:'pears',tr:'armutları',trBare:'armut',icon:'🍐'},{en:'grapes',tr:'üzümleri',trBare:'üzüm',icon:'🍇'},
+ {en:'strawberries',tr:'çilekleri',trBare:'çilek',icon:'🍓'},{en:'peaches',tr:'şeftalileri',trBare:'şeftali',icon:'🍑'}
 ];
 type NewSentence={key:string;sentence:string;cue:string;kind:PlazaSentenceKind;scene:PlazaSceneEffect;
  explanation:string;vocabulary:{en:string;tr:string}[];mode?:PlazaChallengeMode;
@@ -216,7 +218,7 @@ function buildV2(mission:PlazaMission,level:EnglishPlacement):PlazaQuestion[]{
    const effect:PlazaSceneEffect={actor:o.id,color:c.en,action:'glow'};
    const words=v({en:o.id,tr:o.tr},c);
    const pre=['The '+o.id+' is '+c.en+'.','This is '+article(c.en)+' '+c.en+' '+o.id+'.'];
-   const cues=[o.tr+' '+c.tr+' renkte olsun.','Bu, '+c.tr+' bir '+o.tr+'.'];
+   const cues=[o.tr+' '+c.tr+' renkte.','Bu, '+c.tr+' bir '+o.tr+'.'];
    pre.forEach((sentence,i)=>push({key:'description:'+o.id+':'+c.en+':'+i,sentence,
     cue:cues[i],kind:'statement',scene:effect,
     explanation:'The ... is ... özellik bildirir; This is a ... bir nesneyi tanıtır.',
@@ -229,7 +231,7 @@ function buildV2(mission:PlazaMission,level:EnglishPlacement):PlazaQuestion[]{
     // The visual must NOT show the forbidden color: the color of a true negative is its alternative.
     const other=V2_COLORS[(V2_COLORS.indexOf(c)+1)%V2_COLORS.length];
     push({key:'negative:'+o.id+':'+c.en,kind:'negative',sentence:'The '+o.id+' is not '+c.en+'.',
-     cue:o.tr+' '+c.tr+' renkte OLMASIN.',scene:{...effect,color:other.en},
+     cue:o.tr+' '+c.tr+' renkte değil.',scene:{...effect,color:other.en},
      explanation:'Is not, bir özelliği reddeder.',vocabulary:words,mode:'construct'});
    }
    if(a2)push({key:'contrast:'+o.id+':'+c.en,kind:'contrast',
@@ -274,7 +276,7 @@ function buildV2(mission:PlazaMission,level:EnglishPlacement):PlazaQuestion[]{
    if(a1){
     push({key:'command:'+animal.id+':'+place.en,kind:'instruction',
      sentence:'Put the '+animal.en+' '+place.en+'.',
-     cue:animal.tr+' '+place.tr+' yerleştir.',scene,
+     cue:animal.trAcc+' '+place.trDestination+' yerleştir.',scene,
      explanation:'Put ile başlayan emir cümlesi bir hareket ister.',vocabulary:words,mode:'construct'});
     push({key:'ask:'+animal.id+':'+place.en,kind:'question',
      sentence:'Is the '+animal.en+' '+place.en+'?',
@@ -287,31 +289,31 @@ function buildV2(mission:PlazaMission,level:EnglishPlacement):PlazaQuestion[]{
     explanation:'Because, bir yer seçiminde neden belirtir.',vocabulary:v(...words,{en:'because',tr:'çünkü'}),mode:'construct'});
   }
  } else if(mission===4){
-  const actions=[{id:'bird' as const,tr:'kuş',verb:'fly',ing:'flying',trVerb:'uçmak',effect:'fly' as const},
-   {id:'rabbit' as const,tr:'tavşan',verb:'jump',ing:'jumping',trVerb:'zıplamak',effect:'jump' as const},
-   {id:'dog' as const,tr:'köpek',verb:'run',ing:'running',trVerb:'koşmak',effect:'run' as const},
-   {id:'cat' as const,tr:'kedi',verb:'sleep',ing:'sleeping',trVerb:'uyumak',effect:'sleep' as const}];
+  const actions=[{id:'bird' as const,tr:'kuş',verb:'fly',ing:'flying',trVerb:'uçmak',trAbility:'uçabilir',trProgress:'uçuyor',effect:'fly' as const},
+   {id:'rabbit' as const,tr:'tavşan',verb:'jump',ing:'jumping',trVerb:'zıplamak',trAbility:'zıplayabilir',trProgress:'zıplıyor',effect:'jump' as const},
+   {id:'dog' as const,tr:'köpek',verb:'run',ing:'running',trVerb:'koşmak',trAbility:'koşabilir',trProgress:'koşuyor',effect:'run' as const},
+   {id:'cat' as const,tr:'kedi',verb:'sleep',ing:'sleeping',trVerb:'uyumak',trAbility:'uyuyabilir',trProgress:'uyuyor',effect:'sleep' as const}];
   for(const act of actions)for(const place of V2_PLACES){
    const scene:PlazaSceneEffect={actor:act.id,place:place.en,action:act.effect};
    const words=v({en:act.id,tr:act.tr},{en:act.verb,tr:act.trVerb},place);
    const choices=actions.map(o=>({id:o.verb,label:o.trVerb,icon:o.effect==='fly'?'🪽':'✨'}));
    push({key:'ability:'+act.id+':'+place.en,kind:'statement',
-    sentence:'The '+act.id+' can '+act.verb+' '+place.en+'.',cue:act.tr+' '+place.tr+' '+act.trVerb+' yapabilir.',scene,
+    sentence:'The '+act.id+' can '+act.verb+' '+place.en+'.',cue:act.tr+' '+place.tr+' '+act.trAbility+'.',scene,
     explanation:'Can + fiilin yalın hâli yeteneği anlatır.',vocabulary:words,
     mode:'scene',choices,choice:act.verb});
    if(a1){
     push({key:'progressive:'+act.id+':'+place.en,kind:'statement',
      sentence:'The '+act.id+' is '+act.ing+' '+place.en+'.',
-     cue:act.tr+' şu anda '+place.tr+' '+act.trVerb+' eylemini yapıyor.',scene,
+     cue:act.tr+' şu anda '+place.tr+' '+act.trProgress+'.',scene,
      explanation:'Is + -ing şu anda olan eylemdir.',vocabulary:words,mode:'construct'});
     push({key:'question:'+act.id+':'+place.en,kind:'question',
      sentence:'Can the '+act.id+' '+act.verb+'?',
-     cue:act.tr+' '+act.trVerb+' yapabilir mi? İngilizce sor.',scene,
+     cue:act.tr+' '+act.trAbility+' mi? İngilizce sor.',scene,
      explanation:'Can başa gelince bir yetenek sorusu olur.',vocabulary:words,mode:'repair'});
    }
    if(a2)push({key:'reason:'+act.id+':'+place.en,kind:'reason',
     sentence:'The '+act.id+' is '+act.ing+' '+place.en+' because it feels happy.',
-    cue:act.tr+' mutlu olduğu için '+place.tr+' '+act.trVerb+' eylemini yapıyor.',
+    cue:act.tr+' mutlu olduğu için '+place.tr+' '+act.trProgress+'.',
     scene,explanation:'Because, eylemin nedenini açıklar.',vocabulary:v(...words,{en:'because',tr:'çünkü'}),mode:'construct'});
   }
  } else if(mission===5){
@@ -320,25 +322,25 @@ function buildV2(mission:PlazaMission,level:EnglishPlacement):PlazaQuestion[]{
    const words=v(food);
    const choices=[food,...V2_FOODS.filter(f=>f.en!==food.en).slice(0,3)].map(f=>({id:f.en,label:f.tr,icon:f.icon??'🍎'}));
    push({key:'want:'+food.en,kind:'request',sentence:'I want '+food.en+'.',
-    cue:food.tr+' istiyorum.',scene,explanation:'I want bir isteği söyler.',vocabulary:words,
+    cue:food.trBare+' istiyorum.',scene,explanation:'I want bir isteği söyler.',vocabulary:words,
     mode:'scene',choices,choice:food.en});
    push({key:'like:'+food.en,kind:'preference',sentence:'I like '+food.en+'.',
-    cue:food.tr+' severim.',scene,explanation:'I like bir beğeniyi söyler.',vocabulary:words,mode:'construct'});
+    cue:food.trBare+' severim.',scene,explanation:'I like bir beğeniyi söyler.',vocabulary:words,mode:'construct'});
    if(a1){
     push({key:'negative:'+food.en,kind:'negative',sentence:'I do not want '+food.en+'.',
-     cue:food.tr+' istemiyorum.',scene:{...scene,action:'remove'},
+     cue:food.trBare+' istemiyorum.',scene:{...scene,action:'remove'},
      explanation:'Do not want, istemediğimiz şeyi belirtir.',vocabulary:words,mode:'repair'});
     push({key:'please:'+food.en,kind:'question',sentence:'Can I have some '+food.en+', please?',
-     cue:'Kibarca biraz '+food.tr+' ister misin? İngilizce sor.',scene,
+     cue:'Biraz '+food.trBare+' iste. Kibarca İngilizce sor.',scene,
      explanation:'Can I have ... please? kibar bir soru cümlesidir.',vocabulary:words,mode:'scene',choices,choice:food.en});
    }
    if(a2){
     push({key:'why:'+food.en,kind:'reason',sentence:'I like '+food.en+' because they taste good.',
-     cue:food.tr+' seviyorum çünkü lezzetliler.',scene,
+     cue:food.trBare+' seviyorum çünkü lezzetliler.',scene,
      explanation:'Because, sevme nedenini açıklar.',vocabulary:v(...words,{en:'because',tr:'çünkü'}),mode:'construct'});
     push({key:'contrast:'+food.en,kind:'contrast',
      sentence:'I want '+food.en+', but I do not want lemons.',
-     cue:food.tr+' istiyorum ama limon istemiyorum.',scene,
+     cue:food.trBare+' istiyorum ama limon istemiyorum.',scene,
      explanation:'But karşıt iki isteği bağlar.',vocabulary:v(...words,{en:'but',tr:'ama'}),mode:'repair'});
    }
   }
@@ -361,7 +363,7 @@ function buildV2(mission:PlazaMission,level:EnglishPlacement):PlazaQuestion[]{
    if(a1){
     push({key:'put:'+animal.id+':'+col.en+':'+place.en,kind:'instruction',
      sentence:'Put the '+col.en+' '+animal.en+' '+place.en+'.',
-     cue:col.tr+' '+animal.tr+' '+place.tr+' koy.',scene:base,
+     cue:col.tr+' '+animal.trAcc+' '+place.trDestination+' koy.',scene:base,
      explanation:'Emir cümlesi fiille başlar; yer ve özellik eklenebilir.',vocabulary:words,mode:'repair'});
    }
    if(a2)push({key:'reason:'+animal.id+':'+col.en+':'+place.en,kind:'reason',

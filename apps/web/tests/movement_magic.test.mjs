@@ -159,12 +159,12 @@ test('Every grade-level Turkish cue preserves the English sentence intent',()=>{
   for(const row of pool){
    const q=row.question;
    if(row.chapter===1&&q.sentence.endsWith('?'))assert.match(q.cue,/mi\?/);
-   if(row.chapter===2&&level==='Pre-A1')assert.match(q.cue,/yapabilir/);
+   if(row.chapter===2&&level==='Pre-A1')assert.match(q.cue,/uçabilir|zıplayabilir|koşabilir|uyuyabilir/);
    if(row.chapter===3&&level==='Pre-A1'){
-    assert.match(q.cue,/yapabilir/);
+    assert.match(q.cue,/uçabilir|zıplayabilir|koşabilir|uyuyabilir/);
     assert.ok(q.cue.length>20);
    }
-   if(row.chapter===4&&level==='Pre-A1')assert.match(q.cue,/yapabilir/);
+   if(row.chapter===4&&level==='Pre-A1')assert.match(q.cue,/uçabilir|zıplayabilir|koşabilir|uyuyabilir/);
    if(level==='A2'&&grade>=4&&q.kind==='reason')assert.match(q.cue,/hissettiği için|çünkü/);
   }
  }

@@ -18,6 +18,17 @@ export interface WishTrial{
 }
 export interface WishPlan{deck:PlazaDeck;trials:WishTrial[];grade:number|null;
  englishLevel:EnglishPlacement;roundsPerChapter:number;estimatedMinutes:[number,number];}
+/** Turkish generic food names and explicit case forms for polite requests/comparisons. */
+const WISH_FOOD_TURKISH:Readonly<Record<WishFood,{bare:string;acc:string;dat:string}>>={
+ apples:{bare:'elma',acc:'elmayı',dat:'elmaya'},
+ bananas:{bare:'muz',acc:'muzu',dat:'muza'},
+ oranges:{bare:'portakal',acc:'portakalı',dat:'portakala'},
+ grapes:{bare:'üzüm',acc:'üzümü',dat:'üzüme'},
+ carrots:{bare:'havuç',acc:'havucu',dat:'havuca'},
+ strawberries:{bare:'çilek',acc:'çileği',dat:'çileğe'},
+ pears:{bare:'armut',acc:'armudu',dat:'armuda'},
+ peaches:{bare:'şeftali',acc:'şeftaliyi',dat:'şeftaliye'}
+};
 export const WISH_FOODS:readonly {id:WishFood;tr:string;label:string;trait:'sweet'|'juicy'|'crunchy';traitTr:string;color:string}[]=[
  {id:'apples',tr:'elmaları',label:'Elma',trait:'sweet',traitTr:'tatlı',color:'#ea778a'},
  {id:'bananas',tr:'muzları',label:'Muz',trait:'sweet',traitTr:'tatlı',color:'#f6d16f'},
@@ -72,43 +83,44 @@ function author(chapter:WishChapter,level:EnglishPlacement,grade:number|null,gue
  const a1=level==='A1',a2=level==='A2';
  const first=foodById(food),other=foodById(second);
  const support=A1_CAP(level,ageYoung);
+ const firstTr=WISH_FOOD_TURKISH[food],otherTr=WISH_FOOD_TURKISH[second];
  let sentence='',intent:WishIntent='like',kind:PlazaSentenceKind='preference';
  let cue='',explanation='',mode:WishMode='taste';
  if(chapter===1){
   mode='taste';
-  if(early){sentence='I like '+food+'.';intent='like';cue=first.tr+' sevdiğini söyle.';explanation='I like + yiyecek, bir beğeni bildirir.';}
+  if(early){sentence='I like '+food+'.';intent='like';cue=firstTr.bare+' sevdiğini söyle.';explanation='I like + yiyecek, bir beğeni bildirir.';}
   else if(a1){intent=variant%2?'dislike':'like';kind=intent==='dislike'?'negative':'preference';
    sentence=intent==='dislike'?'I do not like '+food+'.':'I really like '+food+'.';
-   cue=first.tr+(intent==='dislike'?' sevmediğini':' çok sevdiğini')+' anlat.';
+   cue=firstTr.bare+(intent==='dislike'?' sevmediğini':' çok sevdiğini')+' anlat.';
    explanation='I do not like = sevmem. I really like = çok severim.';}
   else{
    intent=variant%2?'dislike':'like';kind=intent==='dislike'?'negative':'reason';
    sentence=intent==='dislike'?'I do not like '+food+'.':
     support?'I like '+food+' because they are '+first.trait+'.':
       'I really like '+food+' because they are '+first.trait+'.';
-   cue=first.tr+(intent==='dislike'?' sevmediğini anlat.':' '+first.traitTr+' oldukları için sevdiğini anlat.');
+   cue=firstTr.bare+(intent==='dislike'?' sevmediğini anlat.':' '+first.traitTr+' oldukları için sevdiğini anlat.');
    explanation='Not olumsuzluk, because neden-sonuç anlamı oluşturur.';
   }
  }else if(chapter===2){
   mode='order';intent='want';kind=early?'request':'question';
-  if(early){sentence='I want '+food+', please.';cue='Kibarca '+first.tr+' istediğini söyle.';}
-  else if(a1){sentence='Can I have some '+food+', please?';cue='Kibarca biraz '+first.tr+' iste.';intent='polite';}
+  if(early){sentence='I want '+food+', please.';cue='Kibarca '+firstTr.bare+' istediğini söyle.';}
+  else if(a1){sentence='Can I have some '+food+', please?';cue='Kibarca biraz '+firstTr.bare+' iste.';intent='polite';}
   else {sentence=support?'Can I have some '+food+', please?':'Could I have some '+food+', please?';
-    cue='Kibarca biraz '+first.tr+' iste.';intent='polite';}
+    cue='Kibarca biraz '+firstTr.bare+' iste.';intent='polite';}
   explanation=early?'Please rica ederken kullanılır.':'Can/Could I have ... please? kibarca rica etmenin bir yoludur.';
  }else if(chapter===3){
   mode='dialogue';
   if(early){
    intent=variant%2?'want':'like';kind=intent==='want'?'request':'preference';
    sentence='I '+(intent==='want'?'want ':'like ')+food+'.';
-   cue='Konuğun sorusuna cevap ver: '+first.tr+(intent==='want'?' istediğini':' sevdiğini')+' söyle.';
+   cue='Konuğun sorusuna cevap ver: '+firstTr.bare+(intent==='want'?' istediğini':' sevdiğini')+' söyle.';
    explanation='Want = istemek, like = sevmek. Sorunun amacına göre farklı cümle kur.';
   } else if(a1){
    intent=variant%3===0?'polite':variant%3===1?'like':'dislike';
    kind=intent==='polite'?'request':intent==='dislike'?'negative':'preference';
    sentence=intent==='dislike'?'I do not like '+food+'.':
      intent==='polite'?'I would like some '+food+'.':'Yes, I like '+food+'.';
-   cue=first.tr+(intent==='dislike'?' sevmediğini':intent==='polite'?' rica ettiğini':' sevdiğini')+' söyle.';
+   cue=firstTr.bare+(intent==='dislike'?' sevmediğini':intent==='polite'?' rica ettiğini':' sevdiğini')+' söyle.';
    explanation='Would like kibar bir istek, do not like olumsuz tercih belirtir.';
   }else{
    intent=variant%3===0?'polite':variant%3===1?'like':'dislike';
@@ -116,25 +128,25 @@ function author(chapter:WishChapter,level:EnglishPlacement,grade:number|null,gue
    sentence=intent==='dislike'?'No, I do not like '+food+'.':
     intent==='polite'?'I would like some '+food+', please.':
     'I like '+food+' because they are '+first.trait+'.';
-   cue=first.tr+(intent==='dislike'?' sevmediğini':intent==='polite'?' kibarca istediğini':' '+first.traitTr+' oldukları için sevdiğini')+' söyle.';
+   cue=firstTr.bare+(intent==='dislike'?' sevmediğini':intent==='polite'?' kibarca istediğini':' '+first.traitTr+' oldukları için sevdiğini')+' söyle.';
    explanation='No olumsuz cevabı, would like kibar isteği, because nedeni belirtir.';
   }
  }else{
   mode='festival';intent='prefer';
   if(early){
    sentence='I like '+food+' and '+second+'.';
-   cue=first.tr+' ve '+other.tr+' sevdiğini anlat.';
+   cue=firstTr.bare+' ve '+otherTr.bare+' sevdiğini anlat.';
    kind='preference';explanation='And iki sevdiğimiz şeyi birleştirir.';
   }else if(a1){
    sentence=ageYoung?'I want '+food+', but not '+second+'.':
     'I want '+food+', but I do not want '+second+'.';
-   cue=first.tr+' istediğini ama '+other.tr+' istemediğini söyle.';
+   cue=firstTr.bare+' istediğini ama '+otherTr.bare+' istemediğini söyle.';
    kind='contrast';explanation='But bir isteği diğerinden ayırır; not istemediğin şeyi söyler.';
   }else{
    sentence=ageYoung?'I like '+food+' because they are '+first.trait+'.':
     'I prefer '+food+' to '+second+' because they are '+first.trait+'.';
-   cue=ageYoung?first.tr+' '+first.traitTr+' olduğu için sevdiğini anlat.':
-    first.tr+' '+other.tr+' tercih ettiğini, çünkü '+first.traitTr+' olduklarını söyle.';
+   cue=ageYoung?firstTr.bare+' '+first.traitTr+' olduğu için sevdiğini anlat.':
+    firstTr.acc+' '+otherTr.dat+' tercih ettiğini, çünkü '+first.traitTr+' olduğunu söyle.';
    kind='reason';explanation='Prefer ... to ... bir tercihi karşılaştırır; because gerekçesini açıklar.';
   }
  }

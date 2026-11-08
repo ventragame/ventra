@@ -1,0 +1,58 @@
+/* Cümle Meydanı V7 — child-facing scene comprehension and readable location targets. */
+.sp-v3 .sp-v7-location-scene .sp-actor{
+ filter:drop-shadow(0 0 9px #fff1a8) drop-shadow(0 3px 3px #0b3e52);
+}
+.sp-v3 .sp-v7-location-scene .sp-v6-hotspot-tooltip{
+ opacity:1;visibility:visible;
+ border-color:#fff0b7;
+ background:#063f51f5;
+ font-size:clamp(10px,1vw,12px);
+}
+.sp-v3 .sp-v7-location-scene .sp-v6-hotspot{
+ border-width:3px;
+ box-shadow:0 4px 0 #153e49,0 10px 16px #06273880;
+}
+.sp-v3 .sp-v7-location-scene .sp-v6-hotspot[data-selected=true]{
+ background:#23725b;
+ border-color:#c7ffda;
+ box-shadow:0 4px 0 #176a51,0 0 0 5px #c8ffb860;
+}
+.sp-v3 .sp-v7-color-preview{
+ filter:drop-shadow(0 5px 8px #0d4158a1);
+}
+.sp-v3 .sp-v7-visual-task{
+ display:flex;align-items:center;gap:10px;
+ min-height:50px;padding:10px 14px;
+ margin:12px 0;
+ border:2px solid #d1e9d3;border-radius:14px;
+ background:linear-gradient(115deg,#1b5c68,#174660);
+ color:#fff4d5;
+ font-size:clamp(12px,1.2vw,15px);
+ font-weight:850;line-height:1.35;
+}
+.sp-v3 .sp-v7-visual-task>span:first-child{font-size:24px;flex:none}
+.sp-v3 .sp-v7-location-scene .sp-v6-hotspot:focus-visible{
+ outline:3px solid #ffe3a0;outline-offset:4px;
+}
+@media(max-width:560px){
+ .sp-v3 .sp-v7-location-scene .sp-v6-hotspot{
+  min-width:44px;min-height:44px;
+  width:44px;height:44px;
+ }
+ .sp-v3 .sp-v7-location-scene .sp-v6-hotspot-tooltip{
+  font-size:9px;min-width:74px;max-width:94px;
+  padding:4px 5px;
+  bottom:calc(100% + 4px);
+ }
+ .sp-v3 .sp-v7-visual-task{font-size:12px;padding:9px 11px;min-height:46px}
+}
+/* Keep labels discoverable without hover on touch screens. */
+@media(hover:none){
+ .sp-v3 .sp-v7-location-scene .sp-v6-hotspot-tooltip{opacity:1;visibility:visible}
+}
+@media(prefers-reduced-motion:reduce){
+ .sp-v3 .sp-v7-location-scene .sp-actor,
+ .sp-v3 .sp-v7-location-scene .sp-v6-hotspot{
+  transition:none!important;animation:none!important;
+ }
+}

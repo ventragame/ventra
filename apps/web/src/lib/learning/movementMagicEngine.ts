@@ -23,17 +23,17 @@ export interface MovementPlan {
  deck:PlazaDeck;trials:MovementTrial[];grade:number|null;englishLevel:EnglishPlacement;
  roundsPerChapter:number;estimatedMinutes:[number,number];
 }
-const CAST:Readonly<Record<MagicActor,{verb:MagicVerb;ing:string;tr:string;actionTr:string;feeling:string;feelingTr:string}>>={
- bird:{verb:'fly',ing:'flying',tr:'kuş',actionTr:'uçmak',feeling:'free',feelingTr:'özgür'},
- rabbit:{verb:'jump',ing:'jumping',tr:'tavşan',actionTr:'zıplamak',feeling:'happy',feelingTr:'mutlu'},
- dog:{verb:'run',ing:'running',tr:'köpek',actionTr:'koşmak',feeling:'excited',feelingTr:'heyecanlı'},
- cat:{verb:'sleep',ing:'sleeping',tr:'kedi',actionTr:'uyumak',feeling:'tired',feelingTr:'yorgun'}
+const CAST:Readonly<Record<MagicActor,{verb:MagicVerb;ing:string;tr:string;actionTr:string;abilityTr:string;progressTr:string;feeling:string;feelingTr:string}>>={
+ bird:{verb:'fly',ing:'flying',tr:'kuş',actionTr:'uçmak',abilityTr:'uçabilir',progressTr:'uçuyor',feeling:'free',feelingTr:'özgür'},
+ rabbit:{verb:'jump',ing:'jumping',tr:'tavşan',actionTr:'zıplamak',abilityTr:'zıplayabilir',progressTr:'zıplıyor',feeling:'happy',feelingTr:'mutlu'},
+ dog:{verb:'run',ing:'running',tr:'köpek',actionTr:'koşmak',abilityTr:'koşabilir',progressTr:'koşuyor',feeling:'excited',feelingTr:'heyecanlı'},
+ cat:{verb:'sleep',ing:'sleeping',tr:'kedi',actionTr:'uyumak',abilityTr:'uyuyabilir',progressTr:'uyuyor',feeling:'tired',feelingTr:'yorgun'}
 };
 const COLORS=[{en:'blue',tr:'mavi'},{en:'yellow',tr:'sarı'},{en:'orange',tr:'turuncu'},
  {en:'purple',tr:'mor'},{en:'green',tr:'yeşil'},{en:'red',tr:'kırmızı'}] as const;
-const PLACES:Readonly<Record<MagicPlace,{en:string;tr:string}>>={
- tree:{en:'tree',tr:'ağaç'},pond:{en:'pond',tr:'gölet'},
- bridge:{en:'bridge',tr:'köprü'},tower:{en:'tower',tr:'kule'}
+const PLACES:Readonly<Record<MagicPlace,{en:string;tr:string;trGen:string}>>={
+ tree:{en:'tree',tr:'ağaç',trGen:'ağacın'},pond:{en:'pond',tr:'gölet',trGen:'göletin'},
+ bridge:{en:'bridge',tr:'köprü',trGen:'köprünün'},tower:{en:'tower',tr:'kule',trGen:'kulenin'}
 };
 export const MOVEMENT_CHAPTERS=[
  {id:1,title:'Hareket Kristalleri',short:'Eylemi tanı',icon:'✦',
@@ -80,29 +80,30 @@ export function movementCueFor(chapter:MagicChapter,actor:MagicActor,place:Magic
  level:EnglishPlacement,grade:number|null,sentence:string):string{
  const info=CAST[actor],loc=PLACES[place];
  const advanced=level==='A2'&&!(grade!=null&&grade>=1&&grade<=2);
+ const placeTr=loc.trGen+' yakınında';
+ const who=colorTr+' '+info.tr;
  if(chapter===1){
-  if(sentence.endsWith('?'))return colorTr+' '+info.tr+' '+info.actionTr+' yapabilir mi? İngilizce sor.';
+  if(sentence.endsWith('?'))return info.tr+' '+info.abilityTr+' mi? İngilizce sor.';
   return advanced?
-   colorTr+' '+info.tr+' '+info.feelingTr+' hissettiği için şu anda '+info.actionTr+' eylemini yapıyor.':
-   'Bu '+colorTr+' '+info.tr+' '+info.actionTr+' yapabilir. İngilizce bir cümle kur.';
+   who+' '+info.feelingTr+' hissettiği için şu anda '+info.progressTr+'.':
+   'Bu '+who+' '+info.abilityTr+'. İngilizce anlat.';
  }
  if(chapter===2){
-  if(level==='Pre-A1')return info.tr+' '+loc.tr+' yakınında '+info.actionTr+
-   ' yapabilir. Yeri seç ve İngilizce anlat.';
-  return info.tr+(advanced?' '+info.feelingTr+' hissettiği için':'')+
-   ' '+loc.tr+' yakınında şu anda '+info.actionTr+' eylemini yapıyor. Yeri seç ve İngilizce anlat.';
+  return level==='Pre-A1'?
+   info.tr+' '+placeTr+' '+info.abilityTr+'. Yeri seç.':
+   info.tr+(advanced?' '+info.feelingTr+' hissettiği için':'')+
+    ' '+placeTr+' şu anda '+info.progressTr+'. Yeri seç.';
  }
  if(chapter===3){
-  if(level==='Pre-A1')return 'Bozulan cümleyi düzelt: '+colorTr+' '+info.tr+' '+info.actionTr+' yapabilir.';
+  if(level==='Pre-A1')return 'Yanlış sözcüğü düzelt: '+who+' '+info.abilityTr+'.';
   return advanced?
-   'Bozulan cümleyi düzelt: '+info.tr+' '+loc.tr+' yakınında '+info.actionTr+' eylemini yapıyor ve '+info.feelingTr+' hissediyor.':
-   'Bozulan cümleyi düzelt: '+info.tr+' şu anda '+loc.tr+' yakınında '+info.actionTr+' eylemini yapıyor.';
+   'Yanlış sözcüğü düzelt: '+info.tr+' '+placeTr+' '+info.progressTr+' ve '+info.feelingTr+' hissediyor.':
+   'Yanlış sözcüğü düzelt: '+info.tr+' şu anda '+placeTr+' '+info.progressTr+'.';
  }
- if(level==='Pre-A1')return colorTr+' '+info.tr+' '+loc.tr+' yakınında '+info.actionTr+
-  ' yapabilir. Hareketi ve yeri seç, sonra cümleyi kur.';
- return colorTr+' '+info.tr+' '+loc.tr+' yakınında '+info.actionTr+
-  ' eylemini yapıyor'+(advanced?' çünkü '+info.feelingTr+' hissediyor':'')+
-  '. İki seçimi de yap, sonra cümleyi kur.';
+ if(level==='Pre-A1')return who+' '+placeTr+' '+info.abilityTr+'. Hareketi ve yeri seç.';
+ return who+' '+placeTr+' '+info.progressTr+
+  (advanced?' çünkü '+info.feelingTr+' hissediyor':'')+
+  '. Hareketi ve yeri seç.';
 }
 function fabricate(chapter:MagicChapter,actor:MagicActor,place:MagicPlace,colorIndex:number,level:EnglishPlacement,grade:number|null):MovementTrial {
  const c=COLORS[colorIndex%COLORS.length],data=CAST[actor],loc=PLACES[place],early=grade!=null&&grade>=1&&grade<=2;

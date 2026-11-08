@@ -19,6 +19,7 @@ import './sentence-clarity-v3.css';
 import './sentence-plaza-home-v4.css';
 import './sentence-plaza-covers-v5.css';
 import './sentence-plaza-scenes-v6.css';
+import './sentence-plaza-learning-v7.css';
 
 interface Props{
  profileId:string;gradeLevel:number|null;englishLevel:EnglishPlacement;
@@ -66,6 +67,9 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
  const savingLock=useRef(false);
  const root=useRef<HTMLDivElement>(null);
  const task=deck?.questions[step]??null;
+ const actorNames:Record<string,string>={cat:'Kedi',dog:'Köpek',bird:'Kuş',rabbit:'Tavşan'};
+ const visualLocation=mission===3&&task?.mode==='scene';
+ const locationAnimal=task?.scene?.actor?actorNames[task.scene.actor]??'Hayvan':'Hayvan';
  const tiles=useMemo(()=>task?plazaWordTiles(task,(deck?.seed??0)+step*173):[],[task,deck?.seed,step]);
  const selectedWords=picked.map(id=>tiles.find(t=>t.id===id)?.word??'');
  const chosenCount=picked.length;
@@ -161,7 +165,11 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
  function showHint(){
   if(!task||awaitingTransition.current)return;
   setHintUsed(true);setFeedbackError(false);
-  setFeedback(`Dil ipucu: ${task.explanation} Sıradaki kelime: “${task.tokens[chosenCount]}”.`);
+  if(mission===3&&task.mode==='scene'&&!selectedScene){
+   setFeedback('Sahnedeki parlak hayvanı bul. Bulunduğu yerin işaretine dokun.');
+   return;
+  }
+  setFeedback(`Dil ipucu: ${task.explanation} Sıradaki kelime: “${task.tokens[chosenCount]??'—'}”.`);
  }
  async function finish(rows:SentenceAnswerEvidence[]){
   if(savingLock.current||!deck)return;
@@ -216,11 +224,11 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
  function selectScene(id:string){
   if(!task||task.mode!=='scene'||awaitingTransition.current||busy||selectedScene)return;
   if(id!==task.correctSceneChoice){
-   incorrect('Sahnedeki bu seçenek yönergenin anlamıyla eşleşmiyor. Nesneyi veya yeri yeniden düşün.');
+   incorrect(mission===3?'Resimdeki hayvanın yerini tekrar incele.':'Resme yeniden bak ve doğru seçeneği bul.');
    return;
   }
   soundService.playSfx('tap',.5);
-  setSelectedScene(id);setFeedback('Anlamı eşleştirdin. Şimdi İngilizce cümleyi kendi sözcüklerinle kur.');
+  setSelectedScene(id);setFeedback(mission===3?'Doğru yeri buldun! Şimdi gördüğünü İngilizce anlat.':'Doğru seçtin! Şimdi İngilizce cümleyi kur.');
   setFeedbackError(false);
  }
  function selectRepair(index:number){
@@ -391,6 +399,8 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
     <div className="sp-game-layout">
      <div>
       <SentencePlazaScene effect={sceneEffect} awaken={awakened} chapter={mission}
+        preview={mission===3||task.mode==='scene'?task.scene:null}
+        previewAtTarget={mission===3&&task.kind!=='instruction'}
         sceneChoices={mission===3&&task.mode==='scene'?task.sceneChoices:undefined}
         selectedChoice={selectedScene}
         onSceneChoice={mission===3&&task.mode==='scene'?selectScene:undefined}
@@ -406,13 +416,18 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
       <div className="sp-meter" role="progressbar" aria-label="Bölümde tamamlanan cümleler"
        aria-valuemin={0} aria-valuemax={totalQuestions} aria-valuenow={step+(awakened?1:0)}>
        <span style={{width:`${100*(step+(awakened?1:0))/totalQuestions}%`}}/></div>
-      <h3 tabIndex={-1} className="sp-cue">{sentenceStart(task.cue)}</h3>
+      <h3 tabIndex={-1} className="sp-cue">{visualLocation&&!selectedScene?
+        `${locationAnimal} nerede? Resimde bul.`:sentenceStart(task.cue)}</h3>
       <div className="sp-v2-steps" aria-label="Seç, kur ve canlandır">
         <span className={taskReady?'sp-v2-step-done':'sp-v2-step-current'}>① {task.mode==='repair'?'Düzelt':task.mode==='scene'?'Seç':'Bak'}</span>
         <span className={taskReady&&!awakened?'sp-v2-step-current':awakened?'sp-v2-step-done':''}>② Kur</span>
         <span className={awakened?'sp-v2-step-done':''}>③ Canlandır</span>
        </div>
-      {task.mode==='scene'&&task.sceneChoices&&
+      {visualLocation&&<div className="sp-v7-visual-task" role="status">
+        <span aria-hidden="true">👀</span>
+        <span>{selectedScene?'Yeri buldun. Şimdi İngilizce cümleyi kur.':'Soldaki sahnede hayvanı bul. Bulunduğu yerin işaretine dokun.'}</span>
+       </div>}
+      {task.mode==='scene'&&task.sceneChoices&&!visualLocation&&
        <div className="sp-interaction" role="group" aria-label="Anlamla eşleşen görsel sahne seçimi">
         <strong>👀 Sahneyi seç</strong>
         <div className="sp-scene-choices">
@@ -437,7 +452,7 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
          className="sp-repair-word" onClick={()=>selectRepair(i)} aria-label={`${visibleRepairWord(word,i,repairWords.length,task.sentence)} kelimesini seç`}>{visibleRepairWord(word,i,repairWords.length,task.sentence)}</button>)}</div>
        </div>}
       {!taskReady&&<p className="sp-caption" style={{marginTop:10}}>
-       {task.mode==='repair'?'Önce anlamı değiştiren kelimeyi seç.':'Önce sahneyi seç.'}
+       {task.mode==='repair'?'Önce anlamı değiştiren kelimeyi seç.':visualLocation?'Önce resimdeki yerini seç.':'Önce sahneyi seç.'}
       </p>}
       <details className="sp-v2-vocab"><summary>📚 Kelimeler</summary>
         <div className="sp-vocab" aria-label="İngilizce kelime desteği">
