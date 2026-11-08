@@ -20,7 +20,7 @@ test('Six original scenes, three levels and four visual modes are all grounded',
  assert.equal(FOREST_EPISODES.length,6);
  assert.equal(new Set(FOREST_EPISODES.map(e=>e.scene)).size,6);
  assert.equal(ARCHIPELAGO_ISLANDS_CATALOG.listening_forest.contentPublished,true);
- assert.equal(ARCHIPELAGO_ISLANDS_CATALOG.listening_forest.totalPublishedRequiredLevels,6);
+ assert.equal(ARCHIPELAGO_ISLANDS_CATALOG.listening_forest.totalPublishedRequiredLevels,12);
  const modes=new Set();
  for(const episode of FOREST_EPISODES){
   assert.equal(FOREST_BANK[episode.id].length,6);
@@ -116,5 +116,7 @@ test('Story UI ships independent illustration layers, offline audio and no manua
  assert.match(css,/touch-action:manipulation/);
  assert.match(css,/@media\(max-width:700px\)/);
  assert.match(page,/activeRegion==='listening_forest'/);
+ assert.match(page,/StoryForestHome/);
+ assert.match(page,/sequenceProgress/);
  assert.match(page,/forestCompletedLevels/);
 });

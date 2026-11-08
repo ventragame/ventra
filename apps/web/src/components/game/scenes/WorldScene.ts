@@ -514,7 +514,7 @@ export class WorldScene extends Phaser.Scene {
         progressFill,
         progressText,
         completedLevels: initialCompleted,
-        totalLevels: def.id==='word_garden'?this.wordGardenTotalLevels:def.id==='story_castle'||def.id==='listening_forest'?6:5,
+        totalLevels: def.id==='word_garden'?this.wordGardenTotalLevels:def.id==='story_castle'?6:def.id==='listening_forest'?12:5,
         floatTween,
         worldX,
         worldY,

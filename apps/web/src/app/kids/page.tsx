@@ -20,7 +20,8 @@ import { AdultAccountModal } from '../../components/profile/AdultAccountModal';
 import { CloudTransition } from '../../components/learning/CloudTransition';
 import { LearningPathModal } from '../../components/learning/LearningPathModal';
 import { SentencePlazaAdventure } from '../../components/learning/sentence/SentencePlazaAdventure';
-import { StoryForestAdventure } from '../../components/learning/story/StoryForestAdventure';
+import { StoryForestHome } from '../../components/learning/story/StoryForestHome';
+import { getSequenceProgress, type SequenceProgress } from '../../lib/progress/storySequenceProgress';
 import { getStoryForestProgress, type ForestProgress } from '../../lib/progress/storyForestProgress';
 import {getSentencePlazaProgress,type SentencePlazaProgress} from '../../lib/progress/sentencePlazaProgress';
 import { KidsPassport } from '../../components/rewards/KidsPassport';
@@ -65,6 +66,7 @@ export default function VentraKidsWorldPage() {
   const [gardenOverall,setGardenOverall]=useState<GardenOverallProgress|null>(null);
   const [plazaProgress,setPlazaProgress]=useState<SentencePlazaProgress|null>(null);
   const [forestProgress,setForestProgress]=useState<ForestProgress|null>(null);
+  const [sequenceProgress,setSequenceProgress]=useState<SequenceProgress|null>(null);
   const [wordGardenStarsByLevel, setWordGardenStarsByLevel] = useState<Record<number, number>>({});
   const [totalStars, setTotalStars] = useState<number>(0);
   const [isPassportOpen,setIsPassportOpen]=useState(false);
@@ -166,9 +168,13 @@ export default function VentraKidsWorldPage() {
     try {
       const overview=await getGardenOverallProgress(getProgressRepository(),profile.id,profile.gradeLevel??null,profile.englishLevel??'Pre-A1');
       const plaza=await getSentencePlazaProgress(getProgressRepository(),profile.id);
-      const forest=await getStoryForestProgress(getProgressRepository(),profile.id);
+      const [forest,sequence]=await Promise.all([
+        getStoryForestProgress(getProgressRepository(),profile.id),
+        getSequenceProgress(getProgressRepository(),profile.id)
+      ]);
       setPlazaProgress(plaza);
       setForestProgress(forest);
+      setSequenceProgress(sequence);
       setGardenOverall(overview);
       setWordGardenCompletedLevels(overview.animals.completedLevels);
       setWordGardenStarsByLevel(overview.animals.starsByLevel);
@@ -186,6 +192,7 @@ export default function VentraKidsWorldPage() {
       setGardenOverall(null);
       setPlazaProgress(null);
       setForestProgress(null);
+      setSequenceProgress(null);
       showToast('İlerleme yüklenemedi. Lütfen tekrar deneyin.');
     }
   }, [showToast]);
@@ -383,11 +390,11 @@ export default function VentraKidsWorldPage() {
   const focusedPercent = focusedIsland==='story_castle'
     ?Math.round(100*(plazaProgress?.completedLevels??0)/6)
     :focusedIsland==='listening_forest'
-    ?Math.round(100*(forestProgress?.completedLevels??0)/6):wordGardenProgressPercent;
+    ?Math.round(100*((forestProgress?.completedLevels??0)+(sequenceProgress?.completedLevels??0))/12):wordGardenProgressPercent;
   const focusedCountText=focusedIsland==='story_castle'
     ?(plazaProgress?String(plazaProgress.completedLevels)+' / 6 görev tamamlandı':'İlerleme okunamadı')
     :focusedIsland==='listening_forest'
-    ?(forestProgress?String(forestProgress.completedLevels)+' / 6 hikâye tamamlandı':'İlerleme okunamadı')
+    ?(forestProgress&&sequenceProgress?String(forestProgress.completedLevels+sequenceProgress.completedLevels)+' / 12 hikâye görevi tamamlandı':'İlerleme okunamadı')
     :(gardenOverall?String(gardenOverall.completed)+' / '+String(gardenOverall.total)+' görev tamamlandı':'İlerleme okunamadı');
 
   return (
@@ -566,7 +573,7 @@ export default function VentraKidsWorldPage() {
           wordGardenCompletedLevels={gardenOverall?.completed??0}
           wordGardenTotalLevels={gardenOverall?.total??73}
           plazaCompletedLevels={plazaProgress?.completedLevels??0}
-          forestCompletedLevels={forestProgress?.completedLevels??0}
+          forestCompletedLevels={(forestProgress?.completedLevels??0)+(sequenceProgress?.completedLevels??0)}
           onOpenLearningPath={handleOpenLearningPath}
           onToast={showToast}
         />
@@ -693,7 +700,7 @@ export default function VentraKidsWorldPage() {
           onBack={handleCloseLearningPath}
           onSaved={()=>void loadProfileAndProgress(activeProfile)}/>}
       {activeRegion==='listening_forest'&&activeProfile&&
-        <StoryForestAdventure key={activeProfile.id} profileId={activeProfile.id}
+        <StoryForestHome key={activeProfile.id} profileId={activeProfile.id}
           gradeLevel={activeProfile.gradeLevel??null}
           englishLevel={activeProfile.englishLevel??'Pre-A1'}
           onBack={handleCloseLearningPath}
