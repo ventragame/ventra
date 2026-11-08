@@ -53,7 +53,7 @@ const ARCS:Readonly<Record<ForestEpisode,Arc>>={
   ['rabbit',undefined,'apple','discover','left','The rabbit sees an apple.','A rabbit finds a red apple.','At the beginning, a rabbit discovers a red apple on the path.'],
   ['hedgehog','rabbit','none','arrive','right','The hedgehog comes.','A kind hedgehog comes to help.','Soon, a cheerful hedgehog joins the rabbit on the forest path.'],
   ['bird_flying',undefined,'leaf','move','center','The bird flies.','A blue bird flies above them.','Next, a little blue bird flies over their heads.'],
-  ['rabbit',undefined,'apple','move','center','The rabbit goes to the tree.','The rabbit takes the apple to a tree.','Then the rabbit carries the apple to a shady tree.']
+  ['rabbit',undefined,'apple','move','center','The rabbit goes to the tree.','The rabbit takes the apple to a tree.','Then the rabbit carries the apple to a shady tree.'],
   ['rabbit','hedgehog','apple','share','center','They share the apple.','The rabbit and hedgehog share the apple.','At last, the rabbit and hedgehog sit together and share the red apple.']
  ]],
  2:['Ağaç Ev Sürprizi',[
