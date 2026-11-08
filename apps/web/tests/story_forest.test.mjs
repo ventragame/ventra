@@ -104,17 +104,21 @@ test('Forest saves after full episodes, isolates profiles, prevents skipping and
 test('Story UI ships independent illustration layers, offline audio and no manual next step',()=>{
  const ui=fs.readFileSync(new URL('../src/components/learning/story/StoryForestAdventure.tsx',import.meta.url),'utf8');
  const art=fs.readFileSync(new URL('../src/components/learning/story/StoryForestArt.tsx',import.meta.url),'utf8');
- const css=fs.readFileSync(new URL('../src/components/learning/story/story-forest.css',import.meta.url),'utf8');
+ const css=fs.readFileSync(new URL('../src/components/learning/story/story-forest-journey.css',import.meta.url),'utf8');
  const page=fs.readFileSync(new URL('../src/app/kids/page.tsx',import.meta.url),'utf8');
  assert.match(ui,/StoryForestScenery/);
  assert.match(ui,/StoryForestActor/);
  assert.match(ui,/soundService.speakEnglish/);
  assert.match(ui,/setTimeout/);
- assert.match(ui,/saveStoryForestEpisode/);
+ assert.match(ui,/saveForestJourney/);
+ assert.match(ui,/planJourneyStory/);
+ assert.match(ui,/choosePath/);
+ assert.match(ui,/tapFriend/);
  assert.doesNotMatch(ui,/Sonraki Soru/);
  assert.match(art,/Every answer illustration is drawn independently/);
  assert.match(css,/touch-action:manipulation/);
- assert.match(css,/@media\(max-width:700px\)/);
+ assert.match(css,/@media(max-width:700px)/);
+ assert.match(css,/sj-path-choices/);
  assert.match(page,/activeRegion==='listening_forest'/);
  assert.match(page,/StoryForestHome/);
  assert.match(page,/sequenceProgress/);
