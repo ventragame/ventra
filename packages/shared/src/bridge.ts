@@ -88,6 +88,16 @@ export interface SentenceAnswerEvidence {
  firstTryCorrect:boolean;
  timestamp:string;
 }
+export interface StoryAnswerEvidence {
+ questionId:string;
+ selectedId:string;
+ mode:'character'|'place'|'trait'|'action';
+ mistakes:number;
+ hintUsed:boolean;
+ firstTryCorrect:boolean;
+ placement:'Pre-A1'|'A1'|'A2';
+ timestamp:string;
+}
 export interface GameMetrics {
   durationSeconds: number;
   attemptsCount: number;
@@ -101,6 +111,7 @@ export interface GameMetrics {
   familyAnswers?: FamilyAnswerEvidence[];
   templeAnswers?: TempleAnswerEvidence[];
   sentenceAnswers?: SentenceAnswerEvidence[];
+  storyAnswers?: StoryAnswerEvidence[];
 }
 
 export interface GameCompletedPayload {

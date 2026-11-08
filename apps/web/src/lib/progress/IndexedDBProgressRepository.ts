@@ -495,7 +495,8 @@ export class IndexedDBProgressRepository implements IProgressRepository {
       });
     }
 
-    const gameTitle = payload.gameId === 'island_word_garden_temple' ? 'Keşif Tapınağı'
+    const gameTitle = payload.gameId === 'island_story_forest_discover' ? 'Hikâyeyi Keşfet'
+      : payload.gameId === 'island_word_garden_temple' ? 'Keşif Tapınağı'
       : payload.gameId === 'island_word_garden_family' ? 'Aile Köyü'
       : payload.gameId === 'island_word_garden_food' ? 'Lezzet Pazarı'
       : payload.gameId === 'island_word_garden_numbers' ? 'Sayı Vadisi'
@@ -690,6 +691,17 @@ export class IndexedDBProgressRepository implements IProgressRepository {
   public async getRecommendedReview(targetProfileId?: string): Promise<RecommendedReview | null> {
     const summary = await this.getProgressSummary(targetProfileId);
     return summary.recommendedReview;
+  }
+
+  public async getStoryAnswerHistory(profileId:string):Promise<import('@ventra/shared').StoryAnswerEvidence[]>{
+    const db=await this.getDB();
+    const sessions=await this.getRecordsByIndex<any>(db,'sessions','profileId',profileId);
+    return sessions.filter(s=>s.data?.gameId==='island_story_forest_discover')
+      .flatMap(s=>Array.isArray(s.data?.metrics?.storyAnswers)?
+        s.data.metrics.storyAnswers.filter((x:any)=>typeof x.questionId==='string'&&
+          typeof x.selectedId==='string'&&Number.isFinite(x.mistakes)&&
+          typeof x.firstTryCorrect==='boolean'&&typeof x.hintUsed==='boolean'&&
+          typeof x.timestamp==='string') : []);
   }
 
   public async getSentenceAnswerHistory(profileId:string):Promise<import('@ventra/shared').SentenceAnswerEvidence[]>{
