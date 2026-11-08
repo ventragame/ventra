@@ -25,6 +25,7 @@ interface IslandEntity {
   mistFront: Phaser.GameObjects.Image;
   hitZone: Phaser.GameObjects.Arc;
   badgeContainer?: Phaser.GameObjects.Container;
+  badgeHit?: Phaser.GameObjects.Zone;
   focusHalo?: Phaser.GameObjects.Ellipse;
   plateBg?: Phaser.GameObjects.Graphics;
   progressFill?: Phaser.GameObjects.Graphics;
@@ -504,6 +505,7 @@ export class WorldScene extends Phaser.Scene {
         mistFront,
         hitZone,
         badgeContainer,
+        badgeHit,
         focusHalo,
         plateBg,
         progressFill,
@@ -554,7 +556,9 @@ export class WorldScene extends Phaser.Scene {
     if (entity.isHovered === hovered) return;
     entity.isHovered = hovered;
     // Large nameplates are contextual tooltips, not permanently stacked on artwork.
-    entity.badgeContainer?.setVisible(hovered && !this.isCompactViewport() && !this.isDesktopFocused);
+    const showBadge = hovered && !this.isCompactViewport() && !this.isDesktopFocused;
+    entity.badgeContainer?.setVisible(showBadge);
+    if (entity.badgeHit?.input) entity.badgeHit.input.enabled = showBadge && !this.isInputLocked;
 
     // Hedef üzerindeki mevcut scale tween'lerini anında ve temiz şekilde sonlandır
     if (entity.scaleTween) {
@@ -673,6 +677,7 @@ export class WorldScene extends Phaser.Scene {
     this.islands.forEach((entity) => {
       entity.isHovered = false;
       entity.badgeContainer?.setVisible(false);
+      if (entity.badgeHit?.input) entity.badgeHit.input.enabled = false;
       if (entity.scaleTween) {
         entity.scaleTween.stop();
         this.tweens.remove(entity.scaleTween);
@@ -695,9 +700,11 @@ export class WorldScene extends Phaser.Scene {
       const shown = !spotlight || entity.id === this.activeFocusedIslandId;
       entity.container.setVisible(shown);
       if (entity.hitZone.input) entity.hitZone.input.enabled = shown && !this.isInputLocked;
-      // Never let 254×94 nameplates cover neighboring islands or the HTML detail panel.
-      entity.badgeContainer?.setVisible(shown && !this.isCompactViewport() &&
-        !this.isDesktopFocused && entity.isHovered);
+      // Hidden labels must not leave invisible pointer targets in the world.
+      const showBadge = shown && !this.isCompactViewport() &&
+        !this.isDesktopFocused && entity.isHovered;
+      entity.badgeContainer?.setVisible(showBadge);
+      if (entity.badgeHit?.input) entity.badgeHit.input.enabled = showBadge && !this.isInputLocked;
     });
     this.routeDecorations.forEach((decoration) => decoration.setVisible(!spotlight));
   }
