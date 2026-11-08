@@ -15,10 +15,12 @@ interface Props{
  interactionDisabled?:boolean;
 }
 const COLOR_MAP:Record<string,string>={red:'#fa6f78',blue:'#64d3fa',green:'#75e6a1',yellow:'#ffdb68',purple:'#c6a1fc',orange:'#f9ab65'};
+const FRIENDS_COLOR_TR:Record<string,string>={red:'kırmızı',blue:'mavi',green:'yeşil',yellow:'sarı',purple:'mor',orange:'turuncu'};
+const FRIENDS_ANIMAL_TR:Record<string,string>={cat:'kedi',dog:'köpek',bird:'kuş',rabbit:'tavşan'};
 const CHAPTER_ART:readonly string[]=[
  '/assets/sentence-plaza/scenes-v6/scene-1-colors.webp',
  '/assets/sentence-plaza/scenes-v6/scene-1-colors.webp',
- '/assets/sentence-plaza/scenes-v6/scene-2-friends.webp',
+ '/assets/sentence-plaza/scenes-v9/scene-2-friends-empty.webp',
  '/assets/sentence-plaza/scenes-v6/scene-3-locations.webp',
  '/assets/sentence-plaza/scenes-v6/scene-4-movement.webp',
  '/assets/sentence-plaza/scenes-v6/scene-5-market.webp',
@@ -35,6 +37,8 @@ const LOCATION_HOTSPOTS:Record<string,{left:string;top:string}>={
 export function SentencePlazaScene({effect,preview=null,previewAtTarget=false,awaken,chapter,onInteract,
  sceneChoices,selectedChoice,onSceneChoice,interactionDisabled=false}:Props){
  const shown=awaken?effect:preview;
+ const isFriends=chapter===2;
+ const friendsCount=shown?.count===2?2:1;
  const color=shown?.color&&COLOR_MAP[shown.color]||'#ffe6a0';
  const showAnimal=Boolean(shown&&['cat','dog','bird','rabbit'].includes(shown.actor));
  const animal=shown?.actor as PlazaActor;
@@ -44,16 +48,20 @@ export function SentencePlazaScene({effect,preview=null,previewAtTarget=false,aw
  const position=shown?.place??'';
  const actorPlaced=awaken||previewAtTarget;
  const actorBehindHouse=chapter===3&&actorPlaced&&position==='behind the house';
+ const sceneAccessibleLabel=isFriends&&shown&&showAnimal
+  ?'Yeni Dostlar: Bahçede '+(friendsCount===2?'iki':'bir')+' '+(FRIENDS_COLOR_TR[shown.color??'']??'')+' '+(FRIENDS_ANIMAL_TR[shown.actor]??shown.actor)+' görünüyor.':
+   awaken?`${chapterNames[chapter]??'Görev'}: ${shown?.actor??'nesne'} doğru cevapla canlandı`:
+   `${chapterNames[chapter]??'Görev'}: ${shown?.actor??'nesne'} sahnede; İngilizce cümleyi kur`;
  const actorBase=chapter===3?
    !actorPlaced?'translate(440 383)':
    position.includes('behind')?'translate(577 286)':
    position.includes('under')?'translate(120 375)':
    position.includes('fountain')?'translate(356 389)':'translate(225 353)':
-   chapter===2?'translate(560 369)':
+   chapter===2?'translate(450 405)':
    chapter===4?'translate(464 346)':
    chapter===6?'translate(508 364)':'translate(526 348)';
- return <div className={`sp-art sp-v2-art sp-v6-scene ${chapter===3&&onSceneChoice?'sp-v7-location-scene':''} ${awaken?'sp-art-awaken':''} sp-act-${motion||'idle'}`}
-   role="group" aria-label={awaken?`${chapterNames[chapter]??'Görev'}: ${shown?.actor??'nesne'} doğru cevapla canlandı`:`${chapterNames[chapter]??'Görev'}: ${shown?.actor??'nesne'} sahnede; İngilizce cümleyi kur` }>
+ return <div className={`sp-art sp-v2-art sp-v6-scene ${isFriends?'sp-v9-friends-scene':''} ${chapter===3&&onSceneChoice?'sp-v7-location-scene':''} ${awaken?'sp-art-awaken':''} sp-act-${motion||'idle'}`}
+   role="group" aria-label={sceneAccessibleLabel}>
  <img src={sceneImage} className="sp-v2-backdrop sp-v6-backdrop" width={1280} height={680}
   alt="" aria-hidden="true" draggable={false} decoding="async" loading="eager"/>
  <svg viewBox="0 0 900 478" xmlns="http://www.w3.org/2000/svg" aria-hidden="true" className="sp-world-svg">
@@ -130,15 +138,17 @@ export function SentencePlazaScene({effect,preview=null,previewAtTarget=false,aw
   {/* Actor shows up or reacts only when the built English has been checked. */}
   {/* Species-specific original vectors: floppy-eared dog, whiskered cat,
       beaked bird, tall-eared rabbit. Colors stay tied to the question data. */}
-  {showAnimal&&Array.from({length:Math.max(1,Math.min(3,shown?.count??1))},(_,index)=>
-   <g key={index}
-      className={`sp-actor sp-actor-${animal} sp-actor-${motion||'idle'} sp-v8-actor`}
-      data-species={animal}
+  {showAnimal&&Array.from({length:Math.max(1,Math.min(3,shown?.count??1))},(_,index)=>{
+   const spread=isFriends&&friendsCount===2?index*180-90:(shown?.count??1)>1?index*116-58:0;
+   return <g key={index} className={`sp-actor sp-actor-${animal} sp-actor-${motion||'idle'} sp-v8-actor`}
+      data-species={animal} data-subject={isFriends?'learning-target':undefined}
       clipPath={actorBehindHouse?'url(#sp-v7-peek-clip)':undefined}
-      transform={actorBase+' translate('+((shown?.count??1)>1?index*116-58:0)+',0)'}>
+      transform={actorBase+' translate('+spread+',0)'+(isFriends?' scale(1.35)':'')}>
+      {isFriends&&<ellipse cx="0" cy="28" rx="77" ry="17" fill="#124c50" opacity=".3"/>}
       <SentenceAnimalArtwork actor={animal as SentenceAnimalSpecies}
        color={shown?.color} index={index}/>
-   </g>)}
+   </g>;
+  })}
   {awaken&&effect?.actor==='apple'&&<g className="sp-effect-bloom" transform="translate(722 383)">
     <ellipse rx="73" ry="22" fill="#e4bd8d" stroke="#fff0c7" strokeWidth="4"/>
     {effect?.action==='remove'?
@@ -179,7 +189,7 @@ export function SentencePlazaScene({effect,preview=null,previewAtTarget=false,aw
  </div>}
  <div className="sp-scene-caption">
   <span className="sp-scene-glyph" aria-hidden="true">✦</span>
-  <span>{awaken?'✨ Sahne canlandı!':'🔎 Sahneyi keşfet'}</span>
+  <span>{awaken?'✨ Sahne canlandı!':isFriends?'👀 Hayvanı incele':'🔎 Sahneyi keşfet'}</span>
   {onInteract&&<button type="button" onClick={onInteract} className="sp-scene-speak" aria-label="İngilizce cümleyi tekrar dinle">🔊 Dinle</button>}
  </div>
  </div>;

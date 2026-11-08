@@ -73,9 +73,9 @@ function create(mission:PlazaMission,level:EnglishPlacement,index:number):PlazaQ
  }else if(mission===2){
   const animal=ANIMALS[index%ANIMALS.length];
   const color=COLORS[Math.floor(index/4)%COLORS.length];
-  sentence=advanced?`There is a ${color.name} ${animal.en} in the square, and it looks happy.`:
-    intermediate?`There is a ${color.name} ${animal.en} in the square.`:`This is a ${color.name} ${animal.en}.`;
-  cue=`Meydana ${color.tr} bir ${animal.tr} çağır.`;
+  sentence=advanced?`There is a ${color.name} ${animal.en} in the garden, and it looks happy.`:
+    intermediate?`There is a ${color.name} ${animal.en} in the garden.`:`This is a ${color.name} ${animal.en}.`;
+  cue=`Bahçeye ${color.tr} bir ${animal.tr} çağır.`;
   explanation=intermediate||advanced?'There is, bir yerde bir şey bulunduğunu belirtir.':'This is a…, karşımızdaki bir varlığı tanıtır.';
   scene={actor:animal.actor,action:'appear',color:color.name};vocabulary=[{en:animal.en,tr:animal.tr},{en:color.name,tr:color.tr}];
  }else if(mission===3){
@@ -249,18 +249,18 @@ function buildV2(mission:PlazaMission,level:EnglishPlacement):PlazaQuestion[]{
     vocabulary:words,mode:'scene',choices,choice:animal.id});
    if(a1){
     push({key:'there:'+animal.id+':'+color.en,kind:'statement',
-     sentence:'There is '+article(color.en)+' '+color.en+' '+animal.en+' in the square.',
-     cue:'Meydanda '+color.tr+' bir '+animal.tr+' var.',scene,
+     sentence:'There is '+article(color.en)+' '+color.en+' '+animal.en+' in the garden.',
+     cue:'Bahçede '+color.tr+' bir '+animal.tr+' var.',scene,
      explanation:'There is, tek bir varlığın bulunduğunu söyler.',vocabulary:words,mode:'construct'});
     const plural=animal.id==='bird'?'birds':animal.en+'s';
     push({key:'plural:'+animal.id+':'+color.en,kind:'statement',
-     sentence:'There are two '+color.en+' '+plural+' in the square.',
-     cue:'Meydanda iki '+color.tr+' '+animal.tr+' var.',scene:{...scene,count:2},
+     sentence:'There are two '+color.en+' '+plural+' in the garden.',
+     cue:'Bahçede iki '+color.tr+' '+animal.tr+' var.',scene:{...scene,count:2},
      explanation:'There are, birden fazla varlık olduğunu söyler.',vocabulary:v(...words,{en:'two',tr:'iki'}),mode:'repair'});
    }
    if(a2)push({key:'cause:'+animal.id+':'+color.en,kind:'reason',
-    sentence:'There is '+article(color.en)+' '+color.en+' '+animal.en+' because the festival has started.',
-    cue:'Festival başladığı için '+color.tr+' bir '+animal.tr+' burada.',
+    sentence:'The '+color.en+' '+animal.en+' is in the garden because it likes the sunshine.',
+    cue:color.tr.charAt(0).toLocaleUpperCase('tr-TR')+color.tr.slice(1)+' '+animal.tr+' güneşi sevdiği için bahçede.',
     scene,explanation:'Because, nedeni bildirir.',vocabulary:v(...words,{en:'because',tr:'çünkü'}),mode:'construct'});
   }
  } else if(mission===3){

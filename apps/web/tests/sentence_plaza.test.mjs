@@ -318,13 +318,14 @@ test('V6 all six missions have distinct local optimized scenic WebPs and no shar
  const css=fs.readFileSync(new URL('../src/components/learning/sentence/sentence-plaza-scenes-v6.css',import.meta.url),'utf8');
  const paths=new Set();
  for(let i=0;i<names.length;i++){
-  const name=`scene-${i+1}-${names[i]}.webp`;
-  const bytes=fs.readFileSync(new URL('../public/assets/sentence-plaza/scenes-v6/'+name,import.meta.url));
+  const name=i===1?'scene-2-friends-empty.webp':`scene-${i+1}-${names[i]}.webp`;
+  const folder=i===1?'scenes-v9':'scenes-v6';
+  const bytes=fs.readFileSync(new URL('../public/assets/sentence-plaza/'+folder+'/'+name,import.meta.url));
   assert.equal(bytes.toString('ascii',0,4),'RIFF',name);
   assert.equal(bytes.toString('ascii',8,12),'WEBP',name);
   assert.ok(bytes.length>=100000&&bytes.length<=280000,'optimized scene '+name);
   paths.add(bytes.toString('base64').slice(0,350));
-  const path='scenes-v6/'+name;
+  const path=folder+'/'+name;
   const specialized=[
     '../src/components/learning/sentence/MovementMagicStage.tsx',
     '../src/components/learning/sentence/WishFestivalStage.tsx',

@@ -1,0 +1,90 @@
+/* Cümle Meydanı V9 — one-source-of-truth animal learning scenes.
+ * Keep mission covers, art for other missions, and progress/answers unchanged. */
+.sp-v3 .sp-v9-friends-scene{
+ background:#4b9a76;
+ border-color:#ffe19c;
+ box-shadow:0 6px 0 #1e695e,0 17px 28px #082d498c;
+}
+.sp-v3 .sp-v9-friends-scene .sp-v6-backdrop{
+ object-fit:cover;
+ object-position:center 52%;
+ filter:saturate(1.04) contrast(1.03);
+}
+.sp-v3 .sp-v9-friends-scene .sp-v8-actor .sp-v8-character{
+ filter:drop-shadow(0 0 2px #fff2c7) drop-shadow(0 6px 6px #154e477d);
+}
+.sp-v3 .sp-v9-friends-scene .sp-scene-caption{
+ background:#104f50ed;
+ border:1px solid #ffe1a1;
+}
+.sp-v3 .sp-v9-animal-interaction{
+ border-color:#b1e5d0;
+ background:linear-gradient(130deg,#174860,#124759);
+}
+.sp-v3 .sp-v9-animal-interaction .sp-scene-choices{
+ display:grid;grid-template-columns:repeat(4,minmax(0,1fr));
+ gap:9px;
+}
+.sp-v3 .sp-v9-animal-interaction .sp-v9-animal-option{
+ display:flex;
+ flex-direction:column;
+ align-items:center;justify-content:center;
+ gap:2px;min-width:0;min-height:96px;
+ padding:7px 6px 9px;
+ border:2px solid #e9d9ab;border-radius:16px;
+ background:linear-gradient(150deg,#fffcf0,#dbefe4);
+ box-shadow:0 4px 0 #b0c6b0,0 7px 14px #072f466b;
+ transition:transform .16s ease,filter .16s ease,background .16s ease;
+}
+.sp-v3 .sp-v9-animal-interaction .sp-v9-animal-option:focus-visible{
+ outline:3px solid #ffe89f;outline-offset:3px;
+}
+.sp-v3 .sp-v9-animal-interaction .sp-v9-animal-option:not(:disabled):hover{
+ transform:translateY(-2px);
+ filter:brightness(1.05);
+}
+.sp-v3 .sp-v9-animal-interaction .sp-v9-animal-option[data-selected=true]{
+ border-color:#81deb1;
+ background:linear-gradient(145deg,#ecfcd9,#b8ecd0);
+ box-shadow:0 4px 0 #389b78,0 0 0 3px #abefbb70;
+}
+.sp-v3 .sp-v9-animal-interaction .sp-v9-animal-option:disabled:not([data-selected=true]){
+ opacity:.54;
+}
+.sp-v3 .sp-v9-animal-choice-art{
+ display:block;
+ width:min(100%,68px);
+ height:64px;
+ flex:0 0 auto;
+ overflow:visible;
+ filter:drop-shadow(0 3px 3px #15464c4e);
+}
+.sp-v3 .sp-v9-animal-option small{
+ font-size:clamp(11px,1.1vw,13px);
+ font-weight:950;
+ text-transform:capitalize;
+ color:#174f55;
+ line-height:1.25;
+}
+@media(max-width:580px){
+ .sp-v3 .sp-v9-animal-interaction .sp-scene-choices{
+  grid-template-columns:repeat(2,minmax(0,1fr));
+ }
+ .sp-v3 .sp-v9-animal-interaction .sp-v9-animal-option{
+  min-height:84px;gap:3px;
+ }
+ .sp-v3 .sp-v9-animal-choice-art{height:56px;width:62px}
+}
+@media(max-width:360px){
+ .sp-v3 .sp-v9-animal-interaction .sp-scene-choices{gap:7px}
+ .sp-v3 .sp-v9-animal-interaction .sp-v9-animal-option{padding:5px;min-height:78px}
+ .sp-v3 .sp-v9-animal-choice-art{height:51px;width:57px}
+}
+@media(prefers-reduced-motion:reduce){
+ .sp-v3 .sp-v9-animal-interaction .sp-v9-animal-option{
+  animation:none!important;transition:none!important;
+ }
+ .sp-v3 .sp-v9-animal-interaction .sp-v9-animal-option:hover:not(:disabled){
+  transform:none;
+ }
+}

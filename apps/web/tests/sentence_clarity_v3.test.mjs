@@ -210,3 +210,87 @@ test('V8 species-specific vector characters never use one anonymous animal place
  assert.match(css,/sp-v8-actor/);
  assert.match(css,/prefers-reduced-motion:reduce/);
 });
+
+test('V9 friend garden removes duplicate baked-in animals and uses one dynamic question subject',()=>{
+ const scene=source('SentencePlazaScene.tsx');
+ const ui=source('SentencePlazaAdventure.tsx');
+ const css=source('sentence-plaza-friends-v9.css');
+ const art=source('SentenceAnimalArtwork.tsx');
+ const root=new URL('../public/assets/sentence-plaza/scenes-v9/scene-2-friends-empty.webp',import.meta.url);
+ const b=fs.readFileSync(root);
+ assert.equal(b.toString('ascii',0,4),'RIFF');
+ assert.equal(b.toString('ascii',8,12),'WEBP');
+ assert.ok(b.length>=90000&&b.length<=320000,'Retain sharp local WebP without bloating mobile payload');
+ assert.match(scene,/scenes-v9\/scene-2-friends-empty\.webp/);
+ assert.match(scene,/const shown=awaken\?effect:preview/);
+ assert.match(scene,/const isFriends=chapter===2/);
+ assert.match(scene,/const friendsCount=shown\?\.count===2\?2:1/);
+ assert.match(scene,/showAnimal&&Array\.from/);
+ assert.match(scene,/sp-v9-friends-scene/);
+ assert.match(scene,/data-subject=\{isFriends\?'learning-target':undefined\}/);
+ assert.match(scene,/isFriends\?' scale\(1\.35\)'/);
+ assert.match(scene,/data-species=\{animal\}/);
+ assert.match(scene,/color=\{shown\?\.color\} index=\{index\}/);
+ assert.match(scene,/sceneAccessibleLabel/);
+ assert.match(ui,/preview=\{mission<=3\?task\.scene:null\}/);
+ assert.match(ui,/mission===2\?'Hayvanı seç'/);
+ assert.match(ui,/Resimde hangi hayvan var/);
+ assert.match(ui,/sp-v9-animal-choice-art/);
+ assert.match(ui,/<SentenceAnimalArtwork actor=\{choice\.id as SentenceAnimalSpecies\}/);
+ assert.match(ui,/color=\{task\.scene\.color\} index=\{30\+i\}/);
+ assert.match(art,/function Dog\(/);
+ assert.match(art,/function Cat\(/);
+ assert.match(art,/function Bird\(/);
+ assert.match(art,/function Rabbit\(/);
+ assert.match(css,/\.sp-v9-friends-scene/);
+ assert.match(css,/\.sp-v9-animal-option/);
+ assert.match(css,/@media\(max-width:580px\)/);
+ assert.match(css,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+ assert.match(css,/prefers-reduced-motion:reduce/);
+ assert.match(ui,/saveSentencePlazaMission/);
+ assert.match(ui,/nextTimer\.current=setTimeout/);
+});
+
+test('V9 Pre-A1, A1, A2 friend prompts, pictures and counts always agree',()=>{
+ const animals=['cat','dog','bird','rabbit'];
+ const colors=['red','blue','yellow','green','purple','orange'];
+ let total=0,plural=0, beginner=0;
+ for(const level of ['Pre-A1','A1','A2']){
+  const pool=plazaCurriculumPool(2,level);
+  assert.ok(pool.length>=24);
+  for(const q of pool){
+   total++;
+   assert.ok(animals.includes(q.scene.actor),q.id);
+   assert.ok(colors.includes(q.scene.color),q.id);
+   assert.equal(q.englishLevel,level,q.id);
+   assert.ok(q.cue[0]===q.cue[0].toLocaleUpperCase('tr-TR'),q.id);
+   assert.doesNotMatch(q.sentence,/in the square|festival has started/,q.id);
+   assert.doesNotMatch(q.cue,/Meydanda|Festival başladığı/,q.id);
+   const count=q.scene.count??1;
+   assert.ok(count===1||count===2,'Only one or two subjects: '+q.id);
+   if(q.sentence.startsWith('There are two ')){
+    plural++;
+    assert.equal(count,2,'Visual must display exactly two matching animals: '+q.id);
+    assert.ok(q.cue.includes('iki '),q.id);
+    assert.equal(q.mode,'repair');
+   }else{
+    assert.equal(count,1,'No decorative duplicate subjects: '+q.id);
+   }
+   if(q.mode==='scene'){
+    assert.equal(q.correctSceneChoice,q.scene.actor,q.id);
+    assert.equal(q.sceneChoices?.length,4);
+    assert.ok(q.sceneChoices.some(choice=>choice.id===q.scene.actor),q.id);
+   }
+   if(level==='Pre-A1'){
+    beginner++;
+    assert.equal(q.mode,'scene');
+    assert.match(q.sentence,/^I see (a|an) (red|blue|yellow|green|purple|orange) (cat|dog|bird|rabbit)\.$/);
+    assert.equal(count,1);
+   }
+   if(q.kind==='reason')assert.match(q.sentence,/because it likes the sunshine\.$/);
+  }
+ }
+ assert.ok(total>=100,'Broad replayable pool across 3 levels');
+ assert.ok(plural>=20,'Retain plural learning in advanced levels');
+ assert.ok(beginner>=20,'Retain beginner vocabulary variety');
+});

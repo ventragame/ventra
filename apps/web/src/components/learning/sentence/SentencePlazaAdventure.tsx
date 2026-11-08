@@ -9,6 +9,7 @@ import {SENTENCE_PLAZA_MISSIONS,planPlazaMission,plazaWordTiles,evaluatePlazaSen
  type PlazaMission,type PlazaDeck,type PlazaQuestion} from '@/lib/learning/sentencePlazaEngine';
 import {soundService} from '@/lib/audio/SoundService';
 import {SentencePlazaScene} from './SentencePlazaScene';
+import {SentenceAnimalArtwork,type SentenceAnimalSpecies} from './SentenceAnimalArtwork';
 import {sentenceStart,visibleWord,visibleRepairWord} from './sentencePresentation';
 import {MovementMagicAdventure} from './MovementMagicAdventure';
 import {WishFestivalAdventure} from './WishFestivalAdventure';
@@ -20,6 +21,7 @@ import './sentence-plaza-home-v4.css';
 import './sentence-plaza-covers-v5.css';
 import './sentence-plaza-scenes-v6.css';
 import './sentence-plaza-learning-v7.css';
+import './sentence-plaza-friends-v9.css';
 
 interface Props{
  profileId:string;gradeLevel:number|null;englishLevel:EnglishPlacement;
@@ -224,11 +226,11 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
  function selectScene(id:string){
   if(!task||task.mode!=='scene'||awaitingTransition.current||busy||selectedScene)return;
   if(id!==task.correctSceneChoice){
-   incorrect(mission===3?'Resimdeki hayvanın yerini tekrar incele.':'Resme yeniden bak ve doğru seçeneği bul.');
+   incorrect(mission===3?'Resimdeki hayvanın yerini tekrar incele.':mission===2?'Resimdeki hayvana tekrar bak. Hangi hayvan?':'Resme yeniden bak ve doğru seçeneği bul.');
    return;
   }
   soundService.playSfx('tap',.5);
-  setSelectedScene(id);setFeedback(mission===3?'Doğru yeri buldun! Şimdi gördüğünü İngilizce anlat.':'Doğru seçtin! Şimdi İngilizce cümleyi kur.');
+  setSelectedScene(id);setFeedback(mission===3?'Doğru yeri buldun! Şimdi gördüğünü İngilizce anlat.':mission===2?'Hayvanı doğru buldun! Şimdi cümleyi İngilizce kur.':'Doğru seçtin! Şimdi İngilizce cümleyi kur.');
   setFeedbackError(false);
  }
  function selectRepair(index:number){
@@ -411,7 +413,7 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
        </details>
      </div>
      <section className="sp-workshop" aria-label="İngilizce cümle oluşturma atölyesi">
-      <div className="sp-step"><span>✦ {sentenceKindLabels[task.kind]} · {task.mode==='repair'?'Yanlış kelimeyi seç':task.mode==='scene'?'Sahneyi seç':'Cümleyi kur'}</span>
+      <div className="sp-step"><span>✦ {sentenceKindLabels[task.kind]} · {task.mode==='repair'?'Yanlış kelimeyi seç':task.mode==='scene'?(mission===2?'Hayvanı seç':'Sahneyi seç'):'Cümleyi kur'}</span>
        <span>{step+1} / {totalQuestions}</span></div>
       <div className="sp-meter" role="progressbar" aria-label="Bölümde tamamlanan cümleler"
        aria-valuemin={0} aria-valuemax={totalQuestions} aria-valuenow={step+(awakened?1:0)}>
@@ -428,15 +430,20 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
         <span>{selectedScene?'Yeri buldun. Şimdi İngilizce cümleyi kur.':'Soldaki sahnede hayvanı bul. Bulunduğu yerin işaretine dokun.'}</span>
        </div>}
       {task.mode==='scene'&&task.sceneChoices&&!visualLocation&&
-       <div className="sp-interaction" role="group" aria-label="Anlamla eşleşen görsel sahne seçimi">
-        <strong>👀 Sahneyi seç</strong>
+       <div className={`sp-interaction ${mission===2?'sp-v9-animal-interaction':''}`} role="group" aria-label={mission===2?'Resimdeki hayvanı seç':'Anlamla eşleşen görsel sahne seçimi'}>
+        <strong>{mission===2?'👀 Resimde hangi hayvan var?':'👀 Sahneyi seç'}</strong>
         <div className="sp-scene-choices">
-         {task.sceneChoices.map(choice=><button type="button" key={choice.id}
+         {task.sceneChoices.map((choice,i)=><button type="button" key={choice.id}
           disabled={selectedScene!==null||awakened||busy}
           aria-pressed={selectedScene===choice.id}
-          className="sp-scene-choice" data-selected={selectedScene===choice.id}
+          className={`sp-scene-choice ${mission===2?'sp-v9-animal-option':''}`} data-selected={selectedScene===choice.id}
           onClick={()=>selectScene(choice.id)}>
-          {choice.icon==='🎨'?<span className="sp-color-swatch" aria-hidden="true"
+          {mission===2&&['cat','dog','bird','rabbit'].includes(choice.id)?
+           <svg className="sp-v9-animal-choice-art" viewBox="-81 -138 145 174"
+            role="img" aria-label={choice.label}>
+             <SentenceAnimalArtwork actor={choice.id as SentenceAnimalSpecies}
+              color={task.scene.color} index={30+i}/>
+           </svg>:choice.icon==='🎨'?<span className="sp-color-swatch" aria-hidden="true"
            style={{backgroundColor:sceneColorMap[choice.id]??'#9ad3df'}}>✦</span>:
            <span aria-hidden="true">{choice.icon}</span>}<small>{choice.label}</small>
          </button>)}
