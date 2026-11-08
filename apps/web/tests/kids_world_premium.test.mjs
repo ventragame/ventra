@@ -138,3 +138,15 @@ test('V3 phone and tablet navigation remains reachable without giant dark panels
  const nextCfg=fs.readFileSync(new URL('../next.config.mjs',import.meta.url),'utf8');
  assert.match(nextCfg,/devIndicators: false/);
 });
+
+test('V3 six desktop islands have non-overlapping base illustration footprints',async()=>{
+ const {ARCHIPELAGO_ISLANDS_ORDERED}=await import('../../../packages/shared/src/archipelago.ts');
+ for(let i=0;i<ARCHIPELAGO_ISLANDS_ORDERED.length;i++){
+   for(let j=i+1;j<ARCHIPELAGO_ISLANDS_ORDERED.length;j++){
+     const a=ARCHIPELAGO_ISLANDS_ORDERED[i];
+     const b=ARCHIPELAGO_ISLANDS_ORDERED[j];
+     const distance=Math.hypot(a.defaultWorldPos.x-b.defaultWorldPos.x,a.defaultWorldPos.y-b.defaultWorldPos.y);
+     assert.ok(distance>=460,`island illustration collision: ${a.id} / ${b.id}: ${distance}`);
+   }
+ }
+});

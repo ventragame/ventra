@@ -104,7 +104,7 @@ export const ARCHIPELAGO_ISLANDS_CATALOG: Record<IslandId, IslandDefinition> = {
     totalPublishedRequiredLevels: 0,
     desktopAsset: '/assets/kids-islands/speaking_harbor.webp',
     mobileAsset: '/assets/kids-islands/speaking_harbor_mobile.webp',
-    defaultWorldPos: { x: 1750, y: 1000 }, // Sağ üst
+    defaultWorldPos: { x: 1750, y: 1070 }, // Sağ alt: forest art stays separate
     hitRadius: 210,
     order: 4,
     isUnlockedDefault: false,
@@ -167,7 +167,7 @@ export const ARCHIPELAGO_ISLANDS_CATALOG: Record<IslandId, IslandDefinition> = {
     totalPublishedRequiredLevels: 0,
     desktopAsset: '/assets/kids-islands/language_academy.webp',
     mobileAsset: '/assets/kids-islands/language_academy_mobile.webp',
-    defaultWorldPos: { x: 620, y: 930 }, // Sol alt
+    defaultWorldPos: { x: 620, y: 1030 }, // Sol alt: clear of Word Garden art
     hitRadius: 220,
     order: 6,
     isUnlockedDefault: false,
