@@ -39,11 +39,11 @@ test('All 13 premium WebP assets are real image bytes and have budgeted sizes',(
  }
 });
 test('Illustration identity is never falsified: fox and bear cannot be rendered as cat',()=>{
- assert.match(code,/cat:'characters\\/cat_orange\\.webp'/);
- assert.match(code,/bird_flying:'characters\\/blue_bird_flying\\.webp'/);
- assert.match(code,/hedgehog:'characters\\/hedgehog_happy\\.webp'/);
- assert.doesNotMatch(code,/fox:'characters\\/cat_orange\\.webp'/);
- assert.doesNotMatch(code,/bear:'characters\\/cat_orange\\.webp'/);
+ assert.ok(code.includes("cat:'characters/cat_orange.webp'"));
+ assert.ok(code.includes("bird_flying:'characters/blue_bird_flying.webp'"));
+ assert.ok(code.includes("hedgehog:'characters/hedgehog_happy.webp'"));
+ assert.ok(!code.includes("fox:'characters/cat_orange.webp'"));
+ assert.ok(!code.includes("bear:'characters/cat_orange.webp'"));
  assert.equal(FOREST_ACTOR_NAMES.hedgehog,'Kirpi');
  assert.ok(JOURNEY_ROUTES.some(r=>r.helper==='hedgehog'));
  assert.ok(JOURNEY_ROUTES.some(r=>r.hero==='cat'));
@@ -58,15 +58,15 @@ test('Art stays as separate, responsive layers in both games and island menu',()
  assert.match(code,/export function StoryForestActor/);
  assert.match(code,/export function StoryForestScenery/);
  assert.match(code,/<img className="sf-actor-illustration sf-premium-actor"/);
- assert.match(code,/<img className=\\{'sf-scenery sf-premium-scenery/);
+ assert.ok(code.includes("className={'sf-scenery sf-premium-scenery"));
  assert.match(game,/JourneyObjectArt/);
  assert.match(game,/sj-path-choices/);
  assert.match(home,/STORY_FOREST_PREMIUM_COVER/);
- assert.match(home,/premium-story-art\\.css/);
+ assert.ok(home.includes("premium-story-art.css"));
  assert.match(sequence,/StoryForestActor/);
  assert.match(sequence,/StoryForestScenery/);
  assert.match(css,/object-fit:contain/);
  assert.match(css,/object-fit:cover/);
- assert.match(css,/@media\\(max-width:700px\\)/);
+ assert.ok(css.includes('@media(max-width:700px)'));
  assert.match(css,/prefers-reduced-motion:reduce/);
 });
