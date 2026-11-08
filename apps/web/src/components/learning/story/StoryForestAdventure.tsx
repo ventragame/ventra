@@ -46,7 +46,7 @@ function StoryScene({plan,phase,location}:{
 }){
  const {route}=plan;
  const scene=(phase==='result'||phase==='friend'||phase==='ending')&&location?location:route.scene;
- const showHero=phase!=='discover';
+ const showHero=true; // the main character must never vanish between story beats
  const showFriend=['meet','choose','result','ending'].includes(phase);
  const showObject=['opening','result','ending'].includes(phase);
  return <div className={'sj-story-image sj-phase-'+phase} aria-hidden="true">

@@ -140,6 +140,34 @@ export function narrativeFor(plan:JourneyPlan,phase:JourneyPhase,branchScene?:Fo
    route.object==='bird'?'The lost little blue bird finally returns to its family, and the friends feel proud of helping.':
    'When they place the crystal on a stone, its gentle light fills the forest and guides everyone home.'
  };
+ // Replays rotate authored listening instructions without changing the answer
+ // or inventing unsupported actions. This is variation in *learning prompts*,
+ // not a claim that every run creates a completely new story.
+ if(phase==='discover'){
+  const templates:Record<ForestPlacement,readonly string[]>={
+   'Pre-A1':['Oh! A '+object+'! Find it.','Look! Find the '+object+'.','Can you see the '+object+'? Tap it.'],
+   A1:['Something is shining nearby. Can you find the '+object+'?',
+       'Take a look around. Which picture shows the '+object+'?',
+       'The friends have spotted an object. Touch the '+object+'.'],
+   A2:['A mysterious object catches their attention. Can you identify the '+object+' among the objects?',
+       'Look carefully at the objects and choose the '+object+' that the friends discovered.',
+       'Which of the objects matches the '+object+' mentioned in the story?']
+  };
+  return templates[level][plan.seed%3];
+ }
+ if(phase==='friend'){
+  const templates:Record<ForestPlacement,readonly string[]>={
+   'Pre-A1':['Who helped the '+hero+'? Find the '+helper+'.',
+      'Find the '+helper+'. Who is the friend?','Who came to help? Tap the '+helper+'.'],
+   A1:['Who joined the '+hero+' on this adventure? Find the '+helper+'.',
+       'Do you remember the friend? Touch the '+helper+'.',
+       'Which animal helped during this adventure? Find the '+helper+'.'],
+   A2:['Think back to the beginning of the adventure. Which friend joined the '+hero+' on the way?',
+       'The story introduced a friendly companion. Can you identify the helpful '+helper+'?',
+       'Recall the character who offered help. Which picture shows the '+helper+'?']
+  };
+  return templates[level][(plan.seed>>>3)%3];
+ }
  return (level==='Pre-A1'?pre:level==='A1'?a1:a2)[phase];
 }
 export function validateJourneyRecord(record:JourneyRecord,plan:JourneyPlan):boolean{

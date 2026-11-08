@@ -231,3 +231,10 @@
 @media(prefers-reduced-motion:reduce){
  .sj-root *, .sj-root *:before,.sj-root *:after{animation:none!important;transition:none!important}
 }
+
+/* Keep the story protagonist visible during object discovery without covering
+   the three accessible picture targets. */
+.sj-phase-discover .sj-hero{left:3%;bottom:49%;width:18%;height:29%;opacity:.92}
+@media(max-width:700px){
+ .sj-phase-discover .sj-hero{left:0;bottom:42%;width:19%;height:26%}
+}
