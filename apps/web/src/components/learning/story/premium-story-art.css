@@ -1,0 +1,153 @@
+/* Hikâye Ormanı — WebP art direction, scoped to the story experience.
+ * Crops are intentionally chosen by region so the forest landmarks remain
+ * visible and visual answer semantics are not altered by a decorative layer.
+ */
+.sf-premium-actor{
+  display:block;object-fit:contain;object-position:center bottom;max-width:100%;
+  max-height:100%;width:100%;height:100%;user-select:none;-webkit-user-drag:none;
+  filter:drop-shadow(0 9px 8px rgba(19,66,55,.15));
+  transform:translateZ(0);
+}
+.sf-premium-scenery{
+  display:block;object-fit:cover;object-position:center center;
+  max-width:none;user-select:none;-webkit-user-drag:none;
+  image-rendering:auto;
+}
+.sf-scene-path{object-position:center 52%}
+.sf-scene-treehouse{object-position:30% 49%}
+.sf-scene-pond{object-position:50% 46%}
+.sf-scene-meadow{object-position:58% 48%}
+.sf-scene-bridge{object-position:38% 53%}
+
+/* Overall book/forest presentation stays tactile, with a legible HUD
+ * and no large text panels over the central illustrations. */
+.sj-root,.ss-root,.sfh-root{
+  background:radial-gradient(circle at 50% 5%,#fff3b4 0%,#b9eed1 39%,#65a9a0 100%);
+}
+.sj-header,.ss-head{
+  background:linear-gradient(110deg,#fffaf0f7,#f1ffedee 73%,#fff5daf5);
+  border-bottom:2px solid rgba(229,190,109,.54);
+  box-shadow:0 8px 20px rgba(28,92,67,.2);
+}
+.sj-back,.ss-round{
+  border-radius:50%;background:linear-gradient(145deg,#2b98da,#1064ac);
+  border:3px solid #e6faff;
+  box-shadow:inset 0 3px 3px #c1eeff99,0 4px 0 #1e5c8c,0 9px 17px #215e6470;
+}
+.sj-scene,.ss-screen{
+  background:#6dc9c3;border:4px solid #fff6dc;
+  box-shadow:0 0 0 2px #d8b96c6b,0 19px 40px #1a564f80;
+}
+.sj-scene .sj-story-image,.ss-illustration{isolation:isolate}
+.sj-scene-haze{
+  background:linear-gradient(180deg,#042e392e,transparent 23%,transparent 76%,#134c3d31);
+}
+.sj-caption,.ss-narration{
+  background:linear-gradient(135deg,#fffbedfa,#fef4dff8 63%,#e8fff2f9);
+  border:3px solid #fff7dd;border-radius:28px;
+  box-shadow:inset 0 -4px 0 #e9d1a785,0 8px 20px #124f4859;
+}
+.sj-spoken>span,.ss-narration-label{color:#387a65}
+.sj-speak,.ss-speak{border-radius:50%;border:3px solid #ebfaff;
+  background:linear-gradient(145deg,#22a9fa,#1069d7);
+  box-shadow:inset 0 3px 4px #c4f6ffa3,0 5px 0 #165496,0 10px 19px #19537a55}
+.sj-object-choice,.sj-friend-choice,.ss-card{
+  background:linear-gradient(160deg,#fffdf1f9,#f9edcff2);
+  border:3px solid #fff6d9;
+  box-shadow:inset 0 3px 0 #fff,0 8px 0 #bd8d5066,0 16px 25px #184b5c73;
+  backdrop-filter:none;
+}
+.sj-object-choice:hover:not(:disabled),
+.sj-friend-choice:hover:not(:disabled),
+.ss-card:hover:not(:disabled){border-color:#ffdd89}
+.sj-hint-glow,.ss-card.hint{
+  outline:5px solid #b7f35c;outline-offset:2px;
+  box-shadow:0 0 0 10px #bafa7999,0 9px 20px #277e435c!important;
+}
+.sj-correct,.ss-card.checked{border-color:#a7ee83}
+.sj-phase-discover .sj-hero{
+  left:2%;bottom:38%;width:21%;height:40%;
+  filter:drop-shadow(0 12px 16px #163e4f50);
+}
+.sj-phase-friend .sj-hero{
+  left:2%;bottom:40%;width:24%;height:37%;
+}
+.sj-phase-choose .sj-hero{left:7%;bottom:44%;height:39%;width:25%}
+.sj-phase-choose .sj-friend{right:8%;bottom:44%;height:35%;width:22%}
+.sj-phase-result .sj-hero,.sj-phase-ending .sj-hero{
+  left:14%;height:65%;bottom:5%;
+}
+.sj-phase-meet .sj-hero{left:17%}
+.sj-objects,.sj-friend-choices{
+  bottom:7%;left:26%;right:5%;gap:clamp(10px,2.5vw,25px);
+}
+.sj-object-choice,.sj-friend-choice{
+  width:min(30%,215px);height:clamp(132px,25vh,222px);min-width:0;
+  border-radius:26px;padding:9px;
+}
+.sj-phase-choose .sj-path-choices{bottom:5%;left:8%;right:8%}
+.sj-path{
+  border:4px solid #fff5d8;box-shadow:0 8px 0 #bc925c79,0 17px 25px #214a537d;
+}
+.sj-path .sf-premium-scenery{object-fit:cover}
+.sj-episode,.ss-episode,.sfh-card{
+  background:#fffaf2;
+  border-color:#fff7dc;
+  box-shadow:0 8px 0 #cfa66c45,0 18px 24px #1c60644d;
+}
+.sj-episode-art,.ss-episode-image,.sfh-card-art{background:#58a993}
+.sj-episode-art .sf-premium-scenery,.ss-episode-image .sf-premium-scenery,
+.sfh-card-art .sf-premium-scenery{width:100%;height:100%;object-fit:cover}
+.sj-cover{
+  background:#4fa399;border-color:#fff9e6;
+  box-shadow:0 12px 0 #cfa76544,0 19px 29px #27615966;
+}
+.sj-cover-art{
+  inset:0;width:100%;height:100%;object-fit:cover;object-position:center;
+  filter:none;
+}
+.sj-cover:after{
+  background:linear-gradient(90deg,#082e3edc 0%,#175661b4 47%,#123d3c15 90%);
+}
+.sfh-hero-art{
+  inset:0;right:0;top:0;width:100%;height:100%;object-fit:cover;
+  object-position:center;filter:none;
+}
+.sfh-hero:before{
+  background:linear-gradient(90deg,#0b3d4cf5 0%,#1e6173c5 44%,#10554a13 90%);
+}
+.sfh-squirrel{left:55%;width:32%;height:62%;bottom:8%}
+.sfh-card-art .sf-premium-actor{object-fit:contain}
+.ss-card .sf-premium-actor,.ss-episode .sf-premium-actor{
+  object-fit:contain;object-position:center bottom;
+}
+.ss-primary-character,.ss-companion{
+  filter:drop-shadow(0 12px 14px #163b4670);
+}
+.sj-scene .sj-hero,.sj-scene .sj-friend{
+  filter:drop-shadow(0 12px 12px #12473b66);
+}
+.sj-root .sj-held-item{z-index:1}
+.sj-scene .sf-premium-actor,.ss-illustration .sf-premium-actor{max-width:100%;max-height:100%}
+@media(max-width:700px){
+  .sj-object-choice,.sj-friend-choice{width:31%;height:clamp(117px,23vh,178px);border-radius:19px;padding:3px}
+  .sj-objects,.sj-friend-choices{left:4%;right:4%;bottom:6%;gap:7px}
+  .sj-phase-discover .sj-hero{left:2%;bottom:48%;width:27%;height:30%}
+  .sj-phase-friend .sj-hero{left:2%;bottom:48%;width:24%;height:29%}
+  .sj-phase-choose .sj-hero{left:3%;bottom:46%;width:32%;height:34%}
+  .sj-phase-choose .sj-friend{right:4%;bottom:46%;width:28%;height:29%}
+  .sj-phase-choose .sj-path-choices{bottom:7%;left:4%;right:4%}
+  .sj-phase-result .sj-hero,.sj-phase-ending .sj-hero{height:58%;left:9%;width:41%}
+  .sj-phase-result .sj-friend,.sj-phase-ending .sj-friend{right:7%;height:45%;width:35%}
+  .sj-caption,.ss-narration{border-width:2px;border-radius:19px}
+  .sj-speak,.ss-speak{border-width:2px}
+  .sj-scene,.ss-screen{border-width:2px}
+  .sfh-squirrel{left:58%;width:33%;height:62%}
+}
+@media(max-width:360px){
+ .sj-phase-discover .sj-hero,.sj-phase-friend .sj-hero{bottom:46%;height:29%}
+ .sj-object-choice,.sj-friend-choice{height:clamp(110px,21vh,155px)}
+}
+@media(prefers-reduced-motion:reduce){
+ .sj-root .sf-premium-actor,.ss-root .sf-premium-actor{animation:none}
+}
