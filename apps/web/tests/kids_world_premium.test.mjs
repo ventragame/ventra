@@ -71,7 +71,7 @@ test('R2 island nameplates have explicit anchors instead of overlapping the next
 test('R2 independent islands use responsive labels, revised plaques and subtle fairy-dust routes',()=>{
  const map=fs.readFileSync(new URL('../src/lib/game/archipelagoPresentation.ts',import.meta.url),'utf8');
  assert.match(scene,/archipelagoBadgeAnchor\(def.id/);
- assert.match(scene,/archipelagoBadgeAnchor\(id,portrait\)/);
+ assert.match(scene,/archipelagoBadgeAnchor\(id,\s*portrait\)/);
  assert.match(scene,/archipelagoOpticalShiftPixels\(width\)\/fitZoom/);
  assert.match(scene,/const badgeContainer = this.add.container\(badgeAnchor.x,badgeAnchor.y\)/);
  assert.match(scene,/fillRoundedRect\(-127,-43,254,94/);
