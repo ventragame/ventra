@@ -14,6 +14,7 @@ export interface WorldSceneConfig {
   wordGardenCompletedLevels?: number;
   wordGardenTotalLevels?: number;
   plazaCompletedLevels?: number;
+  forestCompletedLevels?: number;
 }
 
 interface IslandEntity {
@@ -67,6 +68,7 @@ export class WorldScene extends Phaser.Scene {
   private wordGardenCompletedLevels: number = 0;
   private wordGardenTotalLevels: number = 73;
   private plazaCompletedLevels:number=0;
+  private forestCompletedLevels:number=0;
   private isTransitioning: boolean = false;
   private isOverviewMode: boolean = false;
   private isDesktopFocused: boolean = false;
@@ -107,6 +109,7 @@ export class WorldScene extends Phaser.Scene {
     }
     if(typeof data.wordGardenTotalLevels==='number'&&data.wordGardenTotalLevels>0) this.wordGardenTotalLevels=data.wordGardenTotalLevels;
     if(typeof data.plazaCompletedLevels==='number')this.plazaCompletedLevels=data.plazaCompletedLevels;
+    if(typeof data.forestCompletedLevels==='number')this.forestCompletedLevels=data.forestCompletedLevels;
     this.isTransitioning = false;
     this.isInputLocked = false;
   }
@@ -494,7 +497,7 @@ export class WorldScene extends Phaser.Scene {
 
       container.add(badgeContainer);
 
-      const initialCompleted = def.id==='word_garden'?this.wordGardenCompletedLevels:def.id==='story_castle'?this.plazaCompletedLevels:0;
+      const initialCompleted = def.id==='word_garden'?this.wordGardenCompletedLevels:def.id==='story_castle'?this.plazaCompletedLevels:def.id==='listening_forest'?this.forestCompletedLevels:0;
 
       const entity: IslandEntity = {
         id: def.id,
@@ -511,7 +514,7 @@ export class WorldScene extends Phaser.Scene {
         progressFill,
         progressText,
         completedLevels: initialCompleted,
-        totalLevels: def.id==='word_garden'?this.wordGardenTotalLevels:def.id==='story_castle'?6:5,
+        totalLevels: def.id==='word_garden'?this.wordGardenTotalLevels:def.id==='story_castle'||def.id==='listening_forest'?6:5,
         floatTween,
         worldX,
         worldY,

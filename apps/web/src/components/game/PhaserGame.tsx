@@ -10,6 +10,7 @@ interface PhaserGameProps {
   wordGardenCompletedLevels?: number;
   wordGardenTotalLevels?: number;
   plazaCompletedLevels?: number;
+  forestCompletedLevels?: number;
   onOpenLearningPath: (regionId: string) => void;
   onToast: (msg: string) => void;
 }
@@ -19,6 +20,7 @@ const PhaserGameComponent: React.FC<PhaserGameProps> = ({
   wordGardenCompletedLevels = 0,
   wordGardenTotalLevels = 73,
   plazaCompletedLevels = 0,
+  forestCompletedLevels = 0,
   onOpenLearningPath,
   onToast
 }) => {
@@ -92,7 +94,7 @@ const PhaserGameComponent: React.FC<PhaserGameProps> = ({
         (window as any).__EVENT_BUS__ = EventBus;
       }
 
-      game.scene.start('WorldScene', { wordGardenStatus, wordGardenCompletedLevels,wordGardenTotalLevels,plazaCompletedLevels });
+      game.scene.start('WorldScene', { wordGardenStatus, wordGardenCompletedLevels,wordGardenTotalLevels,plazaCompletedLevels,forestCompletedLevels });
       applyFrameBudget();
     }, 16);
 
@@ -143,6 +145,9 @@ const PhaserGameComponent: React.FC<PhaserGameProps> = ({
   useEffect(()=>{
     EventBus.emit('UPDATE_ISLAND_PROGRESS',{islandId:'story_castle',completed:plazaCompletedLevels,total:6});
   },[plazaCompletedLevels]);
+  useEffect(()=>{
+    EventBus.emit('UPDATE_ISLAND_PROGRESS',{islandId:'listening_forest',completed:forestCompletedLevels,total:6});
+  },[forestCompletedLevels]);
 
   return (
     <div
@@ -168,7 +173,8 @@ export const PhaserGame = memo(PhaserGameComponent, (prev, next) => {
     prev.wordGardenStatus === next.wordGardenStatus &&
     prev.wordGardenCompletedLevels === next.wordGardenCompletedLevels &&
     prev.wordGardenTotalLevels === next.wordGardenTotalLevels &&
-    prev.plazaCompletedLevels === next.plazaCompletedLevels
+    prev.plazaCompletedLevels === next.plazaCompletedLevels &&
+    prev.forestCompletedLevels === next.forestCompletedLevels
   );
 });
 

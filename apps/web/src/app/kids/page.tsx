@@ -20,6 +20,8 @@ import { AdultAccountModal } from '../../components/profile/AdultAccountModal';
 import { CloudTransition } from '../../components/learning/CloudTransition';
 import { LearningPathModal } from '../../components/learning/LearningPathModal';
 import { SentencePlazaAdventure } from '../../components/learning/sentence/SentencePlazaAdventure';
+import { StoryForestAdventure } from '../../components/learning/story/StoryForestAdventure';
+import { getStoryForestProgress, type ForestProgress } from '../../lib/progress/storyForestProgress';
 import {getSentencePlazaProgress,type SentencePlazaProgress} from '../../lib/progress/sentencePlazaProgress';
 import { KidsPassport } from '../../components/rewards/KidsPassport';
 import { CosmeticArtwork } from '../../components/rewards/CosmeticArtwork';
@@ -62,6 +64,7 @@ export default function VentraKidsWorldPage() {
   const [wordGardenCompletedLevels, setWordGardenCompletedLevels] = useState<number>(0);
   const [gardenOverall,setGardenOverall]=useState<GardenOverallProgress|null>(null);
   const [plazaProgress,setPlazaProgress]=useState<SentencePlazaProgress|null>(null);
+  const [forestProgress,setForestProgress]=useState<ForestProgress|null>(null);
   const [wordGardenStarsByLevel, setWordGardenStarsByLevel] = useState<Record<number, number>>({});
   const [totalStars, setTotalStars] = useState<number>(0);
   const [isPassportOpen,setIsPassportOpen]=useState(false);
@@ -163,7 +166,9 @@ export default function VentraKidsWorldPage() {
     try {
       const overview=await getGardenOverallProgress(getProgressRepository(),profile.id,profile.gradeLevel??null,profile.englishLevel??'Pre-A1');
       const plaza=await getSentencePlazaProgress(getProgressRepository(),profile.id);
+      const forest=await getStoryForestProgress(getProgressRepository(),profile.id);
       setPlazaProgress(plaza);
+      setForestProgress(forest);
       setGardenOverall(overview);
       setWordGardenCompletedLevels(overview.animals.completedLevels);
       setWordGardenStarsByLevel(overview.animals.starsByLevel);
@@ -180,6 +185,7 @@ export default function VentraKidsWorldPage() {
       console.error('Kelime Bahçesi ilerlemesi yüklenemedi:', error);
       setGardenOverall(null);
       setPlazaProgress(null);
+      setForestProgress(null);
       showToast('İlerleme yüklenemedi. Lütfen tekrar deneyin.');
     }
   }, [showToast]);
@@ -211,7 +217,7 @@ export default function VentraKidsWorldPage() {
     if (typeof window !== 'undefined') {
       const searchParams = new URLSearchParams(window.location.search);
       const requested=searchParams.get('open');
-      if(requested==='word_garden'||requested==='story_castle')setActiveRegion(requested);
+      if(requested==='word_garden'||requested==='story_castle'||requested==='listening_forest')setActiveRegion(requested);
       const islandParam = searchParams.get('island') as IslandId;
       if (islandParam && ARCHIPELAGO_ISLANDS_CATALOG[islandParam]) {
         setFocusedIsland(islandParam);
@@ -374,6 +380,15 @@ export default function VentraKidsWorldPage() {
   const currentAvatar = getAvatarById(activeProfile?.avatarId || 'avatar_explorer');
   const wordGardenProgressPercent = gardenOverall?.percent ?? 0;
   const currentIslandDef = ARCHIPELAGO_ISLANDS_CATALOG[focusedIsland];
+  const focusedPercent = focusedIsland==='story_castle'
+    ?Math.round(100*(plazaProgress?.completedLevels??0)/6)
+    :focusedIsland==='listening_forest'
+    ?Math.round(100*(forestProgress?.completedLevels??0)/6):wordGardenProgressPercent;
+  const focusedCountText=focusedIsland==='story_castle'
+    ?(plazaProgress?String(plazaProgress.completedLevels)+' / 6 görev tamamlandı':'İlerleme okunamadı')
+    :focusedIsland==='listening_forest'
+    ?(forestProgress?String(forestProgress.completedLevels)+' / 6 hikâye tamamlandı':'İlerleme okunamadı')
+    :(gardenOverall?String(gardenOverall.completed)+' / '+String(gardenOverall.total)+' görev tamamlandı':'İlerleme okunamadı');
 
   return (
     <div
@@ -551,6 +566,7 @@ export default function VentraKidsWorldPage() {
           wordGardenCompletedLevels={gardenOverall?.completed??0}
           wordGardenTotalLevels={gardenOverall?.total??73}
           plazaCompletedLevels={plazaProgress?.completedLevels??0}
+          forestCompletedLevels={forestProgress?.completedLevels??0}
           onOpenLearningPath={handleOpenLearningPath}
           onToast={showToast}
         />
@@ -586,18 +602,15 @@ export default function VentraKidsWorldPage() {
           {currentIslandDef.contentPublished ? (
             <>
               <div className="kids-island-meter-label">
-                <span>{focusedIsland==='story_castle'?
-                  (plazaProgress?`${plazaProgress.completedLevels} / 6 görev tamamlandı · İlk bölge`:'İlerleme okunamadı'):
-                  (gardenOverall?`${gardenOverall.completed} / ${gardenOverall.total} görev tamamlandı`:'İlerleme okunamadı')}</span>
-                <strong>%{focusedIsland==='story_castle'?Math.round(100*(plazaProgress?.completedLevels??0)/6):wordGardenProgressPercent}</strong>
+                <span>{focusedCountText}</span>
+                <strong>%{focusedPercent}</strong>
               </div>
               <div className="kids-island-meter" role="progressbar" aria-label="Seçili adanın öğrenme ilerlemesi"
-                aria-valuemin={0} aria-valuemax={100}
-                aria-valuenow={focusedIsland==='story_castle'?Math.round(100*(plazaProgress?.completedLevels??0)/6):wordGardenProgressPercent}>
-                <div style={{width:`${focusedIsland==='story_castle'?Math.round(100*(plazaProgress?.completedLevels??0)/6):wordGardenProgressPercent}%`}}/>
+                aria-valuemin={0} aria-valuemax={100} aria-valuenow={focusedPercent}>
+                <div style={{width:String(focusedPercent)+'%'}}/>
               </div>
-              <button className="kids-island-action" onClick={()=>handleOpenLearningPath(focusedIsland==='story_castle'?'story_castle':'word_garden')}>
-                <span>{focusedIsland==='story_castle'?'🏰 Uyanan Meydan’a Gir':
+              <button className="kids-island-action" onClick={()=>handleOpenLearningPath(focusedIsland)}>
+                <span>{focusedIsland==='listening_forest'?'📖 Hikâye Ormanı’na Gir':focusedIsland==='story_castle'?'🏰 Uyanan Meydan’a Gir':
                   gardenOverall?.completedWorlds===6?'🌸 Yeniden Keşfet':'✨ Kelime Bahçesi’ne Gir'}</span>
                 <span aria-hidden="true">→</span>
               </button>
@@ -675,6 +688,12 @@ export default function VentraKidsWorldPage() {
 
       {activeRegion==='story_castle'&&activeProfile&&
         <SentencePlazaAdventure key={activeProfile.id} profileId={activeProfile.id}
+          gradeLevel={activeProfile.gradeLevel??null}
+          englishLevel={activeProfile.englishLevel??'Pre-A1'}
+          onBack={handleCloseLearningPath}
+          onSaved={()=>void loadProfileAndProgress(activeProfile)}/>}
+      {activeRegion==='listening_forest'&&activeProfile&&
+        <StoryForestAdventure key={activeProfile.id} profileId={activeProfile.id}
           gradeLevel={activeProfile.gradeLevel??null}
           englishLevel={activeProfile.englishLevel??'Pre-A1'}
           onBack={handleCloseLearningPath}

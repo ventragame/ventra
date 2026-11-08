@@ -80,15 +80,15 @@ export const ARCHIPELAGO_ISLANDS_CATALOG: Record<IslandId, IslandDefinition> = {
     badgeText: 'Pre-A1 · A1 · A2',
     descriptionTr: 'Karakterleri takip et, olayları sırala ve hikâyenin devamını İngilizce seç.',
     cefrLevel: 'Pre-A1–A2',
-    totalPublishedRequiredLevels: 0,
+    totalPublishedRequiredLevels: 6,
     desktopAsset: '/assets/kids-islands/listening_forest.webp',
     mobileAsset: '/assets/kids-islands/listening_forest_mobile.webp',
     defaultWorldPos: { x: 1800, y: 590 }, // Üst orta
     hitRadius: 210,
     order: 3,
-    isUnlockedDefault: false,
-    contentPublished: false,
-    unlockRequirementNotice: 'Hikâye maceraları henüz geliştirme aşamasında.'
+    isUnlockedDefault: true,
+    contentPublished: true,
+    unlockRequirementNotice: 'Hikâyeyi Keşfet oynanabilir. Diğer Hikâye Ormanı oyunları hazırlanıyor.'
   },
   speaking_harbor: {
     id: 'speaking_harbor',
