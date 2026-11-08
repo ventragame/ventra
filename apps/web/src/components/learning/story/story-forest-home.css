@@ -1,0 +1,64 @@
+
+.sfh-root{background:radial-gradient(circle at 70% 1%,#c7e5ff,#c2efd6 48%,#a3dcca)}
+.sfh-main{max-width:1100px;padding-top:16px}
+.sfh-hero{position:relative;isolation:isolate;border:3px solid #f6fff0;
+ height:clamp(175px,26vh,270px);border-radius:28px;overflow:hidden;
+ background:linear-gradient(110deg,#155b65,#5fa5a0);box-shadow:0 14px 29px #306e684a;
+ display:flex;align-items:center}
+.sfh-hero:before{content:"";position:absolute;inset:0;
+ background:linear-gradient(90deg,#175569f6,#1e6579c7 46%,transparent 82%);z-index:-1}
+.sfh-hero-art{position:absolute;right:-4%;top:-24%;width:min(61%,620px);height:160%;
+ object-fit:contain;z-index:-2;filter:drop-shadow(0 12px 20px #224f668c)}
+.sfh-hero-text{position:relative;color:white;padding:clamp(16px,3vw,36px);max-width:72%}
+.sfh-hero-text>span{font-size:11px;letter-spacing:.1em;color:#f2ecae;font-weight:1000}
+.sfh-hero-text h2{font-size:clamp(26px,5vw,48px);font-weight:1000;
+ letter-spacing:-.045em;line-height:1.1;margin:7px 0 8px}
+.sfh-hero-text p{font-size:clamp(12px,2vw,18px);font-weight:900;color:#dffbed}
+.sfh-games{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:19px;margin-top:19px}
+.sfh-card{display:flex;flex-direction:column;min-width:0;text-align:left;
+ border-radius:25px;overflow:hidden;border:3px solid white;background:#fafff5;
+ box-shadow:0 10px 28px #3e807947;transition:transform .17s,box-shadow .17s}
+.sfh-card:focus-visible{outline:4px solid #ffc76e;outline-offset:4px}
+.sfh-card:hover{transform:translateY(-4px);box-shadow:0 17px 33px #286f7555}
+.sfh-card-art{position:relative;height:clamp(180px,27vh,260px);overflow:hidden;background:#97d7d6}
+.sfh-card-art .ss-illustration,.sfh-card-art .sf-scenery{position:absolute;inset:0;width:100%;height:100%}
+.sfh-card-art-discover .sf-scenery{z-index:0}
+.sfh-character{position:absolute;z-index:2;width:38%;height:75%;bottom:4%;left:14%}
+.sfh-bunny{left:14%}.sfh-fox{left:51%;width:31%;height:61%;bottom:9%}
+.sfh-character .sf-actor-illustration{max-width:100%;width:100%;height:100%}
+.sfh-card-bubble{position:absolute;z-index:3;top:12px;right:13px;
+ display:grid;place-items:center;background:#ffffffe8;border:2px solid #e3f8ec;
+ box-shadow:0 5px 12px #2d5a7070;border-radius:14px;width:48px;height:44px;
+ font-size:25px}
+.sfh-order-badge{position:absolute;z-index:3;top:12px;right:13px;
+ color:#205d63;font-size:25px;letter-spacing:3px;background:#fffceae8;
+ padding:7px 12px;border-radius:15px;border:2px solid white;
+ box-shadow:0 4px 14px #215d7077}
+.sfh-card-footer{display:flex;align-items:center;gap:12px;padding:16px 17px 9px}
+.sfh-number{display:grid;place-items:center;min-width:43px;width:43px;height:43px;
+ border-radius:13px;background:#d0f2e2;color:#1f766b;font-weight:1000;font-size:15px}
+.sfh-card-footer>div{flex:1;min-width:0}
+.sfh-card-footer strong{display:block;font-size:clamp(16px,2vw,22px);font-weight:1000;
+ line-height:1.1;letter-spacing:-.03em}
+.sfh-card-footer small{display:block;font-weight:800;font-size:12px;color:#598782;margin-top:5px}
+.sfh-bonus{white-space:nowrap;font-weight:1000;font-size:13px;color:#438d73}
+.sfh-card-go{display:flex;align-items:center;justify-content:space-between;
+ margin:6px 17px 15px;padding:11px 15px;background:linear-gradient(105deg,#b8efa2,#77dbc0);
+ border:1px solid #b2e0bd;border-radius:14px;color:#175c52;
+ font-size:13px;font-weight:1000;min-height:45px}
+.sfh-card-go span{font-size:19px}
+.sfh-next{text-align:center;font-weight:900;font-size:12px;color:#5d8a7e;padding:19px 0 7px}
+@media(max-width:700px){
+ .sfh-main{padding:10px 10px 25px}
+ .sfh-hero{height:160px;border-radius:20px}
+ .sfh-hero-text{padding:14px;max-width:76%}
+ .sfh-hero-text>span{font-size:9px}
+ .sfh-hero-art{width:74%;right:-21%;height:150%;top:-25%}
+ .sfh-games{grid-template-columns:1fr;gap:12px;margin-top:12px}
+ .sfh-card{border-radius:19px}
+ .sfh-card-art{height:min(27vh,220px);min-height:142px}
+ .sfh-card-footer{padding:10px 12px 7px}
+ .sfh-card-footer strong{font-size:18px}
+ .sfh-card-go{margin:5px 12px 11px;min-height:41px}
+}
+@media(prefers-reduced-motion:reduce){.sfh-card{transition:none!important}}
