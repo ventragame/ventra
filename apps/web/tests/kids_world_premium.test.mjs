@@ -125,7 +125,7 @@ test('V3 spotlight isolates selected island on phones and tablets',()=>{
 });
 test('V3 desktop keeps real island art and prevents permanently overlapping labels',()=>{
  assert.match(scene,/entity\.badgeContainer\?\.setVisible\(false\)/);
- assert.match(scene,/entity\.badgeContainer\?\.setVisible\(hovered && !this\.isCompactViewport\(\)/);
+ assert.match(scene,/const showBadge = hovered && !this\.isCompactViewport\(\)/);
  assert.match(style,/@media \(min-width:901px\)/);
  assert.match(page,/ARCHIPELAGO_ISLANDS_ORDERED\.map/);
 });
