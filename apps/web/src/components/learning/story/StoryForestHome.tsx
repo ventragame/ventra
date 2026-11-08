@@ -5,7 +5,7 @@ import type {ForestPlacement} from '@/lib/learning/storyForestEngine';
 import {SEQUENCE_STORIES} from '@/lib/learning/storySequenceEngine';
 import {StoryForestAdventure} from './StoryForestAdventure';
 import {StorySequenceAdventure} from './StorySequenceAdventure';
-import {StoryForestScenery,StoryForestActor} from './StoryForestArt';
+import {StoryForestScenery,StoryForestActor,STORY_FOREST_PREMIUM_COVER} from './StoryForestArt';
 import {StorySequenceFrame} from './StorySequenceFrame';
 import {getProgressRepository} from '@/lib/progress';
 import {getStoryForestProgress,type ForestProgress} from '@/lib/progress/storyForestProgress';
@@ -13,6 +13,7 @@ import {getSequenceProgress,type SequenceProgress} from '@/lib/progress/storySeq
 import {soundService} from '@/lib/audio/SoundService';
 import './story-sequence.css';
 import './story-forest-home.css';
+import './premium-story-art.css';
 
 type Game='home'|'discover'|'sequence';
 interface Props{
@@ -61,7 +62,7 @@ export function StoryForestHome({profileId,gradeLevel,englishLevel,onBack,onSave
    </header>
    <main className="ss-main sfh-main">
     <div className="sfh-hero">
-     <img src="/assets/kids-islands/listening_forest.webp" alt="" className="sfh-hero-art"/>
+     <img src={STORY_FOREST_PREMIUM_COVER} alt="" className="sfh-hero-art"/>
      <div className="sfh-hero-text">
       <span>VENTRA · İNGİLİZCE HİKÂYELER</span>
       <h2>Masal Başlıyor!</h2>
@@ -73,7 +74,7 @@ export function StoryForestHome({profileId,gradeLevel,englishLevel,onBack,onSave
       <div className="sfh-card-art sfh-card-art-discover">
        <StoryForestScenery scene="meadow"/>
        <div className="sfh-character sfh-bunny"><StoryForestActor id="rabbit"/></div>
-       <div className="sfh-character sfh-fox"><StoryForestActor id="fox"/></div>
+       <div className="sfh-character sfh-squirrel"><StoryForestActor id="squirrel"/></div>
        <div className="sfh-card-bubble">🔊</div>
       </div>
       <div className="sfh-card-footer">

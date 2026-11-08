@@ -5,7 +5,7 @@ import {StoryForestActor,StoryForestScenery} from './StoryForestArt';
 import type {ForestScene,ForestActorId} from '@/lib/learning/storyForestEngine';
 import type {SequenceFrame,SequenceProp} from '@/lib/learning/storySequenceEngine';
 
-/** Reuses the same fully isolated SVG actors and backgrounds as Game 1.
+/** Reuses the same isolated, identity-accurate WebP or SVG art as Game 1.
  * Each action has a contextual companion, physical item or motion cue; no
  * illustrated "correct" answer is hidden in the scenery behind the cards.
  */

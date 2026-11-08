@@ -10,7 +10,7 @@ import {
 import {getProgressRepository} from '@/lib/progress';
 import {getStoryForestProgress,saveForestJourney,type ForestProgress} from '@/lib/progress/storyForestProgress';
 import {soundService} from '@/lib/audio/SoundService';
-import {StoryForestActor,StoryForestScenery} from './StoryForestArt';
+import {StoryForestActor,StoryForestScenery,STORY_FOREST_PREMIUM_COVER} from './StoryForestArt';
 import './story-forest-journey.css';
 
 type Screen='chapters'|'playing'|'reward';
@@ -239,10 +239,8 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
    </header>
    <main className="sj-chapters">
     <div className="sj-cover">
-     <picture>
-      <source media="(max-width:640px)" srcSet="/assets/kids-islands/listening_forest_mobile.webp"/>
-      <img src="/assets/kids-islands/listening_forest.webp" alt="" className="sj-cover-art"/>
-     </picture>
+     <img src={STORY_FOREST_PREMIUM_COVER} alt="" className="sj-cover-art"
+       draggable={false} decoding="async"/>
      <div className="sj-cover-copy"><span>HİKÂYE ORMANI · MACERA</span>
       <h1>Her Seferinde<br/>Yeni Bir Hikâye</h1>
       <p>Dinle · Keşfet · Karar ver</p>
