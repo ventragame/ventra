@@ -73,7 +73,7 @@ const ARCS:Readonly<Record<ForestEpisode,Arc>>={
  4:['Renkli Çiçekler',[
   ['butterfly',undefined,'flower','discover','left','A butterfly is here.','A butterfly finds a flower.','First, a colourful butterfly lands beside a flower.'],
   ['rabbit',undefined,'flower','arrive','right','The rabbit comes.','The rabbit sees a pink flower.','Next, the rabbit comes to admire the pink flowers.'],
-  ['squirrel',undefined,'leaf','find','center','The squirrel finds a leaf.','The squirrel picks up a green leaf.','Then a squirrel notices a bright green leaf on the ground.'],
+  ['squirrel',undefined,'none','find','center','The squirrel has an acorn.','The squirrel carries a small acorn.','Then a happy squirrel arrives carrying a shiny brown acorn.'],
   ['hedgehog','butterfly','flower','watch','left','The hedgehog looks.','The hedgehog watches a butterfly.','After that, a cheerful hedgehog stops and watches the butterfly dance.'],
   ['rabbit','hedgehog','flower','share','center','They enjoy the flowers.','The rabbit and hedgehog enjoy the flowers.','Finally, the rabbit and the hedgehog enjoy the lovely flowers together.']
  ]],
