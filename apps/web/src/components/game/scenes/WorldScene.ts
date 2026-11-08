@@ -59,6 +59,7 @@ export class WorldScene extends Phaser.Scene {
   private foregroundClouds: Phaser.GameObjects.Image[] = [];
   private islands: Map<IslandId, IslandEntity> = new Map();
   private progressionBubbles: ProgressionBubble[] = [];
+  private routeDecorations: Array<Phaser.GameObjects.Graphics | Phaser.GameObjects.Arc | Phaser.GameObjects.Rectangle> = [];
 
   // Durumlar
   private wordGardenStatus: 'dormant' | 'blooming' = 'dormant';
@@ -67,6 +68,7 @@ export class WorldScene extends Phaser.Scene {
   private plazaCompletedLevels:number=0;
   private isTransitioning: boolean = false;
   private isOverviewMode: boolean = false;
+  private isDesktopFocused: boolean = false;
   private isInputLocked: boolean = false;
   private activeFocusedIslandId: IslandId = 'word_garden';
 
@@ -307,6 +309,7 @@ export class WorldScene extends Phaser.Scene {
       // A connected fairy-dust trail: wide soft glow, narrow illuminated core
       // and tiny four-point diamonds instead of the previous large beads.
       const ribbon=this.add.graphics().setDepth(9);
+      this.routeDecorations.push(ribbon);
       for(let k=0;k<46;k++){
         const from=at(k/46),to=at((k+0.85)/46);
         if(curve.isActive){
@@ -329,6 +332,7 @@ export class WorldScene extends Phaser.Scene {
         const core=this.add.rectangle(pos.x,pos.y,bright?5.6:3.5,bright?5.6:3.5,
           bright?0xffe8a2:0xe2f3ff,bright?0.93:0.48).setAngle(45).setDepth(12);
         this.progressionBubbles.push({halo,core,x:pos.x,y:pos.y});
+        this.routeDecorations.push(halo,core);
         if(curve.isActive&&!this.isReducedMotion()&&i%3===0){
           this.tweens.add({targets:halo,scale:1.85,alpha:0.06,duration:2100+i*160,
             yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
@@ -339,6 +343,7 @@ export class WorldScene extends Phaser.Scene {
       // Only one traveling glint on the currently playable route.
       if(curve.isActive&&!this.isReducedMotion()&&!this.isMobileDevice()){
         const glint=this.add.circle(curve.p0.x,curve.p0.y,5.5,0xffffff,0.94).setDepth(13);
+        this.routeDecorations.push(glint);
         this.tweens.addCounter({from:0,to:1,duration:4900,delay:routeIndex*190,repeat:-1,
           onUpdate:(tween)=>{const p=at(tween.getValue()??0);glint.setPosition(p.x,p.y);}});
       }
@@ -548,6 +553,8 @@ export class WorldScene extends Phaser.Scene {
 
     if (entity.isHovered === hovered) return;
     entity.isHovered = hovered;
+    // Large nameplates are contextual tooltips, not permanently stacked on artwork.
+    entity.badgeContainer?.setVisible(hovered && !this.isCompactViewport() && !this.isDesktopFocused);
 
     // Hedef üzerindeki mevcut scale tween'lerini anında ve temiz şekilde sonlandır
     if (entity.scaleTween) {
@@ -665,6 +672,7 @@ export class WorldScene extends Phaser.Scene {
   public resetAllHoverStates(): void {
     this.islands.forEach((entity) => {
       entity.isHovered = false;
+      entity.badgeContainer?.setVisible(false);
       if (entity.scaleTween) {
         entity.scaleTween.stop();
         this.tweens.remove(entity.scaleTween);
@@ -675,11 +683,40 @@ export class WorldScene extends Phaser.Scene {
     });
   }
 
+  // At <=900px every destination is a distinct focus scene. On desktop the
+  // six-island overview is clean until a child explicitly selects a destination.
+  private isCompactViewport(): boolean {
+    return this.scale.width <= 900;
+  }
+
+  private updateIslandPresentation(): void {
+    const spotlight = !this.isOverviewMode && (this.isCompactViewport() || this.isDesktopFocused);
+    this.islands.forEach((entity) => {
+      const shown = !spotlight || entity.id === this.activeFocusedIslandId;
+      entity.container.setVisible(shown);
+      if (entity.hitZone.input) entity.hitZone.input.enabled = shown && !this.isInputLocked;
+      // Never let 254×94 nameplates cover neighboring islands or the HTML detail panel.
+      entity.badgeContainer?.setVisible(shown && !this.isCompactViewport() &&
+        !this.isDesktopFocused && entity.isHovered);
+    });
+    this.routeDecorations.forEach((decoration) => decoration.setVisible(!spotlight));
+  }
+
   // --- 5. ADA SEÇİMİ VE KAMERA ODAKLANMASI ---
   public handleSelectIsland(islandId: IslandId): void {
     if (this.isInputLocked) return;
     const entity = this.islands.get(islandId);
     if (!entity) return;
+
+    // On small screens an overview tap selects the destination first; it must
+    // not unexpectedly launch a game from the miniature panoramic map.
+    if (this.isOverviewMode && this.isCompactViewport()) {
+      this.activeFocusedIslandId = islandId;
+      EventBus.emit('SELECT_ISLAND', islandId);
+      this.resetAllHoverStates();
+      this.focusCameraOnIsland(islandId, this.isReducedMotion() ? 0 : 480);
+      return;
+    }
 
     this.activeFocusedIslandId = islandId;
     this.isOverviewMode = false;
@@ -766,7 +803,10 @@ export class WorldScene extends Phaser.Scene {
   private focusCameraOnIsland(islandId: IslandId, duration = 500): void {
     const entity = this.islands.get(islandId);
     if (!entity) return;
+    this.activeFocusedIslandId = islandId;
     this.isOverviewMode = false;
+    this.isDesktopFocused = true;
+    this.updateIslandPresentation();
     EventBus.emit('WORLD_OVERVIEW_CHANGED', false);
     this.cameras.main.useBounds = true;
     const { width, height } = this.scale;
@@ -824,8 +864,9 @@ export class WorldScene extends Phaser.Scene {
   // --- 8. CAMERA FIT: PORTRAIT FOCUS OR TRUE SIX-ISLAND OVERVIEW ---
   public fitCameraToViewport(duration = 0): void {
     const { width, height } = this.scale;
-    const shortLandscape = width <= 900 && height <= 520;
-    const mode = this.isOverviewMode || !(height > width || shortLandscape) ? 'overview' : 'focus';
+    const mode = this.isOverviewMode || (!this.isCompactViewport() && !this.isDesktopFocused)
+      ? 'overview' : 'focus';
+    this.updateIslandPresentation();
     const bounds = this.getCombinedIslandsBounds();
     const entity = this.islands.get(this.activeFocusedIslandId) || this.islands.get('word_garden');
     const frame = archipelagoCameraFraming({
@@ -848,6 +889,8 @@ export class WorldScene extends Phaser.Scene {
   // --- 9. PANORAMA: ON MOBILE, FIT ALL ISLANDS INSTEAD OF REFOCUSING ---
   public showWorldOverview(duration = 600): void {
     this.isOverviewMode = true;
+    this.isDesktopFocused = false;
+    this.updateIslandPresentation();
     this.cameras.main.useBounds = false;
     EventBus.emit('WORLD_OVERVIEW_CHANGED', true);
     this.fitCameraToViewport(this.isReducedMotion() ? 0 : duration);
@@ -884,6 +927,10 @@ export class WorldScene extends Phaser.Scene {
 
       if (Math.abs(deltaX) > this.dragThreshold || Math.abs(deltaY) > this.dragThreshold) {
         this.hasDragged = true;
+        if (this.isCompactViewport() && !this.isOverviewMode) {
+          // In spotlight mode swiping switches islands; never pan to empty sky.
+          return;
+        }
         this.cameras.main.useBounds = !this.isOverviewMode;
         this.resetAllHoverStates(); // Sürükleme anında asılı hover'ları sıfırla
       }
@@ -906,7 +953,24 @@ export class WorldScene extends Phaser.Scene {
       }
     });
 
-    this.input.on('pointerup', () => {
+    this.input.on('pointerup', (pointer: Phaser.Input.Pointer) => {
+      if (this.isPointerDown && !this.isInputLocked &&
+          this.isCompactViewport() && !this.isOverviewMode) {
+        const dx = pointer.x - this.dragStartX;
+        const dy = pointer.y - this.dragStartY;
+        if (Math.abs(dx) >= 72 && Math.abs(dx) > Math.abs(dy) * 1.25) {
+          const order = ARCHIPELAGO_ISLANDS_ORDERED;
+          const current = order.findIndex((island) => island.id === this.activeFocusedIslandId);
+          const targetIndex = Phaser.Math.Clamp(current + (dx < 0 ? 1 : -1), 0, order.length - 1);
+          if (targetIndex !== current && order[targetIndex]) {
+            const next = order[targetIndex].id;
+            this.activeFocusedIslandId = next;
+            EventBus.emit('SELECT_ISLAND', next);
+            this.resetAllHoverStates();
+            this.focusCameraOnIsland(next, this.isReducedMotion() ? 0 : 480);
+          }
+        }
+      }
       this.isPointerDown = false;
       this.time.delayedCall(50, () => {
         this.hasDragged = false;
@@ -916,7 +980,7 @@ export class WorldScene extends Phaser.Scene {
     // Kontrollü Fare Tekerleği (Wheel Zoom)
     this.input.on('wheel', (pointer: any, gameObjects: any, deltaX: number, deltaY: number) => {
       if (this.isInputLocked) return;
-      this.isOverviewMode = false;
+      if (this.isCompactViewport() && !this.isOverviewMode) return;
       const currentZoom = this.cameras.main.zoom;
       const newZoom = Phaser.Math.Clamp(currentZoom - deltaY * 0.0008, 0.42, 1.35);
       this.cameras.main.setZoom(newZoom);
@@ -1060,6 +1124,7 @@ export class WorldScene extends Phaser.Scene {
       b.core.destroy();
     });
     this.progressionBubbles = [];
+    this.routeDecorations = [];
     this.islands.clear();
   }
 }

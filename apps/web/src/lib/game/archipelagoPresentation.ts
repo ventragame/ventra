@@ -40,7 +40,7 @@ export function archipelagoCameraFraming({
   width, height, bounds, mode, target
 }: ArchipelagoCameraFrameInput): ArchipelagoCameraFrame {
   const shortLandscape = width <= 900 && height <= 520;
-  const narrow = width <= 640 || shortLandscape;
+  const narrow = width <= 900;
   const top = narrow ? (shortLandscape ? 64 : 94) : width <= 900 ? 82 : 96;
   const bottom = narrow
     ? (mode === 'overview' ? 86 : shortLandscape ? 88 : 230)

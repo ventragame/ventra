@@ -303,6 +303,7 @@ export default function VentraKidsWorldPage() {
   // Ada Kamera Odağını Değiştirme
   const handleFocusIsland = useCallback(
     (islandId: IslandId) => {
+      setIsWorldOverview(false);
       setFocusedIsland(islandId);
       soundService.playSfx('tap', 0.5);
       EventBus.emit('FOCUS_ISLAND', islandId);

@@ -111,3 +111,29 @@ test('V2 mobile sheet, tools and viewport preserve access to six islands',()=>{
  assert.match(style,/kids-world-dock\{scroll-padding-inline/);
  assert.match(style,/kids-island-detail:not\(\.kids-island-detail--expanded\)/);
 });
+
+test('V3 spotlight isolates selected island on phones and tablets',()=>{
+ assert.match(scene,/private updateIslandPresentation\(\): void/);
+ assert.match(scene,/entity\.container\.setVisible\(shown\)/);
+ assert.match(scene,/entity\.badgeContainer\?\.setVisible\(shown/);
+ assert.match(scene,/this\.routeDecorations\.forEach/);
+ assert.match(scene,/return this\.scale\.width <= 900/);
+ assert.match(scene,/this\.updateIslandPresentation\(\)/);
+ assert.match(scene,/this\.focusCameraOnIsland\(next/);
+ assert.match(scene,/this\.isOverviewMode && this\.isCompactViewport\(\)/);
+});
+test('V3 desktop keeps real island art and prevents permanently overlapping labels',()=>{
+ assert.match(scene,/entity\.badgeContainer\?\.setVisible\(false\)/);
+ assert.match(scene,/entity\.badgeContainer\?\.setVisible\(hovered && !this\.isCompactViewport\(\)/);
+ assert.match(style,/@media \(min-width:901px\)/);
+ assert.match(page,/ARCHIPELAGO_ISLANDS_ORDERED\.map/);
+});
+test('V3 phone and tablet navigation remains reachable without giant dark panels',()=>{
+ assert.match(style,/@media\(max-width:900px\)/);
+ assert.match(style,/kids-island-detail-inner\{/);
+ assert.match(style,/background:linear-gradient\(135deg,rgba\(250,255,248/);
+ assert.match(style,/text-overflow:ellipsis/);
+ assert.match(style,/max-width:420px/);
+ const nextCfg=fs.readFileSync(new URL('../next.config.mjs',import.meta.url),'utf8');
+ assert.match(nextCfg,/devIndicators: false/);
+});
