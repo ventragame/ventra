@@ -107,6 +107,17 @@ export interface SequenceAnswerEvidence {
  placement:'Pre-A1'|'A1'|'A2';
  timestamp:string;
 }
+export interface StoryJourneyEvidence {
+ routeId:string;
+ episode:number;
+ object:'key'|'apple'|'bird'|'crystal';
+ destination:string;
+ firstMistakes:number;
+ secondMistakes:number;
+ firstHint:boolean;
+ secondHint:boolean;
+ completedAt:string;
+}
 export interface GameMetrics {
   durationSeconds: number;
   attemptsCount: number;
@@ -121,6 +132,7 @@ export interface GameMetrics {
   templeAnswers?: TempleAnswerEvidence[];
   sentenceAnswers?: SentenceAnswerEvidence[];
   storyAnswers?: StoryAnswerEvidence[];
+  storyJourneys?: StoryJourneyEvidence[];
   sequenceAnswers?: SequenceAnswerEvidence[];
 }
 

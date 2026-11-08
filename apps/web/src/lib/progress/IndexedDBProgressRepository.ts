@@ -705,6 +705,18 @@ export class IndexedDBProgressRepository implements IProgressRepository {
          typeof x.timestamp==='string') : []);
   }
 
+  public async getStoryJourneyHistory(profileId:string):Promise<import('@ventra/shared').StoryJourneyEvidence[]>{
+    const db=await this.getDB();
+    const sessions=await this.getRecordsByIndex<any>(db,'sessions','profileId',profileId);
+    return sessions.filter(s=>s.data?.gameId==='island_story_forest_discover')
+     .flatMap(s=>Array.isArray(s.data?.metrics?.storyJourneys)?
+      s.data.metrics.storyJourneys.filter((record:any)=>
+       typeof record.routeId==='string'&&Number.isInteger(record.episode)&&
+       typeof record.completedAt==='string'&&Number.isInteger(record.firstMistakes)&&
+       Number.isInteger(record.secondMistakes)&&typeof record.firstHint==='boolean'&&
+       typeof record.secondHint==='boolean') : []);
+  }
+
   public async getStoryAnswerHistory(profileId:string):Promise<import('@ventra/shared').StoryAnswerEvidence[]>{
     const db=await this.getDB();
     const sessions=await this.getRecordsByIndex<any>(db,'sessions','profileId',profileId);

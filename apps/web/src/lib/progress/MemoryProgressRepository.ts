@@ -511,6 +511,17 @@ export class MemoryProgressRepository implements IProgressRepository {
          typeof x.timestamp==='string') : []);
   }
 
+  public async getStoryJourneyHistory(profileId:string):Promise<import('@ventra/shared').StoryJourneyEvidence[]>{
+    return Array.from(this.sessions.values())
+     .filter(s=>s.profileId===profileId&&s.data?.gameId==='island_story_forest_discover')
+     .flatMap(s=>Array.isArray(s.data?.metrics?.storyJourneys)?
+      s.data.metrics.storyJourneys.filter((record:any)=>
+       typeof record.routeId==='string'&&Number.isInteger(record.episode)&&
+       typeof record.completedAt==='string'&&Number.isInteger(record.firstMistakes)&&
+       Number.isInteger(record.secondMistakes)&&typeof record.firstHint==='boolean'&&
+       typeof record.secondHint==='boolean') : []);
+  }
+
   public async getStoryAnswerHistory(profileId:string):Promise<import('@ventra/shared').StoryAnswerEvidence[]>{
     return Array.from(this.sessions.values())
       .filter(s=>s.profileId===profileId&&s.data?.gameId==='island_story_forest_discover')
