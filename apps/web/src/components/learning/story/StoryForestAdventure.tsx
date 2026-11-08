@@ -2,7 +2,7 @@
 
 import React,{useEffect,useRef,useState} from 'react';
 import type {ForestActorId,ForestEpisode,ForestPlacement,ForestScene} from '@/lib/learning/storyForestEngine';
-import {FOREST_EPISODES} from '@/lib/learning/storyForestEngine';
+import {FOREST_EPISODES,FOREST_ACTOR_NAMES} from '@/lib/learning/storyForestEngine';
 import {
  JOURNEY_ROUTES,planJourneyStory,narrativeFor,journeyStars,
  type JourneyObject,type JourneyPlan,type JourneyPhase,type JourneyRecord
@@ -310,7 +310,7 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
      {phase==='friend'&&<div className="sj-friend-choices" role="group" aria-label="Hikâyede sana yardım eden arkadaşı bul">
       {plan.friendChoices.map(id=><button type="button" key={id}
        onClick={()=>tapFriend(id)} disabled={busy||actionLock.current}
-       aria-label={id} className={'sj-friend-choice '+
+       aria-label={FOREST_ACTOR_NAMES[id]} className={'sj-friend-choice '+
          (highlight&&id===plan.route.helper?'sj-hint-glow ':'')+
          (wrong===id?'sj-wrong ':'')+(correct&&id===plan.route.helper?'sj-correct':'')}>
         <Actor id={id}/>

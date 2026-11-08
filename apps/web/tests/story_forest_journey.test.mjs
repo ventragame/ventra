@@ -102,7 +102,7 @@ test('Runtime uses scene-specific illustrated choices and an accessible silent-a
  assert.match(ui,/setDestination/);assert.match(ui,/onEnd:/);
  assert.match(ui,/voiceUnavailable/);assert.match(ui,/setCaption/);
  assert.match(ui,/saveForestJourney/);assert.match(ui,/getStoryJourneyHistory/);
- assert.match(ui,/srcSet="\/assets\/kids-islands\/listening_forest_mobile.webp"/);
+ assert.match(ui,/STORY_FOREST_PREMIUM_COVER/);
  assert.match(css,/touch-action:manipulation/);
  assert.match(css,/prefers-reduced-motion:reduce/);
 });
