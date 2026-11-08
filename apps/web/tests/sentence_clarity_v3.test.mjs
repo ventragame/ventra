@@ -176,7 +176,7 @@ test('V8 species-specific vector characters never use one anonymous animal place
  const scene=source('SentencePlazaScene.tsx');
  const css=source('sentence-plaza-learning-v7.css');
  for(const species of ['Dog','Cat','Bird','Rabbit']){
-  assert.match(component,new RegExp('function '+species+'\\\\('));
+  assert.ok(component.includes('function '+species+'('),'Missing species artwork: '+species);
  }
  const sections=['Dog','Cat','Bird','Rabbit'].map((name,i,arr)=>{
   const from=component.indexOf('function '+name+'(');
@@ -193,7 +193,7 @@ test('V8 species-specific vector characters never use one anonymous animal place
  assert.match(sections[3],/M86 89 C65 61 53 7/); // long rabbit ears
  assert.match(sections[3],/width="10" height="14"/); // buck teeth
  for(const tint of ['red','blue','green','yellow','purple','orange']){
-  assert.match(component,new RegExp('\\b'+tint+':\\['));
+  assert.ok(component.includes(tint+':['),'Missing educational color: '+tint);
  }
  assert.match(component,/NATURAL\[actor\]/);
  assert.match(component,/data-animal=\{actor\}/);
