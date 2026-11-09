@@ -12,33 +12,25 @@ import {getStoryForestProgress,saveForestJourney,type ForestProgress} from '@/li
 import {soundService} from '@/lib/audio/SoundService';
 import {StoryForestActor,StoryForestScenery,STORY_FOREST_PREMIUM_COVER} from './StoryForestArt';
 import './story-forest-journey.css';
+import './story-forest-object-staging.css';
 
 type Screen='chapters'|'playing'|'reward';
 type Props={profileId:string;gradeLevel:number|null;englishLevel:ForestPlacement;onBack:()=>void;onSaved:()=>void};
 const INITIAL:ForestProgress={completedLevels:0,totalLevels:6,starsByLevel:{}};
+/** Objects share the same rendered 3D art direction as forest characters.
+ * Real transparent WebP cutouts; answer choice and recovered object agree.
+ */
+const STORY_FOREST_OBJECT_ASSETS:Readonly<Partial<Record<JourneyObject,string>>> = Object.freeze({
+ apple:'/assets/story-forest/premium/objects/apple.webp',
+ crystal:'/assets/story-forest/premium/objects/crystal.webp',
+ key:'/assets/story-forest/premium/objects/gold_key.webp'
+});
 function JourneyObjectArt({object}:{object:JourneyObject}){
- if(object==='apple')return <StoryForestActor id="red_apple"/>;
  if(object==='bird')return <StoryForestActor id="bird"/>;
- if(object==='key')return <svg viewBox="0 0 256 256" className="sj-object-svg" aria-hidden="true">
-  <defs><linearGradient id="sj-gold" x1="0" y1="0" x2="1" y2="1">
-   <stop stopColor="#fff6ac"/><stop offset=".55" stopColor="#f5be58"/><stop offset="1" stopColor="#ce8750"/>
-  </linearGradient></defs>
-  <g transform="rotate(-28 128 128)" fill="url(#sj-gold)" stroke="#d09749" strokeWidth="10">
-   <circle cx="130" cy="66" r="44"/><circle cx="130" cy="66" r="20" fill="#f1f9f0" stroke="#e9a752" strokeWidth="6"/>
-   <path d="M115 110H145V206H166V228H144V210H113V228H91V199H115Z" strokeLinejoin="round"/>
-  </g><path d="M55 52l9 -20 7 20 20 7 -20 8 -7 19 -9 -19 -19 -8Z" fill="#fff9d4"/>
- </svg>;
- return <svg viewBox="0 0 256 256" className="sj-object-svg" aria-hidden="true">
-  <defs><linearGradient id="sj-crystal" x1=".3" y1="0" x2=".8" y2="1">
-   <stop stopColor="#d9faff"/><stop offset=".52" stopColor="#8ec5ff"/>
-   <stop offset="1" stopColor="#aa8dec"/>
-  </linearGradient></defs>
-  <path d="M127 13L206 71L231 155L128 244L25 155L50 71Z"
-   fill="url(#sj-crystal)" stroke="#6ca7dc" strokeWidth="11"/>
-  <path d="M127 13L127 244M50 71L128 107L206 71M25 155L127 107L231 155"
-   stroke="#eaffff" strokeWidth="7" fill="none" opacity=".7"/>
-  <circle cx="127" cy="133" r="29" fill="#e7fcff" opacity=".52"/>
- </svg>;
+ const src=STORY_FOREST_OBJECT_ASSETS[object];
+ return src?<img className={'sj-object-illustration sj-object-'+object}
+   src={src} alt="" aria-hidden="true" draggable={false}
+   loading="eager" decoding="async"/>:null;
 }
 function Actor({id}:{id:ForestActorId}){return <StoryForestActor id={id}/>;}
 function StoryScene({plan,phase,location}:{
@@ -48,14 +40,23 @@ function StoryScene({plan,phase,location}:{
  const scene=(phase==='result'||phase==='friend'||phase==='ending')&&location?location:route.scene;
  const showHero=true; // the main character must never vanish between story beats
  const showFriend=['meet','choose','result','ending'].includes(phase);
- const showObject=['opening','result','ending'].includes(phase);
+ // A lost object must not be visible in the opening scene.
+ const objectRecovered=phase==='result'||phase==='ending';
  return <div className={'sj-story-image sj-phase-'+phase} aria-hidden="true">
   <StoryForestScenery scene={scene}/>
   <div className="sj-scene-haze"/>
   <div className="sj-scene-shimmer">✦ <span>✧</span> ✦</div>
   {showHero&&<div className="sj-hero"><Actor id={route.hero}/></div>}
   {showFriend&&<div className="sj-friend"><Actor id={route.helper}/></div>}
-  {showObject&&<div className="sj-held-item"><JourneyObjectArt object={route.object}/></div>}
+  {objectRecovered&&(route.object==='bird'?
+    <div className="sj-found-bird"><JourneyObjectArt object="bird"/></div>:
+    <div className={'sj-discovery-spot sj-discovery-'+route.object}>
+      <span className="sj-discovery-shadow"/>
+      <span className="sj-discovery-stone"/>
+      <span className="sj-discovery-object"><JourneyObjectArt object={route.object}/></span>
+      <span className="sj-discovery-spark sj-discovery-spark-a">✦</span>
+      <span className="sj-discovery-spark sj-discovery-spark-b">✧</span>
+    </div>)}
   {phase==='ending'&&<div className="sj-celebrate" aria-hidden="true">✦ ✦ ✦</div>}
  </div>;
 }
