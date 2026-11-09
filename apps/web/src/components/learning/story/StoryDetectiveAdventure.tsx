@@ -232,7 +232,7 @@ export function StoryDetectiveAdventure({profileId,gradeLevel,englishLevel,onBac
   aria-label="Hikâye Dedektifi">
   <header className="sd-header">
    <button type="button" className="sd-back" onClick={back} disabled={busy}
-    aria-label={view==='chapters'?'Hikâye Ormanı'na dön':'Bölümlere dön'}>←</button>
+    aria-label={view==='chapters'?"Hikâye Ormanı'na dön":'Bölümlere dön'}>←</button>
    <strong>{view==='chapters'?'🔍 Hikâye Dedektifi':chapter?.title??'Hikâye Dedektifi'}</strong>
    <div className="sd-header-right">
     {view==='playing'&&<div className="sd-steps"

@@ -41,7 +41,7 @@ test('Game 2 has six causal visual stories with thirty distinct original storybo
   }
  }
  assert.equal(ids.size,30);
- assert.equal(ARCHIPELAGO_ISLANDS_CATALOG.listening_forest.totalPublishedRequiredLevels,12);
+ assert.equal(ARCHIPELAGO_ISLANDS_CATALOG.listening_forest.totalPublishedRequiredLevels,18);
 });
 test('Sequence is first/middle/ending, grade controls card count, language does not override it',()=>{
  assert.equal(sequenceLengthForGrade(1),3);

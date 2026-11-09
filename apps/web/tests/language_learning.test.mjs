@@ -159,7 +159,7 @@ test('Archipelago V2: State & Publication Separation (unlocked vs contentPublish
   const forest = ARCHIPELAGO_ISLANDS_CATALOG.listening_forest;
   assert.equal(forest.isUnlockedDefault,true,'Hikâyeyi Keşfet ilk oyunu erişilebilir');
   assert.equal(forest.contentPublished,true,'Altı Hikâye Ormanı bölümü yayınlandı');
-  assert.equal(forest.totalPublishedRequiredLevels,12);
+  assert.equal(forest.totalPublishedRequiredLevels,18);
   const lockedIslands = ARCHIPELAGO_ISLANDS_ORDERED.slice(3);
   for (const island of lockedIslands) {
     assert.equal(island.isUnlockedDefault, false, `${island.id} başlangıçta kilitli olmalıdır`);
@@ -361,7 +361,7 @@ test('Archipelago Progress Bar: Active vs Unpublished Island Level Display Invar
   assert.equal(plaza.totalPublishedRequiredLevels,6);
   assert.equal(plaza.contentPublished,true);
   const forest=ARCHIPELAGO_ISLANDS_CATALOG.listening_forest;
-  assert.equal(forest.totalPublishedRequiredLevels,12);
+  assert.equal(forest.totalPublishedRequiredLevels,18);
   assert.equal(forest.contentPublished,true);
   const otherIslands = ARCHIPELAGO_ISLANDS_ORDERED.filter(i =>
     i.id !== 'word_garden'&&i.id!=='story_castle'&&i.id!=='listening_forest');
