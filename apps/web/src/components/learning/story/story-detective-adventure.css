@@ -1,0 +1,185 @@
+/* STORY FOREST / Detective Adventure V2
+   The scenic stage changes between the introduction, chosen woodland path and
+   case resolution; story decisions are independent picture cards on the desk. */
+.sd-adventure-root{
+ --detective-gold:#f4c76c;
+ --detective-cream:#fff9e8;
+ --detective-forest:#2d6f66;
+}
+.sd-adventure-playing{gap:clamp(10px,1.6vw,20px)}
+.sd-adventure-pips{gap:4px}
+.sd-adventure-pips i{width:10px;height:10px;box-shadow:inset 0 1px 1px #14535b18}
+.sd-adventure-pips i.active{width:20px}
+.sd-adventure-world{
+ transition:background-color .3s;isolation:isolate;
+ box-shadow:inset 0 0 0 3px #fff9d3,0 15px 30px #1a5d567a;
+}
+.sd-adventure-world>.sf-scenery{filter:saturate(1.16) contrast(1.06)}
+.sd-palette-golden>.sf-scenery{filter:saturate(1.1) sepia(.11) brightness(1.06)}
+.sd-palette-twilight>.sf-scenery{filter:saturate(1.12) hue-rotate(-8deg) brightness(.87)}
+.sd-palette-misty>.sf-scenery{filter:saturate(.93) brightness(1.08)}
+.sd-palette-misty .sd-world-vignette{
+ background:linear-gradient(0deg,#9ee5dc6b,transparent 44%,#bce5ffa3)
+}
+.sd-palette-golden .sd-world-vignette{
+ background:linear-gradient(0deg,#b36d3260,transparent 44%,#ffeb9e70)
+}
+.sd-palette-twilight .sd-world-vignette{
+ background:linear-gradient(0deg,#173c6d99,transparent 42%,#374d9b73)
+}
+.sd-world-hero .sf-actor-illustration,.sd-world-friend .sf-actor-illustration,
+.sd-world-treasure .sf-actor-illustration{filter:drop-shadow(0 8px 12px #1a373e66)}
+.sd-adventure-world .sd-world-hero{
+ left:4%;bottom:2%;width:53%;height:74%;
+ animation:sd-story-arrive .6s cubic-bezier(.2,.7,.2,1) both;
+}
+.sd-adventure-world .sd-world-friend{right:6%;bottom:4%;width:31%;height:57%;
+ animation:sd-story-arrive .68s .1s cubic-bezier(.2,.7,.2,1) both}
+.sd-adventure-world .sd-world-treasure{left:50%;bottom:9%;width:19%;height:26%;
+ filter:drop-shadow(0 0 19px #fff7ba);
+ animation:sd-story-bob 2.4s ease-in-out infinite alternate}
+@keyframes sd-story-arrive{
+ from{opacity:0;transform:translateY(15px) scale(.92)}
+ to{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes sd-story-bob{to{transform:translateY(-9px)}}
+.sd-story-scene-tag{
+ position:absolute;bottom:14px;left:14px;
+ max-width:70%;padding:8px 14px;
+ background:#103c44d9;border:2px solid #f7e6b4;
+ border-radius:18px;color:#fff9ea;font-size:13px;font-weight:950;
+ box-shadow:0 5px 12px #14373f86;text-shadow:0 1px 3px #214a46;
+}
+.sd-story-floating-clue{
+ position:absolute;right:12%;top:18%;z-index:1;width:clamp(83px,20%,165px);
+ aspect-ratio:1;background:#fff9ebf0;border:4px solid #ffebac;
+ border-radius:23px;box-shadow:0 0 0 7px #fff4c833,0 11px 21px #1e4c5873;
+ padding:8px;display:grid;place-items:center;
+ transform:rotate(7deg);
+}
+.sd-story-floating-clue .sd-illustration,.sd-story-floating-clue .sf-actor-illustration{
+ width:100%;height:100%;object-fit:contain}
+.sd-story-floating-clue .sd-clue-scene{width:100%;height:100%}
+.sd-story-memory{position:absolute;right:15%;top:22%;
+ font-size:clamp(60px,9vw,134px);font-weight:1000;color:#fff3b1;
+ text-shadow:0 5px 4px #835e61,0 9px 25px #29485a;
+ animation:sd-story-bob 2.4s ease-in-out infinite alternate}
+.sd-story-crossroads{position:absolute;right:10%;top:24%;
+ font-size:clamp(28px,5vw,75px);color:#fff4aa;letter-spacing:5px;
+ text-shadow:0 3px 12px #174666}
+.sd-story-notebook{background:
+ linear-gradient(120deg,#fff5e7f8,#f9ffecf9 65%,#e2f3e5f9);
+ border-color:#fff6d2;gap:10px}
+.sd-story-notebook .sd-notebook-top{flex-shrink:0}
+.sd-story-notebook .sd-audio{flex-shrink:0}
+.sd-story-notebook .sd-intro-box{min-height:130px}
+.sd-story-trail{
+ flex-shrink:0;display:flex;justify-content:center;align-items:center;gap:7px;
+ border:2px dashed #d2c7a6;border-radius:19px;padding:5px;
+ background:linear-gradient(105deg,#fffef4,#f0f7e6);
+}
+.sd-story-trail-item{
+ display:grid;place-items:center;width:52px;height:52px;
+ border:2px solid #f6d68c;border-radius:13px;background:#fff9dc;
+ box-shadow:inset 0 -2px #d7af7c50;
+}
+.sd-story-trail-item .sd-illustration,.sd-story-trail-item .sf-actor-illustration{
+ width:100%;height:100%;max-width:100%;object-fit:contain}
+.sd-story-trail-item .sd-clue-scene{width:100%;height:100%}
+.sd-story-options{display:grid;align-content:center;align-items:stretch;
+ gap:clamp(8px,1.2vw,13px);min-height:0;flex:1}
+.sd-story-images{grid-template-columns:repeat(2,minmax(0,1fr))}
+.sd-story-places{grid-template-columns:repeat(2,minmax(0,1fr))}
+.sd-story-option{
+ min-width:0;min-height:115px;position:relative;overflow:hidden;
+ display:grid;place-items:center;padding:8px;cursor:pointer;
+ border-radius:23px;border:4px solid #fff7da;
+ background:linear-gradient(135deg,#fffdfa,#f5edcf 85%,#e7eecb);
+ box-shadow:inset 0 3px 0 white,0 8px 0 #bfa47c99,0 15px 18px #295f6270;
+ transition:transform .17s,border-color .17s,filter .17s;
+}
+.sd-story-option:hover:not(:disabled){transform:translateY(-3px);border-color:#ffe6a2}
+.sd-story-option:active:not(:disabled){transform:translateY(5px)}
+.sd-story-option .sd-illustration,.sd-story-option .sf-actor-illustration{
+ width:min(100%,180px);height:100%;max-height:190px;object-fit:contain;
+ filter:drop-shadow(0 5px 4px #1c4a4f28)
+}
+.sd-story-option .sd-clue-scene{width:100%;height:100%}
+.sd-story-option.place{
+ padding:0;min-height:150px;background:#6db6a1;
+}
+.sd-story-option.place>.sf-scenery{
+ position:absolute;inset:0;width:100%;height:100%;max-width:none;
+ object-fit:cover}
+.sd-story-option.place:after{content:"";pointer-events:none;position:absolute;inset:47% 0 0;
+ background:linear-gradient(0deg,#133a42de,transparent)}
+.sd-story-choice-name{
+ z-index:1;position:absolute;bottom:10px;left:3px;right:3px;
+ font-size:clamp(12px,1.4vw,17px);font-weight:1000;color:#fff8da;
+ text-shadow:0 2px 5px #17434e;text-align:center;
+}
+.sd-story-option.selected{
+ border-color:#a6e5a4;background:#f2ffdf;filter:saturate(.92);
+}
+.sd-story-option.hint{outline:5px solid #bee97b;outline-offset:1px;
+ box-shadow:0 0 0 9px #ccf8b382,0 8px 16px #225c5473}
+.sd-story-option.wrong{
+ border-color:#e88b99;animation:sd-shake .33s ease}
+.sd-story-note{font-size:11px;color:#5e8d77;font-weight:950;text-align:center}
+.sd-story-intro{min-height:170px}
+.sd-story-intro .sd-intro-stamp{
+ background:linear-gradient(135deg,#fffdf7,#f9f2d7);
+ border:3px solid #e9cd95;
+}
+.sd-adventure-root .sd-world-ending .sd-story-scene-tag{background:#275646d9}
+@media(max-width:1050px) and (min-width:761px){
+ .sd-story-option{min-height:110px;padding:5px;border-width:3px;border-radius:17px}
+ .sd-story-option .sd-illustration,.sd-story-option .sf-actor-illustration{
+  max-height:155px;width:min(100%,140px)}
+ .sd-story-trail-item{width:45px;height:45px}
+ .sd-story-option.place{min-height:130px}
+}
+@media(max-width:760px){
+ .sd-adventure-pips{gap:2px}
+ .sd-adventure-pips i{width:7px;height:8px;border-radius:5px}
+ .sd-adventure-pips i.active{width:14px}
+ .sd-story-notebook{flex:1;min-height:0;gap:8px;padding:10px}
+ .sd-story-options{grid-template-columns:repeat(3,minmax(0,1fr));
+  align-content:start;align-items:start;gap:8px;flex:0 0 auto}
+ .sd-story-option{height:clamp(95px,15dvh,148px);min-height:95px;
+  border-width:2px;border-radius:17px;padding:3px;
+  box-shadow:0 5px 0 #bfa47c99,0 8px 11px #295f6270}
+ .sd-story-option .sd-illustration,.sd-story-option .sf-actor-illustration{
+  width:100%;height:100%;max-width:125px;max-height:132px}
+ .sd-story-option.place{height:clamp(115px,18dvh,171px);min-height:110px}
+ .sd-story-places{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .sd-story-trail{padding:3px;gap:5px}
+ .sd-story-trail-item{width:39px;height:39px;border-radius:11px}
+ .sd-story-scene-tag{padding:5px 9px;bottom:9px;left:9px;font-size:11px}
+ .sd-story-floating-clue{right:8%;top:18%;width:90px;border-width:3px;border-radius:17px}
+ .sd-adventure-world .sd-world-hero{left:3%;width:53%;height:73%}
+ .sd-adventure-world .sd-world-friend{right:6%;width:31%;height:58%}
+ .sd-story-notebook .sd-audio{min-height:59px}
+ .sd-story-note{font-size:10px}
+ .sd-story-intro{min-height:110px}
+}
+@media(max-width:385px){
+ .sd-adventure-pips{display:none}
+ .sd-story-option{height:clamp(90px,14dvh,125px);min-height:88px}
+ .sd-story-option.place{height:120px}
+ .sd-story-notebook{gap:6px;padding:8px}
+ .sd-story-trail-item{width:35px;height:35px}
+ .sd-story-floating-clue{width:76px;top:17%}
+}
+@media(max-height:650px) and (min-width:761px){
+ .sd-story-option{min-height:86px;height:clamp(85px,20vh,145px)}
+ .sd-story-option.place{min-height:104px}
+ .sd-story-notebook{gap:7px}
+ .sd-story-trail-item{width:37px;height:37px}
+ .sd-story-intro{min-height:95px}
+}
+@media(prefers-reduced-motion:reduce){
+ .sd-story-option,.sd-adventure-world .sd-world-hero,
+ .sd-adventure-world .sd-world-friend,.sd-story-memory,.sd-world-treasure{
+  animation:none!important;transition:none!important}
+}
