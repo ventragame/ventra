@@ -34,6 +34,7 @@ export interface DetectiveAdventureStep{
 }
 export interface DetectiveAdventurePlan extends DetectivePlan{
  storyVersion:2;storyId:string;setup:DetectiveStorySetup;
+ startScene:ForestScene;
  waypoints:readonly [ForestScene,ForestScene];
  steps:readonly DetectiveAdventureStep[];
  storySteps:readonly {id:string;kind:DetectiveAdventureStepKind;acceptedIds:readonly string[];choices:readonly string[]}[];
@@ -140,8 +141,12 @@ export function planDetectiveAdventure(input:{
  const {episode,playCount}=input;
  const setup=DETECTIVE_STORY_SETUPS[episode][playCount%4];
  const seed=input.seed>>>0;
+ // Rotate the opening environment too, not merely the answer's position.
+ // Never show the correct destination in the introductory scene.
+ const openings=ALL_SCENES.filter(scene=>scene!==base.chosen.destination);
+ const startScene=openings[(playCount+episode)%openings.length];
  const alternatives=ALL_SCENES.filter(scene=>
-  scene!==base.chosen.destination&&scene!==base.chosen.chapter.start);
+  scene!==base.chosen.destination&&scene!==startScene);
  const waypointOptions=shuffle(alternatives,seed+episode*59).slice(0,2) as
   [ForestScene,ForestScene];
  const stepIdPrefix='adventure-'+episode+'-'+(playCount%12);
@@ -152,14 +157,14 @@ export function planDetectiveAdventure(input:{
   steps.push({id:stepIdPrefix+'-'+steps.length,kind,scene,target,
    acceptedIds,choices:options,clueIndex});
  };
- add('friend',base.chosen.chapter.start,setup.friend,[setup.friend],
+ add('friend',startScene,setup.friend,[setup.friend],
   choices(setup.friend,PREMIUM_FRIENDS.filter(x=>x!==setup.hero),3,seed+1));
- add('clue',base.chosen.chapter.start,base.requiredClues[0],
+ add('clue',startScene,base.requiredClues[0],
   [base.requiredClues[0]],
   choices(base.requiredClues[0],
    [base.requiredClues[0],...ALL_CLUES.filter(id=>!base.chosen.clueIds.includes(id))],
    input.gradeLevel!==null&&input.gradeLevel>=3?4:3,seed+11),0);
- add('crossroads',base.chosen.chapter.start,waypointOptions[0],
+ add('crossroads',startScene,waypointOptions[0],
   waypointOptions,shuffle(waypointOptions,seed+23));
  add('clue','chosenWaypoint',base.requiredClues[1],
   [base.requiredClues[1]],
@@ -183,7 +188,7 @@ export function planDetectiveAdventure(input:{
   choices(setup.item,PREMIUM_ITEMS,3,seed+71));
  const storyId='story2-'+episode+'-'+(playCount%12);
  return {
-  ...base,storyVersion:2,storyId,setup,waypoints:waypointOptions,
+  ...base,storyVersion:2,storyId,setup,startScene,waypoints:waypointOptions,
   steps,storySteps:steps.map(step=>({
    id:step.id,kind:step.kind,acceptedIds:step.acceptedIds,choices:step.choices
   })),palette:colorNames[(playCount+episode)%4]
@@ -201,7 +206,7 @@ function shortClue(id:string):string{
 function introForTheme(plan:DetectiveAdventurePlan):Record<ForestPlacement,string>{
  const h=ANIMAL_EN[plan.setup.hero]??'forest friend',
   f=ANIMAL_EN[plan.setup.friend]??'friend',item=ITEM_EN[plan.setup.item];
- const here=SCENE_EN[plan.chosen.chapter.start];
+ const here=SCENE_EN[plan.startScene];
  if(plan.setup.theme==='lost')return {
   'Pre-A1':'Oh no! '+article(h)+h+' lost '+article(item)+item+'. Help!',
   A1:'At the '+here+', '+article(h)+h+' loses '+article(item)+item+
@@ -264,10 +269,14 @@ export function detectiveAdventurePrompt(
  if(step.kind==='clue'){
   const clue=shortClue(step.target);
   const picture='a picture of '+article(clue)+clue;
-  if(level==='Pre-A1')return 'Look! Find the '+clue+'.';
-  if(level==='A1')return 'A new clue! A picture shows '+article(clue)+clue+
-   '. Which picture matches the clue?';
-  return 'The detective notebook reveals '+picture+
+  const newPlace=step.clueIndex!==0&&waypoint?
+   'At the '+SCENE_EN[waypoint]+', ':'';
+  if(level==='Pre-A1')return (newPlace?'Now, '+newPlace:'Look! ')+
+   'Find the '+clue+'.';
+  if(level==='A1')return (newPlace||'A new clue! ')+
+   'The friends find '+picture+'. Which picture matches the clue?';
+  return (newPlace||'A new clue appears. ')+
+   'The detective notebook reveals '+picture+
    '. Look carefully and collect the matching evidence before moving on.';
  }
  if(step.kind==='crossroads'){

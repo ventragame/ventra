@@ -101,7 +101,7 @@ export function StoryDetectiveAdventure({profileId,gradeLevel,englishLevel,onBac
 
  const step=plan?.steps[stepIndex]??null;
  const currentScene:ForestScene|undefined=plan?
-  phase==='opening'?plan.chosen.chapter.start:
+  phase==='opening'?plan.startScene:
   phase==='ending'?plan.chosen.destination:
   step?sceneForDetectiveStep(plan,step,route??undefined):
    plan.chosen.chapter.start:undefined;
@@ -358,7 +358,8 @@ export function StoryDetectiveAdventure({profileId,gradeLevel,englishLevel,onBac
      <span>?</span><div><DetectiveLostItem id={plan.setup.item}/></div>
     </div>}
     {isStep&&step.kind==='clue'&&<div className="sd-story-floating-clue" aria-hidden="true">
-     <DetectiveClueArt id={step.target as DetectiveClueId}/></div>}
+     {correct?<DetectiveClueArt id={step.target as DetectiveClueId}/>:
+      <span className="sd-unknown-clue">?</span>}</div>}
     {isStep&&step.kind==='memory'&&<div className="sd-story-memory" aria-hidden="true">?</div>}
     {isStep&&step.kind==='crossroads'&&<div className="sd-story-crossroads" aria-hidden="true">
      ✦　↗　✦</div>}

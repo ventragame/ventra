@@ -46,13 +46,15 @@ test('Six levels each cycle through 12 distinct story setups and destinations',(
   assert.equal(new Set(plans.map(p=>p.setup.hero)).size,4);
   assert.equal(new Set(plans.map(p=>p.setup.item)).size,4);
   assert.equal(new Set(plans.map(p=>p.setup.theme)).size,4);
+  assert.ok(new Set(plans.map(p=>p.startScene)).size>=3);
   for(const plan of plans){
    assert.equal(plan.storyVersion,2);
    assert.ok(DETECTIVE_CASES.some(c=>c.id===plan.chosen.id));
    assert.ok(!allIds.has(plan.storyId));
    allIds.add(plan.storyId);
    assert.ok(plan.waypoints[0]!==plan.waypoints[1]);
-   assert.ok(!plan.waypoints.includes(plan.chosen.chapter.start));
+   assert.ok(!plan.waypoints.includes(plan.startScene));
+   assert.notEqual(plan.startScene,plan.chosen.destination);
    assert.ok(!plan.waypoints.includes(plan.chosen.destination));
   }
  }
@@ -91,7 +93,7 @@ test('Choose either route: midway scenery changes while authored clues stay cons
  const b=sceneForDetectiveStep(p,investigating,route.choices[1]);
  assert.notEqual(a,b);
  assert.deepEqual([a,b].sort(),[...p.waypoints].sort());
- assert.equal(sceneForDetectiveStep(p,p.steps[0]),p.chosen.chapter.start);
+ assert.equal(sceneForDetectiveStep(p,p.steps[0]),p.startScene);
  const rec1=makeAnswers(p);
  const rec2=rec1.map(x=>x.stepId===route.id?{...x,selectedId:route.choices[1]}:x);
  assert.ok(validateAdventureEvidence(rec1,p));
