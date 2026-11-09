@@ -198,5 +198,5 @@ test('Visual art and mobile interactions remain accessible and scene-target alig
  assert.match(home,/StoryDetectiveAdventure/);
  assert.match(home,/detective.completedLevels/);
  assert.match(page,/getDetectiveProgress/);
- assert.match(page,/forestCompletedLevels=\\{/);
+ assert.ok(page.includes('forestCompletedLevels={'));
 });
