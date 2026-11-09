@@ -36,7 +36,7 @@ export interface DetectiveAdventurePlan extends DetectivePlan{
  storyVersion:2;storyId:string;setup:DetectiveStorySetup;
  waypoints:readonly [ForestScene,ForestScene];
  steps:readonly DetectiveAdventureStep[];
- storySteps:readonly {id:string;acceptedIds:readonly string[]}[];
+ storySteps:readonly {id:string;kind:DetectiveAdventureStepKind;acceptedIds:readonly string[];choices:readonly string[]}[];
  palette:'sunny'|'twilight'|'golden'|'misty';
 }
 export interface DetectiveStepAnswer{
@@ -185,7 +185,7 @@ export function planDetectiveAdventure(input:{
  return {
   ...base,storyVersion:2,storyId,setup,waypoints:waypointOptions,
   steps,storySteps:steps.map(step=>({
-   id:step.id,acceptedIds:step.acceptedIds,choices:step.choices
+   id:step.id,kind:step.kind,acceptedIds:step.acceptedIds,choices:step.choices
   })),palette:colorNames[(playCount+episode)%4]
  };
 }

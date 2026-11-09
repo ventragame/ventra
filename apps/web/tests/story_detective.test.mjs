@@ -177,7 +177,9 @@ test('Visual art and mobile interactions remain accessible and scene-target alig
  const css=fs.readFileSync(new URL('story-detective.css',base),'utf8');
  const home=fs.readFileSync(new URL('StoryForestHome.tsx',base),'utf8');
  const page=fs.readFileSync(new URL('../src/app/kids/page.tsx',import.meta.url),'utf8');
- assert.match(ui,/detectiveNarration/);
+ assert.match(ui,/detectiveAdventureNarration/);
+ assert.match(ui,/planDetectiveAdventure/);
+ assert.match(ui,/story-detective-adventure\.css/);
  assert.match(ui,/getDetectiveProgress/);
  assert.match(ui,/saveDetectiveCase/);
  assert.match(ui,/onEnd:/);

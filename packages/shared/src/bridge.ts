@@ -128,7 +128,7 @@ export interface DetectiveRunEvidence {
  clues:DetectiveAnswerEvidence[];
  destinationMistakes:number;destinationHint:boolean;completedAt:string;
  storyId?:string;
- stepEvidence?:{
+ stepEvidence?:readonly {
   stepId:string;selectedId:string;mistakes:number;hintUsed:boolean;
   firstTryCorrect:boolean;
  }[];

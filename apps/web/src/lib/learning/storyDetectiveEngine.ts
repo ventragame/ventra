@@ -32,7 +32,7 @@ export interface DetectivePlan{
  clueChoices:readonly DetectiveClueId[];locationChoices:readonly ForestScene[];
  /** V2 episodes can prove every distinct visual/story action before rewards. */
  storyVersion?:2;storyId?:string;
- storySteps?:readonly {id:string;acceptedIds:readonly string[];choices:readonly string[]}[];
+ storySteps?:readonly {id:string;kind:string;acceptedIds:readonly string[];choices:readonly string[]}[];
 }
 export interface DetectiveAnswer{
  clueId:DetectiveClueId;mistakes:number;hintUsed:boolean;firstTryCorrect:boolean;
@@ -233,16 +233,19 @@ export function validateDetectiveRecord(record:DetectiveRecord,plan:DetectivePla
    row.firstTryCorrect===(row.mistakes===0&&!row.hintUsed);
  });
  if(!valid)return false;
- const clueSteps=record.stepEvidence.filter(row=>plan.requiredClues.includes(row.selectedId as DetectiveClueId)&&
-  plan.storySteps?.some(expected=>expected.id===row.stepId&&
-   expected.acceptedIds.length===1));
+ const clueSteps=record.stepEvidence.filter(row=>
+  plan.storySteps?.some(expected=>expected.id===row.stepId&&expected.kind==='clue'));
+ const destinationStep=plan.storySteps.find(expected=>expected.kind==='destination');
+ const recordedDestination=record.stepEvidence.find(row=>row.stepId===destinationStep?.id);
  return plan.requiredClues.every(id=>{
   const legacy=record.clues.find(a=>a.clueId===id);
   return !!legacy&&clueSteps.some(step=>step.selectedId===id&&
    step.mistakes===legacy.mistakes&&step.hintUsed===legacy.hintUsed&&
    step.firstTryCorrect===legacy.firstTryCorrect);
- })&&record.stepEvidence.some(row=>row.selectedId===plan.chosen.destination&&
-  row.mistakes===record.destinationMistakes&&row.hintUsed===record.destinationHint);
+ })&&!!recordedDestination&&
+  recordedDestination.selectedId===plan.chosen.destination&&
+  recordedDestination.mistakes===record.destinationMistakes&&
+  recordedDestination.hintUsed===record.destinationHint;
 }
 export function detectiveStars(record:DetectiveRecord):1|2|3{
  const steps=record.stepEvidence;

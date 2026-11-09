@@ -219,7 +219,7 @@ export function StoryDetectiveAdventure({profileId,gradeLevel,englishLevel,onBac
   setView('chapters');setPlan(null);setSaveError('');
  }
  function replayNarration(){
-  if(!plan||busy)return;
+  if(!plan||busy||locked.current)return;
   speak(plan,phase,phase==='step'?step??undefined:undefined,route??undefined);
  }
  function collectRecord(currentPlan:DetectiveAdventurePlan,
@@ -391,7 +391,7 @@ export function StoryDetectiveAdventure({profileId,gradeLevel,englishLevel,onBac
      </div>
     </div>
     <div className="sd-audio">
-     <button type="button" onClick={replayNarration} disabled={busy}
+     <button type="button" onClick={replayNarration} disabled={busy||correct}
       aria-label="İngilizce hikâyeyi tekrar dinle" className="sd-sound">🔊</button>
      <div className="sd-audio-body">
       <small>{voiceUnavailable?'SES KAPALI · METİN':
