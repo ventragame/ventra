@@ -120,3 +120,37 @@ test('Narrative prop is not spoiled during opening and bird remains a flying ani
  assert.match(stage,/sj-phase-result .sj-hero/);
  assert.match(stage,/sj-phase-ending .sj-friend/);
 });
+
+test('Mobile story cast uses disjoint actor slots instead of free-positioned silhouettes',()=>{
+ const base=new URL('../src/components/learning/story/',import.meta.url);
+ const game=fs.readFileSync(new URL('StoryForestAdventure.tsx',base),'utf8');
+ const css=fs.readFileSync(new URL('story-forest-mobile-cast.css',base),'utf8');
+ assert.match(game,/sj-cast-pair/);
+ assert.match(game,/sj-cast-solo/);
+ assert.match(game,/sj-cast-companion-/);
+ assert.match(game,/import '.\/story-forest-mobile-cast.css'/);
+ assert.match(css,/display:contents/);
+ assert.match(css,/@media\s*\(max-width:700px\) and \(orientation:portrait\)/);
+ assert.match(css,/@media\(max-width:355px\) and \(orientation:portrait\)/);
+ assert.match(css,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+ assert.match(css,/\.sj-cast\.sj-cast-pair \.sj-hero/);
+ assert.match(css,/\.sj-cast\.sj-cast-pair \.sj-friend/);
+ assert.match(css,/object-fit:contain/);
+ assert.match(css,/\.sj-phase-choose \.sj-cast\.sj-cast-pair/);
+ assert.match(css,/\.sj-phase-result \.sj-cast\.sj-cast-pair/);
+ assert.match(css,/\.sj-phase-ending \.sj-cast\.sj-cast-pair/);
+ assert.match(css,/max-height:none/);
+ assert.match(css,/flex:1 1 0/);
+ assert.match(css,/prefers-reduced-motion:reduce/);
+ // A grid gap is an actual exclusion zone: even at 320px the parent
+ // allocates two disjoint cells, not overlapping absolute rectangles.
+ for(const viewport of [320,360,375,390,414,440,700]){
+  const stageWidth=viewport-16; // 8px gutters on each edge
+  const outerWidth=stageWidth*(viewport<=355?.96:.94);
+  const gutter=viewport<=355?59:Math.min(117,Math.max(65,outerWidth*.24));
+  const actorWidth=(outerWidth-gutter)/2;
+  assert.ok(actorWidth>50,'both silhouettes retain usable area at '+viewport+'px');
+  assert.ok(gutter>=59,'character boxes separated at '+viewport+'px');
+  assert.ok(2*actorWidth+gutter<=outerWidth+.001);
+ }
+});

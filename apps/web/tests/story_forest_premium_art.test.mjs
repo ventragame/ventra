@@ -98,3 +98,16 @@ test('Found items use transparent premium WebP and ground-based scene staging',(
  assert.match(stage,/@media\(max-width:355px\)/);
  assert.match(stage,/prefers-reduced-motion:reduce/);
 });
+
+test('Portrait phone scene expands instead of centering a fixed-height story card',()=>{
+ const base=new URL('../src/components/learning/story/',import.meta.url);
+ const mobile=fs.readFileSync(new URL('story-forest-mobile-cast.css',base),'utf8');
+ const baseline=fs.readFileSync(new URL('story-forest-journey.css',base),'utf8');
+ assert.match(baseline,/height:min\(76dvh,620px\)/);
+ assert.match(mobile,/\.sj-root \.sj-play>\.sj-scene/);
+ assert.match(mobile,/height:auto/);
+ assert.match(mobile,/max-height:none/);
+ assert.match(mobile,/min-height:0/);
+ assert.match(mobile,/align-items:center/);
+ assert.match(mobile,/@media\s*\(max-width:700px\) and \(orientation:landscape\)/);
+});
