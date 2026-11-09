@@ -118,6 +118,16 @@ export interface StoryJourneyEvidence {
  secondHint:boolean;
  completedAt:string;
 }
+/** All completed evidence belongs to one authored case and child profile. */
+export interface DetectiveAnswerEvidence {
+ clueId:string;mistakes:number;hintUsed:boolean;firstTryCorrect:boolean;
+}
+export interface DetectiveRunEvidence {
+ caseId:string;episode:number;destination:string;
+ placement:'Pre-A1'|'A1'|'A2';
+ clues:DetectiveAnswerEvidence[];
+ destinationMistakes:number;destinationHint:boolean;completedAt:string;
+}
 export interface GameMetrics {
   durationSeconds: number;
   attemptsCount: number;
@@ -134,6 +144,7 @@ export interface GameMetrics {
   storyAnswers?: StoryAnswerEvidence[];
   storyJourneys?: StoryJourneyEvidence[];
   sequenceAnswers?: SequenceAnswerEvidence[];
+  detectiveRuns?: DetectiveRunEvidence[];
 }
 
 export interface GameCompletedPayload {

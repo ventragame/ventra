@@ -495,7 +495,8 @@ export class IndexedDBProgressRepository implements IProgressRepository {
       });
     }
 
-    const gameTitle = payload.gameId === 'island_story_forest_sequence' ? 'Sonra Ne Oldu?'
+    const gameTitle = payload.gameId === 'island_story_forest_detective' ? 'Hikâye Dedektifi'
+      : payload.gameId === 'island_story_forest_sequence' ? 'Sonra Ne Oldu?'
       : payload.gameId === 'island_story_forest_discover' ? 'Hikâyeyi Keşfet'
       : payload.gameId === 'island_word_garden_temple' ? 'Keşif Tapınağı'
       : payload.gameId === 'island_word_garden_family' ? 'Aile Köyü'
