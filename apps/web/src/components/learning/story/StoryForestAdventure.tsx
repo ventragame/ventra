@@ -13,6 +13,7 @@ import {soundService} from '@/lib/audio/SoundService';
 import {StoryForestActor,StoryForestScenery,STORY_FOREST_PREMIUM_COVER} from './StoryForestArt';
 import './story-forest-journey.css';
 import './story-forest-object-staging.css';
+import './story-forest-mobile-cast.css';
 
 type Screen='chapters'|'playing'|'reward';
 type Props={profileId:string;gradeLevel:number|null;englishLevel:ForestPlacement;onBack:()=>void;onSaved:()=>void};
@@ -42,12 +43,19 @@ function StoryScene({plan,phase,location}:{
  const showFriend=['meet','choose','result','ending'].includes(phase);
  // A lost object must not be visible in the opening scene.
  const objectRecovered=phase==='result'||phase==='ending';
+ // Group actors so their bounding boxes cannot overlap on narrow devices.
+ // Only the displayed character identities change across story branches.
+ const castClass='sj-cast '+(showFriend?'sj-cast-pair':'sj-cast-solo')+
+  (objectRecovered?' sj-cast-recovery':'')+
+  ' sj-cast-companion-'+route.helper;
  return <div className={'sj-story-image sj-phase-'+phase} aria-hidden="true">
   <StoryForestScenery scene={scene}/>
   <div className="sj-scene-haze"/>
   <div className="sj-scene-shimmer">✦ <span>✧</span> ✦</div>
-  {showHero&&<div className="sj-hero"><Actor id={route.hero}/></div>}
-  {showFriend&&<div className="sj-friend"><Actor id={route.helper}/></div>}
+  <div className={castClass}>
+   {showHero&&<div className="sj-hero"><Actor id={route.hero}/></div>}
+   {showFriend&&<div className="sj-friend"><Actor id={route.helper}/></div>}
+  </div>
   {objectRecovered&&(route.object==='bird'?
     <div className="sj-found-bird"><JourneyObjectArt object="bird"/></div>:
     <div className={'sj-discovery-spot sj-discovery-'+route.object}>
