@@ -127,6 +127,11 @@ export interface DetectiveRunEvidence {
  placement:'Pre-A1'|'A1'|'A2';
  clues:DetectiveAnswerEvidence[];
  destinationMistakes:number;destinationHint:boolean;completedAt:string;
+ storyId?:string;
+ stepEvidence?:{
+  stepId:string;selectedId:string;mistakes:number;hintUsed:boolean;
+  firstTryCorrect:boolean;
+ }[];
 }
 export interface GameMetrics {
   durationSeconds: number;

@@ -30,6 +30,9 @@ export interface DetectivePlan{
  chosen:DetectiveCase;englishLevel:ForestPlacement;gradeLevel:number|null;
  seed:number;requiredClues:readonly DetectiveClueId[];
  clueChoices:readonly DetectiveClueId[];locationChoices:readonly ForestScene[];
+ /** V2 episodes can prove every distinct visual/story action before rewards. */
+ storyVersion?:2;storyId?:string;
+ storySteps?:readonly {id:string;acceptedIds:readonly string[];choices:readonly string[]}[];
 }
 export interface DetectiveAnswer{
  clueId:DetectiveClueId;mistakes:number;hintUsed:boolean;firstTryCorrect:boolean;
@@ -38,6 +41,9 @@ export interface DetectiveRecord{
  caseId:string;episode:ForestEpisode;destination:ForestScene;
  placement:ForestPlacement;clues:DetectiveAnswer[];
  destinationMistakes:number;destinationHint:boolean;completedAt:string;
+ storyId?:string;stepEvidence?:readonly {
+  stepId:string;selectedId:string;mistakes:number;hintUsed:boolean;firstTryCorrect:boolean;
+ }[];
 }
 export const DETECTIVE_GAME_ID='island_story_forest_detective';
 
@@ -207,12 +213,44 @@ export function validateDetectiveRecord(record:DetectiveRecord,plan:DetectivePla
   !Array.isArray(record.clues)||record.clues.length!==plan.requiredClues.length)return false;
  const ids=new Set(record.clues.map(a=>a.clueId));
  if(ids.size!==plan.requiredClues.length||!plan.requiredClues.every(id=>ids.has(id)))return false;
- return record.clues.every(a=>
+ if(!record.clues.every(a=>
   Number.isInteger(a.mistakes)&&a.mistakes>=0&&
   typeof a.hintUsed==='boolean'&&
-  a.firstTryCorrect===(a.mistakes===0&&!a.hintUsed));
+  a.firstTryCorrect===(a.mistakes===0&&!a.hintUsed)))return false;
+ if(plan.storyVersion!==2)return !record.storyId&&!record.stepEvidence;
+ if(!plan.storyId||!plan.storySteps||record.storyId!==plan.storyId||
+  !Array.isArray(record.stepEvidence)||
+  record.stepEvidence.length!==plan.storySteps.length)return false;
+ const seen=new Set(record.stepEvidence.map(s=>s.stepId));
+ if(seen.size!==plan.storySteps.length)return false;
+ const valid=plan.storySteps.every((expected,index)=>{
+  const row=record.stepEvidence?.[index];
+  return !!row&&row.stepId===expected.id&&
+   expected.acceptedIds.includes(row.selectedId)&&
+   expected.choices.includes(row.selectedId)&&
+   Number.isInteger(row.mistakes)&&row.mistakes>=0&&
+   typeof row.hintUsed==='boolean'&&
+   row.firstTryCorrect===(row.mistakes===0&&!row.hintUsed);
+ });
+ if(!valid)return false;
+ const clueSteps=record.stepEvidence.filter(row=>plan.requiredClues.includes(row.selectedId as DetectiveClueId)&&
+  plan.storySteps?.some(expected=>expected.id===row.stepId&&
+   expected.acceptedIds.length===1));
+ return plan.requiredClues.every(id=>{
+  const legacy=record.clues.find(a=>a.clueId===id);
+  return !!legacy&&clueSteps.some(step=>step.selectedId===id&&
+   step.mistakes===legacy.mistakes&&step.hintUsed===legacy.hintUsed&&
+   step.firstTryCorrect===legacy.firstTryCorrect);
+ })&&record.stepEvidence.some(row=>row.selectedId===plan.chosen.destination&&
+  row.mistakes===record.destinationMistakes&&row.hintUsed===record.destinationHint);
 }
 export function detectiveStars(record:DetectiveRecord):1|2|3{
+ const steps=record.stepEvidence;
+ if(steps?.length){
+  const mistakes=steps.reduce((n,a)=>n+a.mistakes,0);
+  const hints=steps.filter(a=>a.hintUsed).length;
+  return !mistakes&&!hints?3:mistakes<=2&&hints<=1?2:1;
+ }
  const mistakes=record.destinationMistakes+
    record.clues.reduce((n,a)=>n+a.mistakes,0);
  const hints=Number(record.destinationHint)+record.clues.filter(a=>a.hintUsed).length;

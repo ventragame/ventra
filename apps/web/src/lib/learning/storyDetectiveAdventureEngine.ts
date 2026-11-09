@@ -185,7 +185,7 @@ export function planDetectiveAdventure(input:{
  return {
   ...base,storyVersion:2,storyId,setup,waypoints:waypointOptions,
   steps,storySteps:steps.map(step=>({
-   id:step.id,acceptedIds:step.acceptedIds
+   id:step.id,acceptedIds:step.acceptedIds,choices:step.choices
   })),palette:colorNames[(playCount+episode)%4]
  };
 }

@@ -39,13 +39,17 @@ export async function saveDetectiveCase(input:{
  const previous=await getDetectiveProgress(repo,profileId);
  if(episode>previous.completedLevels+1)
   throw new Error('Önce önceki dedektif bölümü tamamlanmalı.');
- const errors=record.clues.reduce((sum,answer)=>sum+answer.mistakes,0)+
-  record.destinationMistakes;
- const hints=record.clues.filter(answer=>answer.hintUsed).length+
-  Number(record.destinationHint);
- const count=record.clues.length+1;
- const independent=record.clues.filter(answer=>answer.firstTryCorrect).length+
-  Number(record.destinationMistakes===0&&!record.destinationHint);
+ // The modern multi-scene flow scores all 7–8 decisions, including memory,
+ // partner recognition, route choice and final object recovery.
+ const evidence=record.stepEvidence;
+ const errors=evidence?.length?evidence.reduce((sum,a)=>sum+a.mistakes,0):
+  record.clues.reduce((sum,a)=>sum+a.mistakes,0)+record.destinationMistakes;
+ const hints=evidence?.length?evidence.filter(a=>a.hintUsed).length:
+  record.clues.filter(answer=>answer.hintUsed).length+Number(record.destinationHint);
+ const count=evidence?.length??(record.clues.length+1);
+ const independent=evidence?.length?evidence.filter(a=>a.firstTryCorrect).length:
+  record.clues.filter(a=>a.firstTryCorrect).length+
+   Number(record.destinationMistakes===0&&!record.destinationHint);
  const payload:GameCompletedPayload={
   sessionId,profileId,gameId:DETECTIVE_GAME_ID,levelId:episode,
   outcomeId:'en.story.forest.detective',skillId:'listening_inference',
