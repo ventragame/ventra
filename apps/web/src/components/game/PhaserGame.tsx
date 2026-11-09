@@ -146,7 +146,7 @@ const PhaserGameComponent: React.FC<PhaserGameProps> = ({
     EventBus.emit('UPDATE_ISLAND_PROGRESS',{islandId:'story_castle',completed:plazaCompletedLevels,total:6});
   },[plazaCompletedLevels]);
   useEffect(()=>{
-    EventBus.emit('UPDATE_ISLAND_PROGRESS',{islandId:'listening_forest',completed:forestCompletedLevels,total:12});
+    EventBus.emit('UPDATE_ISLAND_PROGRESS',{islandId:'listening_forest',completed:forestCompletedLevels,total:18});
   },[forestCompletedLevels]);
 
   return (

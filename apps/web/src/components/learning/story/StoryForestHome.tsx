@@ -5,17 +5,19 @@ import type {ForestPlacement} from '@/lib/learning/storyForestEngine';
 import {SEQUENCE_STORIES} from '@/lib/learning/storySequenceEngine';
 import {StoryForestAdventure} from './StoryForestAdventure';
 import {StorySequenceAdventure} from './StorySequenceAdventure';
+import {StoryDetectiveAdventure} from './StoryDetectiveAdventure';
 import {StoryForestScenery,StoryForestActor,STORY_FOREST_PREMIUM_COVER} from './StoryForestArt';
 import {StorySequenceFrame} from './StorySequenceFrame';
 import {getProgressRepository} from '@/lib/progress';
 import {getStoryForestProgress,type ForestProgress} from '@/lib/progress/storyForestProgress';
 import {getSequenceProgress,type SequenceProgress} from '@/lib/progress/storySequenceProgress';
+import {getDetectiveProgress,type DetectiveProgress} from '@/lib/progress/storyDetectiveProgress';
 import {soundService} from '@/lib/audio/SoundService';
 import './story-sequence.css';
 import './story-forest-home.css';
 import './premium-story-art.css';
 
-type Game='home'|'discover'|'sequence';
+type Game='home'|'discover'|'sequence'|'detective';
 interface Props{
  profileId:string;
  gradeLevel:number|null;
@@ -24,24 +26,28 @@ interface Props{
  onSaved:()=>void;
 }
 const EMPTY:ForestProgress={completedLevels:0,totalLevels:6,starsByLevel:{}};
+const DETECTIVE_EMPTY:DetectiveProgress={completedLevels:0,totalLevels:6,starsByLevel:{},playCountByLevel:{}};
 export function StoryForestHome({profileId,gradeLevel,englishLevel,onBack,onSaved}:Props){
  const [game,setGame]=useState<Game>('home');
  const [discover,setDiscover]=useState<ForestProgress>(EMPTY);
  const [sequence,setSequence]=useState<SequenceProgress>(EMPTY);
+ const [detective,setDetective]=useState<DetectiveProgress>(DETECTIVE_EMPTY);
  const [loadError,setLoadError]=useState('');
  const refresh=useCallback(async()=>{
-  const [d,s]=await Promise.all([
+  const [d,s,x]=await Promise.all([
    getStoryForestProgress(getProgressRepository(),profileId),
-   getSequenceProgress(getProgressRepository(),profileId)
+   getSequenceProgress(getProgressRepository(),profileId),
+   getDetectiveProgress(getProgressRepository(),profileId)
   ]);
-  setDiscover(d);setSequence(s);setLoadError('');
+  setDiscover(d);setSequence(s);setDetective(x);setLoadError('');
  },[profileId]);
  useEffect(()=>{
   let active=true;
   Promise.all([
    getStoryForestProgress(getProgressRepository(),profileId),
-   getSequenceProgress(getProgressRepository(),profileId)
-  ]).then(([d,s])=>{if(active){setDiscover(d);setSequence(s);}})
+   getSequenceProgress(getProgressRepository(),profileId),
+   getDetectiveProgress(getProgressRepository(),profileId)
+  ]).then(([d,s,x])=>{if(active){setDiscover(d);setSequence(s);setDetective(x);}})
   .catch(error=>{console.error('[StoryForestHome] progress',error);
    if(active)setLoadError('İlerleme okunamadı.');});
   return()=>{active=false;};
@@ -52,13 +58,15 @@ export function StoryForestHome({profileId,gradeLevel,englishLevel,onBack,onSave
    englishLevel={englishLevel} onBack={back} onSaved={saved}/>;
  if(game==='sequence')return <StorySequenceAdventure profileId={profileId} gradeLevel={gradeLevel}
    englishLevel={englishLevel} onBack={back} onSaved={saved}/>;
+ if(game==='detective')return <StoryDetectiveAdventure profileId={profileId} gradeLevel={gradeLevel}
+   englishLevel={englishLevel} onBack={back} onSaved={saved}/>;
  return <div className="ss-root sfh-root" role="dialog" aria-modal="true" aria-label="Hikâye Ormanı oyunları">
    <header className="ss-head">
     <div className="ss-head-side">
      <button type="button" className="ss-round" onClick={onBack} aria-label="Adalar Evreni'ne dön">←</button>
      <h1>Hikâye Ormanı</h1>
     </div>
-    <span className="ss-count">★ {discover.completedLevels+sequence.completedLevels}/12</span>
+    <span className="ss-count">★ {discover.completedLevels+sequence.completedLevels+detective.completedLevels}/18</span>
    </header>
    <main className="ss-main sfh-main">
     <div className="sfh-hero">
@@ -93,6 +101,20 @@ export function StoryForestHome({profileId,gradeLevel,englishLevel,onBack,onSave
        <span className="sfh-number">02</span>
        <div><strong>Sonra Ne Oldu?</strong><small>Resimlerle hikâye sırala</small></div>
        <span className="sfh-bonus">✦ {sequence.completedLevels}/6</span>
+      </div>
+      <span className="sfh-card-go">Oyuna Gir <span aria-hidden="true">→</span></span>
+     </button>
+     <button type="button" className="sfh-card" onClick={()=>{soundService.unlockAudio();setGame('detective');}}>
+      <div className="sfh-card-art sfh-card-art-detective">
+       <StoryForestScenery scene="pond"/>
+       <div className="sfh-character sfh-detective-rabbit"><StoryForestActor id="rabbit"/></div>
+       <div className="sfh-character sfh-detective-bird"><StoryForestActor id="bird"/></div>
+       <span className="sfh-detective-magnifier" aria-hidden="true">⌕</span>
+      </div>
+      <div className="sfh-card-footer">
+       <span className="sfh-number">03</span>
+       <div><strong>Hikâye Dedektifi</strong><small>İpuçlarını bul, gizemi çöz</small></div>
+       <span className="sfh-bonus">✦ {detective.completedLevels}/6</span>
       </div>
       <span className="sfh-card-go">Oyuna Gir <span aria-hidden="true">→</span></span>
      </button>

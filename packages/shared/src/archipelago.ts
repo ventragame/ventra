@@ -78,9 +78,9 @@ export const ARCHIPELAGO_ISLANDS_CATALOG: Record<IslandId, IslandDefinition> = {
     accentBorder: '#818cf8',
     glowColor: 'rgba(129, 140, 248, 0.45)',
     badgeText: 'Pre-A1 · A1 · A2',
-    descriptionTr: 'Karakterleri takip et, olayları sırala ve hikâyenin devamını İngilizce seç.',
+    descriptionTr: 'Hikâyeleri dinle, olayları sırala, ipuçlarından gizemleri çöz ve İngilizce keşfet.',
     cefrLevel: 'Pre-A1–A2',
-    totalPublishedRequiredLevels: 12,
+    totalPublishedRequiredLevels: 18,
     desktopAsset: '/assets/kids-islands/listening_forest.webp',
     mobileAsset: '/assets/kids-islands/listening_forest_mobile.webp',
     defaultWorldPos: { x: 1800, y: 590 }, // Üst orta
