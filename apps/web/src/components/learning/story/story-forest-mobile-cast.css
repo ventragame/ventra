@@ -1,0 +1,175 @@
+/* Story Forest / Game 1 — portrait-first cast composition.
+ *
+ * A separate illustration may have wide ears, a bushy tail or invisible alpha
+ * padding. Placing both with independent percentages makes their bounds collide
+ * on tall, narrow mobile viewports. A two-column cast stage gives every animal
+ * a non-overlapping slot; the recovered object has its own middle-stage slot.
+ *
+ * Desktop keeps the existing art direction through display:contents. All
+ * mobile overrides are scoped and deliberately stronger than both the base
+ * journey styles and premium-story-art.css loaded from StoryForestHome.
+ */
+.sj-root .sj-story-image .sj-cast{
+ display:contents;
+ pointer-events:none;
+}
+
+/* Portrait phone and small foldable form factors. */
+@media (max-width:700px) and (orientation:portrait){
+ /* Occupy the available vertical space rather than centering a 76dvh card
+    and leaving very large top/bottom empty bands on tall phones. */
+ .sj-root .sj-play{
+  display:flex;
+  flex-direction:column;
+  justify-content:flex-start;
+  align-items:center;
+  min-height:0;
+  gap:8px;
+  padding:clamp(8px,1.5dvh,16px) 8px
+   calc(8px + env(safe-area-inset-bottom,0px));
+ }
+ .sj-root .sj-play>.sj-scene{
+  flex:1 1 0;
+  width:100%;
+  height:auto;
+  min-height:0;
+  max-height:none;
+  border-radius:clamp(18px,5vw,25px);
+ }
+ .sj-root .sj-play>.sj-trail{
+  flex:0 0 auto;
+  min-height:29px;
+  width:100%;
+  padding-inline:7px;
+ }
+
+ /* The stage does not depend on individual character width or shape. */
+ .sj-root .sj-story-image .sj-cast.sj-cast-pair{
+  display:grid;
+  position:absolute;
+  inset:auto 5% 10%;
+  height:52%;
+  width:auto;
+  grid-template-columns:repeat(2,minmax(0,1fr));
+  column-gap:clamp(24px,11%,65px);
+  align-items:end;
+  isolation:isolate;
+  z-index:2;
+ }
+ .sj-root .sj-story-image .sj-cast.sj-cast-pair .sj-hero,
+ .sj-root .sj-story-image .sj-cast.sj-cast-pair .sj-friend{
+  position:relative;
+  inset:auto;
+  left:auto;
+  right:auto;
+  top:auto;
+  bottom:auto;
+  display:grid;
+  place-items:end center;
+  width:100%;
+  max-width:100%;
+  min-width:0;
+  max-height:100%;
+  margin:0;
+  transform:none;
+  opacity:1;
+  overflow:visible;
+  pointer-events:none;
+ }
+ .sj-root .sj-story-image .sj-cast.sj-cast-pair .sj-hero{
+  height:100%;
+  justify-self:start;
+ }
+ .sj-root .sj-story-image .sj-cast.sj-cast-pair .sj-friend{
+  height:83%;
+  justify-self:end;
+ }
+ .sj-root .sj-story-image .sj-cast.sj-cast-pair .sj-hero .sf-actor-illustration,
+ .sj-root .sj-story-image .sj-cast.sj-cast-pair .sj-friend .sf-actor-illustration{
+  display:block;
+  width:100%;
+  height:100%;
+  max-width:100%;
+  max-height:100%;
+  object-fit:contain;
+  object-position:center bottom;
+ }
+
+ /* Conversation stage: animals are kept apart at the visual ground line. */
+ .sj-root .sj-story-image.sj-phase-meet .sj-cast.sj-cast-pair{
+  height:51%;
+  bottom:10%;
+ }
+ /* Route cards fill the bottom half; characters remain together ABOVE them.
+    This also prevents a character's tail from obscuring either route card. */
+ .sj-root .sj-story-image.sj-phase-choose .sj-cast.sj-cast-pair{
+  height:35%;
+  bottom:48%;
+  column-gap:clamp(22px,12%,66px);
+ }
+ .sj-root .sj-story-image.sj-phase-choose .sj-cast.sj-cast-pair .sj-friend{
+  height:90%;
+ }
+
+ /* Recovery and ending: a real object sits on the stone between actors.
+    An intentionally wider center gutter protects silhouettes from clipping.
+    z-index of the stone is controlled by story-forest-object-staging.css. */
+ .sj-root .sj-story-image.sj-phase-result .sj-cast.sj-cast-pair,
+ .sj-root .sj-story-image.sj-phase-ending .sj-cast.sj-cast-pair{
+  left:3%;
+  right:3%;
+  bottom:12%;
+  height:51%;
+  column-gap:clamp(65px,24%,117px);
+ }
+ .sj-root .sj-story-image.sj-phase-result .sj-cast.sj-cast-pair .sj-friend,
+ .sj-root .sj-story-image.sj-phase-ending .sj-cast.sj-cast-pair .sj-friend{
+  height:81%;
+ }
+
+ /* The small illustrated pet is a flying actor, not an extra ground slot. */
+ .sj-root .sj-story-image.sj-phase-result .sj-found-bird,
+ .sj-root .sj-story-image.sj-phase-ending .sj-found-bird{
+  top:25%;
+  left:46%;
+  width:21%;
+  height:24%;
+ }
+}
+
+/* Extra narrow phone: keep distinct slots even at 320px width. */
+@media(max-width:355px) and (orientation:portrait){
+ .sj-root .sj-story-image .sj-cast.sj-cast-pair{
+  left:4%;
+  right:4%;
+  column-gap:22px;
+ }
+ .sj-root .sj-story-image.sj-phase-result .sj-cast.sj-cast-pair,
+ .sj-root .sj-story-image.sj-phase-ending .sj-cast.sj-cast-pair{
+  left:2%;
+  right:2%;
+  column-gap:59px;
+ }
+ .sj-root .sj-story-image .sj-cast.sj-cast-pair .sj-friend{
+  height:79%;
+ }
+ .sj-root .sj-story-image.sj-phase-choose .sj-cast.sj-cast-pair{
+  height:31%;
+  bottom:51%;
+ }
+}
+
+/* Landscape needs a short game board instead of forcing portrait dimensions. */
+@media (max-width:700px) and (orientation:landscape){
+ .sj-root .sj-play{justify-content:flex-start}
+ .sj-root .sj-scene{min-height:0;height:calc(100dvh - 112px)}
+}
+
+/* Preserve the user's reduced-motion preference for story cast transitions. */
+@media(prefers-reduced-motion:reduce){
+ .sj-root .sj-story-image .sj-cast *,
+ .sj-root .sj-story-image .sj-cast{
+  animation:none!important;
+  transition:none!important;
+ }
+}
