@@ -1,0 +1,136 @@
+/* Hikâyeyi Keşfet • scenery-grounded discoveries.
+ * Scenic objects are only visible after the child found them. Unlike a sticker
+ * with position left:51% / bottom:12%, this is a dedicated ground-based
+ * composition slot between the characters, with perspective, occlusion and
+ * its own shadow. Remains separate from answer-choice cards and narration.
+ */
+.sj-root .sj-phase-opening .sj-discovery-spot,
+.sj-root .sj-phase-discover .sj-discovery-spot,
+.sj-root .sj-phase-meet .sj-discovery-spot,
+.sj-root .sj-phase-choose .sj-discovery-spot,
+.sj-root .sj-phase-friend .sj-discovery-spot{display:none}
+.sj-root .sj-story-image.sj-phase-result .sj-hero,
+.sj-root .sj-story-image.sj-phase-ending .sj-hero{
+ left:4%;bottom:9%;width:38%;height:61%;max-width:440px;
+}
+.sj-root .sj-story-image.sj-phase-result .sj-friend,
+.sj-root .sj-story-image.sj-phase-ending .sj-friend{
+ right:5%;bottom:10%;width:29%;height:48%;max-width:340px;
+}
+.sj-root .sj-story-image.sj-phase-result .sj-discovery-spot,
+.sj-root .sj-story-image.sj-phase-ending .sj-discovery-spot{
+ position:absolute;left:50%;bottom:2.5%;transform:translateX(-50%);
+ z-index:3;display:block;pointer-events:none;
+ width:clamp(110px,19%,220px);height:clamp(110px,30%,210px);
+ filter:drop-shadow(0 9px 9px rgba(27,62,51,.22));
+}
+.sj-root .sj-discovery-shadow{
+ position:absolute;bottom:0;left:6%;width:88%;height:21%;
+ border-radius:50%;background:radial-gradient(ellipse,#13352c95 0%,#18432b38 49%,transparent 77%);
+ filter:blur(5px);
+}
+.sj-root .sj-discovery-stone{
+ position:absolute;bottom:5%;left:5%;width:90%;height:29%;
+ border-radius:52% 46% 33% 30% / 64% 62% 41% 38%;
+ background:linear-gradient(160deg,#e3e8c8 0%,#bad3ae 27%,#8aab9b 55%,#456f6c 85%);
+ border:2px solid #b9d5a69a;
+ box-shadow:inset 0 8px 11px #ffffff73,inset 0 -10px 9px #42695d7a,
+  0 8px 4px #203e2b6b;
+ transform:perspective(130px) rotateX(17deg);
+}
+.sj-root .sj-discovery-stone::before{
+ content:"";position:absolute;left:7%;right:8%;height:34%;top:6%;border-radius:50%;
+ background:linear-gradient(110deg,#7fc68aab,#bfd9a4 40%,#7eaf83 85%);
+ box-shadow:inset 0 3px 6px #d6f1b87c;
+}
+.sj-root .sj-discovery-object{
+ position:absolute;bottom:23%;left:8%;height:78%;width:84%;
+ display:grid;place-items:end center;
+ filter:drop-shadow(0 6px 5px rgba(26,52,45,.4));
+ animation:sj-found-pop .56s cubic-bezier(.25,1,.3,1) both;
+}
+.sj-root .sj-discovery-object .sj-object-illustration{
+ display:block;height:100%;width:100%;max-width:100%;
+ object-fit:contain;object-position:center bottom;
+ user-select:none;-webkit-user-drag:none;
+ filter:drop-shadow(0 3px 4px rgba(23,55,53,.23));
+}
+.sj-root .sj-discovery-crystal .sj-discovery-object{
+ filter:drop-shadow(0 0 14px rgba(151,221,255,.92)) drop-shadow(0 7px 4px #2d485e50);
+}
+.sj-root .sj-discovery-key .sj-discovery-object{
+ filter:drop-shadow(0 0 10px rgba(255,223,120,.85)) drop-shadow(0 7px 4px #604c2759);
+}
+.sj-root .sj-discovery-spark{
+ position:absolute;color:#fff7ba;z-index:4;font-size:clamp(15px,1.9vw,29px);
+ text-shadow:0 0 10px #fff,0 3px 7px #f8cc73;
+ animation:sj-discovery-twinkle 2.2s ease-in-out infinite alternate;
+}
+.sj-root .sj-discovery-spark-a{right:1%;top:12%}
+.sj-root .sj-discovery-spark-b{left:3%;top:35%;animation-delay:.7s}
+@keyframes sj-found-pop{
+ from{opacity:0;transform:translateY(17%) scale(.82)}
+ to{opacity:1;transform:translateY(0) scale(1)}
+}
+@keyframes sj-discovery-twinkle{
+ from{opacity:.3;transform:scale(.83)}
+ to{opacity:.95;transform:scale(1.12)}
+}
+/* The bird is a character, never an inanimate object on the pedestal. */
+.sj-root .sj-story-image.sj-phase-result .sj-found-bird,
+.sj-root .sj-story-image.sj-phase-ending .sj-found-bird{
+ position:absolute;z-index:2;top:30%;left:49%;width:21%;height:26%;
+ display:grid;place-items:center;pointer-events:none;
+ animation:sj-forest-bird 3s ease-in-out infinite alternate;
+}
+.sj-root .sj-found-bird .sf-actor-illustration{
+ width:100%;height:100%;object-fit:contain;filter:drop-shadow(0 7px 9px #2a535d55);
+}
+@keyframes sj-forest-bird{to{transform:translateY(-8px) rotate(2deg)}}
+/* All selection cards use the same exact WebP subject as the recovered scene. */
+.sj-root .sj-object-choice .sj-object-illustration{
+ display:block;width:95%;height:95%;object-fit:contain;object-position:center;
+ max-width:100%;max-height:100%;user-select:none;-webkit-user-drag:none;
+ filter:drop-shadow(0 7px 8px rgba(31,74,63,.18));
+}
+/* Small screen: preserve a stage slot and keep characters' eyes uncovered. */
+@media(max-width:700px){
+ .sj-root .sj-story-image.sj-phase-result .sj-hero,
+ .sj-root .sj-story-image.sj-phase-ending .sj-hero{
+  left:1%;bottom:12%;width:41%;height:56%;
+ }
+ .sj-root .sj-story-image.sj-phase-result .sj-friend,
+ .sj-root .sj-story-image.sj-phase-ending .sj-friend{
+  right:1%;bottom:13%;width:34%;height:43%;
+ }
+ .sj-root .sj-story-image.sj-phase-result .sj-discovery-spot,
+ .sj-root .sj-story-image.sj-phase-ending .sj-discovery-spot{
+  bottom:3%;width:clamp(90px,23%,143px);height:clamp(100px,24%,160px);
+ }
+ .sj-root .sj-story-image.sj-phase-result .sj-found-bird,
+ .sj-root .sj-story-image.sj-phase-ending .sj-found-bird{
+  top:27%;left:49%;width:24%;height:24%;
+ }
+ .sj-root .sj-discovery-spark{font-size:16px}
+}
+@media(max-width:355px){
+ .sj-root .sj-story-image.sj-phase-result .sj-hero,
+ .sj-root .sj-story-image.sj-phase-ending .sj-hero{width:39%;bottom:15%}
+ .sj-root .sj-story-image.sj-phase-result .sj-friend,
+ .sj-root .sj-story-image.sj-phase-ending .sj-friend{right:1%;width:31%;bottom:15%}
+ .sj-root .sj-story-image.sj-phase-result .sj-discovery-spot,
+ .sj-root .sj-story-image.sj-phase-ending .sj-discovery-spot{
+  width:86px;height:104px;bottom:2%;
+ }
+}
+@media(max-height:570px) and (min-width:701px){
+ .sj-root .sj-story-image.sj-phase-result .sj-discovery-spot,
+ .sj-root .sj-story-image.sj-phase-ending .sj-discovery-spot{
+  height:min(40%,145px);width:min(18%,175px);
+ }
+}
+@media(prefers-reduced-motion:reduce){
+ .sj-root .sj-discovery-object,
+ .sj-root .sj-discovery-spark,
+ .sj-root .sj-found-bird{animation:none!important}
+}
