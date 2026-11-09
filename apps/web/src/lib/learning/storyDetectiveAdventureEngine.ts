@@ -269,14 +269,15 @@ export function detectiveAdventurePrompt(
  if(step.kind==='clue'){
   const clue=shortClue(step.target);
   const picture='a picture of '+article(clue)+clue;
-  const newPlace=step.clueIndex!==0&&waypoint?
-   'At the '+SCENE_EN[waypoint]+', ':'';
-  if(level==='Pre-A1')return (newPlace?'Now, '+newPlace:'Look! ')+
+  const place=step.clueIndex!==0&&waypoint?
+   SCENE_EN[waypoint]:null;
+  if(level==='Pre-A1')return (place?'At the '+place+'! ':'Look! ')+
    'Find the '+clue+'.';
-  if(level==='A1')return (newPlace||'A new clue! ')+
-   'The friends find '+picture+'. Which picture matches the clue?';
-  return (newPlace||'A new clue appears. ')+
-   'The detective notebook reveals '+picture+
+  if(level==='A1')return (place?'At the '+place+', the friends find ':
+   'A new clue! The friends find ')+picture+
+   '. Which picture matches the clue?';
+  return (place?'At the '+place+', the detective notebook reveals ':
+   'A new clue appears. The detective notebook reveals ')+picture+
    '. Look carefully and collect the matching evidence before moving on.';
  }
  if(step.kind==='crossroads'){
