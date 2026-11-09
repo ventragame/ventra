@@ -70,3 +70,31 @@ test('Art stays as separate, responsive layers in both games and island menu',()
  assert.ok(css.includes('@media(max-width:700px)'));
  assert.match(css,/prefers-reduced-motion:reduce/);
 });
+
+test('Found items use transparent premium WebP and ground-based scene staging',()=>{
+ const stageDir=new URL('../src/components/learning/story/',import.meta.url);
+ const game=fs.readFileSync(new URL('StoryForestAdventure.tsx',stageDir),'utf8');
+ const stage=fs.readFileSync(new URL('story-forest-object-staging.css',stageDir),'utf8');
+ const old=fs.readFileSync(new URL('story-forest-journey.css',stageDir),'utf8');
+ for(const name of ['apple','crystal','gold_key']){
+  const bytes=fs.readFileSync(path.join(assets,'objects',name+'.webp'));
+  assert.equal(bytes.toString('ascii',0,4),'RIFF');
+  assert.equal(bytes.toString('ascii',8,12),'WEBP');
+  assert.ok(bytes.length>5000&&bytes.length<120000,name+' bytes');
+  assert.ok(game.includes('objects/'+name+'.webp'),name+' must render');
+ }
+ assert.ok(game.includes("const objectRecovered=phase==='result'||phase==='ending'"));
+ assert.ok(game.includes("route.object==='bird'"));
+ assert.ok(game.includes('sj-found-bird'));
+ assert.ok(game.includes('sj-discovery-spot'));
+ assert.ok(game.includes('sj-discovery-stone'));
+ assert.ok(game.includes('sj-discovery-object'));
+ assert.ok(game.includes("import './story-forest-object-staging.css'"));
+ assert.ok(!game.includes('sj-held-item'));
+ assert.ok(!old.includes('sj-held-item'));
+ assert.match(stage,/sj-discovery-shadow/);
+ assert.match(stage,/perspective\(130px\)/);
+ assert.match(stage,/@media\(max-width:700px\)/);
+ assert.match(stage,/@media\(max-width:355px\)/);
+ assert.match(stage,/prefers-reduced-motion:reduce/);
+});

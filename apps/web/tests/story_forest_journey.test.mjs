@@ -106,3 +106,17 @@ test('Runtime uses scene-specific illustrated choices and an accessible silent-a
  assert.match(css,/touch-action:manipulation/);
  assert.match(css,/prefers-reduced-motion:reduce/);
 });
+
+test('Narrative prop is not spoiled during opening and bird remains a flying animal',()=>{
+ const root=new URL('../src/components/learning/story/',import.meta.url);
+ const game=fs.readFileSync(new URL('StoryForestAdventure.tsx',root),'utf8');
+ const stage=fs.readFileSync(new URL('story-forest-object-staging.css',root),'utf8');
+ assert.ok(game.includes("const objectRecovered=phase==='result'||phase==='ending'"));
+ assert.ok(game.includes("route.object==='bird'"));
+ assert.ok(game.includes('sj-found-bird'));
+ assert.ok(game.includes('sj-discovery-stone'));
+ assert.ok(!game.includes('sj-held-item'));
+ assert.match(stage,/sj-phase-opening .*sj-discovery-spot/);
+ assert.match(stage,/sj-phase-result .sj-hero/);
+ assert.match(stage,/sj-phase-ending .sj-friend/);
+});

@@ -127,7 +127,6 @@
 .sj-scene .sj-hero,.sj-scene .sj-friend{
   filter:drop-shadow(0 12px 12px #12473b66);
 }
-.sj-root .sj-held-item{z-index:1}
 .sj-scene .sf-premium-actor,.ss-illustration .sf-premium-actor{max-width:100%;max-height:100%}
 @media(max-width:700px){
   .sj-object-choice,.sj-friend-choice{width:31%;height:clamp(117px,23vh,178px);border-radius:19px;padding:3px}
