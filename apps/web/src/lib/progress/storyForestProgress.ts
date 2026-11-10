@@ -67,17 +67,23 @@ export async function saveForestJourney(input:{
   throw Error('Hikâye kayıtları doğrulanamadı.');
  const previous=await getStoryForestProgress(repo,profileId);
  if(episode>previous.completedLevels+1)throw Error('Önceki hikâye henüz tamamlanmadı.');
- const mistakes=record.firstMistakes+record.secondMistakes;
+ const checks=record.learningChecks??[];
+ const mistakes=record.firstMistakes+record.secondMistakes+
+  checks.reduce((sum,row)=>sum+row.mistakes,0);
  const independent=Number(record.firstMistakes===0&&!record.firstHint)+
-  Number(record.secondMistakes===0&&!record.secondHint);
+  Number(record.secondMistakes===0&&!record.secondHint)+
+  checks.filter(row=>row.firstTryCorrect).length;
+ const total=2+checks.length;
+ const totalHints=Number(record.firstHint)+Number(record.secondHint)+
+  checks.filter(row=>row.hintUsed).length;
  const payload:GameCompletedPayload={
   sessionId,profileId,gameId:STORY_FOREST_GAME_ID,levelId:episode,
   outcomeId:'en.story.forest.branching',success:true,
-  score:independent*50,starsEarned:journeyStars(record),
+  score:Math.round(independent*100/total),starsEarned:journeyStars(record),
   metrics:{
    durationSeconds:Math.round(durationSeconds),
-   attemptsCount:2+mistakes,accuracyRate:independent/2,
-   wrongAttempts:mistakes,hintsUsed:Number(record.firstHint)+Number(record.secondHint),
+   attemptsCount:total+mistakes,accuracyRate:independent/total,
+   wrongAttempts:mistakes,hintsUsed:totalHints,
    storyJourneys:[record]
   },
   completedAt:record.completedAt
