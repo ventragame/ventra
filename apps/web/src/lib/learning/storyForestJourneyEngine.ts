@@ -7,7 +7,14 @@ import type {ForestEpisode,ForestPlacement,ForestScene,ForestActorId} from './st
 import {FOREST_EPISODES} from './storyForestEngine.ts';
 
 export type JourneyObject='key'|'apple'|'bird'|'crystal';
-export type JourneyPhase='opening'|'discover'|'meet'|'choose'|'result'|'friend'|'ending';
+export type JourneyPhase='opening'|'discover'|'meet'|'choose'|'result'|'friend'|'place'|'consequence'|'ending';
+export type JourneyChallengeKind='place'|'consequence';
+export interface JourneyChallenge{
+ id:string;kind:JourneyChallengeKind;target:string;choices:readonly string[];
+}
+export interface JourneyChallengeAnswer{
+ checkId:string;selectedId:string;mistakes:number;hintUsed:boolean;firstTryCorrect:boolean;
+}
 export type JourneyAnswerId=JourneyObject|ForestActorId;
 export interface JourneyLocation{scene:ForestScene;label:string;}
 export interface JourneyRoute{
@@ -19,10 +26,12 @@ export interface JourneyRecord{
  routeId:string;episode:ForestEpisode;object:JourneyObject;
  destination:ForestScene;firstMistakes:number;secondMistakes:number;
  firstHint:boolean;secondHint:boolean;completedAt:string;
+ learningChecks?:readonly JourneyChallengeAnswer[];
 }
 export interface JourneyPlan{
  route:JourneyRoute;englishLevel:ForestPlacement;gradeLevel:number|null;
  seed:number;objectChoices:readonly JourneyObject[];friendChoices:readonly ForestActorId[];
+ assessmentVersion?:2;learningChallenges?:readonly JourneyChallenge[];
 }
 const ROUTES:readonly JourneyObject[]=['key','apple','bird','crystal'];
 const CHARACTERS:Record<JourneyObject,readonly [ForestActorId,ForestActorId]>={
@@ -72,7 +81,7 @@ function shuffle<T>(arr:readonly T[],seed:number):T[]{
 }
 export function planJourneyStory(input:{
  episode:ForestEpisode;englishLevel:ForestPlacement;gradeLevel:number|null;
- seed:number;history?:readonly JourneyRecord[];
+ seed:number;history?:readonly JourneyRecord[];assessmentVersion?:2;
 }):JourneyPlan{
  if(!['Pre-A1','A1','A2'].includes(input.englishLevel))throw Error('Unknown placement');
  const pool=journeyRoutesForEpisode(input.episode);
@@ -93,8 +102,24 @@ export function planJourneyStory(input:{
  const friendChoices=shuffle([route.helper,...distractors.slice(0,2)],seed+301);
  const objectChoices=shuffle(ROUTES.filter(x=>x===route.object).concat(
     shuffle(ROUTES.filter(x=>x!==route.object),seed+103).slice(0,2)),seed+101);
- return {route,englishLevel:input.englishLevel,gradeLevel:input.gradeLevel,
+ const plan:JourneyPlan={route,englishLevel:input.englishLevel,gradeLevel:input.gradeLevel,
   seed,objectChoices,friendChoices};
+ if(input.assessmentVersion===2){
+  const all:ForestScene[]=['path','treehouse','pond','meadow','camp','bridge'];
+  const choices=shuffle([...route.destinations.map(x=>x.scene),
+   shuffle(all.filter(x=>!route.destinations.some(d=>d.scene===x)),seed+343)[0]],
+   seed+401);
+  plan.assessmentVersion=2;
+  plan.learningChallenges=input.englishLevel==='Pre-A1'?[]:[
+   {id:'journey-'+route.episode+'-place',kind:'place',target:'dynamic',
+    choices},
+   ...(input.englishLevel==='A2'?[{
+    id:'journey-'+route.episode+'-consequence',kind:'consequence',
+    target:route.object,choices:shuffle([...ROUTES],seed+517)
+   }]:[])
+  ];
+ }
+ return plan;
 }
 export function narrativeFor(plan:JourneyPlan,phase:JourneyPhase,branchScene?:ForestScene):string{
  const route=plan.route,level=plan.englishLevel,hero=CHARACTER_NAMES[route.hero],
@@ -114,6 +139,8 @@ export function narrativeFor(plan:JourneyPlan,phase:JourneyPhase,branchScene?:Fo
   choose:'Where should they go? Choose a place.',
   result:'They go to the '+location+'.',
   friend:'Who helped the '+hero+'? Find the '+helper+'.',
+  place:'Where did the friends go? Find that place.',
+  consequence:'What happened next? Choose the picture.',
   ending:route.object==='key'?'They find a little box. The key opens it.':
    route.object==='apple'?'They share the red apple. Everyone smiles.':
    route.object==='bird'?'The little blue bird finds its family. Hooray!':
@@ -126,6 +153,8 @@ export function narrativeFor(plan:JourneyPlan,phase:JourneyPhase,branchScene?:Fo
   choose:'The friends must decide where to go next. Choose their destination.',
   result:'They follow the path and arrive at the '+location+'. Their adventure continues.',
   friend:'Who joined the '+hero+' on this adventure? Find the '+helper+'.',
+  place:'Remember the story. Which forest place did the friends visit?',
+  consequence:'What happened because of the discovery? Pick the ending.',
   ending:route.object==='key'?'Together they discover a locked box. Their golden key opens it!':
    route.object==='apple'?'They find a hungry friend and share the red apple. What a happy ending!':
    route.object==='bird'?'The small blue bird sees its family again. The friends have helped it!':
@@ -138,6 +167,9 @@ export function narrativeFor(plan:JourneyPlan,phase:JourneyPhase,branchScene?:Fo
   choose:'There are two possible routes ahead, and either could lead to an exciting discovery. Where should they explore?',
   result:'After following their chosen route, the two friends finally reach the '+location+' and look around carefully.',
   friend:'Think back to the beginning of the adventure. Which friend joined the '+hero+' on the way?',
+  place:'Think back to the journey. Which pictured location did the two friends actually explore?',
+  consequence:'What is the most logical result of finding the '+object+
+   '? Choose the picture showing the consequence of their discovery.',
   ending:route.object==='key'?'At last they find a little locked box and use the golden key to open it. Their discovery is complete.':
    route.object==='apple'?'Instead of keeping the apple, the two friends decide to share it with someone who is hungry.':
    route.object==='bird'?'The lost little blue bird finally returns to its family, and the friends feel proud of helping.':
@@ -173,6 +205,22 @@ export function narrativeFor(plan:JourneyPlan,phase:JourneyPhase,branchScene?:Fo
  }
  return (level==='Pre-A1'?pre:level==='A1'?a1:a2)[phase];
 }
+export function validateJourneyChallenges(
+ checks:readonly JourneyChallengeAnswer[],plan:JourneyPlan,
+ destination:ForestScene
+):boolean{
+ const challenges=plan.learningChallenges??[];
+ if(!Array.isArray(checks)||checks.length!==challenges.length)return false;
+ return challenges.every((challenge,index)=>{
+  const answer=checks[index];
+  const expected=challenge.kind==='place'?destination:challenge.target;
+  return !!answer&&answer.checkId===challenge.id&&
+   answer.selectedId===expected&&challenge.choices.includes(expected)&&
+   Number.isInteger(answer.mistakes)&&answer.mistakes>=0&&
+   typeof answer.hintUsed==='boolean'&&
+   answer.firstTryCorrect===(answer.mistakes===0&&!answer.hintUsed);
+ });
+}
 export function validateJourneyRecord(record:JourneyRecord,plan:JourneyPlan):boolean{
  return record.routeId===plan.route.id&&record.episode===plan.route.episode&&
   record.object===plan.route.object&&
@@ -180,10 +228,15 @@ export function validateJourneyRecord(record:JourneyRecord,plan:JourneyPlan):boo
   Number.isInteger(record.firstMistakes)&&record.firstMistakes>=0&&
   Number.isInteger(record.secondMistakes)&&record.secondMistakes>=0&&
   typeof record.firstHint==='boolean'&&typeof record.secondHint==='boolean'&&
-  typeof record.completedAt==='string'&&Number.isFinite(Date.parse(record.completedAt));
+  typeof record.completedAt==='string'&&Number.isFinite(Date.parse(record.completedAt))&&
+  (plan.assessmentVersion===2?
+   validateJourneyChallenges(record.learningChecks??[],plan,record.destination):
+   !record.learningChecks);
 }
 export function journeyStars(record:JourneyRecord):1|2|3{
- const errors=record.firstMistakes+record.secondMistakes;
- const hints=Number(record.firstHint)+Number(record.secondHint);
+ const errors=record.firstMistakes+record.secondMistakes+
+  (record.learningChecks??[]).reduce((n,a)=>n+a.mistakes,0);
+ const hints=Number(record.firstHint)+Number(record.secondHint)+
+  (record.learningChecks??[]).filter(a=>a.hintUsed).length;
  return errors===0&&hints===0?3:errors<=2&&hints<=1?2:1;
 }
