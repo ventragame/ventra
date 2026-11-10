@@ -145,6 +145,11 @@ export function buildSequenceComprehensionChecks(
  const frames=deck.frames;
  if(frames.length<3)throw Error('Not enough illustrated scenes');
  const first=frames[0],second=frames[1],last=frames[frames.length-1];
+ if(deck.englishLevel==='A1')return [{
+  id:'sequence-check-'+deck.episode+'-next',kind:'next',
+  referenceFrameId:first.id,targetFrameId:second.id,
+  choiceIds:assessmentChoices(frames,second.id,first.id,deck.seed+11)
+ }];
  // Explicit per-story causal mapping: the event immediately preceding the
  // ending is not always its reason. Episode 4 depends on noticing flowers,
  // not merely watching a butterfly. Every mapped frame is narrated first.
@@ -155,11 +160,6 @@ export function buildSequenceComprehensionChecks(
  const cause=full?.frames[causeOrder[deck.episode]];
  if(!cause||!frames.some(frame=>frame.id===cause.id))
   throw Error('Causal story frame is missing from the listening deck.');
- if(deck.englishLevel==='A1')return [{
-  id:'sequence-check-'+deck.episode+'-next',kind:'next',
-  referenceFrameId:first.id,targetFrameId:second.id,
-  choiceIds:assessmentChoices(frames,second.id,first.id,deck.seed+11)
- }];
  return [
   {id:'sequence-check-'+deck.episode+'-cause',kind:'cause',
    referenceFrameId:last.id,targetFrameId:cause.id,
