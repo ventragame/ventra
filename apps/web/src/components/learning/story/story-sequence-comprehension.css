@@ -1,0 +1,71 @@
+/* Seviye temelli hikaye yorumlama: üç görseli birleştirerek olay çıkarımı.
+ * Follow existing story aesthetic; avoid dense instructions on small phones. */
+.ss-comprehension{
+ display:flex;flex-direction:column;align-items:center;justify-content:flex-start;
+ gap:clamp(10px,1.6vh,17px);min-height:0;overflow-y:auto;
+ padding:clamp(11px,2vw,21px) clamp(10px,2vw,22px)
+  calc(18px + env(safe-area-inset-bottom,0px));
+}
+.ss-check-heading{width:min(100%,820px);display:flex;justify-content:space-between;
+ gap:9px;align-items:center;padding:9px 13px;border-radius:17px;
+ background:linear-gradient(110deg,#fff9e5,#eaffee);
+ border:2px solid #f5e9cb;box-shadow:0 4px 12px #376f6b27;
+ font-weight:950;color:#356d67;font-size:clamp(11px,2vw,16px)}
+.ss-check-heading strong{font-size:clamp(13px,2.5vw,21px)}
+.ss-check-audio{
+ width:min(100%,820px);display:flex;align-items:center;gap:10px;
+ background:#fbfff4f2;border:3px solid white;border-radius:20px;
+ padding:7px 11px;box-shadow:0 6px 12px #296e6440;
+}
+.ss-check-audio .ss-speak{flex:0 0 auto}
+.ss-check-audio p{margin:0;font-weight:950;color:#215b67;
+ font-size:clamp(12px,2.5vw,18px);line-height:1.35;overflow-wrap:anywhere}
+.ss-check-reference{
+ position:relative;width:min(100%,650px);flex:0 0 auto;
+ height:clamp(130px,29dvh,270px);min-height:0;border-radius:25px;
+ border:4px solid #fffae6;overflow:hidden;background:#7dc9b5;
+ box-shadow:0 9px 20px #205c6470;
+}
+.ss-check-reference .ss-frame,.ss-check-reference .ss-frame-scene{
+ width:100%;height:100%;
+}
+.ss-check-cards{
+ width:min(100%,820px);display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
+ gap:clamp(7px,1.3vw,13px);align-items:stretch;
+}
+.ss-check-card{
+ position:relative;display:grid;place-items:center;overflow:hidden;min-width:0;
+ height:clamp(112px,20dvh,200px);border-radius:22px;
+ border:4px solid #fff9e5;background:#e1f2d5;
+ box-shadow:0 7px 0 #c6aa7e99,0 11px 20px #2962655c;
+ transition:transform .16s,border-color .16s;touch-action:manipulation;
+}
+.ss-check-card:hover:not(:disabled){transform:translateY(-3px);border-color:#fae19c}
+.ss-check-card .ss-frame,.ss-check-card .ss-frame-scene{width:100%;height:100%}
+.ss-check-card.hint{outline:5px solid #b9e88e;outline-offset:2px;
+ box-shadow:0 0 0 8px #dcffd5a6,0 7px 0 #93bb7a}
+.ss-check-card.wrong{border-color:#f19aa3;animation:ss-check-wrong .3s ease}
+@keyframes ss-check-wrong{
+ 30%{transform:translateX(-5px)}70%{transform:translateX(5px)}
+}
+.ss-comprehension .ss-hint-bar{width:min(100%,820px);flex:0 0 auto;min-height:52px}
+@media(max-width:700px){
+ .ss-comprehension{gap:9px;padding:9px 9px calc(12px + env(safe-area-inset-bottom,0px))}
+ .ss-check-heading{padding:8px}
+ .ss-check-audio{border-radius:15px;border-width:2px;padding:6px}
+ .ss-check-reference{height:clamp(130px,27dvh,210px);border-radius:18px;border-width:3px}
+ .ss-check-cards{gap:6px}
+ .ss-check-card{height:clamp(102px,17dvh,157px);border-radius:15px;border-width:2px}
+}
+@media(max-width:365px){
+ .ss-check-reference{height:clamp(115px,24dvh,185px)}
+ .ss-check-card{height:clamp(92px,15dvh,140px);border-radius:12px}
+ .ss-check-heading{font-size:11px}
+}
+@media(max-height:520px) and (min-width:701px){
+ .ss-check-reference{height:120px}
+ .ss-check-card{height:95px}
+}
+@media(prefers-reduced-motion:reduce){
+ .ss-check-card{transition:none!important;animation:none!important}
+}
