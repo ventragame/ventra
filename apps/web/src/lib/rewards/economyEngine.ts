@@ -2,6 +2,8 @@
  * P5 economy v1: only earned-on-device, cosmetic-only currency.
  * Never use this client-side state as a financial or cross-device authority.
  */
+import {VENTRA_AVATARS,LEGACY_AVATAR_IDS} from '@ventra/shared';
+
 export const WORLD_GAMES = [
   {id:'island_word_garden_steps',label:'Hayvan Çayırı',count:5,icon:'🐾'},
   {id:'island_word_garden_colors',label:'Renk Korusu',count:3,icon:'🎨'},
@@ -35,7 +37,7 @@ export const COSMETICS=[
 export type CosmeticId=typeof COSMETICS[number]['id'];
 export type CosmeticGroup=typeof COSMETICS[number]['group'];
 export type EconomyEntry={
-  id:string;amount:number;kind:'level'|'daily'|'cosmetic';at:string;
+  id:string;amount:number;kind:'level'|'daily'|'cosmetic'|'avatar';at:string;
 };
 export type EconomyState={
   version:1;
@@ -43,6 +45,9 @@ export type EconomyState={
   entries:EconomyEntry[];
   owned:CosmeticId[];
   equipped:Partial<Record<CosmeticGroup,CosmeticId>>;
+  // Optional in v1: old persisted P5 records migrate without resetting their coin ledger.
+  ownedAvatars?:string[];
+  avatarLegacyMigrated?:boolean;
 };
 export type Evidence={gameId:string;levelId:number;stars:number};
 export type DailyGoal={id:'quest_1'|'quest_2'|'quest_3';required:number;coins:number;title:string};
@@ -57,7 +62,7 @@ export function localDay(date:Date):string{
 }
 export function initialEconomy(profileId:string):EconomyState{
   if(!profileId)throw new Error('Profile required');
-  return {version:1,profileId,entries:[],owned:[],equipped:{}};
+  return {version:1,profileId,entries:[],owned:[],equipped:{},ownedAvatars:[],avatarLegacyMigrated:false};
 }
 export function economyBalance(s:EconomyState):number{
   return s.entries.reduce((sum,e)=>sum+e.amount,0);
@@ -112,4 +117,28 @@ export function equipCosmetic(s:EconomyState,id:CosmeticId|null,group:CosmeticGr
 /** No browser-validated receipts or parent gate can mint paid coins. */
 export function creditPaidCoins():never{
   throw new Error('Paid coin credits require verified server receipt, parent authorization and store billing.');
+}
+
+// Existing players keep the original avatar they chose before the avatar shop
+// existed. The one-time migration can grant only the six historical avatar IDs.
+export function migrateLegacyAvatar(state:EconomyState,currentAvatarId:string):EconomyState{
+ if(state.avatarLegacyMigrated)return state;
+ const legacy=(LEGACY_AVATAR_IDS as readonly string[]).includes(currentAvatarId);
+ const owned=state.ownedAvatars??[];
+ return {...state,avatarLegacyMigrated:true,
+  ownedAvatars:legacy&&!owned.includes(currentAvatarId)?[...owned,currentAvatarId]:owned};
+}
+
+export function avatarIsOwned(state:EconomyState,id:string):boolean{
+ const avatar=VENTRA_AVATARS.find(a=>a.id===id);
+ return Boolean(avatar&&(avatar.price===0||(state.ownedAvatars??[]).includes(id)));
+}
+
+export function buyAvatar(state:EconomyState,id:string,at:string):EconomyState{
+ const avatar=VENTRA_AVATARS.find(a=>a.id===id);
+ if(!avatar)throw new Error('Unknown avatar');
+ if(avatarIsOwned(state,id))return state;
+ if(economyBalance(state)<avatar.price)throw new Error('Yetersiz Ventra Coin');
+ return {...state,ownedAvatars:[...(state.ownedAvatars??[]),id],
+  entries:[...state.entries,{id:'avatar:'+id,kind:'avatar',amount:-avatar.price,at}]};
 }

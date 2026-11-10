@@ -1,8 +1,8 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {MemoryProgressRepository} from '../src/lib/progress/MemoryProgressRepository.ts';
-import {MemoryEconomyStorage,getPassport,claimQuest,purchaseCosmetic,setEquipped} from '../src/lib/rewards/economyRepository.ts';
-import {COSMETICS,PLANNED_COIN_PACKS,PAID_COINS_ENABLED,economyBalance,initialEconomy,claimDaily,creditPaidCoins,localDay} from '../src/lib/rewards/economyEngine.ts';
+import {MemoryEconomyStorage,getPassport,claimQuest,purchaseCosmetic,setEquipped,getAvatarShop,purchaseAvatarWithCoins} from '../src/lib/rewards/economyRepository.ts';
+import {COSMETICS,PLANNED_COIN_PACKS,PAID_COINS_ENABLED,economyBalance,initialEconomy,claimDaily,creditPaidCoins,localDay,buyAvatar,avatarIsOwned,migrateLegacyAvatar} from '../src/lib/rewards/economyEngine.ts';
 const now=new Date('2026-11-01T12:00:00.000Z');
 test('P5 first-completion coins never mint on replay, earned and stars stay separate',async()=>{
  const repo=new MemoryProgressRepository(),storage=new MemoryEconomyStorage();
@@ -67,4 +67,33 @@ test('P5 planned paid SKUs remain fully disabled and do not touch child economy'
  assert.equal(PAID_COINS_ENABLED,false);
  assert.equal(new Set(PLANNED_COIN_PACKS.map(p=>p.id)).size,PLANNED_COIN_PACKS.length);
  for(const pack of PLANNED_COIN_PACKS)assert.ok(pack.coins>0);
+});
+
+test('Avatar collection: three free starters, legacy grant, one-time atomic coin unlock',async()=>{
+ const {VENTRA_AVATARS,VENTRA_STARTER_AVATARS}=await import('../../../packages/shared/src/profile.ts');
+ assert.equal(VENTRA_AVATARS.length,12);
+ assert.equal(VENTRA_STARTER_AVATARS.length,3);
+ assert.equal(new Set(VENTRA_AVATARS.map(a=>a.id)).size,12);
+ const storage=new MemoryEconomyStorage();
+ const repo=new MemoryProgressRepository();
+ const player=await repo.createProfile({nickname:'Ava',avatarId:'avatar_explorer'});
+ await storage.mutate(player.id,s=>({...s,entries:[{id:'test-grant',kind:'daily',amount:120,at:now.toISOString()}]}));
+ const first=await getAvatarShop(repo,player.id,'avatar_explorer',storage,now);
+ assert.equal(first.balance,120);
+ assert.ok(avatarIsOwned(first.economy,'avatar_explorer'));
+ assert.equal(first.economy.avatarLegacyMigrated,true);
+ const after=await purchaseAvatarWithCoins(repo,player.id,'avatar_robot','avatar_explorer',storage,now);
+ assert.ok(avatarIsOwned(after,'avatar_robot'));
+ assert.equal(economyBalance(after),65);
+ const repeated=await purchaseAvatarWithCoins(repo,player.id,'avatar_robot','avatar_explorer',storage,now);
+ assert.equal(economyBalance(repeated),65);
+ assert.equal(repeated.entries.filter(e=>e.id==='avatar:avatar_robot').length,1);
+ await assert.rejects(purchaseAvatarWithCoins(repo,player.id,'avatar_unicorn',
+   'avatar_explorer',storage,now),/Yetersiz/);
+ assert.equal(avatarIsOwned(after,'avatar_unicorn'),false);
+ const old=migrateLegacyAvatar(initialEconomy('older'),'avatar_wizard');
+ assert.ok(avatarIsOwned(old,'avatar_wizard'));
+ assert.equal(migrateLegacyAvatar(old,'avatar_unicorn').ownedAvatars.length,1);
+ assert.equal(avatarIsOwned(migrateLegacyAvatar(initialEconomy('newer'),'avatar_unicorn'),'avatar_unicorn'),false);
+ assert.throws(()=>buyAvatar(initialEconomy('kid'),'fake-avatar',now.toISOString()),/Unknown/);
 });

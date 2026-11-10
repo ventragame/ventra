@@ -2,7 +2,7 @@ import type { IProgressRepository } from '../progress/types.ts';
 import type { EconomyState, Evidence, DailyGoal, CosmeticId, CosmeticGroup } from './economyEngine.ts';
 import {
   initialEconomy,reconcileRewards,economyBalance,dailyStatus,claimDaily,
-  buyCosmetic,equipCosmetic,localDay,WORLD_GAMES
+  buyCosmetic,equipCosmetic,buyAvatar,migrateLegacyAvatar,localDay,WORLD_GAMES
 } from './economyEngine.ts';
 
 export type PassportSnapshot={
@@ -137,4 +137,20 @@ export async function purchaseCosmetic(profileId:string,id:CosmeticId,
 export async function setEquipped(profileId:string,id:CosmeticId|null,group:CosmeticGroup,
   storage:EconomyStorage=economyStorage()){
   return storage.mutate(profileId,s=>equipCosmetic(s,id,group));
+}
+
+/** Existing P5 IndexedDB transaction is the single writer for avatar unlocks.
+ * Coins are earned in games, not purchasable for real money. Cloud inventory
+ * reconciliation is not yet authoritative; do not promise cross-device unlocks. */
+export async function getAvatarShop(repo:IProgressRepository,profileId:string,currentAvatarId:string,
+  storage:EconomyStorage=economyStorage(),now=new Date()){
+ await getPassport(repo,profileId,storage,now);
+ const state=await storage.mutate(profileId,s=>migrateLegacyAvatar(s,currentAvatarId));
+ return {economy:state,balance:economyBalance(state)};
+}
+export async function purchaseAvatarWithCoins(repo:IProgressRepository,profileId:string,
+  avatarId:string,currentAvatarId:string,
+  storage:EconomyStorage=economyStorage(),now=new Date()){
+ await getAvatarShop(repo,profileId,currentAvatarId,storage,now);
+ return storage.mutate(profileId,s=>buyAvatar(s,avatarId,now.toISOString()));
 }
