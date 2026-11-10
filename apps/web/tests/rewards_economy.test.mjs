@@ -97,3 +97,15 @@ test('Avatar collection: three free starters, legacy grant, one-time atomic coin
  assert.equal(avatarIsOwned(migrateLegacyAvatar(initialEconomy('newer'),'avatar_unicorn'),'avatar_unicorn'),false);
  assert.throws(()=>buyAvatar(initialEconomy('kid'),'fake-avatar',now.toISOString()),/Unknown/);
 });
+
+test('Story Forest levels award unique coins once across three games',async()=>{
+ const {WORLD_GAMES,reconcileRewards}=await import('../src/lib/rewards/economyEngine.ts');
+ const stories=WORLD_GAMES.filter(g=>g.id.startsWith('island_story_forest_'));
+ assert.equal(stories.length,3);
+ let state=initialEconomy('story-kid');
+ const evidence=stories.flatMap(w=>Array.from({length:w.count},(_,i)=>({gameId:w.id,levelId:i+1,stars:3})));
+ state=reconcileRewards(state,evidence,now.toISOString());
+ assert.equal(economyBalance(state),180);
+ state=reconcileRewards(state,evidence,now.toISOString());
+ assert.equal(economyBalance(state),180,'Replay must not mint extra currency');
+});
