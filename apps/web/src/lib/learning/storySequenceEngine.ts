@@ -144,8 +144,17 @@ export function buildSequenceComprehensionChecks(
  if(deck.englishLevel==='Pre-A1')return [];
  const frames=deck.frames;
  if(frames.length<3)throw Error('Not enough illustrated scenes');
- const first=frames[0],second=frames[1],last=frames[frames.length-1],
-  beforeLast=frames[frames.length-2];
+ const first=frames[0],second=frames[1],last=frames[frames.length-1];
+ // Explicit per-story causal mapping: the event immediately preceding the
+ // ending is not always its reason. Episode 4 depends on noticing flowers,
+ // not merely watching a butterfly. Every mapped frame is narrated first.
+ const causeOrder:Readonly<Record<ForestEpisode,number>>={
+  1:3,2:3,3:3,4:1,5:3,6:3
+ };
+ const full=SEQUENCE_STORIES.find(story=>story.episode===deck.episode);
+ const cause=full?.frames[causeOrder[deck.episode]];
+ if(!cause||!frames.some(frame=>frame.id===cause.id))
+  throw Error('Causal story frame is missing from the listening deck.');
  if(deck.englishLevel==='A1')return [{
   id:'sequence-check-'+deck.episode+'-next',kind:'next',
   referenceFrameId:first.id,targetFrameId:second.id,
@@ -153,11 +162,11 @@ export function buildSequenceComprehensionChecks(
  }];
  return [
   {id:'sequence-check-'+deck.episode+'-cause',kind:'cause',
-   referenceFrameId:last.id,targetFrameId:beforeLast.id,
-   choiceIds:assessmentChoices(frames,beforeLast.id,last.id,deck.seed+19)},
+   referenceFrameId:last.id,targetFrameId:cause.id,
+   choiceIds:assessmentChoices(frames,cause.id,last.id,deck.seed+19)},
   {id:'sequence-check-'+deck.episode+'-result',kind:'result',
-   referenceFrameId:beforeLast.id,targetFrameId:last.id,
-   choiceIds:assessmentChoices(frames,last.id,beforeLast.id,deck.seed+31)}
+   referenceFrameId:cause.id,targetFrameId:last.id,
+   choiceIds:assessmentChoices(frames,last.id,cause.id,deck.seed+31)}
  ];
 }
 export function validateSequenceComprehension(

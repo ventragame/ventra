@@ -197,3 +197,16 @@ test('Bottom navigation cannot reveal the answer before a child discovers it',()
  assert.ok(content.includes("['opening','discover'].includes(phase)?'🔎'"));
  assert.ok(content.includes('Bilinmeyen nesne'));
 });
+
+test('A2 story outcomes depend on authored causes rather than arbitrary penultimate events',()=>{
+ for(const gradeLevel of [1,2,3,5,8]){
+  const plan=planSequenceStory({episode:4,gradeLevel,englishLevel:'A2',
+   seed:72,assessmentVersion:2});
+  const cause=plan.comprehensionChecks[0];
+  assert.equal(cause.kind,'cause');
+  assert.equal(cause.targetFrameId,'seq-4-2');
+  assert.notEqual(cause.targetFrameId,plan.frames[plan.frames.length-2].id);
+  assert.ok(plan.frames.some(frame=>frame.id===cause.targetFrameId));
+  assert.ok(validateSequenceComprehension(sequenceChecks(plan),plan));
+ }
+});
