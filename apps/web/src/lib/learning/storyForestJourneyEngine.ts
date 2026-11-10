@@ -106,16 +106,24 @@ export function planJourneyStory(input:{
   seed,objectChoices,friendChoices};
  if(input.assessmentVersion===2){
   const all:ForestScene[]=['path','treehouse','pond','meadow','camp','bridge'];
-  const choices=shuffle([...route.destinations.map(x=>x.scene),
-   shuffle(all.filter(x=>!route.destinations.some(d=>d.scene===x)),seed+343)[0]],
-   seed+401);
+  const grade=input.gradeLevel;
+  const numberOfPlaces=grade!==null&&grade<=2?2:
+   grade!==null&&grade<=4?3:4;
+  const extra=shuffle(all.filter(x=>!route.destinations.some(d=>d.scene===x)),
+   seed+343).slice(0,numberOfPlaces-2);
+  const choices=shuffle([...route.destinations.map(x=>x.scene),...extra],seed+401);
+  const consequenceCount=grade!==null&&grade<=2?2:
+   grade!==null&&grade<=4?3:4;
+  const outcomeChoices=shuffle([route.object,...shuffle(
+   ROUTES.filter(object=>object!==route.object),seed+455
+  ).slice(0,consequenceCount-1)],seed+517);
   plan.assessmentVersion=2;
   plan.learningChallenges=input.englishLevel==='Pre-A1'?[]:[
    {id:'journey-'+route.episode+'-place',kind:'place',target:'dynamic',
     choices},
    ...(input.englishLevel==='A2'?[{
-    id:'journey-'+route.episode+'-consequence',kind:'consequence',
-    target:route.object,choices:shuffle([...ROUTES],seed+517)
+    id:'journey-'+route.episode+'-consequence',kind:'consequence' as const,
+    target:route.object,choices:outcomeChoices
    }]:[])
   ];
  }
