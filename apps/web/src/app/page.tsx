@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useState, useEffect } from 'react';
+import dynamic from 'next/dynamic';
 import { Navbar } from '../components/homepage/Navbar';
 import { HeroSection } from '../components/homepage/HeroSection';
 import { ExperienceCards } from '../components/homepage/ExperienceCards';
@@ -8,9 +9,9 @@ import { FeaturesStrip } from '../components/homepage/FeaturesStrip';
 import { WhyVentraSection } from '../components/homepage/WhyVentraSection';
 import { TrustStatsSection } from '../components/homepage/TrustStatsSection';
 import { Footer } from '../components/homepage/Footer';
-import { LifeComingSoonModal } from '../components/homepage/LifeComingSoonModal';
-import { AuthModal } from '../components/homepage/AuthModal';
-import { FaqModal } from '../components/homepage/FaqModal';
+const LifeComingSoonModal = dynamic(() => import('../components/homepage/LifeComingSoonModal').then((module) => module.LifeComingSoonModal));
+const AuthModal = dynamic(() => import('../components/homepage/AuthModal').then((module) => module.AuthModal));
+const FaqModal = dynamic(() => import('../components/homepage/FaqModal').then((module) => module.FaqModal));
 
 export default function VentraHomePage() {
   const [isLifeModalOpen, setIsLifeModalOpen] = useState(false);
@@ -76,20 +77,20 @@ export default function VentraHomePage() {
       />
 
       {/* 4. Interactive Modals */}
-      <LifeComingSoonModal
+      {isLifeModalOpen && <LifeComingSoonModal
         isOpen={isLifeModalOpen}
         onClose={() => setIsLifeModalOpen(false)}
-      />
+      />}}}}
 
-      <AuthModal
+      {isAuthModalOpen && <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
-      />
+      />}}}}
 
-      <FaqModal
+      {isFaqModalOpen && <FaqModal
         isOpen={isFaqModalOpen}
         onClose={() => setIsFaqModalOpen(false)}
-      />
+      />}}}}
     </div>
   );
 }

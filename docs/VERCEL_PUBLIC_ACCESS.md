@@ -1,27 +1,34 @@
-# Ventra — Vercel public URL and mobile-network access
+# Ventra public mobile-network access — November 10, 2026
 
-## Diagnosis (2026-11-10)
+Target hostname, confirmed by the product owner: **https://ventraapp.vercel.app/**.
 
-- The Ventra repository `ventragame/ventra` has **Git-triggered deployments disabled** in BOTH `/vercel.json` and `/apps/web/vercel.json` (`git.deploymentEnabled: false`). Git push builds CI artifacts but does **not** publish a website.
-- `https://ventra.vercel.app` must **not** be assumed to be our URL. A public web index has shown an unrelated Ventra fashion storefront there, although that index can be stale. Vercel's actual **Project > Domains** or **Deployments > Visit** is the source of truth for URL ownership.
-- Browser access via 4G/5G needs a publicly reachable Vercel deployment; the local `npm run dev:web` server is not a public deployment. This is independent of the responsive/mobile UI.
+## What was verified and what was not
 
-## Checklist — no production release without owner approval
+- The GitHub repository is **ventragame/ventra**, with a Next.js 15 app under `apps/web`.
+- Both Vercel config files, `/vercel.json` and `/apps/web/vercel.json`, keep `git.deploymentEnabled: false`. A GitHub push **does not deploy**. This setting is intentionally preserved because a production release requires owner authorization.
+- Direct external HTTP checks of `https://ventraapp.vercel.app/` and `/kids` could not be completed from the assistant's execution environment. This is **not** proof that the hostname fails on all networks; DNS, HTTP status, Vercel protection and live deployed commit remain unverified.
+- A user reported that the URL does not open via phone/mobile data. The actual browser message was not provided; **DNS failure, domain mapping, deployment protection, TLS failure and slow-client JavaScript load are distinct failure classes**.
 
-1. In Vercel, identify the project connected to **`ventragame/ventra`**, not a similarly named project. If none exists, **import the GitHub repository**. Check that its framework is **Next.js** and the **Root Directory** points to `apps/web`; this is an npm-workspaces monorepo, with shared package `@ventra/shared`, so verify that workspace dependencies are installed correctly.
-2. Check the Vercel build logs and **Environment Variables** for the target environment. Public Supabase settings come from `apps/web/.env.example`: `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` (or legacy public anon key). Never commit production secrets, and never expose `service_role` keys in `NEXT_PUBLIC_*`.
-3. Obtain the **actual URL** from **Project > Domains** or **Deployments > Visit**. Do not assume `ventra.vercel.app` belongs to this project. If the short name is already claimed, use the assigned Vercel URL or a separately owned custom domain. Domain ownership cannot be changed by GitHub code.
-4. Check **Settings > Deployment Protection**. A preview URL may require Vercel authentication; for unauthenticated phone testing use an authorized sharable preview link, or — only with approval — a public production domain. Do not disable protection for all environments just to make a preview public.
-5. Once there is an **authorized** deployment, check that `/` and `/kids` both return the **Ventra — Macera Evreni** Next.js app. Run locally:
+## Repository-side hardening delivered
 
-   ```bash
-   node --test scripts/check-public-url.test.mjs
-   node scripts/check-public-url.mjs https://ACTUAL-ASSIGNED-HOST.vercel.app
-   ```
+- Homepage responsive `next/image` optimization on Vercel for three originally large PNGs (about 1.45 MiB combined original images), with original SVG fallback. `OUTPUT_EXPORT`/Capacitor keeps local assets unoptimized, so static export remains possible.
+- Dynamic imports for rarely used homepage modals and heavyweight Kids world feature panels. This defers code until needed; it does not fix unreachable DNS or a failed deployment.
+- Minimal static `/ventra-health.txt` marker for recognizing an authorized deployment of this repository without hitting IndexedDB, Supabase or child data.
+- `node scripts/check-public-url.mjs https://ventraapp.vercel.app` verifies marker, home route and `/kids`; distinguish 403/404, wrong host, HTML identity mismatch and network/TLS/DNS errors. The GitHub Actions **Ventra Public Website Smoke (manual)** workflow has the known hostname prefilled.
 
-   Or use **GitHub > Actions > Ventra Public Website Smoke (manual) > Run workflow**, entering the URL from Vercel. This workflow only checks an existing deployment; it **does not deploy or change production**.
-6. On the physical device: open the validated HTTPS URL in an incognito tab **with Wi-Fi disabled**. Check both `/` and `/kids`; repeat on Wi-Fi and mobile data. If only cellular fails, capture the exact browser error and examine DNS, VPN/private DNS, TLS, regional filtering and Vercel firewall logs. If both fail, inspect deployment status/domain/protection first.
+## Vercel-side diagnosis
 
-## Policy
+1. In the correct Vercel team/project, verify the **production deployment** and that its deployed Git commit includes the recent GitHub changes. If not, request product-owner approval for an explicit deployment; do not silently enable automatic deployments.
+2. Under **Settings > Domains**, verify that `ventraapp.vercel.app` is assigned to that project and to the intended production deployment.
+3. Under **Settings > Deployment Protection**, confirm whether anonymous mobile browsers are allowed. Do not disable protections globally to solve a preview problem.
+4. Check Vercel build and runtime logs, bandwidth/usage quotas, firewall and custom rules. A browser page reporting 401/403 is different from a DNS timeout.
+5. Once an authorized deployment of this commit exists, open `https://ventraapp.vercel.app/ventra-health.txt` using **Wi-Fi** and then **cellular data**, and run the GitHub smoke workflow. Marker visibility confirms CDN/static file serving, not interactive game readiness.
+6. On a real mobile device open both `/` and `/kids`. Record the exact browser error and the difference between Wi-Fi and cellular; if one network fails, inspect carrier DNS, private DNS, VPN/ad blocking, phone clock/TLS and Vercel edge security. Do not clear IndexedDB/local storage because doing so can destroy offline child progress.
 
-Automatic Git deploy remains **OFF**, intentionally, until the product owner explicitly authorizes public production deployment. Do not flip `git.deploymentEnabled` in either configuration or push a deployment-triggering change as a workaround. Build success in GitHub Actions does not imply that any site is published. Child privacy, access-control and Supabase policy checks are required before exposing a public release.
+## Do not conflate these outcomes
+
+- **DNS failure**: no HTTP response; no change to Next.js source fixes it.
+- **403/auth challenge**: deployment protection or Vercel firewall, not responsive design.
+- **404/wrong website**: deployment or domain mismatch.
+- **200 HTML but blank view / long wait**: inspect JavaScript requests, error console, chunks, memory, and network speed. Lazy loading and responsive images can help.
+- **Offline use**: local IndexedDB may preserve progress, but a previously unvisited public URL still needs internet to download its web assets. No service-worker/offline support guarantee is implied.

@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import Image from 'next/image';
 import { ArrowRight, GraduationCap, Star, Globe } from 'lucide-react';
 
 interface WhyVentraSectionProps {
@@ -8,6 +9,7 @@ interface WhyVentraSectionProps {
 }
 
 export function WhyVentraSection({ onLearnMore }: WhyVentraSectionProps) {
+  const [imageFallback, setImageFallback] = useState(false);
   const bullets = [
     {
       icon: GraduationCap,
@@ -34,13 +36,14 @@ export function WhyVentraSection({ onLearnMore }: WhyVentraSectionProps) {
           {/* Left Column: Adventurous Friends Illustration */}
           <div className="lg:col-span-4 flex justify-center lg:justify-start">
             <div className="relative w-full max-w-[340px] aspect-[1.7/1] rounded-[22px] overflow-hidden shadow-sm border border-white/80 bg-white">
-              <img
-                src="/assets/homepage/why-ventra-cover.png"
-                onError={(e) => {
-                  e.currentTarget.src = '/assets/homepage/why-ventra-cover.svg';
-                }}
+              <Image
+                src={imageFallback ? '/assets/homepage/why-ventra-cover.svg' : '/assets/homepage/why-ventra-cover.png'}
+                onError={() => setImageFallback(true)}
                 alt="Ventra Öğrenme Yolculuğu ve Arkadaşlar"
-                className="w-full h-full object-cover object-center"
+                fill
+                sizes="(max-width: 767px) min(340px, 100vw), 340px"
+                quality={76}
+                className="object-cover object-center"
               />
             </div>
           </div>

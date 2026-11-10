@@ -5,6 +5,8 @@ const nextConfig = {
   reactStrictMode: true,
   devIndicators: false,
   transpilePackages: ['@ventra/shared'],
+  // Keep static Capacitor export working; Vercel can optimize images by viewport.
+  images: { unoptimized: isExport },
   serverExternalPackages: ['@supabase/supabase-js'],
   ...(isExport ? { output: 'export', trailingSlash: true } : {}),
   async headers() {

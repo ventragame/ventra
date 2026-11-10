@@ -1,0 +1,3 @@
+VENTRA_KIDS_ENGLISH_LEARNING
+GitHub repository: ventragame/ventra
+Static public deployment marker; does not disclose user information.

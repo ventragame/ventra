@@ -1,6 +1,7 @@
 'use client';
 
-import React from 'react';
+import React, { useState } from 'react';
+import Image from 'next/image';
 import Link from 'next/link';
 import { ArrowRight } from 'lucide-react';
 
@@ -9,6 +10,8 @@ interface ExperienceCardsProps {
 }
 
 export function ExperienceCards({ onOpenLifeModal }: ExperienceCardsProps) {
+  const [kidsFallback, setKidsFallback] = useState(false);
+  const [lifeFallback, setLifeFallback] = useState(false);
   return (
     <section className="relative px-4 sm:px-6 lg:px-8 mt-4 md:mt-5 z-10" id="deneyimler">
       <div className="max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-5 lg:gap-6">
@@ -16,13 +19,15 @@ export function ExperienceCards({ onOpenLifeModal }: ExperienceCardsProps) {
         <div className="group relative rounded-[32px] p-2 bg-gradient-to-b from-[#BAE6FD]/40 via-white/50 to-[#E0F2FE]/40 border-[2px] border-[#38BDF8]/60 shadow-[0_14px_36px_rgba(56,189,248,0.18)] hover:shadow-[0_20px_45px_rgba(56,189,248,0.25)] transition-all duration-300 flex flex-col justify-end overflow-hidden aspect-[1.18/1]">
           {/* Card Full Background Visual */}
           <div className="absolute inset-0 rounded-[30px] overflow-hidden bg-[#E0F2FE]">
-            <img
-              src="/assets/homepage/kids-cover.png"
-              onError={(e) => {
-                e.currentTarget.src = '/assets/homepage/kids-cover.svg';
-              }}
+            <Image
+              src={kidsFallback ? '/assets/homepage/kids-cover.svg' : '/assets/homepage/kids-cover.png'}
+              onError={() => setKidsFallback(true)}
               alt="Ventra Kids — Macera ve Oyun Dünyası"
-              className="w-full h-full object-cover object-[center_10%] transition-transform duration-500 group-hover:scale-105"
+              fill
+              sizes="(max-width: 767px) calc(100vw - 32px), (max-width: 1280px) 50vw, 560px"
+              quality={78}
+              priority
+              className="object-cover object-[center_10%] transition-transform duration-500 group-hover:scale-105"
             />
           </div>
 
@@ -59,13 +64,14 @@ export function ExperienceCards({ onOpenLifeModal }: ExperienceCardsProps) {
         <div className="group relative rounded-[32px] p-2 bg-gradient-to-b from-[#DDD6FE]/40 via-white/50 to-[#EDE9FE]/40 border-[2px] border-[#A855F7]/60 shadow-[0_14px_36px_rgba(168,85,247,0.18)] hover:shadow-[0_20px_45px_rgba(168,85,247,0.25)] transition-all duration-300 flex flex-col justify-end overflow-hidden aspect-[1.18/1]">
           {/* Card Full Background Visual */}
           <div className="absolute inset-0 rounded-[30px] overflow-hidden bg-[#F3E8FF]">
-            <img
-              src="/assets/homepage/life-cover.png"
-              onError={(e) => {
-                e.currentTarget.src = '/assets/homepage/life-cover.svg';
-              }}
+            <Image
+              src={lifeFallback ? '/assets/homepage/life-cover.svg' : '/assets/homepage/life-cover.png'}
+              onError={() => setLifeFallback(true)}
               alt="Ventra Life — Gerçek Yaşam İngilizce Deneyimi"
-              className="w-full h-full object-cover object-[center_12%] transition-transform duration-500 group-hover:scale-105"
+              fill
+              sizes="(max-width: 767px) calc(100vw - 32px), (max-width: 1280px) 50vw, 560px"
+              quality={78}
+              className="object-cover object-[center_12%] transition-transform duration-500 group-hover:scale-105"
             />
           </div>
 

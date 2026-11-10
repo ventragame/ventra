@@ -8,6 +8,7 @@ import { resolve } from 'node:path';
 
 const EXPECTED_TITLE = 'Ventra — Macera Evreni';
 const PATHS = ['/', '/kids'];
+const DEPLOYMENT_MARKER = 'VENTRA_KIDS_ENGLISH_LEARNING';
 
 export function validateBaseUrl(rawUrl) {
   if (!rawUrl) throw new Error('Site URL is required (for example https://your-project.vercel.app).');
@@ -22,6 +23,29 @@ export function validateBaseUrl(rawUrl) {
 export async function checkPublicUrl(rawUrl, fetchImpl = globalThis.fetch) {
   const origin = validateBaseUrl(rawUrl);
   const checked = [];
+  // A small static marker proves this host serves *this* repository's public files
+  // even when the dynamic page is unavailable or a domain points elsewhere.
+  const markerUrl = new URL('/ventra-health.txt', origin);
+  let markerResponse;
+  try {
+    markerResponse = await fetchImpl(markerUrl, {
+      redirect: 'follow',
+      signal: AbortSignal.timeout(15000),
+      headers: { 'user-agent': 'ventra-public-smoke/1.0' },
+    });
+  } catch (error) {
+    throw new Error(`/ventra-health.txt: network/TLS/DNS request failed: ${error.message}`);
+  }
+  if (!markerResponse.ok) {
+    throw new Error(`/ventra-health.txt: HTTP ${markerResponse.status}. Wrong deployment, missing release or deployment protection.`);
+  }
+  if (new URL(markerResponse.url || markerUrl).origin !== origin.origin) {
+    throw new Error('/ventra-health.txt: redirected to a different origin.');
+  }
+  if (!(await markerResponse.text()).includes(DEPLOYMENT_MARKER)) {
+    throw new Error('/ventra-health.txt: expected Ventra deployment marker is missing. This URL may serve an unrelated or outdated site.');
+  }
+  checked.push('/ventra-health.txt: correct deployment marker verified');
   for (const path of PATHS) {
     const target = new URL(path, origin);
     let response;
