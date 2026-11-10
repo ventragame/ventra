@@ -262,94 +262,97 @@ export class WorldScene extends Phaser.Scene {
     }
   }
 
-  // --- 2. ADALAR ARASI İLERLEME YOLU (CIRCULAR/OVAL PROGRESSION PATH) ---
+  // --- 2. ALTI ADAYI BİRLEŞTİREN MASAL KÖPRÜLERİ ---
   private createProgressionPaths(): void {
-    // 6 Ada arasındaki 5 bağlantı eğrisi (Dairesel çember boyunca adaların içinden GEÇMEYEN kavisler)
-    // Word Garden → Sentence Square → Story Forest → Dialogue Harbor → Writing Workshop → Academy.
-    // Stable asset IDs are intentionally independent of pedagogy/visual placement.
+    // Draw actual, legible skybridges rather than making only the first route
+    // bright. All six islands form a continuous, storybook ring; locked worlds
+    // retain their bridges, without suggesting their activities are playable.
+    // Bridge ends sit behind island silhouettes (islands depth=20), so no rails
+    // run across the art or intercept a child's click.
     const curveDefinitions = [
-      {
-        from: 'word_garden',
-        p0: { x: 770, y: 495 },
-        p1: { x: 1110, y: 440 },
-        ctrl: { x: 940, y: 380 },
-        isActive: true // 1 -> 2 rotası açık
-      },
-      {
-        from: 'story_castle',
-        p0: { x: 1370, y: 465 },
-        p1: { x: 1670, y: 550 },
-        ctrl: { x: 1530, y: 425 },
-        isActive: false
-      },
-      {
-        from: 'listening_forest',
-        p0: { x: 1810, y: 710 },
-        p1: { x: 1780, y: 880 },
-        ctrl: { x: 1910, y: 795 },
-        isActive: false
-      },
-      {
-        from: 'speaking_harbor',
-        p0: { x: 1620, y: 1030 },
-        p1: { x: 1290, y: 1080 },
-        ctrl: { x: 1450, y: 1145 },
-        isActive: false
-      },
-      {
-        from: 'sentence_workshop',
-        p0: { x: 1030, y: 1060 },
-        p1: { x: 740, y: 960 },
-        ctrl: { x: 880, y: 1105 },
-        isActive: false
-      }
-    ];
-
-    curveDefinitions.forEach((curve,routeIndex) => {
+      {p0:{x:770,y:495},  p1:{x:1110,y:440},ctrl:{x:940,y:359},isActive:true},
+      {p0:{x:1370,y:465},p1:{x:1670,y:550},ctrl:{x:1535,y:419},isActive:true},
+      {p0:{x:1810,y:710},p1:{x:1780,y:880},ctrl:{x:1942,y:795},isActive:false},
+      {p0:{x:1620,y:1030},p1:{x:1290,y:1080},ctrl:{x:1450,y:1160},isActive:false},
+      {p0:{x:1030,y:1060},p1:{x:740,y:960},ctrl:{x:882,y:1115},isActive:false},
+      {p0:{x:608,y:895},p1:{x:610,y:690},ctrl:{x:468,y:792},isActive:false}
+    ] as const;
+    const reduced=this.isReducedMotion();
+    curveDefinitions.forEach((curve,routeIndex)=>{
       const at=(t:number)=>({
         x:(1-t)*(1-t)*curve.p0.x+2*(1-t)*t*curve.ctrl.x+t*t*curve.p1.x,
         y:(1-t)*(1-t)*curve.p0.y+2*(1-t)*t*curve.ctrl.y+t*t*curve.p1.y
       });
-      // A connected fairy-dust trail: wide soft glow, narrow illuminated core
-      // and tiny four-point diamonds instead of the previous large beads.
-      const ribbon=this.add.graphics().setDepth(9);
+      const normal=(t:number)=>{
+        const dx=2*(1-t)*(curve.ctrl.x-curve.p0.x)+2*t*(curve.p1.x-curve.ctrl.x);
+        const dy=2*(1-t)*(curve.ctrl.y-curve.p0.y)+2*t*(curve.p1.y-curve.ctrl.y);
+        const length=Math.max(1,Math.hypot(dx,dy));
+        return {x:-dy/length,y:dx/length};
+      };
+      const gold=curve.isActive;
+      const boards=gold?0xedd195:0xadd8d9;
+      const rails=gold?0xffe7a2:0xc2eff2;
+      const ribbon=this.add.graphics().setDepth(10);
       this.routeDecorations.push(ribbon);
-      for(let k=0;k<46;k++){
-        const from=at(k/46),to=at((k+0.85)/46);
-        if(curve.isActive){
-          ribbon.lineStyle(11,0xffefaf,0.095);
-          ribbon.lineBetween(from.x,from.y,to.x,to.y);
-          ribbon.lineStyle(2.7,0xfff4cc,0.62);
-          ribbon.lineBetween(from.x,from.y,to.x,to.y);
-        }else if(k%5!==4){
-          ribbon.lineStyle(2,0xd1e8f8,0.25);
-          ribbon.lineBetween(from.x,from.y,to.x,to.y);
+      // Each sampled deck is edged by independent rails, fine wooden planks,
+      // and a soft sky-lit underside. The same geometry works for vertical bridges.
+      const steps=62;
+      for(let k=0;k<steps;k++){
+        const t=k/steps,u=(k+1)/steps;
+        const a=at(t),b=at(u),na=normal(t),nb=normal(u);
+        ribbon.lineStyle(43,0x336b86,0.14);
+        ribbon.lineBetween(a.x,a.y+8,b.x,b.y+8);
+        ribbon.lineStyle(32,gold?0xdba954:0x689ca8,0.58);
+        ribbon.lineBetween(a.x,a.y,b.x,b.y);
+        ribbon.lineStyle(25,boards,gold?0.96:0.88);
+        ribbon.lineBetween(a.x,a.y,b.x,b.y);
+        ribbon.lineStyle(4,rails,0.96);
+        for(const side of [-1,1]){
+          ribbon.lineBetween(a.x+na.x*15*side,a.y+na.y*15*side,
+            b.x+nb.x*15*side,b.y+nb.y*15*side);
         }
       }
-      const sparkCount=curve.isActive?11:7;
-      for(let i=0;i<sparkCount;i++){
-        const t=(i+0.6)/(sparkCount+0.2);
-        const pos=at(t);
-        const bright=curve.isActive||i%3===0;
-        const halo=this.add.circle(pos.x,pos.y,bright?7:4,bright?0xfff0b4:0xd1e9fa,
-          curve.isActive?0.21:0.09).setDepth(11);
-        const core=this.add.rectangle(pos.x,pos.y,bright?5.6:3.5,bright?5.6:3.5,
-          bright?0xffe8a2:0xe2f3ff,bright?0.93:0.48).setAngle(45).setDepth(12);
-        this.progressionBubbles.push({halo,core,x:pos.x,y:pos.y});
+      // Rhythmic cross-planks create unmistakable bridge perspective at .5 zoom.
+      for(let i=1;i<28;i++){
+        const t=i/28,p=at(t),n=normal(t);
+        ribbon.lineStyle(2.4,gold?0x946f52:0x638c92,0.72);
+        ribbon.lineBetween(p.x-n.x*11,p.y-n.y*11,p.x+n.x*11,p.y+n.y*11);
+      }
+      // Lamplight and ornamental golden posts are purely decorative.
+      for(const t of [0.13,0.36,0.64,0.87]){
+        const p=at(t),n=normal(t);
+        for(const side of [-1,1]){
+          const x=p.x+n.x*15*side,y=p.y+n.y*15*side;
+          const post=this.add.rectangle(x,y,5,15,gold?0xc48b51:0x81b9b3,0.96).setDepth(11);
+          const light=this.add.circle(x,y-9,5.6,gold?0xffe9a7:0xe1fcf3,0.94).setDepth(12);
+          const halo=this.add.circle(x,y-9,12,gold?0xffd57e:0x91e7fa,0.16).setDepth(11);
+          this.routeDecorations.push(post,light,halo);
+          if(!reduced&&side===1)this.tweens.add({
+            targets:halo,alpha:0.06,scale:1.4,duration:1800+routeIndex*115,
+            yoyo:true,repeat:-1,ease:'Sine.easeInOut'
+          });
+        }
+      }
+      // Tiny traveling fireflies connect the whole ring. Reduced-motion is static.
+      for(let i=0;i<7;i++){
+        const t=(i+0.5)/7,p=at(t),bright=i%3===0;
+        const halo=this.add.circle(p.x,p.y,bright?7:4,0xffefd5,0.21).setDepth(13);
+        const core=this.add.rectangle(p.x,p.y,bright?5:3.5,bright?5:3.5,
+          gold?0xffecb4:0xecffff,0.9).setAngle(45).setDepth(14);
+        this.progressionBubbles.push({halo,core,x:p.x,y:p.y});
         this.routeDecorations.push(halo,core);
-        if(curve.isActive&&!this.isReducedMotion()&&i%3===0){
-          this.tweens.add({targets:halo,scale:1.85,alpha:0.06,duration:2100+i*160,
-            yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
-          this.tweens.add({targets:core,alpha:0.5,duration:2100+i*160,
-            yoyo:true,repeat:-1,ease:'Sine.easeInOut'});
-        }
+        if(!reduced)this.tweens.add({
+          targets:halo,alpha:0.06,scale:1.5,duration:2200+i*130,
+          yoyo:true,repeat:-1,ease:'Sine.easeInOut'
+        });
       }
-      // Only one traveling glint on the currently playable route.
-      if(curve.isActive&&!this.isReducedMotion()&&!this.isMobileDevice()){
-        const glint=this.add.circle(curve.p0.x,curve.p0.y,5.5,0xffffff,0.94).setDepth(13);
+      if(!reduced&&!this.isMobileDevice()){
+        const glint=this.add.circle(curve.p0.x,curve.p0.y,4.5,0xffffff,0.88).setDepth(14);
         this.routeDecorations.push(glint);
-        this.tweens.addCounter({from:0,to:1,duration:4900,delay:routeIndex*190,repeat:-1,
-          onUpdate:(tween)=>{const p=at(tween.getValue()??0);glint.setPosition(p.x,p.y);}});
+        this.tweens.addCounter({from:0,to:1,duration:6000+routeIndex*250,
+          delay:routeIndex*180,repeat:-1,
+          onUpdate:(tween)=>{const p=at(tween.getValue()??0);glint.setPosition(p.x,p.y);}
+        });
       }
     });
   }

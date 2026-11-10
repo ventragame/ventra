@@ -206,3 +206,16 @@ test('Child-facing loading screen and game path no longer show technical copy',(
  assert.doesNotMatch(panel,/Varsayılan kapalıdır/);
  assert.match(panel,/ilk dokunuştan sonra çalabilir/);
 });
+
+test('Premium six-island archipelago has a complete, illuminated bridge ring',()=>{
+ const block=scene.slice(scene.indexOf('private createProgressionPaths(): void'),
+   scene.indexOf('  // --- 3. ALTI BAĞIMSIZ ADANIN'));
+ assert.equal((block.match(/p0:\\{x:/g)||[]).length,6,
+   'Six continuous skybridges connect the ring, including the return to Word Garden');
+ assert.match(block,/const boards=gold/);
+ assert.match(block,/const rails=gold/);
+ assert.match(block,/for\(const side of \[-1,1\]\)/);
+ assert.match(block,/this\.add\.rectangle\(x,y,5,15/);
+ assert.match(block,/if\(!reduced&&!this\.isMobileDevice\(\)\)/);
+ assert.match(scene,/this\.routeDecorations\.forEach\(\(decoration\) => decoration\.setVisible\(!spotlight\)\)/);
+});
