@@ -149,6 +149,7 @@ export interface GameMetrics {
   storyAnswers?: StoryAnswerEvidence[];
   storyJourneys?: StoryJourneyEvidence[];
   sequenceAnswers?: SequenceAnswerEvidence[];
+  sequenceChecks?: {checkId:string;selectedId:string;mistakes:number;hintUsed:boolean;firstTryCorrect:boolean;}[];
   detectiveRuns?: DetectiveRunEvidence[];
 }
 
