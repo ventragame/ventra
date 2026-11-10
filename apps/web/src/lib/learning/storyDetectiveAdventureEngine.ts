@@ -16,7 +16,7 @@ import type {
 } from './storyForestEngine.ts';
 
 export type DetectiveAdventureStepKind=
- 'friend'|'clue'|'crossroads'|'memory'|'destination'|'recover';
+ 'friend'|'clue'|'crossroads'|'memory'|'sequence'|'evidence'|'destination'|'recover';
 export type DetectiveAdventureScene=ForestScene|'chosenWaypoint';
 export type DetectiveStoryTheme='lost'|'surprise'|'delivery'|'treasure';
 export interface DetectiveStorySetup{
@@ -128,6 +128,18 @@ const ALL_CLUES=Object.keys(DETECTIVE_CLUES) as DetectiveClueId[];
 const colorNames:readonly DetectiveAdventurePlan['palette'][]=[
  'sunny','twilight','golden','misty'
 ];
+function cluePairs(first:DetectiveClueId,second:DetectiveClueId,
+ mode:'sequence'|'evidence',seed:number):readonly string[]{
+ const separator=mode==='sequence'?'>':'+';
+ const distractor=shuffle(ALL_CLUES.filter(id=>
+  id!==first&&id!==second),seed+47)[0];
+ const target=first+separator+second;
+ // For sequence, reversing the same correct clues tests temporal order.
+ // For evidence, the wrong pairs contain one incorrect clue.
+ const wrongA=mode==='sequence'?second+'>'+first:first+'+'+distractor;
+ const wrongB=mode==='sequence'?distractor+'>'+second:distractor+'+'+second;
+ return shuffle([target,wrongA,wrongB],seed+83);
+}
 function choices<T extends string>(target:T,options:readonly T[],
  count:number,seed:number):T[]{
  const wrong=shuffle(options.filter(x=>x!==target),seed+51);
@@ -175,11 +187,27 @@ export function planDetectiveAdventure(input:{
   choices(base.requiredClues[0],
    [base.requiredClues[0],...ALL_CLUES.filter(id=>!base.chosen.clueIds.includes(id))],
    3,seed+41));
+ // A1 and A2 must reconstruct the order of two actual events; merely
+ // recognizing one pictured noun is insufficient.
+ if(input.englishLevel!=='Pre-A1'){
+  const first=base.requiredClues[0],second=base.requiredClues[1];
+  const target=first+'>'+second;
+  add('sequence','chosenWaypoint',target,[target],
+   cluePairs(first,second,'sequence',seed+52));
+ }
  if(base.requiredClues.length===3){
   add('clue','chosenWaypoint',base.requiredClues[2],[base.requiredClues[2]],
    choices(base.requiredClues[2],
     [base.requiredClues[2],...ALL_CLUES.filter(id=>!base.chosen.clueIds.includes(id))],
     4,seed+53),2);
+ }
+ // A2 learners connect two distinct pieces of evidence in one answer.
+ // This is a visual inference task with paired cards, not another noun quiz.
+ if(input.englishLevel==='A2'){
+  const first=base.requiredClues[0],second=base.requiredClues[1];
+  const target=first+'+'+second;
+  add('evidence','chosenWaypoint',target,[target],
+   cluePairs(first,second,'evidence',seed+63));
  }
  add('destination','chosenWaypoint',base.chosen.destination,
   [base.chosen.destination],
@@ -284,6 +312,16 @@ export function detectiveAdventurePrompt(
   if(level==='Pre-A1')return 'Two paths! Pick a path to explore.';
   if(level==='A1')return 'There are two paths through the forest. Which one should the friends explore first?';
   return 'The trail divides into two different routes. Choose the next place to explore. Your choice changes the journey.';
+ }
+ if(step.kind==='sequence'){
+  return level==='Pre-A1'?'Which two pictures came first?':
+   level==='A1'?'Think back. Which clues did we find first and then next?':
+   'Remember the order of the two discoveries. Which picture pair shows the true sequence of events?';
+ }
+ if(step.kind==='evidence'){
+  return level==='A2'?
+   'A clever detective connects evidence. Which two clues belong together and point toward the same place?':
+   'Which two picture clues belong together?';
  }
  if(step.kind==='memory'){
   const clue=shortClue(step.target);

@@ -55,6 +55,16 @@ function getStartCount(profileId:string,episode:ForestEpisode,completedCount:num
 function ChoiceArt({value,kind}:{
  value:string;kind:DetectiveAdventureStep['kind']
 }){
+ if(kind==='sequence'||kind==='evidence'){
+  const separator=kind==='sequence'?'>':'+';
+  const ids=value.split(separator);
+  if(ids.length!==2)return null;
+  return <div className="sd-evidence-pair" aria-hidden="true">
+   <span><DetectiveClueArt id={ids[0] as DetectiveClueId}/></span>
+   <b>{kind==='sequence'?'→':'+'}</b>
+   <span><DetectiveClueArt id={ids[1] as DetectiveClueId}/></span>
+  </div>;
+ }
  if(kind==='friend')return <StoryForestActor id={value as import('@/lib/learning/storyForestEngine').ForestActorId}/>;
  if(kind==='recover')return <DetectiveLostItem id={value as DetectiveItemId}/>;
  if(kind==='destination'||kind==='crossroads')
@@ -62,6 +72,11 @@ function ChoiceArt({value,kind}:{
  return <DetectiveClueArt id={value as DetectiveClueId}/>;
 }
 function choiceName(value:string,kind:DetectiveAdventureStep['kind']):string{
+ if(kind==='sequence'||kind==='evidence'){
+  const ids=value.split(kind==='sequence'?'>':'+');
+  return ids.map(id=>DETECTIVE_CLUES[id as DetectiveClueId]?.tr??id)
+   .join(kind==='sequence'?' ardından ':' ve ');
+ }
  if(kind==='friend')return FOREST_ACTOR_NAMES[value as keyof typeof FOREST_ACTOR_NAMES]??value;
  if(kind==='recover')return OBJECT_NAMES[value as DetectiveItemId]??value;
  if(kind==='destination'||kind==='crossroads')
@@ -379,7 +394,8 @@ export function StoryDetectiveAdventure({profileId,gradeLevel,englishLevel,onBac
       <span className="sd-notebook-icon" aria-hidden="true">
        {phase==='opening'?'📖':phase==='ending'?'🏆':
         step?.kind==='friend'?'🐾':step?.kind==='crossroads'?'🗺️':
-        step?.kind==='memory'?'🧠':step?.kind==='destination'?'🧭':
+        step?.kind==='memory'?'🧠':step?.kind==='sequence'?'⏳':
+        step?.kind==='evidence'?'🔗':step?.kind==='destination'?'🧭':
         step?.kind==='recover'?'🎁':'🔎'}
       </span>
       <h2>{phase==='opening'?DETECTIVE_THEME_NAMES[plan.setup.theme]:
@@ -387,6 +403,8 @@ export function StoryDetectiveAdventure({profileId,gradeLevel,englishLevel,onBac
        step?.kind==='friend'?'Arkadaşını Bul':
        step?.kind==='crossroads'?'Yolunu Seç':
        step?.kind==='memory'?'İpucunu Hatırla':
+       step?.kind==='sequence'?'Önce ve Sonra':
+       step?.kind==='evidence'?'İpuçlarını Birleştir':
        step?.kind==='destination'?'Gizemin Yerini Bul':
        step?.kind==='recover'?'Hazineyi Bul':'Yeni İpucu'}</h2>
      </div>
