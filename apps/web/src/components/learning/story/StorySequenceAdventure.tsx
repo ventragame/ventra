@@ -4,7 +4,9 @@ import React,{useEffect,useRef,useState} from 'react';
 import type {ForestEpisode,ForestPlacement} from '@/lib/learning/storyForestEngine';
 import {
  SEQUENCE_STORIES,planSequenceStory,sequenceStars,
- type SequenceDeck,type SequenceAnswer,type SequenceFrame
+ sequenceComprehensionPrompt,
+ type SequenceDeck,type SequenceAnswer,type SequenceFrame,
+ type SequenceComprehensionAnswer
 } from '@/lib/learning/storySequenceEngine';
 import {getSequenceProgress,saveSequenceStory,type SequenceProgress}
  from '@/lib/progress/storySequenceProgress';
@@ -12,6 +14,7 @@ import {getProgressRepository} from '@/lib/progress';
 import {soundService} from '@/lib/audio/SoundService';
 import {StorySequenceFrame} from './StorySequenceFrame';
 import './story-sequence.css';
+import './story-sequence-comprehension.css';
 
 interface Props{
  profileId:string;
@@ -20,7 +23,7 @@ interface Props{
  onBack:()=>void;
  onSaved:()=>void;
 }
-type Page='chapters'|'watch'|'order'|'reward';
+type Page='chapters'|'watch'|'order'|'check'|'reward';
 const EMPTY:SequenceProgress={completedLevels:0,totalLevels:6,starsByLevel:{}};
 
 /** Watch a coherent five-beat illustrated narrative first, then tap images in
@@ -39,6 +42,11 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
  const [slot,setSlot]=useState(0);
  const [selectedIds,setSelectedIds]=useState<string[]>([]);
  const [answers,setAnswers]=useState<SequenceAnswer[]>([]);
+ const [checks,setChecks]=useState<SequenceComprehensionAnswer[]>([]);
+ const [checkIndex,setCheckIndex]=useState(0);
+ const [checkMistakes,setCheckMistakes]=useState(0);
+ const [checkHint,setCheckHint]=useState(false);
+ const [checkWrong,setCheckWrong]=useState<string|null>(null);
  const [mistakes,setMistakes]=useState(0);
  const [hintUsed,setHintUsed]=useState(false);
  const [hintFrame,setHintFrame]=useState<string|null>(null);
@@ -58,6 +66,7 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
  const currentStory=SEQUENCE_STORIES[episode-1];
  const watchFrame=deck?.frames[watchIndex];
  const nextFrame=deck?.frames[slot];
+ const activeCheck=deck?.comprehensionChecks?.[checkIndex]??null;
  function clearNext(){if(timer.current!==null){clearTimeout(timer.current);timer.current=null;}}
  useEffect(()=>{
   alive.current=true;let active=true;
@@ -87,12 +96,14 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
   if(loading||loadError||busy||saving.current||id>progress.completedLevels+1)return;
   clearNext();soundService.cancelSpeech();
   const seed=(Date.now()^Math.floor(Math.random()*0xffffffff))>>>0;
-  const next=planSequenceStory({episode:id,gradeLevel,englishLevel,seed});
+  const next=planSequenceStory({episode:id,gradeLevel,englishLevel,seed,assessmentVersion:2});
   sessionId.current='seq:'+profileId+':'+id+':'+Date.now()+':'+Math.random().toString(36).slice(2);
   startedAt.current=Date.now();
   locked.current=false;saving.current=false;
   setEpisode(id);setDeck(next);setWatchIndex(0);setSlot(0);
-  setSelectedIds([]);setAnswers([]);setMistakes(0);setHintUsed(false);setHintFrame(null);
+  setSelectedIds([]);setAnswers([]);setChecks([]);setCheckIndex(0);
+  setCheckMistakes(0);setCheckHint(false);setCheckWrong(null);
+  setMistakes(0);setHintUsed(false);setHintFrame(null);
   setWrongId(null);setMessage('');setShowCaption(false);setVoiceUnavailable(false);
   setSaveError('');setEarnedStars(0);setPage('watch');
   soundService.playSfx('whoosh',.6);
@@ -164,23 +175,69 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
   timer.current=setTimeout(()=>{
    timer.current=null;
    if(!alive.current)return;
-   if(last){void finish(deck,completed);return;}
+   if(last){
+    if(deck.comprehensionChecks?.length){beginCheck(deck,0);return;}
+    void finish(deck,completed);return;
+   }
    locked.current=false;
    setSlot(s=>s+1);setMistakes(0);setHintUsed(false);setHintFrame(null);
   },last?1150:430);
  }
- async function finish(completedDeck:SequenceDeck,completed:SequenceAnswer[]){
+ function sayCheck(currentDeck:SequenceDeck,index:number){
+  const challenge=currentDeck.comprehensionChecks?.[index];if(!challenge)return;
+  soundService.unlockAudio();soundService.speakEnglish(
+   sequenceComprehensionPrompt(challenge.kind,englishLevel),
+   {rate:englishLevel==='A2'?.96:.9,
+    onError:()=>{if(alive.current)setVoiceUnavailable(true);}
+   });
+ }
+ function beginCheck(currentDeck:SequenceDeck,index:number){
+  locked.current=false;setCheckIndex(index);setCheckMistakes(0);
+  setCheckHint(false);setCheckWrong(null);setMessage('');
+  setPage('check');sayCheck(currentDeck,index);
+ }
+ function selectCheck(id:string){
+  if(!deck||page!=='check'||!activeCheck||locked.current||busy||saveError)return;
+  if(!activeCheck.choiceIds.includes(id))return;
+  if(id!==activeCheck.targetFrameId){
+   setCheckMistakes(n=>n+1);setCheckWrong(id);
+   soundService.playSfx('gentle_retry',.62);return;
+  }
+  locked.current=true;setCheckWrong(null);
+  soundService.cancelSpeech();soundService.playSfx('correct',.78);
+  const answer:SequenceComprehensionAnswer={
+   checkId:activeCheck.id,selectedId:id,mistakes:checkMistakes,
+   hintUsed:checkHint,firstTryCorrect:checkMistakes===0&&!checkHint
+  };
+  const finishedChecks=[...checks,answer];
+  setChecks(finishedChecks);
+  const final=checkIndex+1===(deck.comprehensionChecks?.length??0);
+  timer.current=setTimeout(()=>{
+   timer.current=null;if(!alive.current)return;
+   if(final){void finish(deck,answers,finishedChecks);return;}
+   beginCheck(deck,checkIndex+1);
+  },700);
+ }
+ async function finish(completedDeck:SequenceDeck,completed:SequenceAnswer[],
+  completedChecks:SequenceComprehensionAnswer[]=checks){
   if(saving.current)return;
   saving.current=true;setBusy(true);setSaveError('');
   try{
    const saved=await saveSequenceStory({
     repo:getProgressRepository(),profileId,episode:completedDeck.episode,
-    deck:completedDeck,answers:completed,sessionId:sessionId.current,
+    deck:completedDeck,answers:completed,comprehensionAnswers:completedChecks,
+    sessionId:sessionId.current,
     durationSeconds:(Date.now()-startedAt.current)/1000
    });
    if(!alive.current)return;
    setProgress(saved);setHistory(current=>[...current,...completed]);
-   setEarnedStars(sequenceStars(completed));setPage('reward');
+   const assessmentMistakes=[...completed,...completedChecks]
+    .reduce((sum,a)=>sum+a.mistakes,0);
+   const assessmentHints=[...completed,...completedChecks].filter(a=>a.hintUsed).length;
+   setEarnedStars(completedDeck.assessmentVersion===2?
+    assessmentMistakes===0&&assessmentHints===0?3:
+    assessmentMistakes<=2&&assessmentHints<=1?2:1:
+    sequenceStars(completed));setPage('reward');
    soundService.playSfx('fanfare',.85);
    onSaved();
   }catch(error){
@@ -202,7 +259,8 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
    <div className="ss-count" aria-label="Oyun ilerlemesi">
     {page==='chapters'?('★ '+progress.completedLevels+'/6'):
      page==='watch'&&deck?('📖 '+(watchIndex+1)+'/'+deck.frames.length):
-     page==='order'&&deck?('✦ '+selectedIds.length+'/'+deck.frames.length):'★'}
+     page==='order'&&deck?('✦ '+selectedIds.length+'/'+deck.frames.length):
+     page==='check'&&deck?('🧠 '+(checkIndex+1)+'/'+(deck.comprehensionChecks?.length??0)):'★'}
    </div>
   </header>
   {page==='chapters'&&<main className="ss-main">
@@ -301,6 +359,49 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
      <button type="button" onClick={()=>{if(deck)void finish(deck,answers);}}
        disabled={busy} className="ss-secondary">Yeniden kaydet</button>
     </div>}
+  </main>}
+  {page==='check'&&deck&&activeCheck&&<main className="ss-main ss-comprehension"
+   aria-label="Dinlediğini anlama görevi">
+   <div className="ss-check-heading">
+    <span>🧠 {englishLevel==='A2'?'Hikâyeyi Yorumla':'Sonra Ne Oldu?'}</span>
+    <strong>{activeCheck.kind==='next'?'Bir Sonraki Olay':
+      activeCheck.kind==='cause'?'Neden Oldu?':'Nasıl Bitti?'}</strong>
+   </div>
+   <div className="ss-check-audio">
+    <button type="button" className="ss-speak" aria-label="Soruyu tekrar dinle"
+     onClick={()=>sayCheck(deck,checkIndex)}>🔊</button>
+    <p lang="en">{sequenceComprehensionPrompt(activeCheck.kind,englishLevel)}</p>
+   </div>
+   <div className="ss-check-reference" aria-label="Hatırlanacak hikâye sahnesi">
+    {deck.frames.find(frame=>frame.id===activeCheck.referenceFrameId)&&
+     <StorySequenceFrame
+      frame={deck.frames.find(frame=>frame.id===activeCheck.referenceFrameId)!}
+      scene={scene}/>}
+   </div>
+   <div className="ss-check-cards" role="group" aria-label="Resimlerden doğru olayı seç">
+    {activeCheck.choiceIds.map(id=>{
+     const frame=deck.frames.find(f=>f.id===id);if(!frame)return null;
+     return <button type="button" key={id} className={'ss-check-card '+
+      (checkWrong===id?'wrong ':'')+
+      (checkHint&&id===activeCheck.targetFrameId?'hint ':'')}
+      onClick={()=>selectCheck(id)} disabled={busy||locked.current||!!saveError}
+      aria-label={frame.narration[englishLevel]}>
+      <StorySequenceFrame frame={frame} scene={scene}/>
+     </button>;
+    })}
+   </div>
+   <div className="ss-hint-bar">
+    <button type="button" className="ss-hint-button" disabled={busy||locked.current}
+     onClick={()=>{setCheckHint(true);soundService.playSfx('tap',.36);}}>
+     💡 İpucu
+    </button>
+    <span role="status" aria-live="polite" className="ss-feedback">
+     {checkWrong?'↻ Tekrar dene':'✦ '+(checkIndex+1)+' / '+(deck.comprehensionChecks?.length??0)}
+    </span>
+   </div>
+   {saveError&&<div className="ss-save-error" role="alert">{saveError}
+    <button type="button" onClick={()=>void finish(deck,answers,checks)}
+     disabled={busy} className="ss-secondary">Yeniden kaydet</button></div>}
   </main>}
   {page==='reward'&&<main className="ss-main ss-reward">
      <div className="ss-reward-visual">
