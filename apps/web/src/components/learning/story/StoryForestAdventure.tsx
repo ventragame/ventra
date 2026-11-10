@@ -418,8 +418,11 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
         else nextPassive(plan,phase,destination);}}>▶</button>}
     </div>
     <div className="sj-trail"><span>{active.badge} {active.title}</span>
-     <span className="sj-trail-badge">{plan.route.object==='key'?'🗝️':
-      plan.route.object==='apple'?'🍎':plan.route.object==='bird'?'🐦':'💎'}</span>
+     <span className="sj-trail-badge"
+      aria-label={['opening','discover'].includes(phase)?'Bilinmeyen nesne':'Keşfedilen nesne'}>
+      {['opening','discover'].includes(phase)?'🔎':
+       plan.route.object==='key'?'🗝️':
+       plan.route.object==='apple'?'🍎':plan.route.object==='bird'?'🐦':'💎'}</span>
     </div>
     {saveError&&<div className="sj-save-error" role="alert">{saveError}
      <button type="button" disabled={busy} onClick={()=>{if(plan&&resultRef.current)

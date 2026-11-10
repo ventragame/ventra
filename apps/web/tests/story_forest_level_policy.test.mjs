@@ -191,3 +191,9 @@ test('Listening tests cannot be solved from answer spoilers in background or col
  // Evidence remains hidden for memory, chronology and synthesis tests.
  assert.ok(detective.includes("!['memory','sequence','evidence'].includes(step.kind)"));
 });
+
+test('Bottom navigation cannot reveal the answer before a child discovers it',()=>{
+ const content=fs.readFileSync(new URL('../src/components/learning/story/StoryForestAdventure.tsx',import.meta.url),'utf8');
+ assert.ok(content.includes("['opening','discover'].includes(phase)?'🔎'"));
+ assert.ok(content.includes('Bilinmeyen nesne'));
+});
