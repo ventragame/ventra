@@ -33,6 +33,17 @@ export interface SequenceDeck {
  seed:number;
  frames:readonly SequenceFrame[];
  shuffledIds:readonly SequenceFrameId[];
+ assessmentVersion?:2;
+ comprehensionChecks?:readonly SequenceComprehensionCheck[];
+}
+export type SequenceCheckKind='next'|'cause'|'result';
+export interface SequenceComprehensionCheck{
+ id:string;kind:SequenceCheckKind;referenceFrameId:string;
+ targetFrameId:string;choiceIds:readonly string[];
+}
+export interface SequenceComprehensionAnswer{
+ checkId:string;selectedId:string;mistakes:number;hintUsed:boolean;
+ firstTryCorrect:boolean;
 }
 export interface SequenceAnswer {
  frameId:SequenceFrameId;
@@ -120,12 +131,70 @@ export function shuffleSequence<T>(items:readonly T[],seed:number):T[]{
  }
  return result;
 }
+function assessmentChoices(frames:readonly SequenceFrame[],target:string,
+ reference:string,seed:number):string[]{
+ const pool=shuffleSequence(frames.map(frame=>frame.id)
+  .filter(id=>id!==target&&id!==reference),seed+41);
+ // A minimum of 3 distinct illustrated frames exists in every deck.
+ return shuffleSequence([target,...pool.slice(0,2)],seed+67);
+}
+export function buildSequenceComprehensionChecks(
+ deck:Pick<SequenceDeck,'episode'|'englishLevel'|'seed'|'frames'>
+):readonly SequenceComprehensionCheck[]{
+ if(deck.englishLevel==='Pre-A1')return [];
+ const frames=deck.frames;
+ if(frames.length<3)throw Error('Not enough illustrated scenes');
+ const first=frames[0],second=frames[1],last=frames[frames.length-1],
+  beforeLast=frames[frames.length-2];
+ if(deck.englishLevel==='A1')return [{
+  id:'sequence-check-'+deck.episode+'-next',kind:'next',
+  referenceFrameId:first.id,targetFrameId:second.id,
+  choiceIds:assessmentChoices(frames,second.id,first.id,deck.seed+11)
+ }];
+ return [
+  {id:'sequence-check-'+deck.episode+'-cause',kind:'cause',
+   referenceFrameId:last.id,targetFrameId:beforeLast.id,
+   choiceIds:assessmentChoices(frames,beforeLast.id,last.id,deck.seed+19)},
+  {id:'sequence-check-'+deck.episode+'-result',kind:'result',
+   referenceFrameId:beforeLast.id,targetFrameId:last.id,
+   choiceIds:assessmentChoices(frames,last.id,beforeLast.id,deck.seed+31)}
+ ];
+}
+export function validateSequenceComprehension(
+ answers:readonly SequenceComprehensionAnswer[],deck:SequenceDeck
+):boolean{
+ const checks=deck.comprehensionChecks??[];
+ if(!Array.isArray(answers)||answers.length!==checks.length)return false;
+ return checks.every((check,i)=>{
+  const answer=answers[i];
+  return !!answer&&answer.checkId===check.id&&
+   answer.selectedId===check.targetFrameId&&
+   check.choiceIds.includes(answer.selectedId)&&
+   Number.isInteger(answer.mistakes)&&answer.mistakes>=0&&
+   typeof answer.hintUsed==='boolean'&&
+   answer.firstTryCorrect===(answer.mistakes===0&&!answer.hintUsed);
+ });
+}
+export function sequenceComprehensionPrompt(kind:SequenceCheckKind,
+ level:ForestPlacement):string{
+ if(kind==='next')return 'Listen and remember. What happened just after this scene?';
+ if(kind==='cause')return level==='A2'?
+  'Look at the ending. Which earlier event helped make this ending possible?':
+  'Which event happened before the ending?';
+ return 'Think about the previous event. Which picture shows the result at the end?';
+}
 export function planSequenceStory(input:{
- episode:ForestEpisode;gradeLevel:number|null;englishLevel:ForestPlacement;seed:number
+ episode:ForestEpisode;gradeLevel:number|null;englishLevel:ForestPlacement;
+ seed:number;assessmentVersion?:2
 }):SequenceDeck{
  const story=SEQUENCE_STORIES.find(s=>s.episode===input.episode);
  if(!story||!['Pre-A1','A1','A2'].includes(input.englishLevel))throw Error('Geçersiz hikâye.');
- const count=sequenceLengthForGrade(input.gradeLevel);
+ // A2 should have an actual story cause to reason about. Even in a lower
+ // school grade, include the penultimate event rather than ask about a
+ // scene the child never heard.
+ const count=input.assessmentVersion===2&&input.englishLevel==='A2'?
+  Math.max(4,sequenceLengthForGrade(input.gradeLevel)):
+  sequenceLengthForGrade(input.gradeLevel);
  // Keep the beginning, an actual middle, and the conclusion. Higher grades
  // see more connecting events; this is NOT a random, causally broken excerpt.
  const indices=count===3?[0,2,4]:count===4?[0,1,3,4]:[0,1,2,3,4];
@@ -134,8 +203,15 @@ export function planSequenceStory(input:{
  let shuffled=shuffleSequence(frames.map(f=>f.id),seed+input.episode*211);
  // A lucky sorted shuffle would reveal every answer for free.
  if(shuffled.every((id,i)=>id===frames[i].id))shuffled=[...shuffled.slice(1),shuffled[0]];
- return {episode:input.episode,gradeLevel:input.gradeLevel,englishLevel:input.englishLevel,
-  seed,frames,shuffledIds:shuffled};
+ const result:SequenceDeck={
+  episode:input.episode,gradeLevel:input.gradeLevel,englishLevel:input.englishLevel,
+  seed,frames,shuffledIds:shuffled
+ };
+ if(input.assessmentVersion===2){
+  result.assessmentVersion=2;
+  result.comprehensionChecks=buildSequenceComprehensionChecks(result);
+ }
+ return result;
 }
 export function validateSequenceAnswers(answers:readonly SequenceAnswer[],deck:SequenceDeck):boolean{
  if(!Array.isArray(answers)||answers.length!==deck.frames.length||
