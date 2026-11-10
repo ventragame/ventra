@@ -9,13 +9,14 @@ import {
 } from '@/lib/rewards/economyRepository';
 import {getProgressRepository} from '@/lib/progress';
 import {CosmeticArtwork} from './CosmeticArtwork';
+import {AvatarPortrait} from '../profile/AvatarPortrait';
 
 type Tab='passport'|'quests'|'shop';
 type Props={
-  profileId:string;nickname:string;avatarEmoji:string;gradeLevel:number|null;
+  profileId:string;nickname:string;avatarId:string;gradeLevel:number|null;
   englishLevel:string;onClose:()=>void;onChanged?:()=>void;
 };
-export function KidsPassport({profileId,nickname,avatarEmoji,gradeLevel,englishLevel,onClose,onChanged}:Props){
+export function KidsPassport({profileId,nickname,avatarId,gradeLevel,englishLevel,onClose,onChanged}:Props){
   const closeButton=useRef<HTMLButtonElement>(null);
   const [tab,setTab]=useState<Tab>('passport');
   const [snapshot,setSnapshot]=useState<PassportSnapshot|null>(null);
@@ -67,7 +68,7 @@ export function KidsPassport({profileId,nickname,avatarEmoji,gradeLevel,englishL
     <div className="mx-auto max-w-5xl">
       <header className="flex items-center justify-between gap-2 pb-5">
         <div>
-          <div className="text-xs font-extrabold uppercase tracking-[.22em] text-cyan-300">Ventra Kids • P5</div>
+          <div className="text-xs font-extrabold uppercase tracking-[.22em] text-cyan-300">Ventra Kids • Kaşif Kartı</div>
           <h1 className="mt-1 text-xl font-black sm:text-3xl">✨ Maceracı Pasaportu</h1>
         </div>
         <button ref={closeButton} onClick={onClose} className="min-h-12 rounded-2xl border border-white/25 bg-slate-900/90 px-4 text-sm font-black hover:bg-slate-800">
@@ -85,7 +86,7 @@ export function KidsPassport({profileId,nickname,avatarEmoji,gradeLevel,englishL
           <div className="relative flex flex-wrap items-center gap-4">
             <div aria-label="Kişiselleştirilmiş maceracı avatarın"
               className={`relative flex h-24 w-24 shrink-0 items-center justify-center rounded-[26px] border-2 border-white/30 bg-gradient-to-br from-cyan-500/40 to-violet-500/40 text-5xl shadow-xl sm:h-28 sm:w-28 ${aura?'shadow-yellow-200/60':''}`}>
-              <span aria-hidden="true">{avatarEmoji}</span>
+              <AvatarPortrait id={avatarId} size={110} className="h-full w-full rounded-[24px]"/>
               {hat&&<span aria-label={hat.name} className="absolute -right-3 -top-4"><CosmeticArtwork id={hat.id} size={42}/></span>}
               {badge&&<span aria-label={badge.name} className="absolute -bottom-2 -right-2"><CosmeticArtwork id={badge.id} size={35}/></span>}
               {aura&&<span aria-label={aura.name} className="absolute -bottom-3 -left-3"><CosmeticArtwork id={aura.id} size={37}/></span>}

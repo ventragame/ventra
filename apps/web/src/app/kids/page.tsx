@@ -720,7 +720,7 @@ export default function VentraKidsWorldPage() {
         key={activeProfile.id}
         profileId={activeProfile.id}
         nickname={activeProfile.nickname}
-        avatarEmoji={currentAvatar.emoji}
+        avatarId={activeProfile.avatarId}
         gradeLevel={activeProfile.gradeLevel??null}
         englishLevel={activeProfile.englishLevel??'Pre-A1'}
         onClose={()=>{setIsPassportOpen(false);void loadProfileAndProgress(activeProfile);}}
