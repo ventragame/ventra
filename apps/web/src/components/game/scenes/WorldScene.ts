@@ -797,7 +797,7 @@ export class WorldScene extends Phaser.Scene {
     // 3. Kilidi Açık ve İçeriği Yayımlanmış Ada (Kelime Bahçesi)
     if (this.isTransitioning) return;
     this.isTransitioning = true;
-    soundService.playSfx('whoosh', 0.8);
+    soundService.playSfx('island_portal', 0.85);
 
     // Kamerayı yumuşakça adaya yaklaştır (Aşırı zoom yok: 1.05)
     this.cameras.main.pan(entity.worldX, entity.worldY, 480, 'Cubic.easeInOut');

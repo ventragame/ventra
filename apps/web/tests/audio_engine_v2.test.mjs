@@ -76,3 +76,17 @@ test('Kid controls persist per channel and no music starts without a player acti
  assert.match(path,/musicSceneForDistrict\(district\)/);
  assert.match(path,/setMusicScene\('archipelago'\)/);
 });
+
+test('Island travel has its own soft sound and does not double-fire during cloud navigation',()=>{
+ const sound=fs.readFileSync(new URL('../src/lib/audio/SoundService.ts',import.meta.url),'utf8');
+ const map=fs.readFileSync(new URL('../src/app/kids/page.tsx',import.meta.url),'utf8');
+ const scene=fs.readFileSync(new URL('../src/components/game/scenes/WorldScene.ts',import.meta.url),'utf8');
+ const wav=fs.readFileSync(new URL('../public/audio/sfx/island_portal.wav',import.meta.url));
+ assert.equal(wav.toString('ascii',0,4),'RIFF');
+ assert.equal(wav.toString('ascii',8,12),'WAVE');
+ assert.ok(wav.length>32000&&wav.length<200000);
+ assert.match(sound,/island_portal:950/);
+ assert.match(map,/playSfx\('island_portal'/);
+ assert.match(scene,/playSfx\('island_portal'/);
+ assert.doesNotMatch(sound,/island_portal.*?voice/);
+});

@@ -142,3 +142,19 @@ test('Picture-first UX has native readable fallback, no manual next button in or
  assert.match(page,/getSequenceProgress/);
  assert.match(page, /forestCompletedLevels=\{/);
 });
+
+test('Desktop story watch uses bounded full-body actor slots without modifying phone framing',()=>{
+ const css=fs.readFileSync(new URL('../src/components/learning/story/story-sequence.css',import.meta.url),'utf8');
+ assert.match(css,/@media \(min-width:901px\) and \(hover:hover\) and \(pointer:fine\)/);
+ assert.match(css,/\.ss-story-content > \.ss-screen \.ss-primary-character/);
+ assert.match(css,/\.ss-story-content > \.ss-screen \.ss-companion/);
+ assert.match(css,/max-height:285px/);
+ assert.match(css,/max-height:205px/);
+ assert.match(css,/object-fit:contain;object-position:center bottom/);
+ assert.match(css,/\.ss-placement-right \.ss-primary-character/);
+ assert.match(css,/\.ss-action-share \.ss-companion/);
+ // Changes must be limited to the large stage, not the ordering thumbnails.
+ const desktop=css.slice(css.lastIndexOf('/* Desktop storybook cinema:'));
+ assert.doesNotMatch(desktop,/\.ss-card\s*\{/);
+ assert.doesNotMatch(desktop,/@media\s*\(max-width:700px\)/);
+});

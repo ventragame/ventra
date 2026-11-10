@@ -15,7 +15,7 @@ const SILENT_WAV='data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEARKwAAIhY
 const STORAGE_KEY_MUTED='ventra_sound_muted';
 export const STORAGE_KEY_AUDIO_V2='ventra_audio_mix_v2';
 export type AudioChannel='music'|'effects'|'voice';
-export type SfxName='tap'|'correct'|'fanfare'|'whoosh'|'gentle_retry';
+export type SfxName='tap'|'correct'|'fanfare'|'whoosh'|'gentle_retry'|'island_portal';
 export interface AudioSettings{
  muted:boolean;
  musicEnabled:boolean;
@@ -63,7 +63,9 @@ class SoundService {
  private gestureListenerAttached=false;
  private lastSfx=new Map<SfxName,number>();
  private sfxCooldown:Readonly<Record<SfxName,number>>={
-  tap:38,correct:90,fanfare:550,whoosh:130,gentle_retry:150
+  tap:38,correct:90,fanfare:550,whoosh:130,gentle_retry:150,
+  // A scene click also raises OPEN_LEARNING_PATH ~420ms later; never double-play.
+  island_portal:950
  };
  constructor(){
   if(typeof window!=='undefined'){

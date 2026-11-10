@@ -287,7 +287,7 @@ export default function VentraKidsWorldPage() {
     if (pendingRegionRef.current) return;
     pendingRegionRef.current = regionId;
     soundService.unlockAudio();
-    soundService.playSfx('whoosh');
+    soundService.playSfx('island_portal',0.85);
     setIsTransitionActive(true);
   }, []);
 
