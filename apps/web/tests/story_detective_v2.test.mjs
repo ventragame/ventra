@@ -66,7 +66,8 @@ test('The child completes seven or eight DISTINCT interactions, not a 3-click qu
   for(let episode=1;episode<=6;episode++){
    const p=planDetectiveAdventure({episode,gradeLevel:grade,
     englishLevel:'A1',seed:episode*19,playCount:episode+3});
-   assert.equal(p.steps.length,grade!==null&&grade>=5?8:7);
+   assert.equal(p.steps.length,grade!==null&&grade>=5?9:8);
+   assert.equal(p.steps.filter(s=>s.kind==='sequence').length,1);
    assert.equal(p.steps.filter(s=>s.kind==='clue').length,grade!==null&&grade>=5?3:2);
    assert.deepEqual(p.steps.slice(0,5).map(s=>s.kind),[
     'friend','clue','crossroads','clue','memory'
@@ -216,4 +217,27 @@ test('Mobile picture UI keeps independent scenery and speech/safety escape contr
  assert.ok(css.includes('@media(max-width:760px)'));
  assert.ok(css.includes('@media(max-width:385px)'));
  assert.match(css,/prefers-reduced-motion/);
+});
+
+test('English placement changes detective cognitive task type, not merely spoken text',()=>{
+ for(const grade of [1,2,4,5,8]){
+  for(let episode=1;episode<=6;episode++){
+   const plans=['Pre-A1','A1','A2'].map(englishLevel=>
+    planDetectiveAdventure({episode,gradeLevel:grade,englishLevel,
+     seed:episode*37+grade,playCount:2}));
+   assert.deepEqual(plans.map(p=>p.steps.length),
+    grade>=5?[8,9,10]:[7,8,9]);
+   assert.deepEqual(plans.map(p=>p.steps.some(s=>s.kind==='sequence')),
+    [false,true,true]);
+   assert.deepEqual(plans.map(p=>p.steps.some(s=>s.kind==='evidence')),
+    [false,false,true]);
+   const a1=plans[1].steps.find(s=>s.kind==='sequence');
+   assert.equal(a1.choices.length,3);
+   assert.ok(a1.choices.some(id=>id.includes('>')));
+   const advanced=plans[2].steps.find(s=>s.kind==='evidence');
+   assert.equal(advanced.choices.length,3);
+   assert.ok(advanced.choices.every(id=>id.split('+').length===2));
+   for(const p of plans)assert.ok(validateDetectiveRecord(makeRecord(p),p));
+  }
+ }
 });
