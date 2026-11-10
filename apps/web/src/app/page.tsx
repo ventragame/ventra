@@ -80,17 +80,17 @@ export default function VentraHomePage() {
       {isLifeModalOpen && <LifeComingSoonModal
         isOpen={isLifeModalOpen}
         onClose={() => setIsLifeModalOpen(false)}
-      />}}}}
+      />}
 
       {isAuthModalOpen && <AuthModal
         isOpen={isAuthModalOpen}
         onClose={() => setIsAuthModalOpen(false)}
-      />}}}}
+      />}
 
       {isFaqModalOpen && <FaqModal
         isOpen={isFaqModalOpen}
         onClose={() => setIsFaqModalOpen(false)}
-      />}}}}
+      />}
     </div>
   );
 }
