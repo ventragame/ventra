@@ -430,7 +430,7 @@ export function StoryDetectiveAdventure({profileId,gradeLevel,englishLevel,onBac
     </div>}
 
     {isStep&&<>
-     {step.kind!=='memory'&&picked.length>0&&<div className="sd-story-trail"
+     {!['memory','sequence','evidence'].includes(step.kind)&&picked.length>0&&<div className="sd-story-trail"
       aria-label="Topladığın ipuçları">
       {picked.map(id=><div className="sd-story-trail-item" key={id}>
        <DetectiveClueArt id={id}/></div>)}

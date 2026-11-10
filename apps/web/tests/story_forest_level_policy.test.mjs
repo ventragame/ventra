@@ -180,3 +180,14 @@ test('Scene UI displays real visual interactions instead of extra text-only quiz
  assert.ok(contents[4].includes('@media(max-width:700px)'));
  assert.ok(contents[4].includes('prefers-reduced-motion'));
 });
+
+test('Listening tests cannot be solved from answer spoilers in background or collected clue strip',()=>{
+ const base=new URL('../src/components/learning/story/',import.meta.url);
+ const forest=fs.readFileSync(new URL('StoryForestAdventure.tsx',base),'utf8');
+ const detective=fs.readFileSync(new URL('StoryDetectiveAdventure.tsx',base),'utf8');
+ // Forest place-recall screen must retain the introduction, never the answer destination.
+ assert.ok(forest.includes("(['result','friend','consequence','ending'] as JourneyPhase[])"));
+ assert.ok(!forest.includes("['result','friend','place','consequence','ending']"));
+ // Evidence remains hidden for memory, chronology and synthesis tests.
+ assert.ok(detective.includes("!['memory','sequence','evidence'].includes(step.kind)"));
+});

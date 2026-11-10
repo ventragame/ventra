@@ -54,7 +54,7 @@ function StoryScene({plan,phase,location}:{
  plan:JourneyPlan;phase:JourneyPhase;location?:ForestScene|null;
 }){
  const {route}=plan;
- const scene=(['result','friend','place','consequence','ending'] as JourneyPhase[]).includes(phase)&&location?location:route.scene;
+ const scene=(['result','friend','consequence','ending'] as JourneyPhase[]).includes(phase)&&location?location:route.scene;
  const showHero=true; // the main character must never vanish between story beats
  const showFriend=['meet','choose','result','friend','place','consequence','ending'].includes(phase);
  // A lost object must not be visible in the opening scene.
