@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import './CloudTransition.css';
 
 interface CloudTransitionProps {
   isActive: boolean;
@@ -8,71 +9,62 @@ interface CloudTransitionProps {
   onComplete?: () => void;
 }
 
+type CloudPhase = 'idle' | 'closing' | 'covered' | 'opening';
+
+/**
+ * The destination is mounted only AFTER the screen is fully concealed.
+ * A single effect owns all timers, including cleanup if navigation is cancelled.
+ */
 export const CloudTransition: React.FC<CloudTransitionProps> = ({
   isActive,
   onCovered,
   onComplete
 }) => {
-  const [phase, setPhase] = useState<'idle' | 'closing' | 'covered' | 'opening'>('idle');
+  const [phase, setPhase] = useState<CloudPhase>('idle');
 
   useEffect(() => {
-    if (isActive) {
-      setPhase('closing');
-      const coverTimer = setTimeout(() => {
-        setPhase('covered');
-        onCovered?.();
-        const openTimer = setTimeout(() => {
-          setPhase('opening');
-          const completeTimer = setTimeout(() => {
-            setPhase('idle');
-            onComplete?.();
-          }, 450);
-          return () => clearTimeout(completeTimer);
-        }, 250);
-        return () => clearTimeout(openTimer);
-      }, 400);
-      return () => clearTimeout(coverTimer);
-    } else {
+    if (!isActive) {
       setPhase('idle');
+      return;
     }
-  }, [isActive]);
+
+    const reducedMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const closeMs = reducedMotion ? 90 : 760;
+    const holdMs = reducedMotion ? 90 : 240;
+    const openMs = reducedMotion ? 90 : 680;
+
+    setPhase('closing');
+    const coverTimer = window.setTimeout(() => {
+      setPhase('covered');
+      onCovered?.();
+    }, closeMs);
+    const openTimer = window.setTimeout(() => setPhase('opening'), closeMs + holdMs);
+    const completeTimer = window.setTimeout(() => {
+      setPhase('idle');
+      onComplete?.();
+    }, closeMs + holdMs + openMs);
+
+    return () => {
+      window.clearTimeout(coverTimer);
+      window.clearTimeout(openTimer);
+      window.clearTimeout(completeTimer);
+    };
+  }, [isActive, onCovered, onComplete]);
 
   if (phase === 'idle') return null;
 
   return (
-    <div className="fixed inset-0 z-50 pointer-events-none flex items-center justify-center overflow-hidden">
-      {/* Sol Bulut Grubu */}
-      <div
-        className={`absolute top-0 bottom-0 left-0 w-3/4 bg-gradient-to-r from-sky-100 via-sky-50 to-transparent transition-transform duration-500 ease-out flex items-center ${
-          phase === 'closing' || phase === 'covered' ? 'translate-x-0' : '-translate-x-full'
-        }`}
-        style={{
-          filter: 'drop-shadow(0 15px 30px rgba(2, 132, 199, 0.3))'
-        }}
-      >
-        <div className="w-full flex flex-col justify-around h-full py-10 opacity-95">
-          <img src="/assets/island/cloud.svg" alt="bulut" className="w-72 -ml-16 transform scale-125" />
-          <img src="/assets/island/cloud.svg" alt="bulut" className="w-96 -ml-8" />
-          <img src="/assets/island/cloud.svg" alt="bulut" className="w-64 -ml-12" />
-        </div>
+    <div className="ventra-cloud-transition" data-phase={phase} aria-hidden="true">
+      <div className="ventra-cloud-transition__veil" />
+      <div className="ventra-cloud-transition__bank ventra-cloud-transition__bank--left">
+        <span className="ventra-cloud-transition__haze" />
       </div>
-
-      {/* Sağ Bulut Grubu */}
-      <div
-        className={`absolute top-0 bottom-0 right-0 w-3/4 bg-gradient-to-l from-sky-100 via-sky-50 to-transparent transition-transform duration-500 ease-out flex items-center justify-end ${
-          phase === 'closing' || phase === 'covered' ? 'translate-x-0' : 'translate-x-full'
-        }`}
-        style={{
-          filter: 'drop-shadow(0 15px 30px rgba(2, 132, 199, 0.3))'
-        }}
-      >
-        <div className="w-full flex flex-col justify-around items-end h-full py-10 opacity-95">
-          <img src="/assets/island/cloud.svg" alt="bulut" className="w-80 -mr-12" />
-          <img src="/assets/island/cloud.svg" alt="bulut" className="w-64 -mr-6 transform scale-110" />
-          <img src="/assets/island/cloud.svg" alt="bulut" className="w-96 -mr-16" />
-        </div>
+      <div className="ventra-cloud-transition__bank ventra-cloud-transition__bank--right">
+        <span className="ventra-cloud-transition__haze" />
+      </div>
+      <div className="ventra-cloud-transition__light">
+        <span className="ventra-cloud-transition__star">✦</span>
       </div>
     </div>
   );
 };
-

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
 import {
@@ -86,7 +86,7 @@ export default function VentraKidsWorldPage() {
   // Öğrenme Yolu ve Bulut Geçişi
   const [activeRegion, setActiveRegion] = useState<string | null>(null);
   const [isTransitionActive, setIsTransitionActive] = useState<boolean>(false);
-  const [pendingRegion, setPendingRegion] = useState<string | null>(null);
+  const pendingRegionRef = useRef<string | null>(null);
 
   // Ortak Oyun Durumu & Etkileşim Kilidi: Herhangi bir modal veya aktivite açıkken arka plan kilitlenir
   const isWorldLocked = Boolean(
@@ -283,19 +283,19 @@ export default function VentraKidsWorldPage() {
 
   // 2. Bölgeye Geçiş (Bulut Geçiş Efekti)
   const handleOpenLearningPath = useCallback((regionId: string) => {
+    // Guard rapid double taps until the current transition fully finishes.
+    if (pendingRegionRef.current) return;
+    pendingRegionRef.current = regionId;
     soundService.unlockAudio();
     soundService.playSfx('whoosh');
-    setPendingRegion(regionId);
     setIsTransitionActive(true);
   }, []);
 
   const handleTransitionCovered = useCallback(() => {
-    setPendingRegion((currentPending) => {
-      if (currentPending) {
-        setActiveRegion(currentPending);
-      }
-      return null;
-    });
+    // Never issue a state update from inside another state updater.
+    const region = pendingRegionRef.current;
+    pendingRegionRef.current = null;
+    if (region) setActiveRegion(region);
   }, []);
 
   const handleTransitionComplete = useCallback(() => {
@@ -306,7 +306,7 @@ export default function VentraKidsWorldPage() {
     soundService.playSfx('whoosh');
     setActiveRegion(null);
     setIsTransitionActive(false);
-    setPendingRegion(null);
+    pendingRegionRef.current = null;
   }, []);
 
   // 3. Bölge Tamamlandığında (Kelime Bahçesi Bitimi)

@@ -96,8 +96,8 @@ test('V2 mobile camera has distinct overview and focus framing with reserved UI 
    assert.ok(screenY>55&&screenY<height-75,`island avoids controls at ${width}x${height}`);
  }
  assert.match(scene,/WORLD_OVERVIEW_CHANGED/);
- assert.match(scene,/mode = this\.isOverviewMode \|\|/);
- assert.match(scene,/this\.cameras\.main\.useBounds = !this\.isOverviewMode/);
+ assert.match(scene,/const mode = this\.isPanoramaMode\(\)/);
+ assert.match(scene,/this\.cameras\.main\.useBounds = !this\.isPanoramaMode\(\)/);
 });
 test('V2 mobile sheet, tools and viewport preserve access to six islands',()=>{
  assert.match(page,/height: '100dvh'/);
@@ -149,4 +149,46 @@ test('V3 six desktop islands have non-overlapping base illustration footprints',
      assert.ok(distance>=460,`island illustration collision: ${a.id} / ${b.id}: ${distance}`);
    }
  }
+});
+
+test('Desktop panorama centers all six islands and uses the available screen height',async()=>{
+ const {archipelagoCameraFraming,archipelagoOpticalShiftPixels}=
+   await import('../src/lib/game/archipelagoPresentation.ts');
+ const {ARCHIPELAGO_ISLANDS_ORDERED}=await import('../../../packages/shared/src/archipelago.ts');
+ const bounds={width:1640,height:1120,centerX:1210,centerY:760};
+ for(const [width,height] of [[901,700],[1280,720],[1764,830],[1920,1080],[2560,1440]]){
+   const frame=archipelagoCameraFraming({width,height,bounds,mode:'overview'});
+   const cameraX=frame.x-archipelagoOpticalShiftPixels(width)/frame.zoom;
+   for(const island of ARCHIPELAGO_ISLANDS_ORDERED){
+     const {x,y}=island.defaultWorldPos;
+     const screenX=width/2+(x-cameraX)*frame.zoom;
+     const screenY=height/2+(y-frame.y)*frame.zoom;
+     const radius=230*frame.zoom;
+     assert.ok(screenX-radius>=-1&&screenX+radius<=width+1,
+       island.id+' horizontal crop at '+width+'x'+height);
+     assert.ok(screenY-radius>=70&&screenY+radius<=height-65,
+       island.id+' vertical crop at '+width+'x'+height);
+   }
+   if(width===1764) assert.ok(frame.zoom>=0.49,
+     'Desktop islands should be legible instead of tiny');
+ }
+ assert.match(scene,/this\.cameras\.main\.useBounds = mode !== 'overview'/);
+ assert.match(scene,/private isPanoramaMode\(\)/);
+ assert.match(scene,/if \(this\.isPanoramaMode\(\)\)/);
+});
+
+test('Island portal waits for opaque coverage before mounting a region',()=>{
+ const overlay=fs.readFileSync(new URL('../src/components/learning/CloudTransition.tsx',import.meta.url),'utf8');
+ const css=fs.readFileSync(new URL('../src/components/learning/CloudTransition.css',import.meta.url),'utf8');
+ assert.match(overlay,/const closeMs = reducedMotion \? 90 : 760/);
+ assert.match(overlay,/setPhase\('covered'\);\s*onCovered\?\.\(\)/);
+ assert.match(overlay,/window\.clearTimeout\(coverTimer\)/);
+ assert.match(overlay,/window\.clearTimeout\(openTimer\)/);
+ assert.match(overlay,/window\.clearTimeout\(completeTimer\)/);
+ assert.match(css,/ventra-cloud-veil-in 760ms/);
+ assert.match(css,/100% \{ opacity: 1; \}/);
+ assert.match(css,/@media \(prefers-reduced-motion: reduce\)/);
+ assert.match(page,/if \(pendingRegionRef\.current\) return/);
+ assert.match(page,/const region = pendingRegionRef\.current/);
+ assert.doesNotMatch(overlay,/cloud\.svg/);
 });

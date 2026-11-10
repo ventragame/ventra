@@ -41,10 +41,15 @@ export function archipelagoCameraFraming({
 }: ArchipelagoCameraFrameInput): ArchipelagoCameraFrame {
   const shortLandscape = width <= 900 && height <= 520;
   const narrow = width <= 900;
-  const top = narrow ? (shortLandscape ? 64 : 94) : width <= 900 ? 82 : 96;
-  const bottom = narrow
-    ? (mode === 'overview' ? 86 : shortLandscape ? 88 : 230)
-    : width <= 900 ? (mode === 'overview' ? 110 : 210) : 240;
+  // The desktop panorama needs a different composition from the single-island
+  // camera. Preserve the existing <=900px framing exactly as it is.
+  const desktopOverview = !narrow && mode === 'overview';
+  const top = desktopOverview
+    ? Math.min(110, Math.max(84, height * 0.13))
+    : narrow ? (shortLandscape ? 64 : 94) : 96;
+  const bottom = desktopOverview
+    ? Math.min(100, Math.max(80, height * 0.12))
+    : narrow ? (mode === 'overview' ? 86 : shortLandscape ? 88 : 230) : 240;
   const availableWidth = Math.max(160, width - (width <= 900 ? 36 : 160));
   const availableHeight = Math.max(110, height - top - bottom);
   let zoom: number;
@@ -61,7 +66,7 @@ export function archipelagoCameraFraming({
       x -= Math.min(110, width * 0.12) / zoom;
     }
   } else {
-    const inset = narrow ? 100 : 150;
+    const inset = desktopOverview ? 100 : narrow ? 100 : 150;
     zoom = Math.max(0.12, Math.min(1.15,
       availableWidth / (bounds.width + inset),
       availableHeight / (bounds.height + inset)));

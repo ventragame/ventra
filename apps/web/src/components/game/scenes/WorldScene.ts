@@ -712,6 +712,11 @@ export class WorldScene extends Phaser.Scene {
     this.routeDecorations.forEach((decoration) => decoration.setVisible(!spotlight));
   }
 
+  /** The default desktop state is a panorama even before "Genel Harita" is clicked. */
+  private isPanoramaMode(): boolean {
+    return this.isOverviewMode || (!this.isCompactViewport() && !this.isDesktopFocused);
+  }
+
   // --- 5. ADA SEÇİMİ VE KAMERA ODAKLANMASI ---
   public handleSelectIsland(islandId: IslandId): void {
     if (this.isInputLocked) return;
@@ -874,8 +879,10 @@ export class WorldScene extends Phaser.Scene {
   // --- 8. CAMERA FIT: PORTRAIT FOCUS OR TRUE SIX-ISLAND OVERVIEW ---
   public fitCameraToViewport(duration = 0): void {
     const { width, height } = this.scale;
-    const mode = this.isOverviewMode || (!this.isCompactViewport() && !this.isDesktopFocused)
-      ? 'overview' : 'focus';
+    const mode = this.isPanoramaMode() ? 'overview' : 'focus';
+    // Phaser clamps oversized viewports to the world boundary. At desktop
+    // overview zoom this pinned the whole archipelago to the LEFT edge.
+    this.cameras.main.useBounds = mode !== 'overview';
     this.updateIslandPresentation();
     const bounds = this.getCombinedIslandsBounds();
     const entity = this.islands.get(this.activeFocusedIslandId) || this.islands.get('word_garden');
@@ -941,14 +948,14 @@ export class WorldScene extends Phaser.Scene {
           // In spotlight mode swiping switches islands; never pan to empty sky.
           return;
         }
-        this.cameras.main.useBounds = !this.isOverviewMode;
+        this.cameras.main.useBounds = !this.isPanoramaMode();
         this.resetAllHoverStates(); // Sürükleme anında asılı hover'ları sıfırla
       }
 
       const zoom = this.cameras.main.zoom;
       const nextX = this.cameraStartX - deltaX / zoom;
       const nextY = this.cameraStartY - deltaY / zoom;
-      if (this.isOverviewMode) {
+      if (this.isPanoramaMode()) {
         // Allow inspection of the panorama without losing the islands off-screen.
         const bounds = this.getCombinedIslandsBounds();
         const centerX = bounds.centerX - this.scale.width / (2 * zoom);
