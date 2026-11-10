@@ -219,3 +219,15 @@ test('Premium six-island archipelago has a complete, illuminated bridge ring',()
  assert.match(block,/if\(!reduced&&!this\.isMobileDevice\(\)\)/);
  assert.match(scene,/this\.routeDecorations\.forEach\(\(decoration\) => decoration\.setVisible\(!spotlight\)\)/);
 });
+
+test('Profile picker uses illustrated, unlocked characters without weakening profile ownership',()=>{
+ const picker=fs.readFileSync(new URL('../src/components/profile/ProfileSelectorModal.tsx',import.meta.url),'utf8');
+ const illustration=fs.readFileSync(new URL('../src/components/profile/AvatarPortrait.tsx',import.meta.url),'utf8');
+ assert.match(picker,/purchaseAvatarWithCoins/);
+ assert.match(picker,/getAvatarShop/);
+ assert.match(picker,/onProfileSwitched\(updated\)/);
+ assert.match(picker,/onClick=\{\(\)=>void equipAvatar\(true\)\}/);
+ assert.match(picker,/if \(p\.userId\)/);
+ assert.match(illustration,/feDropShadow/);
+ assert.match(page,/AvatarPortrait id=\{activeProfile\?\.avatarId/);
+});

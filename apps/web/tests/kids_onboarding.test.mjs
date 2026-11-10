@@ -40,3 +40,15 @@ test('Kids returning profile retains the original ID, stars and finished lessons
   assert.equal((await getWordGardenProgress(repo, child.id)).completedLevels, 1);
   assert.equal((await repo.getAllProfiles()).length, 1);
 });
+
+test('New child profile offers only free avatars; legacy IDs remain compatible',async()=>{
+ const {VENTRA_STARTER_AVATARS,VENTRA_AVATARS,getAvatarById}=await import('../../../packages/shared/src/profile.ts');
+ const fs=(await import('node:fs')).default;
+ const ui=fs.readFileSync(new URL('../src/components/onboarding/KidsWelcomeGate.tsx',import.meta.url),'utf8');
+ assert.equal(VENTRA_STARTER_AVATARS.length,3);
+ assert.equal(VENTRA_AVATARS.length,12);
+ assert.match(ui,/VENTRA_STARTER_AVATARS\.map/);
+ assert.match(ui,/AvatarPortrait/);
+ assert.equal(getAvatarById('avatar_owl').id,'avatar_owl');
+ assert.equal(getAvatarById('avatar_robot').id,'avatar_robot');
+});

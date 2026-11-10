@@ -3,7 +3,9 @@
 import React, { useState, type FormEvent } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, ArrowRight, BookOpen, CloudOff, GraduationCap, ShieldCheck, Sparkles, UserRound, UsersRound } from 'lucide-react';
-import { VENTRA_AVATARS, type PlayerProfile } from '@ventra/shared';
+import { VENTRA_STARTER_AVATARS, type PlayerProfile } from '@ventra/shared';
+import { AvatarPortrait } from '../profile/AvatarPortrait';
+import { soundService } from '@/lib/audio/SoundService';
 import type { CreateProfileInput } from '@/lib/progress';
 
 type Screen = 'choose' | 'individual' | 'family' | 'school';
@@ -18,7 +20,7 @@ interface KidsWelcomeGateProps {
 export function KidsWelcomeGate({ onCreateProfile, onOpenParent, existingProfile, onContinue }: KidsWelcomeGateProps) {
   const [screen, setScreen] = useState<Screen>('choose');
   const [nickname, setNickname] = useState('');
-  const [avatar, setAvatar] = useState(VENTRA_AVATARS[0].id);
+  const [avatar, setAvatar] = useState(VENTRA_STARTER_AVATARS[0].id);
   const [grade, setGrade] = useState('');
   const [englishLevel, setEnglishLevel] = useState<'Pre-A1' | 'A1' | 'A2'>('Pre-A1');
   const [isSaving, setIsSaving] = useState(false);
@@ -32,7 +34,7 @@ export function KidsWelcomeGate({ onCreateProfile, onOpenParent, existingProfile
       setError('Takma ad 2–15 karakter arasında olmalı.');
       return;
     }
-    if (!VENTRA_AVATARS.some((item) => item.id === avatar)) {
+    if (!VENTRA_STARTER_AVATARS.some((item) => item.id === avatar)) {
       setError('Geçerli bir avatar seç.');
       return;
     }
@@ -90,7 +92,7 @@ export function KidsWelcomeGate({ onCreateProfile, onOpenParent, existingProfile
         {existingProfile && onContinue && (
           <div className="mx-auto mb-5 flex max-w-4xl items-center justify-between gap-3 rounded-2xl border border-white/20 bg-white/10 p-3 sm:p-4">
             <div className="flex items-center gap-3">
-              <span className="text-3xl" aria-hidden="true">{VENTRA_AVATARS.find((item) => item.id === existingProfile.avatarId)?.emoji || '🧭'}</span>
+              <span className="text-3xl" aria-hidden="true"><AvatarPortrait id={existingProfile.avatarId} size={44} className="h-11 w-11 rounded-xl" /></span>
               <div><p className="text-sm font-extrabold">{existingProfile.nickname}</p><p className="text-xs text-sky-100/80">Aynı çocuk profiliyle devam ediyorsun</p></div>
             </div>
             <button onClick={onContinue} className="rounded-xl border border-white/25 bg-slate-900/70 px-3 py-3 text-xs font-bold hover:bg-white/20">Oyuna Dön</button>
@@ -127,12 +129,12 @@ export function KidsWelcomeGate({ onCreateProfile, onOpenParent, existingProfile
             <label htmlFor="kid-nickname" className="block text-sm font-bold text-white">Kaşifinin takma adı</label>
             <input id="kid-nickname" required minLength={2} maxLength={15} autoComplete="off" value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="Örnek: Minik Kaşif" className="mt-2 w-full rounded-2xl border border-white/25 bg-slate-900 p-4 text-base text-white placeholder-slate-400 outline-none focus-visible:border-sky-300" />
             <fieldset className="mt-6">
-              <legend className="text-sm font-bold">Ücretsiz avatarını seç</legend>
-              <div className="mt-3 grid grid-cols-3 gap-3 sm:grid-cols-6">
-                {VENTRA_AVATARS.map((item) => (
-                  <button type="button" key={item.id} aria-pressed={avatar === item.id} onClick={() => setAvatar(item.id)}
-                    className={`flex min-h-24 flex-col items-center justify-center gap-2 rounded-2xl border-2 p-2 transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-300 ${avatar === item.id ? 'border-lime-300 bg-emerald-500/20' : 'border-white/20 bg-white/5 hover:border-sky-300'}`}>
-                    <span className="text-3xl" aria-hidden="true">{item.emoji}</span><span className="text-[11px] font-bold">{item.name}</span>
+              <legend className="text-sm font-bold">İlk macera arkadaşını seç · 3 ücretsiz kahraman</legend>
+              <div className="mt-3 grid grid-cols-3 gap-3">
+                {VENTRA_STARTER_AVATARS.map((item) => (
+                  <button type="button" key={item.id} aria-pressed={avatar === item.id} onClick={() => { setAvatar(item.id); soundService.playSfx('tap', 0.4); }}
+                    className={`group flex min-h-32 flex-col items-center justify-center gap-2 rounded-2xl border-2 p-2 transition hover:-translate-y-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-300 ${avatar === item.id ? 'border-lime-300 bg-emerald-500/20 shadow-[0_0_26px_#9ef1bc60]' : 'border-white/20 bg-white/5 hover:border-sky-300'}`}>
+                    <AvatarPortrait id={item.id} size={90} className="h-[68px] w-[68px] max-w-full transition-transform group-hover:scale-105" /><span className="text-[11px] font-bold">{item.name}</span>
                   </button>
                 ))}
               </div>

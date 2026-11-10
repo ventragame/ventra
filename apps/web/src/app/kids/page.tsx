@@ -30,6 +30,7 @@ import { CosmeticArtwork } from '../../components/rewards/CosmeticArtwork';
 import { getPassport } from '../../lib/rewards/economyRepository';
 import { COSMETICS,type CosmeticId } from '../../lib/rewards/economyEngine';
 import { soundService } from '../../lib/audio/SoundService';
+import { AvatarPortrait } from '../../components/profile/AvatarPortrait';
 const AudioSettingsPanel = dynamic(() => import('../../components/audio/AudioSettingsPanel').then((module) => module.AudioSettingsPanel), { loading: () => <div role="status" className="text-center text-sm text-sky-100 p-6">Ventra bölümü yükleniyor…</div> });
 import { EventBus } from '../../lib/game/EventBus';
 import './kids-world-premium.css';
@@ -451,7 +452,7 @@ export default function VentraKidsWorldPage() {
               className="kids-profile-avatar"
               style={{ backgroundColor: currentAvatar.bgColor }}
             >
-              {currentAvatar.emoji}
+              <AvatarPortrait id={activeProfile?.avatarId||'avatar_explorer'} size={38} className="h-full w-full"/>
               {avatarEquipment.hat&&<span aria-hidden="true" className="absolute -right-2 -top-2 text-sm">
                 {<CosmeticArtwork id={avatarEquipment.hat} size={25}/>}
               </span>}

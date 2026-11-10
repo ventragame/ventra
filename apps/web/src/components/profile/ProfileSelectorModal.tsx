@@ -98,7 +98,7 @@ export const ProfileSelectorModal:React.FC<ProfileSelectorModalProps>=({
  }
  async function removeProfile(p:PlayerProfile){
   if(busy)return;
-  if(p.userId){setError('Aileye bağlı profili yalnızca ebeveyn alanından silebilirsin.');onOpenParentGate?.();return;}
+  if (p.userId){setError('Aileye bağlı profili yalnızca ebeveyn alanından silebilirsin.');onOpenParentGate?.();return;}
   if(profiles.length<=1){setError('En az bir oyuncu profili bulunmalı.');return;}
   if(!window.confirm('“'+p.nickname+'” profilini ve bu profile ait oyun ilerlemesini silmek istediğine emin misin?'))return;
   setBusy(true);setError('');
