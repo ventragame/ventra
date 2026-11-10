@@ -63,6 +63,12 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
  const saving=useRef(false);
  const alive=useRef(true);
  const timer=useRef<ReturnType<typeof setTimeout>|null>(null);
+ // Gentle speaking-speed changes preserve natural prosody rather than
+ // stretching short beginner words into synthetic slow motion.
+ const voiceRate=Math.max(.87,Math.min(1.02,
+  (englishLevel==='Pre-A1'?.89:englishLevel==='A1'?.95:.99)+
+   (gradeLevel!==null&&gradeLevel<=2?-.015:
+    gradeLevel!==null&&gradeLevel>=6?.015:0)));
  const currentStory=SEQUENCE_STORIES[episode-1];
  const watchFrame=deck?.frames[watchIndex];
  const nextFrame=deck?.frames[slot];
@@ -87,7 +93,7 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
   soundService.unlockAudio();
   setVoiceUnavailable(false);
   const started=soundService.speakEnglish(frame.narration[englishLevel],{
-   rate:englishLevel==='Pre-A1'?.81:.9,
+   rate:voiceRate,
    onError:()=>{if(alive.current){setVoiceUnavailable(true);setShowCaption(true);}}
   });
   if(!started){setVoiceUnavailable(true);setShowCaption(true);}
@@ -121,7 +127,7 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
    setPage('order');setShowCaption(false);setVoiceUnavailable(false);
    soundService.cancelSpeech();
    // The initial guided playback is complete; now the child assembles it.
-   soundService.speakEnglish('What happened first?',{rate:.87});
+   soundService.speakEnglish('What happened first?',{rate:voiceRate});
    return;
   }
   const next=watchIndex+1;
@@ -135,7 +141,7 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
   if(page==='watch'&&watchFrame)narrate(watchFrame);
   if(page==='order'){
    soundService.unlockAudio();
-   soundService.speakEnglish('What happened next?',{rate:.84});
+   soundService.speakEnglish('What happened next?',{rate:voiceRate});
   }
  }
  function showHint(){
@@ -187,7 +193,7 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
   const challenge=currentDeck.comprehensionChecks?.[index];if(!challenge)return;
   soundService.unlockAudio();soundService.speakEnglish(
    sequenceComprehensionPrompt(challenge.kind,englishLevel),
-   {rate:englishLevel==='A2'?.96:.9,
+   {rate:voiceRate,
     onError:()=>{if(alive.current)setVoiceUnavailable(true);}
    });
  }
