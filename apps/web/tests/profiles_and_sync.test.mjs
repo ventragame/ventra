@@ -167,7 +167,8 @@ test('Multi-Device Event Sourcing & Conflict Resolution', async () => {
 });
 
 test('Child Privacy & Avatar Catalog Integrity', () => {
-  assert.equal(VENTRA_AVATARS.length, 6, 'Tam 6 çocuk dostu avatar bulunmalı');
+  assert.equal(VENTRA_AVATARS.length, 12, 'Üç ücretsiz, dokuz açılabilir avatar bulunmalı');
+  assert.equal(VENTRA_AVATARS.filter(a=>a.price===0).length,3);
 
   for (const av of VENTRA_AVATARS) {
     assert.ok(av.id.startsWith('avatar_'));

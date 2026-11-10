@@ -66,8 +66,8 @@ export const ProfileSelectorModal:React.FC<ProfileSelectorModalProps>=({
  },[isOpen,loadProfiles]);
  if(!isOpen)return null;
  const selected=getAvatarById(preview);
- const unlocked=(id:string)=>Boolean(shop&&avatarIsOwned(shop.economy,id))||
-  activeProfile?.avatarId===id;
+ const unlocked=(id:string)=>getAvatarById(id).price===0||
+  Boolean(shop&&avatarIsOwned(shop.economy,id))||activeProfile?.avatarId===id;
  const owned=unlocked(preview);
  const available=VENTRA_AVATARS.filter(av=>filter==='all'||
   (filter==='available'?unlocked(av.id):!unlocked(av.id)));

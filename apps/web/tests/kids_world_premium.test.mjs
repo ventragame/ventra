@@ -75,7 +75,7 @@ test('R2 independent islands use responsive labels, revised plaques and subtle f
  assert.match(scene,/archipelagoOpticalShiftPixels\(width\)\/fitZoom/);
  assert.match(scene,/const badgeContainer = this.add.container\(badgeAnchor.x,badgeAnchor.y\)/);
  assert.match(scene,/fillRoundedRect\(-127,-43,254,94/);
- assert.match(scene,/this.add.rectangle\(pos.x,pos.y/);
+ assert.match(scene,/this.add.rectangle\(p.x,p.y/);
  assert.match(scene,/this.tweens.addCounter/);
  assert.match(scene,/this.isReducedMotion\(\)/);
  assert.match(map,/sentence_workshop/);

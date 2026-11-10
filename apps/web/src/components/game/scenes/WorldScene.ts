@@ -327,7 +327,7 @@ export class WorldScene extends Phaser.Scene {
           const light=this.add.circle(x,y-9,5.6,gold?0xffe9a7:0xe1fcf3,0.94).setDepth(12);
           const halo=this.add.circle(x,y-9,12,gold?0xffd57e:0x91e7fa,0.16).setDepth(11);
           this.routeDecorations.push(post,light,halo);
-          if(!reduced&&side===1)this.tweens.add({
+          if(!reduced&&!this.isMobileDevice()&&side===1)this.tweens.add({
             targets:halo,alpha:0.06,scale:1.4,duration:1800+routeIndex*115,
             yoyo:true,repeat:-1,ease:'Sine.easeInOut'
           });
@@ -341,7 +341,7 @@ export class WorldScene extends Phaser.Scene {
           gold?0xffecb4:0xecffff,0.9).setAngle(45).setDepth(14);
         this.progressionBubbles.push({halo,core,x:p.x,y:p.y});
         this.routeDecorations.push(halo,core);
-        if(!reduced)this.tweens.add({
+        if(!reduced&&!this.isMobileDevice())this.tweens.add({
           targets:halo,alpha:0.06,scale:1.5,duration:2200+i*130,
           yoyo:true,repeat:-1,ease:'Sine.easeInOut'
         });
