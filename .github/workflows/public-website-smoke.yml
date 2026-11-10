@@ -1,0 +1,29 @@
+name: Ventra Public Website Smoke (manual)
+
+on:
+  workflow_dispatch:
+    inputs:
+      site_url:
+        description: 'Exact HTTPS URL shown in the Ventra Vercel project Domains tab'
+        type: string
+        required: true
+
+permissions:
+  contents: read
+
+jobs:
+  verify-site:
+    name: Check public site identity and /kids
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - name: Validate smoke checker
+        run: node --test scripts/check-public-url.test.mjs
+      - name: Verify Ventra public URL
+        env:
+          PUBLIC_URL: ${{ inputs.site_url }}
+        run: node scripts/check-public-url.mjs "$PUBLIC_URL"
