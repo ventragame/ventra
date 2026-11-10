@@ -18,6 +18,11 @@
 .sf-scene-pond{object-position:50% 46%}
 .sf-scene-meadow{object-position:58% 48%}
 .sf-scene-bridge{object-position:38% 53%}
+/* Campsite stays recognizable in portrait, while foreground is kept free for actors. */
+.sf-scene-camp{object-position:61% 51%}
+@media(max-width:700px){
+ .sf-scene-camp{object-position:70% 50%}
+}
 
 /* Overall book/forest presentation stays tactile, with a legible HUD
  * and no large text panels over the central illustrations. */

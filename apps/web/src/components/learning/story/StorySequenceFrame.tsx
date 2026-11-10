@@ -22,9 +22,9 @@ function StoryItem({kind}:{kind:SequenceProp}){
   <path d="M60 22V100" stroke="#9676bf" strokeWidth="5"/>
   <path d="M24 37L47 46M24 52L46 60M73 44L95 36M73 59L96 51"
     fill="none" stroke="#d1b789" strokeWidth="4" strokeLinecap="round"/></svg>;
- if(kind==='moon')return <svg viewBox="0 0 120 120" aria-hidden="true">
-  <path d="M87 10A52 52 0 1 0 110 92A45 45 0 0 1 87 10Z" fill="#fff2b3" stroke="#f5d47a" strokeWidth="6"/>
-  <path d="M17 21L20 29L28 32L20 35L17 43L14 35L6 32L14 29Z" fill="#fff9dc"/></svg>;
+ if(kind==='moon')return <img className="ss-premium-prop" alt="" aria-hidden="true"
+  src="/assets/story-forest/premium/clues/moon.webp" draggable={false}
+  decoding="async" loading="eager"/>;
  if(kind==='bridge'||kind==='home')return <svg viewBox="0 0 120 120" aria-hidden="true">
   {kind==='home'?<><path d="M10 51L61 10L112 51" fill="#f5a19c" stroke="#a76f83" strokeWidth="9"/>
     <rect x="25" y="49" width="74" height="64" rx="7" fill="#ffe5b2" stroke="#b58a80" strokeWidth="7"/>

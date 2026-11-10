@@ -15,10 +15,10 @@ const characters=[
 ];
 const scenes=[
  'forest_clearing','forest_path','forest_treehouse','forest_pond',
- 'forest_meadow','forest_bridge'
+ 'forest_meadow','forest_bridge','forest_camp'
 ];
 const code=fs.readFileSync(path.join(root,'src/components/learning/story/StoryForestArt.tsx'),'utf8');
-test('All 13 premium WebP assets are real image bytes and have budgeted sizes',()=>{
+test('All 14 premium WebP assets are real image bytes and have budgeted sizes',()=>{
  for(const name of characters){
   const p=path.join(assets,'characters',name+'.webp');
   assert.ok(fs.existsSync(p),'Missing character asset: '+name);
@@ -110,4 +110,32 @@ test('Portrait phone scene expands instead of centering a fixed-height story car
  assert.match(mobile,/min-height:0/);
  assert.match(mobile,/align-items:center/);
  assert.match(mobile,/@media\s*\(max-width:700px\) and \(orientation:landscape\)/);
+});
+
+test('All six story backgrounds have unique WebP mappings, with no SVG fallback',()=>{
+ assert.match(code,/Readonly<Record<ForestScene,string>>/);
+ for(const scene of ['path','treehouse','pond','meadow','bridge','camp']){
+  assert.ok(code.includes(scene+":'scenes/forest_"),'Missing environment: '+scene);
+ }
+ const scenery=code.slice(code.indexOf('export function StoryForestScenery'),
+  code.indexOf('const ANIMAL_COLORS:'));
+ assert.match(scenery,/<img className=/);
+ assert.doesNotMatch(scenery,/<svg|linearGradient|treeXs/);
+ const css=fs.readFileSync(path.join(root,'src/components/learning/story/premium-story-art.css'),'utf8');
+ assert.match(css,/\.sf-scene-camp/);
+ assert.match(css,/@media\(max-width:700px\)/);
+});
+
+test('Tent, moon and lantern clue art is WebP, not the old flat SVG',()=>{
+ const clue=fs.readFileSync(path.join(root,'src/components/learning/story/StoryDetectiveArt.tsx'),'utf8');
+ const seq=fs.readFileSync(path.join(root,'src/components/learning/story/StorySequenceFrame.tsx'),'utf8');
+ for(const name of ['tent','moon','lantern']){
+  const bytes=fs.readFileSync(path.join(assets,'clues',name+'.webp'));
+  assert.equal(bytes.toString('ascii',0,4),'RIFF');
+  assert.equal(bytes.toString('ascii',8,12),'WEBP');
+  assert.ok(bytes.length>1500&&bytes.length<50000);
+  assert.ok(clue.includes(name+":'"+name+".webp'"));
+  assert.ok(!clue.includes("id==='"+name+"'&&<>"));
+ }
+ assert.match(seq,/assets\/story-forest\/premium\/clues\/moon\.webp/);
 });

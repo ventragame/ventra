@@ -7,7 +7,16 @@ import type {DetectiveClueId,DetectiveItemId} from '@/lib/learning/storyDetectiv
  * just because the shapes look similar. These figures are independent of the
  * painted WebP forest backdrops and remain touchable at phone sizes.
  */
+/** Render scene-matched 3D WebP props, not old flat vector icons. */
+const PREMIUM_CLUE_ROOT='/assets/story-forest/premium/clues/';
+const PREMIUM_CLUE_ASSETS:Readonly<Partial<Record<DetectiveClueId,string>>> = {
+ tent:'tent.webp',moon:'moon.webp',lantern:'lantern.webp'
+};
 export function DetectiveClueArt({id}:{id:DetectiveClueId}){
+ const premium=PREMIUM_CLUE_ASSETS[id];
+ if(premium)return <img className="sd-illustration sd-premium-clue"
+  src={PREMIUM_CLUE_ROOT+premium} alt="" aria-hidden="true"
+  draggable={false} loading="eager" decoding="async"/>;
  if(id==='flower')return <StoryForestActor id="pink_flower"/>;
  if(id==='butterfly')return <StoryForestActor id="butterfly"/>;
  if(id==='fish')return <StoryForestActor id="fish"/>;
@@ -58,15 +67,6 @@ export function DetectiveClueArt({id}:{id:DetectiveClueId}){
    <path d="M70 38V107M42 73H99" stroke="#fff9d8" strokeWidth="8"/>
    <path d="M47 52Q60 43 65 50M75 50Q83 42 94 47" stroke="#fff" strokeWidth="4" opacity=".85"/>
   </>}
-  {id==='lantern'&&<>
-   <path d="M54 35V27Q54 13 70 13Q86 13 86 27V35" fill="none"
-    stroke="#916b57" strokeWidth="8"/>
-   <path d="M37 44L50 31H90L104 44L95 109H44Z" fill="#a86a4b"
-    stroke="#794c43" strokeWidth="6"/>
-   <path d="M49 48H91L86 103H54Z" fill="#ffe8a1" stroke="#edb851" strokeWidth="4"/>
-   <path d="M70 58C55 76 61 88 70 95Q86 82 70 58Z" fill="#ffb052"/>
-   <path d="M28 113H112" stroke="#865844" strokeWidth="8" strokeLinecap="round"/>
-  </>}
   {id==='acorn'&&<>
    <path d="M36 61Q34 100 70 119Q104 101 104 61Z"
     fill="#c78551" stroke="#975937" strokeWidth="6"/>
@@ -94,19 +94,6 @@ export function DetectiveClueArt({id}:{id:DetectiveClueId}){
     stroke="#4fbbd9" strokeWidth="35" strokeLinecap="round"/>
    <path d="M25 19Q84 35 45 63Q4 91 96 125" fill="none"
     stroke="#beeef8" strokeWidth="7" strokeLinecap="round" strokeDasharray="10 17"/>
-  </>}
-  {id==='tent'&&<>
-   <path d="M13 111L71 24L125 111Z" fill="#ed9b79"
-    stroke="#ae6d6f" strokeWidth="7" strokeLinejoin="round"/>
-   <path d="M51 111L71 57L89 111Z" fill="#435d86" stroke="#ac6975" strokeWidth="5"/>
-   <path d="M71 24L71 57" stroke="#ffd8ac" strokeWidth="5"/>
-   <path d="M10 113H132" stroke="#8e6b60" strokeWidth="7" strokeLinecap="round"/>
-  </>}
-  {id==='moon'&&<>
-   <path d="M90 16A52 52 0 1 0 115 99A45 45 0 0 1 90 16Z"
-    fill="#fff0ae" stroke="#dfba71" strokeWidth="6"/>
-   <path d="M21 18L26 28L37 33L26 38L21 49L16 38L5 33L16 28Z"
-    fill="#fff7d0"/>
   </>}
  </svg>;
 }
