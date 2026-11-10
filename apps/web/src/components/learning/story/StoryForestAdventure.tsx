@@ -5,7 +5,8 @@ import type {ForestActorId,ForestEpisode,ForestPlacement,ForestScene} from '@/li
 import {FOREST_EPISODES,FOREST_ACTOR_NAMES} from '@/lib/learning/storyForestEngine';
 import {
  JOURNEY_ROUTES,planJourneyStory,narrativeFor,journeyStars,
- type JourneyObject,type JourneyPlan,type JourneyPhase,type JourneyRecord
+ type JourneyObject,type JourneyPlan,type JourneyPhase,type JourneyRecord,
+ type JourneyChallengeAnswer
 } from '@/lib/learning/storyForestJourneyEngine';
 import {getProgressRepository} from '@/lib/progress';
 import {getStoryForestProgress,saveForestJourney,type ForestProgress} from '@/lib/progress/storyForestProgress';
@@ -14,6 +15,7 @@ import {StoryForestActor,StoryForestScenery,STORY_FOREST_PREMIUM_COVER} from './
 import './story-forest-journey.css';
 import './story-forest-object-staging.css';
 import './story-forest-mobile-cast.css';
+import './story-forest-level-checks.css';
 
 type Screen='chapters'|'playing'|'reward';
 type Props={profileId:string;gradeLevel:number|null;englishLevel:ForestPlacement;onBack:()=>void;onSaved:()=>void};
@@ -34,13 +36,27 @@ function JourneyObjectArt({object}:{object:JourneyObject}){
    loading="eager" decoding="async"/>:null;
 }
 function Actor({id}:{id:ForestActorId}){return <StoryForestActor id={id}/>;}
+function StoryConsequenceArt({object}:{object:JourneyObject}){
+ return <div className={'sj-outcome-art sj-outcome-'+object} aria-hidden="true">
+  <StoryForestScenery scene={object==='bird'?'treehouse':object==='crystal'?'camp':
+   object==='key'?'path':'meadow'}/>
+  {object==='key'&&<div className="sj-outcome-chest"><span>✦</span></div>}
+  {object==='apple'&&<><div className="sj-outcome-pet left"><Actor id="rabbit"/></div>
+   <div className="sj-outcome-pet right"><Actor id="hedgehog"/></div></>}
+  {object==='bird'&&<><div className="sj-outcome-pet left"><Actor id="bird"/></div>
+   <div className="sj-outcome-pet right"><Actor id="bird_flying"/></div></>}
+  {object==='crystal'&&<span className="sj-outcome-glow"/>}
+  {object!=='bird'&&<div className="sj-outcome-item">
+   <JourneyObjectArt object={object}/></div>}
+ </div>;
+}
 function StoryScene({plan,phase,location}:{
  plan:JourneyPlan;phase:JourneyPhase;location?:ForestScene|null;
 }){
  const {route}=plan;
- const scene=(phase==='result'||phase==='friend'||phase==='ending')&&location?location:route.scene;
+ const scene=(['result','friend','place','consequence','ending'] as JourneyPhase[]).includes(phase)&&location?location:route.scene;
  const showHero=true; // the main character must never vanish between story beats
- const showFriend=['meet','choose','result','ending'].includes(phase);
+ const showFriend=['meet','choose','result','friend','place','consequence','ending'].includes(phase);
  // A lost object must not be visible in the opening scene.
  const objectRecovered=phase==='result'||phase==='ending';
  // Group actors so their bounding boxes cannot overlap on narrow devices.
@@ -82,6 +98,8 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
  const [mistakes,setMistakes]=useState(0);
  const [usedHint,setUsedHint]=useState(false);
  const [firstResult,setFirstResult]=useState<{mistakes:number;hint:boolean}>({mistakes:0,hint:false});
+ const [secondResult,setSecondResult]=useState<{mistakes:number;hint:boolean}>({mistakes:0,hint:false});
+ const [learningAnswers,setLearningAnswers]=useState<JourneyChallengeAnswer[]>([]);
  const [caption,setCaption]=useState(false);
  const [voiceUnavailable,setVoiceUnavailable]=useState(false);
  const [highlight,setHighlight]=useState(false);
@@ -169,10 +187,11 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
   if(loading||loadError||busy||savingRef.current||id>progress.completedLevels+1)return;
   stopAudio();
   const seed=(Date.now()^Math.floor(Math.random()*0xffffffff))>>>0;
-  const selected=planJourneyStory({episode:id,englishLevel,gradeLevel,seed,history});
+  const selected=planJourneyStory({episode:id,englishLevel,gradeLevel,seed,history,assessmentVersion:2});
   setEpisode(id);setPlan(selected);setScreen('playing');
   setDestination(null);setMistakes(0);setUsedHint(false);
-  setFirstResult({mistakes:0,hint:false});setHighlight(false);setSaveError('');
+  setFirstResult({mistakes:0,hint:false});setSecondResult({mistakes:0,hint:false});
+  setLearningAnswers([]);setHighlight(false);setSaveError('');
   setWrong(null);setCorrect(false);
   actionLock.current=false;resultRef.current=null;
   runId.current='journey:'+profileId+':'+id+':'+Date.now()+':'+seed;
@@ -206,6 +225,43 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
    timer.current=null;if(!alive.current)return;
    actionLock.current=false;enterPhase(plan,'result',loc);
   },450);
+ }
+ function completeStory(p:JourneyPlan,loc:ForestScene,
+  second:{mistakes:number;hint:boolean},checks:JourneyChallengeAnswer[]){
+  const record:JourneyRecord={
+   routeId:p.route.id,episode:p.route.episode,object:p.route.object,
+   destination:loc,firstMistakes:firstResult.mistakes,secondMistakes:second.mistakes,
+   firstHint:firstResult.hint,secondHint:second.hint,
+   learningChecks:checks,completedAt:new Date().toISOString()
+  };
+  resultRef.current=record;enterPhase(p,'ending',loc);
+ }
+ function startChallenge(p:JourneyPlan,index:number,loc:ForestScene){
+  const challenge=p.learningChallenges?.[index];if(!challenge)return;
+  actionLock.current=false;setMistakes(0);setUsedHint(false);setHighlight(false);
+  enterPhase(p,challenge.kind,loc);
+ }
+ function tapChallenge(id:string){
+  if(!plan||!destination||actionLock.current||busy||
+   !['place','consequence'].includes(phaseRef.current))return;
+  const list=plan.learningChallenges??[];
+  const check=list[learningAnswers.length];
+  if(!check||check.kind!==phaseRef.current||!check.choices.includes(id))return;
+  const target=check.kind==='place'?destination:check.target;
+  if(id!==target){
+   setMistakes(n=>n+1);setWrong(id);soundService.playSfx('gentle_retry',.6);return;
+  }
+  actionLock.current=true;setWrong(null);setCorrect(true);
+  soundService.playSfx('correct',.8);
+  const done=[...learningAnswers,{checkId:check.id,selectedId:id,
+   mistakes,hintUsed:usedHint,firstTryCorrect:mistakes===0&&!usedHint}];
+  setLearningAnswers(done);
+  timer.current=setTimeout(()=>{
+   timer.current=null;if(!alive.current)return;
+   actionLock.current=false;
+   if(done.length<list.length)startChallenge(plan,done.length,destination);
+   else completeStory(plan,destination,secondResult,done);
+  },700);
  }
  function tapFriend(id:ForestActorId){
   if(!plan||phaseRef.current!=='friend'||actionLock.current||busy||!destination)return;
