@@ -24,10 +24,15 @@ test('Capacitor TTS does not load on the Next.js server during prerender',()=>{
  assert.ok(source.includes("await import('@capacitor-community/text-to-speech')"));
  assert.ok(source.includes("typeof window!=='undefined'"));
 });
-test('Music scheduler has visibility, opt-in, dynamic ducking and independent mixer safeguards',()=>{
+test('Music scheduler has visibility, saved preferences, dynamic ducking and independent mixer safeguards',()=>{
  const sound=fs.readFileSync(new URL('../src/lib/audio/SoundService.ts',import.meta.url),'utf8');
  const music=fs.readFileSync(new URL('../src/lib/audio/MusicDirector.ts',import.meta.url),'utf8');
- assert.match(sound,/musicEnabled:false/);
+ assert.match(sound,/muted:false,musicEnabled:true,music:0\.4,effects:0\.7,voice:1/);
+ assert.match(sound,/musicEnabled:typeof v\.musicEnabled==='boolean'\?v\.musicEnabled:DEFAULT_AUDIO_SETTINGS\.musicEnabled/);
+ assert.match(sound,/window\.localStorage\.getItem\(STORAGE_KEY_AUDIO_V2\)/);
+ assert.match(sound,/this\.music\.setPaused\(true\)/);
+ assert.match(sound,/window\.addEventListener\('pointerdown',unlock,\{once:true,passive:true\}\)/);
+ assert.match(sound,/if\(playable&&this\.context\?\.state==='running'\)this\.music\.start\(this\.context\)/);
  assert.match(sound,/document.hidden/);
  assert.match(sound,/setMusicEnabled\(enabled:boolean\)/);
  assert.match(sound,/setChannelVolume\(channel:AudioChannel/);

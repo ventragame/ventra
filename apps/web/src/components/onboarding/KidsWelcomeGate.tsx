@@ -101,21 +101,21 @@ export function KidsWelcomeGate({ onCreateProfile, onOpenParent, existingProfile
             <button onClick={() => { if (existingProfile && onContinue) onContinue(); else { setScreen('individual'); setError(null); } }} className="group flex min-h-[270px] flex-col rounded-[2rem] border-2 border-emerald-300/60 bg-gradient-to-br from-emerald-700/80 via-teal-800/80 to-sky-900/90 p-6 text-left shadow-xl shadow-emerald-950/30 transition hover:-translate-y-1 hover:border-lime-300 focus-visible:outline focus-visible:outline-4 focus-visible:outline-lime-300">
               <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/15"><UserRound size={34} /></span>
               <strong className="mt-6 text-xl font-black">Bireysel Oyna</strong>
-              <span className="mt-2 text-sm leading-relaxed text-white/85">{existingProfile ? 'Mevcut profilinle, kayıtlarını koruyarak bireysel oynamaya devam et.' : 'Hesap açmadan kaşifini oluştur ve hemen oynamaya başla.'}</span>
+              <span className="mt-2 text-sm leading-relaxed text-white/85">{existingProfile ? 'Kaldığın adadan devam et; yeni kelimeler keşfet, görevlerini tamamla, yıldızlarını topla.' : 'Kendi kaşifini seç, sihirli adalara yolculuğa çık ve İngilizceyi oynayarak keşfet.'}</span>
               <span className="mt-auto flex items-center gap-2 pt-5 text-sm font-extrabold text-lime-200">Hemen Başla <ArrowRight size={18} /></span>
             </button>
 
             <button onClick={() => setScreen('family')} className="group flex min-h-[270px] flex-col rounded-[2rem] border border-white/25 bg-gradient-to-br from-indigo-800/85 to-sky-950 p-6 text-left transition hover:-translate-y-1 hover:border-sky-300 focus-visible:outline focus-visible:outline-4 focus-visible:outline-sky-300">
               <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/15"><UsersRound size={34} /></span>
               <strong className="mt-6 text-xl font-black">Ailemle Oyna</strong>
-              <span className="mt-2 text-sm leading-relaxed text-white/80">Ebeveyn alanını aç, çocuk profillerini ve bulut ayarlarını yönet.</span>
+              <span className="mt-2 text-sm leading-relaxed text-white/80">Çocuğunun İngilizce macerasına eşlik et; keşfettiği adaları ve kazandığı yıldızları birlikte kutla.</span>
               <span className="mt-auto flex items-center gap-2 pt-5 text-sm font-bold text-sky-200">Aile Alanı <ArrowRight size={18} /></span>
             </button>
 
             <button onClick={() => setScreen('school')} className="group flex min-h-[270px] flex-col rounded-[2rem] border border-white/25 bg-gradient-to-br from-violet-800/80 to-slate-950 p-6 text-left transition hover:-translate-y-1 hover:border-violet-300 focus-visible:outline focus-visible:outline-4 focus-visible:outline-violet-300">
               <span className="flex h-16 w-16 items-center justify-center rounded-2xl bg-white/15"><GraduationCap size={34} /></span>
               <strong className="mt-6 text-xl font-black">Okulumla Oyna</strong>
-              <span className="mt-2 text-sm leading-relaxed text-white/80">Öğretmen sınıf açabilir; veli davetiyle çocuğunu güvenle katabilir.</span>
+              <span className="mt-2 text-sm leading-relaxed text-white/80">Öğretmeninin sınıfına katıl, kelimelerle tanış ve hikâyelerle dolu adaları keşfet.</span>
               <span className="mt-auto flex items-center gap-2 pt-5 text-sm font-bold text-violet-200">Okul Paneli <ArrowRight size={18} /></span>
             </button>
           </div>
@@ -191,7 +191,7 @@ export function KidsWelcomeGate({ onCreateProfile, onOpenParent, existingProfile
           </section>
         )}
         <p className="mx-auto mt-8 max-w-lg text-center text-xs leading-relaxed text-sky-100/65">
-          Ventra Kids başlangıçta kişisel e-posta veya gerçek isim istemez. Yıldızlar öğrenme başarılarını gösterir; satın alma aracı değildir.
+          ✨ Her ada yeni bir macera! Dinle, oyna, keşfet ve öğrendiğin her kelimeyle yolculuğunu büyüt.
         </p>
       </div>
     </div>

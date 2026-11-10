@@ -1,7 +1,8 @@
 /**
  * VENTRA original interactive score — no external tracks or copyrighted motifs.
  * WebAudio oscillator score: seven location-specific tonal palettes, low CPU.
- * Explicit opt-in only. The SoundService owns/resumes the shared AudioContext.
+ * SoundService applies the default and saved preferences. The AudioContext
+ * is unlocked only after a real browser interaction.
  */
 export type MusicScene='archipelago'|'garden'|'animals'|'colors'|'numbers'|'food'|'family'|'sanctuary'|'plaza'|'movement'|'wishes'|'lantern';
 interface Score { root:number; tempo:number; progression:readonly number[][]; melody:readonly number[]; timbre:OscillatorType; }

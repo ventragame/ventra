@@ -192,3 +192,17 @@ test('Island portal waits for opaque coverage before mounting a region',()=>{
  assert.match(page,/const region = pendingRegionRef\.current/);
  assert.doesNotMatch(overlay,/cloud\.svg/);
 });
+
+test('Child-facing loading screen and game path no longer show technical copy',()=>{
+ const welcome=fs.readFileSync(new URL('../src/components/onboarding/KidsWelcomeGate.tsx',import.meta.url),'utf8');
+ const panel=fs.readFileSync(new URL('../src/components/audio/AudioSettingsPanel.tsx',import.meta.url),'utf8');
+ assert.match(page,/Maceran Başlıyor!/);
+ assert.match(page,/Sihirli adalar seni bekliyor/);
+ assert.doesNotMatch(page,/Phaser Takımada Motoru Başlatılıyor/);
+ assert.match(welcome,/Her ada yeni bir macera!/);
+ assert.match(welcome,/kazandığı yıldızları birlikte kutla/);
+ assert.doesNotMatch(welcome,/bulut ayarlarını yönet/);
+ assert.doesNotMatch(welcome,/Yıldızlar öğrenme başarılarını gösterir; satın alma aracı değildir/);
+ assert.doesNotMatch(panel,/Varsayılan kapalıdır/);
+ assert.match(panel,/ilk dokunuştan sonra çalabilir/);
+});

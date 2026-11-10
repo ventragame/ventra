@@ -1,7 +1,8 @@
 /**
  * Ventra Audio v2 — one consistent mixer for game UI, music and English speech.
  * Local sound settings only (no child audio or microphone data leaves the device).
- * Music is explicit opt-in; the audio context unlocks only after user interaction.
+ * Music and effects are enabled by default; browser audio unlocks after a user gesture.
+ * Persisted mute and music preferences always override those defaults.
  */
 import { EventBus } from '@/lib/game/EventBus';
 import { Capacitor } from '@capacitor/core';
@@ -24,7 +25,7 @@ export interface AudioSettings{
  voice:number;
 }
 export const DEFAULT_AUDIO_SETTINGS:Readonly<AudioSettings>=Object.freeze({
- muted:false,musicEnabled:false,music:0.4,effects:0.7,voice:1
+ muted:false,musicEnabled:true,music:0.4,effects:0.7,voice:1
 });
 const clamp=(v:number):number=>Number.isFinite(v)?Math.max(0,Math.min(1,v)):0;
 export function normalizeAudioSettings(value:unknown):AudioSettings{
@@ -146,7 +147,7 @@ class SoundService {
  }
  setMusicEnabled(enabled:boolean):void{
   this.settings.musicEnabled=Boolean(enabled);
-  // Must be invoked by a real user action before starting the score.
+  // The saved setting never bypasses the browser's required user gesture.
   if(enabled&&!this.isMuted)this.unlockAudio();
   this.refreshMusic();this.persist();
  }

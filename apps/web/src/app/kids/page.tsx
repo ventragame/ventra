@@ -40,12 +40,15 @@ const DynamicPhaserGame = dynamic(
   {
     ssr: false,
     loading: () => (
-      <div className="w-full h-full flex flex-col items-center justify-center bg-[#050914] text-white">
-        <div className="w-14 h-14 border-4 border-sky-500 border-t-transparent rounded-full animate-spin mb-4" />
-        <h2 className="text-xl font-bold bg-gradient-to-r from-sky-400 to-indigo-400 bg-clip-text text-transparent">
-          Ventra Adalar Evreni Yükleniyor...
-        </h2>
-        <p className="text-xs text-slate-400 mt-1">Phaser Takımada Motoru Başlatılıyor</p>
+      <div role="status" aria-live="polite" className="flex h-full w-full flex-col items-center justify-center bg-gradient-to-b from-[#07162d] via-[#0c3451] to-[#0b4b66] px-5 text-center text-white">
+        <div className="relative mb-5 flex h-24 w-24 items-center justify-center" aria-hidden="true">
+          <div className="absolute inset-1 rounded-full bg-sky-300/25 blur-2xl" />
+          <div className="relative grid h-20 w-20 place-items-center rounded-[25px] border border-emerald-200/40 bg-gradient-to-br from-sky-400/35 to-emerald-400/30 text-4xl shadow-xl shadow-sky-950/30">🏝️</div>
+          <span className="absolute -right-2 -top-1 text-2xl text-amber-200 motion-safe:animate-pulse">✦</span>
+        </div>
+        <p className="text-xs font-black tracking-[0.2em] text-amber-200">VENTRA · BÜYÜLÜ ADALAR</p>
+        <h2 className="mt-3 text-2xl font-black tracking-tight text-white sm:text-3xl">Maceran Başlıyor!</h2>
+        <p className="mt-2 max-w-sm text-sm font-semibold leading-relaxed text-sky-100">Sihirli adalar seni bekliyor. Birazdan keşfe çıkıyoruz!</p>
       </div>
     )
   }

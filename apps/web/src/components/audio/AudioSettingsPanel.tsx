@@ -55,7 +55,7 @@ export function AudioSettingsPanel({onClose}:Props){
     </div>
     <div className="flex items-center justify-between gap-3 rounded-2xl border border-white/20 bg-[#0c2c46]/80 p-3">
      <div><div className="font-extrabold">🎶 Dünya müziği</div>
-      <p className="max-w-[235px] text-xs leading-relaxed text-sky-200">Varsayılan kapalıdır. Açmak için dokun.</p></div>
+      <p className="max-w-[235px] text-xs leading-relaxed text-sky-200">Macera müziğini istediğin zaman açıp kapatabilirsin.</p></div>
      <button type="button" aria-pressed={settings.musicEnabled} disabled={settings.muted}
       onClick={activateMusic}
       className="min-h-12 rounded-xl border border-lime-200/50 bg-lime-300/20 px-4 text-sm font-black text-lime-100 disabled:opacity-45 focus-visible:outline focus-visible:outline-4 focus-visible:outline-white">
@@ -85,7 +85,7 @@ export function AudioSettingsPanel({onClose}:Props){
     </div>
    </div>
    <p className="mt-4 text-center text-xs leading-relaxed text-sky-200">
-    Ses tercihleriniz yalnızca bu cihazda saklanır. Müzik kendiliğinden başlamaz.
+    Sesler ve müzik başlangıçta açıktır; ilk dokunuştan sonra çalabilir. Tercihlerin bu cihazda saklanır.
    </p>
   </div>
  </div>;
