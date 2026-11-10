@@ -270,19 +270,16 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
   }
   actionLock.current=true;setWrong(null);setCorrect(true);
   soundService.playSfx('correct',.82);
-  const record:JourneyRecord={
-   routeId:plan.route.id,episode:plan.route.episode,object:plan.route.object,
-   destination,firstMistakes:firstResult.mistakes,secondMistakes:mistakes,
-   firstHint:firstResult.hint,secondHint:usedHint,completedAt:new Date().toISOString()
-  };
-  resultRef.current=record;
+  const second={mistakes,hint:usedHint};setSecondResult(second);
   timer.current=setTimeout(()=>{
    timer.current=null;if(!alive.current)return;
-   actionLock.current=false;enterPhase(plan,'ending',destination);
-  },1050);
+   actionLock.current=false;
+   if(plan.learningChallenges?.length)startChallenge(plan,0,destination);
+   else completeStory(plan,destination,second,[]);
+  },850);
  }
  function hint(){
-  if(!plan||!['discover','friend'].includes(phaseRef.current)||actionLock.current||busy)return;
+  if(!plan||!['discover','friend','place','consequence'].includes(phaseRef.current)||actionLock.current||busy)return;
   setHighlight(true);setUsedHint(true);
   soundService.playSfx('tap',.42);
  }
@@ -292,9 +289,9 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
  }
  const active=FOREST_EPISODES[episode-1];
  const passive=['opening','meet','result','ending'].includes(phase);
- const journeyStep:{[P in JourneyPhase]:number}={
-  opening:1,discover:2,meet:3,choose:4,result:5,friend:6,ending:7
- };
+ const journeyStages:JourneyPhase[]=['opening','discover','meet','choose','result','friend',
+  ...(plan?.learningChallenges??[]).map(c=>c.kind),'ending'];
+ const journeyStep=journeyStages.indexOf(phase)+1;
  return <div className="sj-root" role="dialog" aria-modal="true" aria-label="Hikâyeyi Keşfet">
   {screen==='chapters'&&<>
    <header className="sj-header">
@@ -337,9 +334,9 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
     <button type="button" className="sj-back" onClick={exitToChapters} disabled={busy}
      aria-label="Bölümlere dön">←</button>
     <strong>{active.title}</strong>
-    <div className="sj-progress" aria-label={'Hikâye sahnesi '+journeyStep[phase]+' / 7'}>
-     {Array.from({length:7},(_,i)=><i key={i}
-       className={i<journeyStep[phase]-1?'done':i===journeyStep[phase]-1?'current':''}/>)}
+    <div className="sj-progress" aria-label={'Hikâye sahnesi '+journeyStep+' / '+journeyStages.length}>
+     {journeyStages.map((name,i)=><i key={name}
+       className={i<journeyStep-1?'done':i===journeyStep-1?'current':''}/>)}
     </div>
    </header>
    <main className="sj-play">
@@ -372,6 +369,32 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
         <span>{x.label}</span>
       </button>)}
      </div>}
+     {phase==='place'&&<div className="sj-level-place-choices"
+      role="group" aria-label="Hikâyede gidilen yeri hatırla">
+      {(plan.learningChallenges?.find(c=>c.kind==='place')?.choices??[]).map(place=>
+       <button type="button" key={place} onClick={()=>tapChallenge(place)}
+        disabled={busy||actionLock.current}
+        className={'sj-level-place '+(wrong===place?'sj-wrong ':'')+
+         (highlight&&place===destination?'sj-hint-glow ':'')+
+         (correct&&place===destination?'sj-correct':'')}
+        aria-label={place}>
+        <StoryForestScenery scene={place as ForestScene}/>
+       </button>)}
+     </div>}
+     {phase==='consequence'&&<div className="sj-level-outcome-choices"
+      role="group" aria-label="Hikâyeye uygun sonucu seç">
+      {(plan.learningChallenges?.find(c=>c.kind==='consequence')?.choices??[]).map(value=>
+       <button type="button" key={value} onClick={()=>tapChallenge(value)}
+        disabled={busy||actionLock.current}
+        className={'sj-level-outcome '+(wrong===value?'sj-wrong ':'')+
+         (highlight&&value===plan.route.object?'sj-hint-glow ':'')+
+         (correct&&value===plan.route.object?'sj-correct':'')}
+        aria-label={value==='key'?'Anahtar sandığı açar':value==='apple'?
+         'Arkadaşlar elmayı paylaşır':value==='bird'?'Kuş ailesine kavuşur':
+         'Kristal ormanı aydınlatır'}>
+        <StoryConsequenceArt object={value as JourneyObject}/>
+       </button>)}
+     </div>}
      {phase==='friend'&&<div className="sj-friend-choices" role="group" aria-label="Hikâyede sana yardım eden arkadaşı bul">
       {plan.friendChoices.map(id=><button type="button" key={id}
        onClick={()=>tapFriend(id)} disabled={busy||actionLock.current}
@@ -381,7 +404,7 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
         <Actor id={id}/>
        </button>)}
      </div>}
-     {(phase==='discover'||phase==='friend')&&<div className="sj-hint-row">
+     {(['discover','friend','place','consequence'] as JourneyPhase[]).includes(phase)&&<div className="sj-hint-row">
       <button type="button" className="sj-help" onClick={hint}
        disabled={busy||actionLock.current} aria-label="Doğru görseli göster">💡</button>
       <div role="status" aria-live="polite" className="sj-feedback">
