@@ -123,7 +123,7 @@ export function AvatarPortrait({id,className='',size=96}:Props){
     <path d="M43 78L27 28L79 52Z"/><path d="M103 53L152 27L135 81Z"/>
     <path d="M48 58L38 41L65 55M117 54L142 40L130 66" fill="#ffbdcb" stroke="none"/>
    </g>}
-   {rounded&&<g fill={id==='avatar_panda'?'#33405b':flesh} stroke={avatar.bgColor} strokeWidth="5">
+   {round&&<g fill={id==='avatar_panda'?'#33405b':flesh} stroke={avatar.bgColor} strokeWidth="5">
     <circle cx="47" cy="52" r={id==='avatar_koala'?27:23}/>
     <circle cx="135" cy="52" r={id==='avatar_koala'?27:23}/>
    </g>}
