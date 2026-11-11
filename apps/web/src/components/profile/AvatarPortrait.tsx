@@ -46,7 +46,7 @@ export function AvatarPortrait({id,className='',size=96}:Props){
  const isBird=id==='avatar_phoenix'||id==='avatar_penguin';
  const flesh=SKIN[id]??'#f3c49b',hair=HAIR[id]??'#634936';
  const pupil=machine?'#c8ffff':id==='avatar_alien'?'#176167':'#273356';
- const ink='#283251',isFantasy=avatar.collection==='fantasy';
+ const isFantasy=avatar.collection==='fantasy';
  const isRobot=machine;
  return <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 180 180"
    width={size} height={size} className={className} role="img"

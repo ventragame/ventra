@@ -210,7 +210,7 @@ test('Child-facing loading screen and game path no longer show technical copy',(
 test('Premium six-island archipelago has a complete, illuminated bridge ring',()=>{
  const block=scene.slice(scene.indexOf('private createProgressionPaths(): void'),
    scene.indexOf('  // --- 3. ALTI BAĞIMSIZ ADANIN'));
- assert.equal((block.match(/p0:\\{x:/g)||[]).length,6,
+ assert.equal((block.match(/p0:\{x:/g)||[]).length,6,
    'Six continuous skybridges connect the ring, including the return to Word Garden');
  assert.match(block,/const boards=gold/);
  assert.match(block,/const rails=gold/);
@@ -228,7 +228,9 @@ test('Profile picker uses illustrated, unlocked characters without weakening pro
  assert.match(picker,/onProfileSwitched\(updated\)/);
  assert.match(picker,/onClick=\{\(\)=>void equipAvatar\(true\)\}/);
  assert.match(picker,/if \(p\.userId\)/);
- assert.match(illustration,/feDropShadow/);
+ assert.match(illustration,/const animals=new Set/);
+ assert.match(illustration,/radialGradient/);
+ assert.match(illustration,/avatar_fairy/);
  assert.match(page,/AvatarPortrait id=\{activeProfile\?\.avatarId/);
 });
 

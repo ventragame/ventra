@@ -270,12 +270,12 @@ export class WorldScene extends Phaser.Scene {
     // Bridge ends sit behind island silhouettes (islands depth=20), so no rails
     // run across the art or intercept a child's click.
     const curveDefinitions = [
-      {p0:{x:770,y:495},  p1:{x:1110,y:440},ctrl:{x:940,y:359},isActive:true},
-      {p0:{x:1370,y:465},p1:{x:1670,y:550},ctrl:{x:1535,y:419},isActive:true},
-      {p0:{x:1810,y:710},p1:{x:1780,y:880},ctrl:{x:1942,y:795},isActive:false},
-      {p0:{x:1620,y:1030},p1:{x:1290,y:1080},ctrl:{x:1450,y:1160},isActive:false},
-      {p0:{x:1030,y:1060},p1:{x:740,y:960},ctrl:{x:882,y:1115},isActive:false},
-      {p0:{x:608,y:895},p1:{x:610,y:690},ctrl:{x:468,y:792},isActive:false}
+      {from:'word_garden',to:'story_castle',p0:{x:770,y:495},  p1:{x:1110,y:440},ctrl:{x:940,y:359},isActive:true},
+      {from:'story_castle',to:'listening_forest',p0:{x:1370,y:465},p1:{x:1670,y:550},ctrl:{x:1535,y:419},isActive:true},
+      {from:'listening_forest',to:'speaking_harbor',p0:{x:1810,y:710},p1:{x:1780,y:880},ctrl:{x:1942,y:795},isActive:false},
+      {from:'speaking_harbor',to:'sentence_workshop',p0:{x:1620,y:1030},p1:{x:1290,y:1080},ctrl:{x:1450,y:1160},isActive:false},
+      {from:'sentence_workshop',to:'discovery_academy',p0:{x:1030,y:1060},p1:{x:740,y:960},ctrl:{x:882,y:1115},isActive:false},
+      {from:'discovery_academy',to:'word_garden',p0:{x:608,y:895},p1:{x:610,y:690},ctrl:{x:468,y:792},isActive:false}
     ] as const;
     const reduced=this.isReducedMotion();
     curveDefinitions.forEach((curve,routeIndex)=>{
