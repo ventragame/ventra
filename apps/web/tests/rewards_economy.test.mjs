@@ -71,9 +71,9 @@ test('P5 planned paid SKUs remain fully disabled and do not touch child economy'
 
 test('Avatar collection: three free starters, legacy grant, one-time atomic coin unlock',async()=>{
  const {VENTRA_AVATARS,VENTRA_STARTER_AVATARS}=await import('../../../packages/shared/src/profile.ts');
- assert.equal(VENTRA_AVATARS.length,12);
- assert.equal(VENTRA_STARTER_AVATARS.length,3);
- assert.equal(new Set(VENTRA_AVATARS.map(a=>a.id)).size,12);
+ assert.equal(VENTRA_AVATARS.length,36);
+ assert.equal(VENTRA_STARTER_AVATARS.length,5);
+ assert.equal(new Set(VENTRA_AVATARS.map(a=>a.id)).size,36);
  const storage=new MemoryEconomyStorage();
  const repo=new MemoryProgressRepository();
  const player=await repo.createProfile({nickname:'Ava',avatarId:'avatar_explorer'});

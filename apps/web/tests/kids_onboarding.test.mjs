@@ -45,8 +45,8 @@ test('New child profile offers only free avatars; legacy IDs remain compatible',
  const {VENTRA_STARTER_AVATARS,VENTRA_AVATARS,getAvatarById}=await import('../../../packages/shared/src/profile.ts');
  const fs=(await import('node:fs')).default;
  const ui=fs.readFileSync(new URL('../src/components/onboarding/KidsWelcomeGate.tsx',import.meta.url),'utf8');
- assert.equal(VENTRA_STARTER_AVATARS.length,3);
- assert.equal(VENTRA_AVATARS.length,12);
+ assert.equal(VENTRA_STARTER_AVATARS.length,5);
+ assert.equal(VENTRA_AVATARS.length,36);
  assert.match(ui,/VENTRA_STARTER_AVATARS\.map/);
  assert.match(ui,/AvatarPortrait/);
  assert.equal(getAvatarById('avatar_owl').id,'avatar_owl');
