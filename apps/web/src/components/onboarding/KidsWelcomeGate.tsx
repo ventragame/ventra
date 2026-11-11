@@ -129,7 +129,7 @@ export function KidsWelcomeGate({ onCreateProfile, onOpenParent, existingProfile
             <label htmlFor="kid-nickname" className="block text-sm font-bold text-white">Kaşifinin takma adı</label>
             <input id="kid-nickname" required minLength={2} maxLength={15} autoComplete="off" value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="Örnek: Minik Kaşif" className="mt-2 w-full rounded-2xl border border-white/25 bg-slate-900 p-4 text-base text-white placeholder-slate-400 outline-none focus-visible:border-sky-300" />
             <fieldset className="mt-6">
-              <legend className="text-sm font-bold">İlk macera arkadaşını seç · 3 ücretsiz kahraman</legend>
+              <legend className="text-sm font-bold">İlk macera arkadaşını seç · 5 ücretsiz kahraman</legend>
               <div className="mt-3 grid grid-cols-3 gap-3">
                 {VENTRA_STARTER_AVATARS.map((item) => (
                   <button type="button" key={item.id} aria-pressed={avatar === item.id} onClick={() => { setAvatar(item.id); soundService.playSfx('tap', 0.4); }}

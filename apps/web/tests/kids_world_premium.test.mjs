@@ -231,3 +231,17 @@ test('Profile picker uses illustrated, unlocked characters without weakening pro
  assert.match(illustration,/feDropShadow/);
  assert.match(page,/AvatarPortrait id=\{activeProfile\?\.avatarId/);
 });
+
+test('Expanded avatar wardrobe supports thematic discovery and accessible actions',()=>{
+ const picker=fs.readFileSync(new URL('../src/components/profile/ProfileSelectorModal.tsx',import.meta.url),'utf8');
+ assert.match(picker,/AVATAR_COLLECTIONS\.map/);
+ assert.match(picker,/type Collection='all'\|'heroes'\|'animals'\|'fantasy'\|'space'/);
+ assert.match(picker,/avatar-gallery/);
+ assert.match(picker,/aria-label="Önceki avatar"/);
+ assert.match(picker,/aria-label="Sonraki avatar"/);
+ assert.match(picker,/aria-label="Avatar ara"/);
+ assert.match(picker,/aria-label="Açılmış avatarlar"/);
+ assert.match(picker,/purchaseAvatarWithCoins/);
+ assert.match(picker,/Coin harcayarak/);
+ assert.match(picker,/onProfileSwitched\(updated\)/);
+});

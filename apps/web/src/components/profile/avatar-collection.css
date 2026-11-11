@@ -1,1 +1,22 @@
-@keyframes avatar-reveal{from{opacity:.35;transform:translateY(8px) scale(.93)}to{opacity:1;transform:translateY(0) scale(1)}}
+@keyframes avatar-reveal{from{opacity:.4;transform:translateY(8px) scale(.94)}to{opacity:1;transform:translateY(0) scale(1)}}
+.avatar-v2{isolation:isolate;scrollbar-width:thin;scrollbar-color:#8ccaff88 transparent}
+.avatar-showcase{background:
+ radial-gradient(ellipse at 23% 57%,color-mix(in srgb,var(--avatar-accent) 36%,transparent),transparent 55%),
+ linear-gradient(110deg,color-mix(in srgb,var(--avatar-background) 72%,#142459),#28216d 58%,#572f84);}
+.avatar-showcase::after{content:'✦';position:absolute;right:5%;top:7%;font-size:2.7rem;color:#fff9ca3c;pointer-events:none}
+.avatar-stage-avatar{animation:avatar-reveal .32s ease-out;box-shadow:0 0 45px color-mix(in srgb,var(--avatar-accent) 44%,transparent)}
+.avatar-stage-arrow{z-index:2;display:grid;place-items:center;flex:0 0 40px;width:40px;height:48px;
+ border:1px solid #e0faff80;border-radius:15px;background:#ffffff1b;color:white;font-size:2rem;line-height:1;transition:background .16s,transform .16s}
+.avatar-stage-arrow:hover:not(:disabled){background:#ffffff40;transform:scale(1.04)}
+.avatar-stage-arrow:disabled{opacity:.4}
+.avatar-stage-arrow:focus-visible,.avatar-filter:focus-visible{outline:3px solid #bafaab;outline-offset:2px}
+.avatar-filter{display:inline-flex;align-items:center;gap:5px;min-height:43px;border:1px solid #ffffff46;
+ border-radius:14px;padding:7px 10px;background:#0b245090;color:#def2ff;font-size:12px;font-weight:800;white-space:nowrap;transition:background .15s}
+.avatar-filter>span{border-radius:7px;padding:2px 5px;background:#ffffff1b;font-variant-numeric:tabular-nums}
+.avatar-filter:hover{background:#36629e88}
+.avatar-filter--active{color:#123d55;border-color:#c9ffed;background:linear-gradient(120deg,#c7ffb1,#92eada)}
+.avatar-filter--active>span{background:#1a6a7d22}
+.avatar-gallery{overscroll-behavior:contain;scrollbar-width:thin;scrollbar-color:#8ccaff9e #0d204a}
+.avatar-tile{background-image:linear-gradient(140deg,#ffffff0b,transparent 80%);-webkit-tap-highlight-color:transparent}
+@media(max-width:430px){.avatar-showcase{padding:10px}.avatar-stage-arrow{flex-basis:36px;width:36px}.avatar-stage-avatar svg{height:120px;width:120px}.avatar-filter{font-size:11px;padding:6px 8px}.avatar-gallery{max-height:38dvh}}
+@media(prefers-reduced-motion:reduce){.avatar-v2 *{animation:none!important;transition:none!important}}

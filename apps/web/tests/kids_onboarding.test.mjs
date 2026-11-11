@@ -41,7 +41,7 @@ test('Kids returning profile retains the original ID, stars and finished lessons
   assert.equal((await repo.getAllProfiles()).length, 1);
 });
 
-test('New child profile offers only free avatars; legacy IDs remain compatible',async()=>{
+test('New child profile offers five free avatars; legacy IDs remain compatible',async()=>{
  const {VENTRA_STARTER_AVATARS,VENTRA_AVATARS,getAvatarById}=await import('../../../packages/shared/src/profile.ts');
  const fs=(await import('node:fs')).default;
  const ui=fs.readFileSync(new URL('../src/components/onboarding/KidsWelcomeGate.tsx',import.meta.url),'utf8');
