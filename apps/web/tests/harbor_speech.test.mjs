@@ -1,0 +1,87 @@
+import test from 'node:test';
+import assert from 'node:assert/strict';
+import fs from 'node:fs';
+import {HARBOR_EPISODES,HARBOR_GAME_ID,matchesExpectedSpeech,normalizeSpeech} from '../src/lib/learning/harborDialogueEngine.ts';
+import {ARCHIPELAGO_ISLANDS_CATALOG} from '../../../packages/shared/src/archipelago.ts';
+const read=(path)=>fs.readFileSync(new URL(path,import.meta.url),'utf8');
+
+test('Harbor dialogues contain five authored worlds with real Pre-A1/A1/A2 differentiation',()=>{
+ assert.equal(HARBOR_EPISODES.length,5);
+ assert.equal(new Set(HARBOR_EPISODES.map(ep=>ep.id)).size,5);
+ for(const [i,episode] of HARBOR_EPISODES.entries()){
+  assert.equal(episode.id,i+1);
+  assert.equal(episode.prompts['Pre-A1'].length,3);
+  assert.equal(episode.prompts.A1.length,3);
+  assert.equal(episode.prompts.A2.length,3);
+  for(const level of ['Pre-A1','A1','A2']){
+   for(const challenge of episode.prompts[level]){
+    assert.ok(challenge.line.length>=5);
+    assert.equal(challenge.choices.length,3);
+    assert.equal(new Set(challenge.choices).size,3);
+    assert.ok(challenge.choices.includes(challenge.reply));
+    assert.ok(challenge.accept.length>0);
+    assert.equal(matchesExpectedSpeech([challenge.reply],challenge.accept),true,
+      'Expected spoken answer should be accepted: '+challenge.reply);
+   }
+  }
+  assert.notDeepEqual(episode.prompts['Pre-A1'],episode.prompts.A1);
+  assert.notDeepEqual(episode.prompts.A1,episode.prompts.A2);
+ }
+ assert.equal(HARBOR_GAME_ID,'island_speaking_harbor_dialogue');
+ assert.equal(ARCHIPELAGO_ISLANDS_CATALOG.speaking_harbor.contentPublished,true);
+ assert.equal(ARCHIPELAGO_ISLANDS_CATALOG.speaking_harbor.totalPublishedRequiredLevels,5);
+});
+
+test('Speech matching is deterministic and does not accept a partial word or arbitrary noise',()=>{
+ assert.equal(normalizeSpeech(' Hello, WORLD!  '),'hello world');
+ assert.equal(matchesExpectedSpeech(['Hello!'],['hello']),true);
+ assert.equal(matchesExpectedSpeech(['hello there'],['hello']),true);
+ assert.equal(matchesExpectedSpeech(['a yellow boat'],['hello']),false);
+ assert.equal(matchesExpectedSpeech(['yellow'],['hello']),false);
+ assert.equal(matchesExpectedSpeech(['no'],['yes']),false);
+ assert.equal(matchesExpectedSpeech([],['hello']),false);
+});
+
+test('Voice is opt-in, on-device only, with reliable touch fallback and no raw audio storage',()=>{
+ const speech=read('../src/lib/speech/childSpeech.ts');
+ const ui=read('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
+ const android=read('../../mobile/android/app/src/main/java/com/ventra/app/VentraSpeechPlugin.java');
+ const manifest=read('../../mobile/android/app/src/main/AndroidManifest.xml');
+ const ios=read('../../mobile/ios/App/App/VentraSpeechPlugin.swift');
+ const plist=read('../../mobile/ios/App/App/Info.plist');
+ const story=read('../../mobile/ios/App/App/Base.lproj/Main.storyboard');
+ assert.match(speech,/processLocally:true/);
+ assert.match(speech,/recognition\.processLocally=true/);
+ assert.match(speech,/installLocalEnglish/);
+ assert.match(speech,/getUserMedia/);
+ assert.match(speech,/stream\?\.getTracks\(\)\.forEach\(track=>track\.stop\(\)\)/);
+ assert.doesNotMatch(speech,/fetch\(|XMLHttpRequest|localStorage|MediaRecorder/);
+ assert.match(ui,/matchesExpectedSpeech/);
+ assert.match(ui,/setFeedback\('Sesini duydum!/);
+ assert.match(ui,/Doğru ifadeyi söyle veya seç!/);
+ assert.match(ui,/onClick=\{\(\)=>tap\(option\)\}/);
+ assert.match(android,/createOnDeviceSpeechRecognizer/);
+ assert.match(android,/isOnDeviceRecognitionAvailable/);
+ assert.match(android,/RECORD_AUDIO/);
+ assert.match(android,/recognizer\.destroy\(\)/);
+ assert.match(manifest,/android\.permission\.RECORD_AUDIO/);
+ assert.match(ios,/requiresOnDeviceRecognition = true/);
+ assert.match(ios,/supportsOnDeviceRecognition/);
+ assert.match(ios,/installTap/);
+ assert.match(ios,/removeTap/);
+ assert.match(plist,/NSMicrophoneUsageDescription/);
+ assert.match(plist,/NSSpeechRecognitionUsageDescription/);
+ assert.match(story,/VentraBridgeViewController/);
+});
+
+test('Harbor completion uses existing per-child game repository, no transcripts',()=>{
+ const ui=read('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
+ const economy=read('../src/lib/rewards/economyEngine.ts');
+ assert.match(ui,/recordGameCompleted\(payload,profileId\)/);
+ assert.match(ui,/gameId:HARBOR_GAME_ID/);
+ assert.match(ui,/onSaved\(\)/);
+ assert.match(ui,/stopSpeechCapture\(\)/);
+ assert.doesNotMatch(ui,/metrics:\{[^}]*transcripts/);
+ assert.match(economy,/island_speaking_harbor_dialogue/);
+ assert.match(ui,/episode>completed\+1/);
+});
