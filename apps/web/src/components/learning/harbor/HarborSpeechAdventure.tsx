@@ -49,7 +49,12 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
     }
     setCompleted(count);
    }).catch(()=>{if(live)setSaveError('Kayıtlı görevler okunamadı. Sonraki bölüm için önce bağlantını kontrol et.');});
-  return()=>{live=false;generation.current++;stopSpeechCapture();
+  const stopOnBackground=()=>{if(document.hidden){
+   generation.current++;stopSpeechCapture();setListening(false);
+  }};
+  document.addEventListener('visibilitychange',stopOnBackground);
+  return()=>{document.removeEventListener('visibilitychange',stopOnBackground);
+   live=false;generation.current++;stopSpeechCapture();
    if(timer.current)clearTimeout(timer.current);
    soundService.cancelSpeech();
   };

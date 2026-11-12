@@ -33,7 +33,9 @@ function browserConstructor():WebSpeechConstructor|null{
  return root.SpeechRecognition??root.webkitSpeechRecognition??null;
 }
 let currentCancel:(()=>void)|null=null;
+let captureEpoch=0;
 export function stopSpeechCapture():void{
+ captureEpoch++;
  const stop=currentCancel;currentCancel=null;
  try{stop?.();}catch{}
  if(stop&&typeof window!=='undefined'&&Capacitor.isNativePlatform()){
@@ -74,17 +76,20 @@ export async function installLocalEnglish():Promise<boolean>{
  try{return await ctor.install({langs:['en-US'],processLocally:true});}catch{return false;}
 }
 /** A small local voice-activity detector. It NEVER claims to understand words. */
-async function practiceVoice(timeoutMs:number):Promise<SpeechAttempt>{
+async function practiceVoice(timeoutMs:number,epoch:number):Promise<SpeechAttempt>{
  if(typeof navigator==='undefined'||!navigator.mediaDevices?.getUserMedia)
   return {kind:'unavailable',alternatives:[],mode:'none'};
  let stream:MediaStream|null=null,ctx:AudioContext|null=null;
  let timer:ReturnType<typeof setTimeout>|null=null,frame=0;
  try{
   stream=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true},video:false});
+  // The user might have closed the game WHILE the OS permission sheet was open.
+  if(epoch!==captureEpoch)return {kind:'cancelled',alternatives:[],mode:'practice'};
   const Context=window.AudioContext;
   if(!Context)throw Error('Unsupported audio');
   ctx=new Context();
   if(ctx.state==='suspended')await ctx.resume();
+  if(epoch!==captureEpoch)return {kind:'cancelled',alternatives:[],mode:'practice'};
   const source=ctx.createMediaStreamSource(stream);
   const analyser=ctx.createAnalyser();analyser.fftSize=1024;source.connect(analyser);
   const samples=new Float32Array(analyser.fftSize);
@@ -115,7 +120,7 @@ async function practiceVoice(timeoutMs:number):Promise<SpeechAttempt>{
   const denied=error instanceof Error&&/notallowed|permission|denied/i.test(error.name+' '+error.message);
   return {kind:denied?'denied':'unavailable',alternatives:[],mode:'practice'};
  }finally{
-  currentCancel=null;
+  if(epoch===captureEpoch)currentCancel=null;
   stream?.getTracks().forEach(track=>track.stop());
   if(ctx)void ctx.close().catch(()=>{});
  }
@@ -160,12 +165,13 @@ async function nativeRecognition(timeoutMs:number):Promise<SpeechAttempt>{
 /** Only a user initiated button can call this. No transcript is persisted. */
 export async function listenToChild(capability:SpeechCapability,timeoutMs=8000):Promise<SpeechAttempt>{
  stopSpeechCapture();
+ const epoch=++captureEpoch;
  const ms=Math.min(12000,Math.max(3000,timeoutMs));
  if(capability.mode==='native-local')return nativeRecognition(ms);
  if(capability.mode==='web-local'){
   const ctor=browserConstructor();
   if(ctor)return webRecognition(ctor,ms);
  }
- if(capability.mode==='practice')return practiceVoice(Math.min(6000,ms));
+ if(capability.mode==='practice')return practiceVoice(Math.min(6000,ms),epoch);
  return {kind:'unavailable',alternatives:[],mode:'none'};
 }

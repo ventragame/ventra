@@ -66,8 +66,8 @@ public class VentraSpeechPlugin: CAPPlugin, CAPBridgedPlugin {
         guard pending != nil, let recognizer = recognizer else { return }
         do {
             let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.record, mode: .measurement, options: .duckOthers)
-            try session.setActive(true, options: .notifyOthersOnDeactivation)
+            try session.setCategory(.playAndRecord, mode: .measurement, options: [.defaultToSpeaker, .duckOthers])
+            try session.setActive(true)
 
             let newRequest = SFSpeechAudioBufferRecognitionRequest()
             newRequest.requiresOnDeviceRecognition = true

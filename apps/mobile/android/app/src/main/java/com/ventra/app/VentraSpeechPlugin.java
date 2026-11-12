@@ -37,6 +37,7 @@ public class VentraSpeechPlugin extends Plugin {
     private final Handler handler = new Handler(Looper.getMainLooper());
     private SpeechRecognizer recognizer;
     private PluginCall pending;
+    private PluginCall awaitingPermission;
     private Runnable timeoutAction;
     private boolean listening;
 
@@ -60,11 +61,12 @@ public class VentraSpeechPlugin extends Plugin {
             call.reject("on-device recognition unavailable");
             return;
         }
-        if (pending != null || listening) {
+        if (pending != null || awaitingPermission != null || listening) {
             call.reject("recognition busy");
             return;
         }
         if (getPermissionState("microphone") != PermissionState.GRANTED) {
+            awaitingPermission = call;
             requestPermissionForAlias("microphone", call, "microphonePermission");
             return;
         }
@@ -73,6 +75,9 @@ public class VentraSpeechPlugin extends Plugin {
 
     @PermissionCallback
     private void microphonePermission(PluginCall call) {
+        // A permission prompt can outlive the screen that requested it.
+        if (call != awaitingPermission) return;
+        awaitingPermission = null;
         if (getPermissionState("microphone") == PermissionState.GRANTED) startRecognition(call);
         else call.reject("permission denied");
     }
@@ -148,12 +153,20 @@ public class VentraSpeechPlugin extends Plugin {
 
     @PluginMethod
     public void stop(PluginCall call) {
+        if (awaitingPermission != null) {
+            awaitingPermission.reject("cancelled");
+            awaitingPermission = null;
+        }
         finish(null, "cancelled");
         call.resolve();
     }
 
     @Override
     protected void handleOnDestroy() {
+        if (awaitingPermission != null) {
+            awaitingPermission.reject("cancelled");
+            awaitingPermission = null;
+        }
         finish(null, "cancelled");
         super.handleOnDestroy();
     }
