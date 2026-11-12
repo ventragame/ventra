@@ -1,5 +1,5 @@
 import React from 'react';
-import {Eyes,Smile,Cheeks,HumanFace,SmallStar,RoundedPaws} from './AvatarArtParts';
+import {Eyes,Smile,Cheeks,HumanFace,SmallStar} from './AvatarArtParts';
 
 /** Ten original fantasy silhouettes: no generic round-face palette swaps. */
 export const FANTASY_ART:Record<string,React.ReactNode>={

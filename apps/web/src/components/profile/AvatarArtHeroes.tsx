@@ -1,5 +1,5 @@
 import React from 'react';
-import {Eyes,Smile,Cheeks,HumanFace,SmallStar} from './AvatarArtParts';
+import {HumanFace} from './AvatarArtParts';
 
 /** Seven fully different silhouettes: ranger, cartographer, tinkerer, artist,
  * drummer, gardener and diver. Their clothing/props are not palette swaps. */

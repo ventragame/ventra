@@ -43,6 +43,7 @@ export function HumanFace({skin='#f2c5a3',hair='#604634',shape='round',mood='ope
  return <g>
   <path d={facePath} fill={skin} stroke="#b37a70" strokeOpacity=".45" strokeWidth="3"/>
   <path d="M50 72Q50 44 77 41Q97 33 117 49" stroke="#fff6df" strokeOpacity=".23" strokeWidth="8" fill="none"/>
+  <path d="M58 69Q69 62 80 67M101 67Q112 62 124 69" stroke={hair} strokeWidth="3" fill="none" strokeLinecap="round"/>
   <Eyes y={eyesY} expression={mood}/>
   <Cheeks/>
   <ellipse cx="90" cy="111" rx="5" ry="3.5" fill="#dd917c"/>

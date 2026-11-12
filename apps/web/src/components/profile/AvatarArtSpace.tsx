@@ -1,5 +1,5 @@
 import React from 'react';
-import {Eyes,Smile,Cheeks,HumanFace,SmallStar} from './AvatarArtParts';
+import {Eyes,Smile,Cheeks,SmallStar} from './AvatarArtParts';
 
 /** Space cast: six nonhumanoid mechanical/celestial forms plus two
  * suited explorers, with distinguishable silhouettes even at 44px. */
