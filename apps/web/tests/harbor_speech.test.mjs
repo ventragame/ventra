@@ -44,6 +44,7 @@ test('Speech matching is deterministic and does not accept a partial word or arb
 
 test('Voice is opt-in, on-device only, with reliable touch fallback and no raw audio storage',()=>{
  const speech=read('../src/lib/speech/childSpeech.ts');
+ const browser=read('../src/lib/speech/webLocalRecognition.ts');
  const ui=read('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
  const android=read('../../mobile/android/app/src/main/java/com/ventra/app/VentraSpeechPlugin.java');
  const manifest=read('../../mobile/android/app/src/main/AndroidManifest.xml');
@@ -51,7 +52,7 @@ test('Voice is opt-in, on-device only, with reliable touch fallback and no raw a
  const plist=read('../../mobile/ios/App/App/Info.plist');
  const story=read('../../mobile/ios/App/App/Base.lproj/Main.storyboard');
  assert.match(speech,/processLocally:true/);
- assert.match(speech,/recognition\.processLocally=true/);
+ assert.match(browser,/recognition\.processLocally=true/);
  assert.match(speech,/installLocalEnglish/);
  assert.match(speech,/getUserMedia/);
  assert.match(speech,/stream\?\.getTracks\(\)\.forEach\(track=>track\.stop\(\)\)/);
