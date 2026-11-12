@@ -64,3 +64,43 @@
  .harbor-microphone small{flex:initial;text-align:center}
  .harbor-mic-live{font-size:12px}
  .harbor-mic-test,.harbor-recheck{width:100%}}
+
+/* Game-first speech UI: parent-only controls stay behind a native disclosure. */
+.harbor-child-caption{font-size:13px!important;line-height:1.5;color:#ddf8e2!important;flex:1 1 190px!important}
+.harbor-parent-tools{position:relative;max-width:710px;margin:12px auto 0;
+ border:1px solid #9be8f65a;background:#05274682;border-radius:16px;
+ padding:9px 14px;color:#d0f2fe}
+.harbor-parent-tools summary{cursor:pointer;font-size:12px;font-weight:850;
+ text-align:center;min-height:26px;list-style-position:inside}
+.harbor-parent-tools summary:focus-visible{outline:3px solid #fff0ae;outline-offset:4px;border-radius:8px}
+.harbor-parent-content{padding:11px 1px 5px;font-size:12px;line-height:1.6}
+.harbor-parent-content>p{margin:4px 0 10px;color:#c8eaf4}
+.harbor-parent-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;align-items:center}
+.harbor-parent-actions>.harbor-recheck,.harbor-parent-actions>.harbor-download{
+ margin:0;padding:12px 14px;border:1px solid #b2e7ec92;border-radius:14px;
+ font-size:12px;font-weight:850;text-decoration:none;min-height:44px}
+.harbor-parent-diagnostic{margin:12px 0;padding:10px 12px;border-radius:12px;
+ background:#ffffff12;color:#d5eefa;font-size:12px}
+.harbor-parent-provider{border-top:1px solid #c9eaf344;margin-top:12px;padding-top:12px}
+.harbor-parent-provider strong{color:#f3f8b9;display:block}
+.harbor-parent-provider p{margin:5px 0 10px;color:#d2ecf6}
+.harbor-consent-backdrop{position:fixed;inset:0;z-index:170;display:flex;
+ align-items:center;justify-content:center;padding:16px;overflow:auto;
+ background:#04122de8;backdrop-filter:blur(9px)}
+.harbor-consent-dialog{background:linear-gradient(150deg,#12446b,#082244);
+ border:2px solid #b3f0e9aa;border-radius:27px;padding:clamp(16px,3vw,30px);
+ max-width:510px;width:100%;color:#effcff;box-shadow:0 30px 90px #0009}
+.harbor-consent-dialog h2{font-size:21px;line-height:1.4;font-weight:950;margin-bottom:12px}
+.harbor-consent-dialog p{font-size:13px;line-height:1.7;color:#dbf4f8;margin:10px 0}
+.harbor-consent-dialog label{display:flex;gap:12px;align-items:flex-start;
+ background:#ffffff12;border:1px solid #ffffff33;border-radius:14px;
+ padding:14px 12px;margin:16px 0;font-size:13px;font-weight:750;cursor:pointer}
+.harbor-consent-dialog input{width:21px;height:21px;accent-color:#7be8c8;flex-shrink:0}
+.harbor-consent-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
+.harbor-consent-actions button{min-height:46px;padding:12px 16px;border-radius:13px;
+ font-size:13px;font-weight:850;border:1px solid #e8fdf66f}
+.harbor-consent-actions button:last-child{background:#aff0cb;color:#12445b}
+.harbor-consent-actions button:disabled{opacity:.4;cursor:not-allowed}
+@media(max-width:560px){.harbor-parent-actions{flex-direction:column}
+ .harbor-parent-actions>button{width:100%}.harbor-child-caption{text-align:center}
+ .harbor-consent-actions button{flex:1}}
