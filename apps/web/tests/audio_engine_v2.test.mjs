@@ -32,13 +32,13 @@ test('Music scheduler has visibility, saved preferences, dynamic ducking and ind
  assert.match(sound,/window\.localStorage\.getItem\(STORAGE_KEY_AUDIO_V2\)/);
  assert.match(sound,/this\.music\.setPaused\(true\)/);
  assert.match(sound,/window\.addEventListener\('pointerdown',unlock,\{once:true,passive:true\}\)/);
- assert.match(sound,/if\(playable&&this\.context\?\.state==='running'\)this\.music\.start\(this\.context\)/);
+ assert.match(sound,/if\(playable&&!this\.captureActive&&this\.context\?\.state==='running'\)this\.music\.start\(this\.context\)/);
  assert.match(sound,/document.hidden/);
  assert.match(sound,/setMusicEnabled\(enabled:boolean\)/);
  assert.match(sound,/setChannelVolume\(channel:AudioChannel/);
  assert.match(sound,/localStorage\.setItem\(STORAGE_KEY_AUDIO_V2/);
  assert.match(sound,/voiceActive=true/);
- assert.match(sound,/music\.setDucked\(this.voiceActive\)/);
+ assert.match(sound,/music\.setDucked\(this.voiceActive\|\|this.captureActive\)/);
  assert.match(sound,/utterance.volume=this.settings.voice/);
  assert.match(sound,/cancelSpeech\(\)/);
  assert.match(music,/this\.timer=setInterval/);

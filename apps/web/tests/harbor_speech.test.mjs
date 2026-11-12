@@ -93,6 +93,6 @@ test('Voice capture pauses music without changing user settings and always clean
  assert.match(sound,/this\.music\.setPaused\(!playable\|\|this\.captureActive\)/);
  assert.match(sound,/setCaptureActive\(active:boolean\)/);
  assert.match(ui,/soundService\.setCaptureActive\(true\)/);
- assert.match(ui,/finally\{soundService\.setCaptureActive\(false\)\}/);
+ assert.match(ui,/finally\{soundService\.setCaptureActive\(false\);\}/);
  assert.match(ui,/visibilitychange/);
 });
