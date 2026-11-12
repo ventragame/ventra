@@ -162,3 +162,23 @@ test('An interim phrase is not invented when only raw sound is detected',async()
  assert.equal(result.kind,'unrecognized');
  assert.deepEqual(result.alternatives,[]);
 });
+
+test('Optional contextual bias uses ALL game choices evenly, with no forced answer or cloud fallback',async()=>{
+ const old=globalThis.SpeechRecognitionPhrase;
+ class FakePhrase{constructor(phrase,boost){this.phrase=phrase;this.boost=boost;}}
+ globalThis.SpeechRecognitionPhrase=FakePhrase;
+ class PhraseAwareRecognition extends FakeSpeechRecognition{phrases=[];}
+ try{
+  const session=beginWebLocalRecognition(PhraseAwareRecognition,5000,undefined,
+   ['Hello!','Goodbye!','Good night!']);
+  const rec=FakeSpeechRecognition.mostRecent;
+  assert.deepEqual(rec.phrases.map(p=>p.phrase),['Hello!','Goodbye!','Good night!']);
+  assert.deepEqual(rec.phrases.map(p=>p.boost),[2,2,2]);
+  assert.equal(rec.processLocally,true);
+  rec.onaudiostart();rec.onspeechstart();rec.onresult(spoken(['Hello!']));
+  assert.equal((await session.result).kind,'recognized');
+ }finally{
+  if(old===undefined)delete globalThis.SpeechRecognitionPhrase;
+  else globalThis.SpeechRecognitionPhrase=old;
+ }
+});

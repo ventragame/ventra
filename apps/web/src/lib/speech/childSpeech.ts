@@ -137,7 +137,8 @@ async function nativeRecognition(timeoutMs:number):Promise<SpeechAttempt>{
 /** Only a user initiated button can call this. No transcript is persisted. */
 export async function listenToChild(
  capability:SpeechCapability,timeoutMs=8000,
- onStatus?:(status:SpeechCaptureStatus)=>void
+ onStatus?:(status:SpeechCaptureStatus)=>void,
+ contextPhrases:readonly string[]=[]
 ):Promise<SpeechAttempt>{
  stopSpeechCapture();
  const epoch=++captureEpoch;
@@ -146,7 +147,7 @@ export async function listenToChild(
  if(capability.mode==='web-local'){
   const ctor=browserConstructor();
   if(ctor){
-   const session=beginWebLocalRecognition(ctor,ms,onStatus);
+   const session=beginWebLocalRecognition(ctor,ms,onStatus,contextPhrases);
    currentCancel=session.cancel;
    try{return await session.result;}
    finally{if(currentCancel===session.cancel)currentCancel=null;}

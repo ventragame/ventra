@@ -21,6 +21,7 @@ export type RecognitionItem=ArrayLike<{transcript:string}> & {isFinal?:boolean};
 export type WebSpeechRecognitionInstance={
  lang:string;continuous:boolean;interimResults:boolean;maxAlternatives:number;
  processLocally?:boolean;
+ phrases?:Array<{phrase:string;boost:number}>;
  onstart:(()=>void)|null;onaudiostart:(()=>void)|null;onspeechstart:(()=>void)|null;
  onsoundstart:(()=>void)|null;onspeechend:(()=>void)|null;onnomatch:(()=>void)|null;
  onresult:((event:{resultIndex?:number;results:ArrayLike<RecognitionItem>})=>void)|null;
@@ -49,7 +50,8 @@ export function mapWebRecognitionError(code:string,speechDetected=false):Pick<We
 
 /** Run on the direct user tap, without awaiting permissions or other promises. */
 export function beginWebLocalRecognition(
- Ctor:WebSpeechConstructor,timeoutMs:number,onStatus?:(status:WebSpeechStatus)=>void
+ Ctor:WebSpeechConstructor,timeoutMs:number,onStatus?:(status:WebSpeechStatus)=>void,
+ contextPhrases:readonly string[]=[]
 ):{result:Promise<WebSpeechResult>;cancel:()=>void}{
  let recognition:WebSpeechRecognitionInstance|undefined;
  let resolve!: (value:WebSpeechResult)=>void;
@@ -135,6 +137,23 @@ export function beginWebLocalRecognition(
   recognition.interimResults=true;
   recognition.maxAlternatives=4;
   recognition.processLocally=true; // Strict no-cloud policy.
+  // The spoken answer is one of a few short phrases. Opt into the 2025+
+  // contextual-biasing API only when the local browser implements both parts.
+  // Boost ALL visible choices evenly to avoid biasing the correct answer.
+  // Keep a low boost (2) to reduce false positives.
+  if(contextPhrases.length&&'phrases' in recognition){
+   const Phrase=(globalThis as unknown as {SpeechRecognitionPhrase?:
+    new (phrase:string,boost:number)=>{phrase:string;boost:number}}).SpeechRecognitionPhrase;
+   if(Phrase){
+    try{
+     recognition.phrases=[...new Set(contextPhrases.map(p=>p.trim()).filter(Boolean))]
+      .slice(0,5).map(p=>new Phrase(p,2));
+    }catch{
+     // The constructor or property setter may exist but be unsupported.
+     // The unmodified local recognizer must remain usable.
+    }
+   }
+  }
   recognition.onstart=()=>{started=true;notify('starting');};
   recognition.onaudiostart=()=>{
    if(!audioStarted){

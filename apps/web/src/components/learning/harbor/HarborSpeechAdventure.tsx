@@ -126,7 +126,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   try{
    result=await listenToChild(capability,10000,status=>{
     if(run===generation.current)setMicStatus(status);
-   });
+   },prompt.choices);
   }catch{
    // Browser/OS failures are not evidence that the child spoke incorrectly.
    if(run===generation.current){
