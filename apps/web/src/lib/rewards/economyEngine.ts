@@ -14,7 +14,8 @@ export const WORLD_GAMES = [
   {id:'island_sentence_square_plaza',label:'Uyanan Meydan',count:6,icon:'🏰'},
   {id:'island_story_forest_discover',label:'Hikâyeyi Keşfet',count:6,icon:'📖'},
   {id:'island_story_forest_sequence',label:'Sonra Ne Oldu?',count:6,icon:'🧩'},
-  {id:'island_story_forest_detective',label:'Hikâye Dedektifi',count:6,icon:'🔎'}
+  {id:'island_story_forest_detective',label:'Hikâye Dedektifi',count:6,icon:'🔎'},
+  {id:'island_speaking_harbor_dialogue',label:'Diyalog Limanı',count:5,icon:'⚓'}
 ] as const;
 /**
  * Planning only. These SKU identifiers cannot initiate a transaction.

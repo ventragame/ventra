@@ -36,7 +36,7 @@ let currentCancel:(()=>void)|null=null;
 export function stopSpeechCapture():void{
  const stop=currentCancel;currentCancel=null;
  try{stop?.();}catch{}
- if(typeof window!=='undefined'&&Capacitor.isNativePlatform()){
+ if(stop&&typeof window!=='undefined'&&Capacitor.isNativePlatform()){
   void plugin.stop().catch(()=>{});
  }
 }

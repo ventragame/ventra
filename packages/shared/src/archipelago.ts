@@ -101,15 +101,15 @@ export const ARCHIPELAGO_ISLANDS_CATALOG: Record<IslandId, IslandDefinition> = {
     badgeText: 'Pre-A1 · A1 · A2',
     descriptionTr: 'Karakterlerle selamlaş, soru sor, istekte bulun ve uygun İngilizce yanıtı seç.',
     cefrLevel: 'Pre-A1–A2',
-    totalPublishedRequiredLevels: 0,
+    totalPublishedRequiredLevels: 5,
     desktopAsset: '/assets/kids-islands/speaking_harbor.webp',
     mobileAsset: '/assets/kids-islands/speaking_harbor_mobile.webp',
     defaultWorldPos: { x: 1750, y: 1070 }, // Sağ alt: forest art stays separate
     hitRadius: 210,
     order: 4,
-    isUnlockedDefault: false,
-    contentPublished: false,
-    unlockRequirementNotice: 'Diyalog görevleri henüz geliştirme aşamasında.'
+    isUnlockedDefault: true,
+    contentPublished: true,
+    unlockRequirementNotice: 'Beş diyalog yolculuğu sesli veya dokunarak oynanabilir.'
   },
   sentence_workshop: {
     id: 'sentence_workshop',
