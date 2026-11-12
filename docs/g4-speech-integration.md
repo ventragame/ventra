@@ -2,14 +2,14 @@
 
 ## Kapsam ve sınırlamalar
 
-- **Web:** Standart Web Speech API yalnızca **cihaz içi** tanıma ve en-US paketi kuruluysa kullanılır. Destekleyen tarayıcılarda ses paketi çocuk/veli tarafından düğmeyle indirilebilir; özellik desteklenmiyorsa herhangi bir uzak konuşma sunucusuna otomatik geçilmez. Mikrofonla sesli tekrar Web Audio API ile **yalnızca ses aktivitesi** olarak çalışır. Konuşma algılandı diye doğru İngilizce dediği iddia edilmez.
+- **Web:** Varsayılan Web Speech API yalnızca **cihaz içi** tanıma ve en-US paketi kuruluysa kullanılır. Kurulum veli seçeneklerindedir. Alternatif tarayıcı hizmeti yalnızca ebeveyn kapısı ve ayrıca onay kutusuyla o oturum için etkinleştirilebilir; ses harici sunucuya gönderilebilir. Otomatik sunucu geçişi yoktur. Mikrofonla sesli tekrar Web Audio API ile **yalnızca ses aktivitesi** olarak çalışır. Konuşma algılandı diye doğru İngilizce dediği iddia edilmez.
 - **Android:** Android 12+ (API 31+) SpeechRecognizer.createOnDeviceSpeechRecognizer. Servis ya da İngilizce modeli yoksa dokunmatik seçenekler veya mikrofonla tekrar. Her cihazda cihaz içi İngilizce ASR yoktur. İzin yalnızca mikrofon düğmesine tıklanınca sorulur.
 - **iOS:** iOS 13+ Apple Speech framework (SFSpeechRecognizer) ve requiresOnDeviceRecognition=true. Apple'ın supportsOnDeviceRecognition=false bildirdiği cihazda mikrofon etkinliği veya dokunmatik seçenek. iOS 26 SpeechAnalyzer ayrı, henüz bu sürümde **entegre değil**; geniş cihaz desteği için test edilebilir klasik cihaz içi API kullanıldı.
 - **0 TL konuşma başı API ücreti:** Üretken AI, ücretli ASR, harici hesap, Vosk model dosyası veya ses sunucusu yok. Test ve bakım maliyetleri sıfır değildir.
 
 ## Çocuk güvenliği
 
-Mikrofon varsayılan olarak kapalıdır; ekran üzerinde basılan buton dışında başlamaz. Ses kayıtları, transkriptler ve ses izi **istemciye ait kalır ve kayıt/analitiğe yazılmaz**. Oyun sadece görev başarı puanı ve yıldızları profilin mevcut ilerleme deposunda tutar. Android/iOS platform konuşma tanıması **yalnızca cihaz içi**. Browser kullanımında `processLocally=true` zorunlu; bu desteklenmiyorsa yalnızca ses seviyesi ölçülür ve ses tanıma iddia edilmez. Ebeveyn bilgilendirmesi ve resmi gizlilik metni ayrıca güncellenmelidir.
+Mikrofon varsayılan olarak kapalıdır; ekran üzerinde basılan buton dışında başlamaz. Ventra ses kaydı veya transkripti kendi depolarına/analitiğine yazmaz. **Ancak velinin açıkça izin verdiği web tarayıcı hizmeti ses içeriğini tarayıcı sağlayıcısına aktarabilir.** Bu hizmetin veri işleme koşulları ayrıca incelenmelidir. Oyun sadece görev başarı puanı ve yıldızları profilin mevcut ilerleme deposunda tutar. Android/iOS platform konuşma tanıması **yalnızca cihaz içi**. Web tarayıcısında varsayılan modda `processLocally=true` zorunlu; desteklenmiyorsa yalnızca ses seviyesi ölçülür. Yalnızca ebeveynin açık onayıyla tarayıcıya yönetimi bırakılan alternatif modda `processLocally=false` seçilebilir. Ebeveyn bilgilendirmesi ve resmi gizlilik metni ayrıca güncellenmelidir.
 
 ## İlerleme / değerlendirme
 
