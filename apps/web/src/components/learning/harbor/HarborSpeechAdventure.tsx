@@ -5,7 +5,7 @@ import type {GameCompletedPayload} from '@ventra/shared';
 import {getProgressRepository} from '@/lib/progress';
 import {soundService} from '@/lib/audio/SoundService';
 import {HARBOR_EPISODES,HARBOR_GAME_ID,matchesExpectedSpeech,type HarborPrompt,type HarborLevel} from '@/lib/learning/harborDialogueEngine';
-import {speechCapability,installLocalEnglish,listenToChild,stopSpeechCapture,type SpeechCapability} from '@/lib/speech/childSpeech';
+import {speechCapability,installLocalEnglish,listenToChild,testMicrophoneInput,stopSpeechCapture,type SpeechCapability,type SpeechCaptureStatus} from '@/lib/speech/childSpeech';
 import './harbor-speech.css';
 
 type Props={profileId:string;englishLevel:HarborLevel;gradeLevel:number|null;onBack:()=>void;onSaved:()=>void};
@@ -18,6 +18,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  const [question,setQuestion]=useState(0);
  const [capability,setCapability]=useState<SpeechCapability>(EMPTY_CAPABILITY);
  const [listening,setListening]=useState(false);
+ const [micStatus,setMicStatus]=useState<SpeechCaptureStatus|'idle'>('idle');
  const [busy,setBusy]=useState(false);
  const [feedback,setFeedback]=useState('');
  const [mistakes,setMistakes]=useState(0);
@@ -65,7 +66,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   soundService.unlockAudio();stopSpeechCapture();soundService.cancelSpeech();
   if(timer.current)clearTimeout(timer.current);
   setEpisode(id);setQuestion(0);setMistakes(0);setHints(0);setVoiceRecognized(0);
-  setFeedback('');setSaveError('');setPhase('playing');locked.current=false;startedAt.current=Date.now();
+  setFeedback('');setSaveError('');setMicStatus('idle');setPhase('playing');locked.current=false;startedAt.current=Date.now();
   soundService.playSfx('tap',.5);
  };
  const speak=()=>{
@@ -117,31 +118,96 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  };
  const mic=async()=>{
   if(locked.current||busy||listening)return;
-  setListening(true);setFeedback('');
   const run=++generation.current;
+  setListening(true);setMicStatus('starting');setFeedback('');
   soundService.cancelSpeech();
   soundService.setCaptureActive(true);
   let result;
-  try{result=await listenToChild(capability,8000);}
-  finally{soundService.setCaptureActive(false);}
+  try{
+   result=await listenToChild(capability,10000,status=>{
+    if(run===generation.current)setMicStatus(status);
+   });
+  }catch{
+   // Browser/OS failures are not evidence that the child spoke incorrectly.
+   if(run===generation.current){
+    setFeedback('Konuşma tanıma başlatılamadı. Mikrofon testini dene veya cevaba dokun.');
+    setListening(false);setMicStatus('idle');
+   }
+   return;
+  }finally{
+   if(run===generation.current)soundService.setCaptureActive(false);
+  }
   if(run!==generation.current)return;
-  setListening(false);
+  setListening(false);setMicStatus('idle');
   if(result.kind==='recognized'){
    if(matchesExpectedSpeech(result.alternatives,prompt.accept)){
     setVoiceRecognized(n=>n+1);
     correct();
    }else{
-    setFeedback('Seni duydum! İfadeyi tekrar dinle veya doğru cevaba dokun.');
+    // Only show a short ephemeral, device-produced text. Never persist it.
+    const heard=result.alternatives[0]?.slice(0,70);
+    setFeedback(heard?'Şöyle duydum: “'+heard+'”. Farklı bir ifade olabilir; tekrar dene veya cevaba dokun.':
+     'Konuşmanı aldım fakat hedef ifadeyle eşleşmedi. Tekrar deneyebilirsin.');
    }
+  }else if(result.kind==='unrecognized'){
+   setFeedback('Sesini algıladım ama İngilizceye çeviremedim. Bu yanlış telaffuz ettiğin anlamına gelmez; tekrar deneyebilirsin.');
   }else if(result.kind==='heard'){
-   setFeedback('Sesini duydum! 🎤 Şimdi doğru cevaba dokunarak devam edebilirsin.');
+   setFeedback('Sesini duydum! 🎤 Mikrofon çalışıyor. Şimdi doğru cevaba dokunarak devam edebilirsin.');
   }else if(result.kind==='denied'){
-   setFeedback('Mikrofon izni verilmedi. Sorun değil, cevaplara dokunabilirsin.');
+   setFeedback('Mikrofon izni reddedildi. Tarayıcı izinlerini kontrol et veya cevaplara dokun.');
   }else if(result.kind==='no-speech'){
-   setFeedback('Sesini yakalayamadım. Tekrar deneyelim veya cevaba dokun.');
+   setFeedback('Konuşma motoru açık kaldı ama ses algılamadı. “Mikrofonu Test Et” ile bilgisayarın ses girişini kontrol et.');
   }else if(result.kind==='unavailable'){
-   setFeedback('Bu cihazda mikrofon kullanılamıyor. Dokunarak oynamaya devam edebilirsin.');
+   const errorMessage:Record<string,string>={
+    'microphone-error':'Tarayıcı mikrofona erişemedi. Windows ses girişini ve mikrofon iznini kontrol et.',
+    'language-pack':'Cihazdaki İngilizce konuşma paketi başlatılamıyor. Ses paketini yeniden kontrol et.',
+    'not-started':'Konuşma motoru mikrofonu başlatamadı. Mikrofon testini kullan veya tarayıcıyı yeniden aç.',
+    'service-unavailable':'Tarayıcının yerel konuşma tanıması hata verdi. Mikrofonu test et; gerekirse farklı tarayıcı kullan.'
+   };
+   setFeedback(errorMessage[result.reason??'']??'Yerel tanıma şu anda kullanılamıyor. Mikrofonu test et veya cevaba dokun.');
+   if(capability.mode==='web-local'){
+    // An "available" response is not a guarantee that recognition actually starts.
+    // Avoid repeated identical failures and never switch to a remote service.
+    const updated=await speechCapability();
+    if(run!==generation.current)return;
+    setCapability(updated.mode==='web-local'?{
+     mode:'practice',installable:false,
+     message:'Yerel tanıma başlatılamadı. Sesli pratik ve dokunmatik cevap kullanılabilir.'
+    }:updated);
+   }
   }
+ };
+ const testMic=async()=>{
+  if(locked.current||busy||listening)return;
+  const run=++generation.current;
+  setListening(true);setMicStatus('testing');setFeedback('');
+  soundService.cancelSpeech();soundService.setCaptureActive(true);
+  let result;
+  try{
+   result=await testMicrophoneInput(5000,status=>{
+    if(run===generation.current)setMicStatus(status);
+   });
+  }finally{
+   if(run===generation.current)soundService.setCaptureActive(false);
+  }
+  if(run!==generation.current)return;
+  setListening(false);setMicStatus('idle');
+  if(result.kind==='heard'){
+   setFeedback('✅ Mikrofonun ses alıyor! Sorun konuşma tanıma motorundaysa yeniden kontrol edebilirsin. Bu test İngilizceyi değerlendirmez.');
+  }else if(result.kind==='denied'){
+   setFeedback('Mikrofon izni verilmedi. Tarayıcı ve işletim sistemi izinlerine bak.');
+  }else{
+   setFeedback('Mikrofon testinde ses algılanmadı. Giriş cihazını, mikrofon seviyesini ve izinleri kontrol et.');
+  }
+ };
+ const recheckSpeech=async()=>{
+  if(busy||listening)return;
+  setBusy(true);
+  try{
+   const state=await speechCapability();
+   setCapability(state);
+   setFeedback(state.mode==='web-local'?'Yerel İngilizce tanıma hazır görünüyor. Tekrar deneyebilirsin.':state.message);
+  }finally{setBusy(false);}
  };
  const install=async()=>{
   setBusy(true);const ok=await installLocalEnglish();
@@ -151,7 +217,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  const backToMap=()=>{
   generation.current++;stopSpeechCapture();soundService.setCaptureActive(false);soundService.cancelSpeech();
   if(timer.current)clearTimeout(timer.current);locked.current=false;
-  setPhase('map');setFeedback('');setSaveError('');
+  setPhase('map');setFeedback('');setSaveError('');setMicStatus('idle');
  };
  const order=question%3;
  const options=order===0?[prompt.choices[1],prompt.choices[0],prompt.choices[2]]:
@@ -200,9 +266,24 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
        className="harbor-mic-button" aria-label={listening?'Dinleniyor':'Mikrofonla konuş'}>
        {listening?'🎙️ Dinliyorum…':'🎤 Konuşarak Dene'}
       </button>
-      {listening&&<button type="button" onClick={()=>{generation.current++;stopSpeechCapture();soundService.setCaptureActive(false);setListening(false);}} className="harbor-stop">Dur ✕</button>}
+      {listening&&<button type="button" onClick={()=>{
+       generation.current++;stopSpeechCapture();soundService.setCaptureActive(false);
+       setListening(false);setMicStatus('idle');
+      }} className="harbor-stop">Dur ✕</button>}
+      {!listening&&<button type="button" onClick={()=>void testMic()}
+       disabled={busy||locked.current} className="harbor-mic-test">🎚️ Mikrofonu Test Et</button>}
       <small>{capability.message}</small>
      </div>
+     {listening&&<p className="harbor-mic-live" role="status" aria-live="polite">{
+      micStatus==='starting'?'⏳ Mikrofon hazırlanıyor… Hazır mesajından sonra konuş.':
+      micStatus==='microphone-ready'?'🟢 Mikrofon hazır! Şimdi İngilizce cevabı söyle.':
+      micStatus==='speech-detected'?'🎤 Ses algılandı! Birazdan işleyeceğim.':
+      micStatus==='processing'?'✨ Sesini işliyorum…':
+      '🎚️ Mikrofon test ediliyor… Ses çıkar veya birkaç kelime söyle.'
+     }</p>}
+     {!listening&&capability.mode==='practice'&&<button type="button"
+      onClick={()=>void recheckSpeech()} disabled={busy||locked.current}
+      className="harbor-recheck">↻ Yerel konuşma tanımayı yeniden kontrol et</button>}
      {capability.installable&&<button type="button" disabled={busy||listening}
       className="harbor-download" onClick={()=>void install()}>↓ İngilizce ses paketini ücretsiz indir</button>}
      <p role="status" aria-live="polite" className="harbor-feedback">{feedback}</p>
