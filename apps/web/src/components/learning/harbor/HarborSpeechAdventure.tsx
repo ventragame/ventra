@@ -146,11 +146,11 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
    }else{
     // Only show a short ephemeral, device-produced text. Never persist it.
     const heard=result.alternatives[0]?.slice(0,70);
-    setFeedback(heard?'Şöyle duydum: “'+heard+'”. Farklı bir ifade olabilir; tekrar dene veya cevaba dokun.':
+    setFeedback(heard?'Şöyle duydum: “'+heard+'”'+(result.source==='interim'?' (geçici tanıma).':' .')+' Tekrar dene veya cevaba dokun.':
      'Konuşmanı aldım fakat hedef ifadeyle eşleşmedi. Tekrar deneyebilirsin.');
    }
   }else if(result.kind==='unrecognized'){
-   setFeedback('Sesini algıladım ama İngilizceye çeviremedim. Bu yanlış telaffuz ettiğin anlamına gelmez; tekrar deneyebilirsin.');
+   setFeedback('Mikrofon sesini duydu, ancak tarayıcının İngilizce tanıma motoru hiçbir kelime üretmedi. Bu telaffuz hatası değildir. Biraz daha yavaş konuşmayı dene; sorun sürerse farklı bir tarayıcıyla karşılaştır.');
   }else if(result.kind==='heard'){
    setFeedback('Sesini duydum! 🎤 Mikrofon çalışıyor. Şimdi doğru cevaba dokunarak devam edebilirsin.');
   }else if(result.kind==='denied'){

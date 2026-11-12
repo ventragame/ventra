@@ -8,9 +8,10 @@ class FakeSpeechRecognition {
  processLocally=false;
  onstart=null;onaudiostart=null;onspeechstart=null;onsoundstart=null;onspeechend=null;
  onnomatch=null;onresult=null;onerror=null;onend=null;
- aborted=false;started=false;
+ aborted=false;started=false;stopped=false;
  constructor(){FakeSpeechRecognition.mostRecent=this;}
  start(){this.started=true;}
+ stop(){this.stopped=true;}
  abort(){this.aborted=true;}
 }
 const spoken=(words,isFinal=true)=>{
@@ -109,4 +110,55 @@ test('An engine without mandatory local-only support never starts a remote recog
  assert.deepEqual(await capture.result,{
   kind:'unavailable',reason:'service-unavailable',alternatives:[],mode:'web-local'
  });
+});
+
+test('Short English speech is finalized with stop() instead of abort(), then accepts a final result',async()=>{
+ const session=beginWebLocalRecognition(FakeSpeechRecognition,5000);
+ const rec=FakeSpeechRecognition.mostRecent;
+ rec.onaudiostart();
+ rec.onspeechstart();
+ rec.onspeechend();
+ await new Promise(resolve=>setTimeout(resolve,620));
+ assert.equal(rec.stopped,true,'speechend must trigger stop() to request final words');
+ assert.equal(rec.aborted,false,'never abort before trying to obtain the transcript');
+ rec.onresult(spoken(['Hello!']));
+ const result=await session.result;
+ assert.equal(result.kind,'recognized');
+ assert.equal(result.source,'final');
+ assert.deepEqual(result.alternatives,['Hello!']);
+});
+
+test('Last interim transcript is recovered if a local engine disconnects without a final event',async()=>{
+ const session=beginWebLocalRecognition(FakeSpeechRecognition,5000);
+ const rec=FakeSpeechRecognition.mostRecent;
+ rec.onaudiostart();rec.onspeechstart();
+ rec.onresult(spoken(['Bye!'],false));
+ rec.onend();
+ const result=await session.result;
+ assert.deepEqual(result,{
+  kind:'recognized',reason:'interim-result',alternatives:['Bye!'],
+  mode:'web-local',source:'interim'
+ });
+});
+
+test('On-device recognizer no-speech error cannot discard an already identified phrase',async()=>{
+ const session=beginWebLocalRecognition(FakeSpeechRecognition,5000);
+ const rec=FakeSpeechRecognition.mostRecent;
+ rec.onaudiostart();rec.onspeechstart();
+ rec.onresult(spoken(['Good morning'],false));
+ rec.onerror({error:'no-speech'});
+ const result=await session.result;
+ assert.equal(result.kind,'recognized');
+ assert.equal(result.source,'interim');
+ assert.deepEqual(result.alternatives,['Good morning']);
+});
+
+test('An interim phrase is not invented when only raw sound is detected',async()=>{
+ const session=beginWebLocalRecognition(FakeSpeechRecognition,5000);
+ const rec=FakeSpeechRecognition.mostRecent;
+ rec.onaudiostart();rec.onspeechstart();
+ rec.onend();
+ const result=await session.result;
+ assert.equal(result.kind,'unrecognized');
+ assert.deepEqual(result.alternatives,[]);
 });

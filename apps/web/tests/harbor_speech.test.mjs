@@ -110,3 +110,12 @@ test('Harbor achievements reach the correct island badge, dock and player card',
  assert.match(game,/islandId:'speaking_harbor',completed:harborCompletedLevels,total:5/);
  assert.match(scene,/def\.id==='speaking_harbor'\?this\.harborCompletedLevels:0/);
 });
+
+test('Harbor tells the parent when the browser recognizer generates no words',()=>{
+ const ui=read('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
+ const engine=read('../src/lib/speech/webLocalRecognition.ts');
+ assert.match(ui,/tanıma motoru hiçbir kelime üretmedi/);
+ assert.match(engine,/recognition\?\.stop\(\)/);
+ assert.match(engine,/if\(provisional\.length\)/);
+ assert.match(engine,/interim-result/);
+});
