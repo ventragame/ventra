@@ -6,12 +6,17 @@ interface ParentalGateModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSuccess: () => void;
+  /** Optional copy for a parent-only operation other than cloud backups. */
+  description?: string;
+  zIndex?: number;
 }
 
 export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
   isOpen,
   onClose,
-  onSuccess
+  onSuccess,
+  description,
+  zIndex = 70
 }) => {
   const [numA, setNumA] = useState<number>(7);
   const [numB, setNumB] = useState<number>(8);
@@ -56,7 +61,7 @@ export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
       display: 'flex',
       alignItems: 'center',
       justifyContent: 'center',
-      zIndex: 70,
+      zIndex,
       padding: '16px'
     }}>
       <div style={{
@@ -79,7 +84,7 @@ export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
             Ebeveyn Doğrulaması
           </h3>
           <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>
-            Bu alan yalnızca yetişkinlerin bulut yedekleme ve hesap işlemlerini yönetmesi içindir. Devam etmek için lütfen işlemi çözün:
+            {description ?? 'Bu alan yalnızca yetişkinlerin bulut yedekleme ve hesap işlemlerini yönetmesi içindir. Devam etmek için lütfen işlemi çözün:'}
           </p>
         </div>
 
