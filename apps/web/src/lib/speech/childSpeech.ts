@@ -1,9 +1,9 @@
 'use client';
 
 import {Capacitor,registerPlugin} from '@capacitor/core';
-import {beginWebLocalRecognition,type WebSpeechConstructor,type WebSpeechReason,type WebSpeechStatus} from './webLocalRecognition';
+import {beginWebLocalRecognition,beginWebBrowserRecognition,type WebSpeechConstructor,type WebSpeechReason,type WebSpeechStatus} from './webLocalRecognition';
 
-export type SpeechMode='native-local'|'web-local'|'practice'|'none';
+export type SpeechMode='native-local'|'web-local'|'web-browser'|'practice'|'none';
 export type SpeechCaptureStatus=WebSpeechStatus|'testing';
 export type SpeechCapability={mode:SpeechMode;installable:boolean;message:string};
 export type SpeechAttempt={
@@ -39,12 +39,12 @@ export async function speechCapability():Promise<SpeechCapability>{
  if(typeof window==='undefined')return {mode:'none',installable:false,message:'Mikrofon kullanılamıyor.'};
  if(Capacitor.isNativePlatform()){
   if(!Capacitor.isPluginAvailable('VentraSpeech'))
-   return {mode:await canUseMic()?'practice':'none',installable:false,message:'Bu uygulama sürümünde yerel ses tanıma yok. Sesli tekrar yapabilirsin.'};
+   return {mode:await canUseMic()?'practice':'none',installable:false,message:'Yüksek sesle tekrar et, sonra cevabını seç!'};
   try{
    const status=await plugin.getStatus();
    if(status.available)return {mode:'native-local',installable:false,message:'Konuşman cihazında tanınır.'};
   }catch{}
-  return {mode:await canUseMic()?'practice':'none',installable:false,message:'Bu cihazda İngilizce konuşma tanıma yok. Yine de yüksek sesle tekrar edebilirsin.'};
+  return {mode:await canUseMic()?'practice':'none',installable:false,message:'Yüksek sesle tekrar et, sonra cevabını seç!'};
  }
  const ctor=browserConstructor();
  if(ctor?.available){
@@ -54,13 +54,13 @@ export async function speechCapability():Promise<SpeechCapability>{
    if(!('processLocally' in instance))throw Error('No local processing');
    const result=await ctor.available({langs:['en-US'],processLocally:true});
    if(result==='available')
-    return {mode:'web-local',installable:false,message:'İngilizce ses paketi hazır. Mikrofon hazır olunca konuş.'};
+    return {mode:'web-local',installable:false,message:'Sesli yanıtını dinlemeye hazırım!'};
    if(result==='downloadable'||result==='downloading')
-    return {mode:'practice',installable:result==='downloadable',message:'İngilizce ses paketi indirilebilir. İndirmeden de sesli pratik yapabilirsin.'};
+    return {mode:'practice',installable:result==='downloadable',message:'Yüksek sesle tekrar et, sonra cevabını seç!'};
   }catch{}
  }
  return {mode:await canUseMic()?'practice':'none',installable:false,
-  message:'Bu tarayıcıda özel konuşma tanıma yok. Mikrofonla tekrar et veya cevaba dokun.'};
+  message:'Yüksek sesle tekrar et, sonra cevabını seç!'};
 }
 /** Only from the explicit "download language pack" click. Never auto-download. */
 export async function installLocalEnglish():Promise<boolean>{
@@ -138,16 +138,23 @@ async function nativeRecognition(timeoutMs:number):Promise<SpeechAttempt>{
 export async function listenToChild(
  capability:SpeechCapability,timeoutMs=8000,
  onStatus?:(status:SpeechCaptureStatus)=>void,
- contextPhrases:readonly string[]=[]
+ contextPhrases:readonly string[]=[],parentApprovedBrowserService=false
 ):Promise<SpeechAttempt>{
  stopSpeechCapture();
  const epoch=++captureEpoch;
  const ms=Math.min(12000,Math.max(3000,timeoutMs));
  if(capability.mode==='native-local')return nativeRecognition(ms);
- if(capability.mode==='web-local'){
+ if(capability.mode==='web-local'||capability.mode==='web-browser'){
   const ctor=browserConstructor();
   if(ctor){
-   const session=beginWebLocalRecognition(ctor,ms,onStatus,contextPhrases);
+   // Browser-managed remote recognition is never available on native WebViews
+   // and requires affirmative approval within this one adult-authorized session.
+   const session=capability.mode==='web-browser'&&!Capacitor.isNativePlatform()
+    ?beginWebBrowserRecognition(ctor,ms,parentApprovedBrowserService,onStatus,contextPhrases)
+    :capability.mode==='web-local'
+    ?beginWebLocalRecognition(ctor,ms,onStatus,contextPhrases)
+    :null;
+   if(!session)return {kind:'unavailable',alternatives:[],mode:'none'};
    currentCancel=session.cancel;
    try{return await session.result;}
    finally{if(currentCancel===session.cancel)currentCancel=null;}
@@ -166,4 +173,10 @@ export async function testMicrophoneInput(
  const epoch=++captureEpoch;
  onStatus?.('testing');
  return practiceVoice(Math.max(2500,Math.min(6500,timeoutMs)),epoch,onStatus);
+}
+
+/** Used only to reveal an informed adult opt-in, not as evidence of accuracy. */
+export function canOfferBrowserSpeechService():boolean{
+ return typeof window!=='undefined'&&!Capacitor.isNativePlatform()
+  &&browserConstructor()!==null;
 }
