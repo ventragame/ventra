@@ -1,0 +1,48 @@
+.harbor-root{position:fixed;inset:0;z-index:82;display:flex;flex-direction:column;overflow:hidden;background:#082444;color:#fff;font-family:inherit}
+.harbor-header{position:relative;z-index:2;display:flex;align-items:center;gap:14px;padding:10px clamp(12px,3vw,38px);background:linear-gradient(115deg,#093b61,#15396c);border-bottom:1px solid #c5f6ef66;box-shadow:0 8px 24px #03132c6b}
+.harbor-header small{font-size:10px;letter-spacing:.12em;color:#b8edff;font-weight:900}
+.harbor-header h1{font-size:clamp(17px,2.1vw,25px);font-weight:950}
+.harbor-back{border:1px solid #d8f9fa8e;border-radius:14px;background:#fff2;color:#fff;font-size:26px;min-width:46px;min-height:46px}
+.harbor-progress{margin-left:auto;border:1px solid #ffe7a37c;background:#e9b95f29;padding:10px 12px;border-radius:18px;font-weight:950;white-space:nowrap}
+.harbor-main{position:relative;overflow-y:auto;flex:1;overscroll-behavior:contain;padding:clamp(12px,2.3vw,26px);background:linear-gradient(170deg,#0f6082,#155184 46%,#173367)}
+.harbor-cover{position:absolute;inset:0 0 auto;height:290px;background:linear-gradient(to bottom,transparent,#0d578433),url('/assets/kids-islands/speaking_harbor.webp') center 44% / cover no-repeat;opacity:.23;pointer-events:none}
+.harbor-intro,.harbor-level-title,.harbor-stage,.harbor-talk,.harbor-finale,.harbor-episode-grid{position:relative;z-index:1;max-width:1020px;margin-left:auto;margin-right:auto}
+.harbor-intro{text-align:center;max-width:740px;margin:12px auto 26px;padding:10px}
+.harbor-intro>span{font-size:11px;letter-spacing:.12em;color:#fff0b7;font-weight:950}
+.harbor-intro h2{font-weight:950;font-size:clamp(24px,3.8vw,42px);line-height:1.2;margin:10px 0}
+.harbor-intro p{font-size:clamp(13px,1.9vw,17px);color:#e9f8ff;line-height:1.65}
+.harbor-episode-grid{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:12px}
+.harbor-episode-card{position:relative;min-width:0;min-height:228px;display:flex;flex-direction:column;align-items:center;gap:8px;border:2px solid #daffed80;background:linear-gradient(155deg,#e7faff23,#051f58ba);box-shadow:0 8px 19px #04132e67;border-radius:25px;padding:20px 8px 14px;text-align:center;transition:transform .2s,border-color .2s}
+.harbor-episode-card:not(:disabled):hover{transform:translateY(-5px);border-color:#fbffc6}
+.harbor-episode-card:disabled{opacity:.58;filter:saturate(.5)}
+.harbor-episode-icon{display:grid;place-items:center;width:76px;height:76px;font-size:39px;background:#fff3;border-radius:22px;border:1px solid #fff7}
+.harbor-episode-number{color:#b5f5f4;font-weight:950;font-size:11px}
+.harbor-episode-card strong{font-size:15px}.harbor-episode-card small{font-size:12px;color:#d1f6ff}.harbor-episode-state{margin-top:auto;font-weight:950;font-size:11px;color:#fff0b4}
+.harbor-level-title{display:flex;justify-content:space-between;gap:12px;font-weight:950;font-size:14px;margin:0 auto 12px}
+.harbor-stage{display:flex;align-items:center;justify-content:center;gap:22px;max-width:800px;min-height:220px;padding:15px;border-radius:30px;background:linear-gradient(140deg,#7bd7d84f,#152568b5);border:2px solid #bafefa6f}
+.harbor-captain{position:relative;display:grid;place-items:center;min-width:145px;min-height:165px;background:radial-gradient(ellipse,#c1f9ff80,transparent 75%);font-size:100px}
+.harbor-stage-icon{position:absolute;right:-4px;top:1px;font-size:43px;filter:drop-shadow(0 3px 6px #194b65)}
+.harbor-bubble{border-radius:25px 25px 25px 4px;background:#effdff;color:#164468;min-width:0;max-width:460px;padding:20px 23px;box-shadow:0 10px 22px #031a405e}
+.harbor-bubble small{font-size:10px;color:#277fa2;font-weight:950;letter-spacing:.1em}
+.harbor-bubble h2{font-size:clamp(20px,3vw,32px);font-weight:950;margin:8px 0 15px}
+.harbor-listen{padding:11px 15px;border-radius:13px;background:#c6eaff;color:#125078;font-weight:900;border:1px solid #6fb7dd}
+.harbor-talk{margin-top:14px;max-width:800px;background:#081e4bd9;border:1px solid #b9dded6a;border-radius:27px;padding:clamp(12px,2vw,22px)}
+.harbor-talk-title{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:15px}.harbor-talk-title strong{font-size:19px}.harbor-talk-title span{font-size:12px;color:#ceeffe}
+.harbor-answer-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
+.harbor-answer{min-height:84px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:7px;padding:9px;border-radius:16px;border:2px solid #a9e8ee80;background:#eaffff14;font-weight:800;text-align:center;line-height:1.4}
+.harbor-answer span{background:#d5f5e5;color:#19495f;width:25px;height:25px;border-radius:9px;display:grid;place-items:center;font-size:11px}
+.harbor-answer:not(:disabled):hover{background:#eaffff30;border-color:#fcf2ac}.harbor-answer:disabled{opacity:.6}
+.harbor-microphone{display:flex;align-items:center;gap:12px;flex-wrap:wrap;justify-content:center;margin-top:16px}
+.harbor-microphone small{flex:1 1 195px;color:#cde7fa;font-size:11px}
+.harbor-mic-button{background:linear-gradient(120deg,#baffac,#81e0ef);color:#103e50;font-weight:950;min-height:49px;padding:11px 18px;border-radius:16px;box-shadow:0 5px 0 #205d73}
+.harbor-mic-button:disabled{opacity:.63}.harbor-stop{border:1px solid #f8c8b4;border-radius:12px;padding:12px;color:#fdd2bd}
+.harbor-download{margin:12px auto 0;display:block;color:#fff5ad;text-decoration:underline;font-size:12px}
+.harbor-feedback{min-height:32px;text-align:center;margin:10px 0;color:#e8f6b7;font-weight:850;font-size:13px}.harbor-hint{display:block;margin:3px auto 0;color:#b5efff;font-weight:800;font-size:12px}
+.harbor-error{border:1px solid #f6a1ab;padding:12px;border-radius:13px;color:#ffe0de;font-size:12px}.harbor-error button{display:block;margin:8px auto;text-decoration:underline}
+.harbor-finale{max-width:700px;margin:10vh auto;text-align:center;border:1px solid #b8f9d0;background:#071d4ac9;border-radius:35px;padding:36px}
+.harbor-finale>div{font-size:55px}.harbor-finale h2{font-size:clamp(24px,4vw,38px);font-weight:950}.harbor-finale p{color:#d4ebf8;margin:13px 0}.harbor-finale button{margin-top:13px;border-radius:16px;background:#aaf4d1;color:#154c61;padding:14px 19px;font-weight:950}
+.harbor-footer{padding:8px 14px;text-align:center;background:#061934;color:#b4dce9;font-size:10px}
+.harbor-root button:focus-visible{outline:3px solid #fff4a6;outline-offset:3px}
+@media(max-width:850px){.harbor-episode-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.harbor-episode-card{min-height:183px}.harbor-episode-icon{width:58px;height:58px;font-size:31px}}
+@media(max-width:560px){.harbor-header{padding:8px 12px}.harbor-header h1{font-size:18px}.harbor-cover{background-image:linear-gradient(to bottom,transparent,#0d578433),url('/assets/kids-islands/speaking_harbor_mobile.webp')}.harbor-stage{min-height:155px;gap:5px;padding:10px}.harbor-captain{min-width:96px;min-height:116px;font-size:69px}.harbor-stage-icon{font-size:26px}.harbor-bubble{padding:12px 10px;border-radius:17px}.harbor-bubble h2{font-size:17px;margin:6px 0}.harbor-listen{padding:8px;font-size:11px}.harbor-answer-grid{grid-template-columns:1fr}.harbor-answer{flex-direction:row;min-height:48px;justify-content:flex-start;padding:10px;text-align:left;font-size:13px}.harbor-talk-title{flex-direction:column;align-items:flex-start}.harbor-root .harbor-intro{margin-top:4px}.harbor-episode-grid{gap:10px}.harbor-episode-card{min-height:170px;padding:13px 7px}.harbor-episode-icon{width:53px;height:53px}}
+@media(prefers-reduced-motion:reduce){.harbor-root *{animation:none!important;transition:none!important}}
