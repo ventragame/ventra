@@ -14,7 +14,7 @@ export type WebSpeechReason='no-speech'|'speech-unrecognized'|'permission-denied
  'timeout'|'cancelled'|'interim-result';
 export type WebSpeechResult={
  kind:'recognized'|'no-speech'|'unrecognized'|'denied'|'unavailable'|'cancelled';
- alternatives:string[];mode:'web-local';reason?:WebSpeechReason;
+ alternatives:string[];mode:'web-local'|'web-browser';reason?:WebSpeechReason;
  source?:'final'|'interim';
 };
 export type RecognitionItem=ArrayLike<{transcript:string}> & {isFinal?:boolean};
@@ -49,9 +49,11 @@ export function mapWebRecognitionError(code:string,speechDetected=false):Pick<We
 }
 
 /** Run on the direct user tap, without awaiting permissions or other promises. */
-export function beginWebLocalRecognition(
- Ctor:WebSpeechConstructor,timeoutMs:number,onStatus?:(status:WebSpeechStatus)=>void,
- contextPhrases:readonly string[]=[]
+/** Internal shared state machine: the caller must positively opt into browser-managed
+ * (potentially remote) recognition. Never infer permission from API availability. */
+function beginWebSpeechRecognition(
+ Ctor:WebSpeechConstructor,timeoutMs:number,onStatus:((status:WebSpeechStatus)=>void)|undefined,
+ contextPhrases:readonly string[],allowBrowserService:boolean
 ):{result:Promise<WebSpeechResult>;cancel:()=>void}{
  let recognition:WebSpeechRecognitionInstance|undefined;
  let resolve!: (value:WebSpeechResult)=>void;
@@ -95,7 +97,8 @@ export function beginWebLocalRecognition(
   }
   resolve({
    kind,alternatives:alternatives.map(s=>s.trim()).filter(Boolean).slice(0,4),
-   mode:'web-local',...(reason?{reason}:{}),...(source?{source}:{})
+   mode:allowBrowserService?'web-browser':'web-local',
+   ...(reason?{reason}:{}),...(source?{source}:{})
   });
  };
  const finalize=()=>{
@@ -128,7 +131,7 @@ export function beginWebLocalRecognition(
 
  try{
   recognition=new Ctor();
-  if(!('processLocally' in recognition)){
+  if(!allowBrowserService&&!('processLocally' in recognition)){
    finish('unavailable','service-unavailable');
    return {result,cancel};
   }
@@ -136,7 +139,13 @@ export function beginWebLocalRecognition(
   recognition.continuous=false;
   recognition.interimResults=true;
   recognition.maxAlternatives=4;
-  recognition.processLocally=true; // Strict no-cloud policy.
+  if(allowBrowserService){
+   // Only reachable after an explicit parent-controlled action in the UI.
+   // The browser provider MAY transmit audio for recognition.
+   if('processLocally' in recognition)recognition.processLocally=false;
+  }else{
+   recognition.processLocally=true; // Strict no-cloud default.
+  }
   // The spoken answer is one of a few short phrases. Opt into the 2025+
   // contextual-biasing API only when the local browser implements both parts.
   // Boost ALL visible choices evenly to avoid biasing the correct answer.
@@ -231,4 +240,26 @@ export function beginWebLocalRecognition(
   finish('unavailable','service-unavailable');
  }
  return {result,cancel};
+}
+
+/** Default: local-only. Never sends audio to a browser speech provider. */
+export function beginWebLocalRecognition(
+ Ctor:WebSpeechConstructor,timeoutMs:number,onStatus?:(status:WebSpeechStatus)=>void,
+ contextPhrases:readonly string[]=[]
+):{result:Promise<WebSpeechResult>;cancel:()=>void}{
+ return beginWebSpeechRecognition(Ctor,timeoutMs,onStatus,contextPhrases,false);
+}
+
+/** Browser-owned speech service: may upload the spoken audio to the browser
+ * provider. Intentionally requires a TRUE approval flag from the parent UX. */
+export function beginWebBrowserRecognition(
+ Ctor:WebSpeechConstructor,timeoutMs:number,parentApproved:boolean,
+ onStatus?:(status:WebSpeechStatus)=>void,
+ contextPhrases:readonly string[]=[]
+):{result:Promise<WebSpeechResult>;cancel:()=>void}{
+ if(parentApproved!==true){
+  return {result:Promise.resolve({kind:'unavailable',alternatives:[],
+    mode:'web-browser',reason:'service-unavailable'}),cancel:()=>{}};
+ }
+ return beginWebSpeechRecognition(Ctor,timeoutMs,onStatus,contextPhrases,true);
 }
