@@ -14,6 +14,7 @@ import { getProgressRepository, type CreateProfileInput } from '../../lib/progre
 import { KidsWelcomeGate } from '../../components/onboarding/KidsWelcomeGate';
 import { saveWordGardenLevelCompletion } from '../../lib/progress/wordGardenProgress';
 import {getGardenOverallProgress,type GardenOverallProgress} from '../../lib/progress/gardenOverallProgress';
+import {HARBOR_GAME_ID} from '../../lib/learning/harborDialogueEngine';
 const ProfileSelectorModal = dynamic(() => import('../../components/profile/ProfileSelectorModal').then((module) => module.ProfileSelectorModal), { loading: () => <div role="status" className="text-center text-sm text-sky-100 p-6">Ventra bölümü yükleniyor…</div> });
 const ParentalGateModal = dynamic(() => import('../../components/profile/ParentalGateModal').then((module) => module.ParentalGateModal), { loading: () => <div role="status" className="text-center text-sm text-sky-100 p-6">Ventra bölümü yükleniyor…</div> });
 const AdultAccountModal = dynamic(() => import('../../components/profile/AdultAccountModal').then((module) => module.AdultAccountModal), { loading: () => <div role="status" className="text-center text-sm text-sky-100 p-6">Ventra bölümü yükleniyor…</div> });
@@ -74,6 +75,7 @@ export default function VentraKidsWorldPage() {
   const [forestProgress,setForestProgress]=useState<ForestProgress|null>(null);
   const [sequenceProgress,setSequenceProgress]=useState<SequenceProgress|null>(null);
   const [detectiveProgress,setDetectiveProgress]=useState<DetectiveProgress|null>(null);
+  const [harborCompleted,setHarborCompleted]=useState<number>(0);
   const [wordGardenStarsByLevel, setWordGardenStarsByLevel] = useState<Record<number, number>>({});
   const [totalStars, setTotalStars] = useState<number>(0);
   const [isPassportOpen,setIsPassportOpen]=useState(false);
@@ -175,11 +177,18 @@ export default function VentraKidsWorldPage() {
     try {
       const overview=await getGardenOverallProgress(getProgressRepository(),profile.id,profile.gradeLevel??null,profile.englishLevel??'Pre-A1');
       const plaza=await getSentencePlazaProgress(getProgressRepository(),profile.id);
-      const [forest,sequence,detective]=await Promise.all([
+      const [forest,sequence,detective,harborLevels]=await Promise.all([
         getStoryForestProgress(getProgressRepository(),profile.id),
         getSequenceProgress(getProgressRepository(),profile.id),
-        getDetectiveProgress(getProgressRepository(),profile.id)
+        getDetectiveProgress(getProgressRepository(),profile.id),
+        getProgressRepository().getAllLevelProgress(HARBOR_GAME_ID,profile.id)
       ]);
+      let harborCount=0;
+      for(let level=1;level<=5;level++){
+        if(!harborLevels[level]||harborLevels[level].completedCount<=0)break;
+        harborCount++;
+      }
+      setHarborCompleted(harborCount);
       setPlazaProgress(plaza);
       setForestProgress(forest);
       setSequenceProgress(sequence);
@@ -203,6 +212,7 @@ export default function VentraKidsWorldPage() {
       setForestProgress(null);
       setSequenceProgress(null);
       setDetectiveProgress(null);
+      setHarborCompleted(0);
       showToast('İlerleme yüklenemedi. Lütfen tekrar deneyin.');
     }
   }, [showToast]);
@@ -400,11 +410,13 @@ export default function VentraKidsWorldPage() {
   const focusedPercent = focusedIsland==='story_castle'
     ?Math.round(100*(plazaProgress?.completedLevels??0)/6)
     :focusedIsland==='listening_forest'
-    ?Math.round(100*((forestProgress?.completedLevels??0)+(sequenceProgress?.completedLevels??0)+(detectiveProgress?.completedLevels??0))/18):wordGardenProgressPercent;
+    ?Math.round(100*((forestProgress?.completedLevels??0)+(sequenceProgress?.completedLevels??0)+(detectiveProgress?.completedLevels??0))/18)
+    :focusedIsland==='speaking_harbor'?Math.round(100*harborCompleted/5):wordGardenProgressPercent;
   const focusedCountText=focusedIsland==='story_castle'
     ?(plazaProgress?String(plazaProgress.completedLevels)+' / 6 görev tamamlandı':'İlerleme okunamadı')
     :focusedIsland==='listening_forest'
     ?(forestProgress&&sequenceProgress&&detectiveProgress?String(forestProgress.completedLevels+sequenceProgress.completedLevels+detectiveProgress.completedLevels)+' / 18 hikâye görevi tamamlandı':'İlerleme okunamadı')
+    :focusedIsland==='speaking_harbor'?String(harborCompleted)+' / 5 diyalog görevi tamamlandı'
     :(gardenOverall?String(gardenOverall.completed)+' / '+String(gardenOverall.total)+' görev tamamlandı':'İlerleme okunamadı');
 
   return (
@@ -584,6 +596,7 @@ export default function VentraKidsWorldPage() {
           wordGardenTotalLevels={gardenOverall?.total??73}
           plazaCompletedLevels={plazaProgress?.completedLevels??0}
           forestCompletedLevels={(forestProgress?.completedLevels??0)+(sequenceProgress?.completedLevels??0)+(detectiveProgress?.completedLevels??0)}
+          harborCompletedLevels={harborCompleted}
           onOpenLearningPath={handleOpenLearningPath}
           onToast={showToast}
         />
@@ -647,7 +660,9 @@ export default function VentraKidsWorldPage() {
         {ARCHIPELAGO_ISLANDS_ORDERED.map(island=>{
           const selected=focusedIsland===island.id;
           const playable=island.contentPublished;
-          const completed=playable&&(island.id==='story_castle'?plazaProgress?.completedLevels===6:gardenOverall?.completedWorlds===6);
+          const completed=playable&&(island.id==='story_castle'?plazaProgress?.completedLevels===6:
+            island.id==='listening_forest'?(forestProgress?.completedLevels??0)+(sequenceProgress?.completedLevels??0)+(detectiveProgress?.completedLevels??0)===18:
+            island.id==='speaking_harbor'?harborCompleted===5:gardenOverall?.completedWorlds===6);
           return <button key={island.id} type="button"
             onClick={()=>handleFocusIsland(island.id)}
             aria-pressed={selected}

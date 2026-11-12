@@ -15,6 +15,7 @@ export interface WorldSceneConfig {
   wordGardenTotalLevels?: number;
   plazaCompletedLevels?: number;
   forestCompletedLevels?: number;
+  harborCompletedLevels?: number;
 }
 
 interface IslandEntity {
@@ -69,6 +70,7 @@ export class WorldScene extends Phaser.Scene {
   private wordGardenTotalLevels: number = 73;
   private plazaCompletedLevels:number=0;
   private forestCompletedLevels:number=0;
+  private harborCompletedLevels:number=0;
   private isTransitioning: boolean = false;
   private isOverviewMode: boolean = false;
   private isDesktopFocused: boolean = false;
@@ -110,6 +112,7 @@ export class WorldScene extends Phaser.Scene {
     if(typeof data.wordGardenTotalLevels==='number'&&data.wordGardenTotalLevels>0) this.wordGardenTotalLevels=data.wordGardenTotalLevels;
     if(typeof data.plazaCompletedLevels==='number')this.plazaCompletedLevels=data.plazaCompletedLevels;
     if(typeof data.forestCompletedLevels==='number')this.forestCompletedLevels=data.forestCompletedLevels;
+    if(typeof data.harborCompletedLevels==='number')this.harborCompletedLevels=data.harborCompletedLevels;
     this.isTransitioning = false;
     this.isInputLocked = false;
   }
@@ -500,7 +503,7 @@ export class WorldScene extends Phaser.Scene {
 
       container.add(badgeContainer);
 
-      const initialCompleted = def.id==='word_garden'?this.wordGardenCompletedLevels:def.id==='story_castle'?this.plazaCompletedLevels:def.id==='listening_forest'?this.forestCompletedLevels:0;
+      const initialCompleted = def.id==='word_garden'?this.wordGardenCompletedLevels:def.id==='story_castle'?this.plazaCompletedLevels:def.id==='listening_forest'?this.forestCompletedLevels:def.id==='speaking_harbor'?this.harborCompletedLevels:0;
 
       const entity: IslandEntity = {
         id: def.id,
