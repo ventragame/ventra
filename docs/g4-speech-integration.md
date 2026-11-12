@@ -29,3 +29,29 @@ Her seviyede üç farklı, seviyeye özgü diyalog; 5 bölüm, Pre-A1, A1, A2.
 5. Apple Info.plist izin metinleri ve Google Play Data Safety/KVKK bilgilendirmesiyle uygulama davranışı tutarlı mı?
 
 NOT: CI'da simülatör / emülatör derlemesi ve otomatik kod sözleşmesi testleri gerçek çocuk sesindeki başarıyı kanıtlamaz.
+
+## Web konuşma tanıma: gelişmiş ebeveyn seçeneği
+
+Tarayıcının cihaz içi konuşma modeli *available* bildirse bile gerçek konuşmayı
+metne dönüştüremeyebilir. Bu, Web Speech API'nin deneysel / cihaz bağımlı
+davranışıdır. G4 için artık:
+
+1. Çocuk ekranında teknik *language pack*, *processLocally*, *model available*
+   vb. metinler gösterilmez. Mikrofon isteğe bağlıdır.
+2. İlk tercih cihaz içi tanımadır. Başarısızlık bir telaffuz hatası olarak
+   sayılmaz; çocuk dokunmatik şıklardan devam edebilir.
+3. **Açık veli onayıyla**, yalnızca o Diyalog Limanı oturumunda tarayıcı
+   sağlayıcısının ücretsiz konuşma hizmeti seçilebilir. Bu servis
+   sesi üçüncü taraf sunucuya gönderebilir. Ventra'nın kendi sunucusuna ses
+   yüklenmez, transkript saklanmaz.
+4. Varsayılan opt-in **kapalıdır**. Ebeveyn kapısı ve ayrıca bilgilendirilmiş
+   onay kutusu zorunlu. Oturum kapandığında onay sıfırlanır; mobil Capacitor
+   tarafında bu seçenek açılmaz.
+5. Ebeveyn kapısı bir **UX erişim engelidir, kimlik doğrulaması veya hukuki
+   ebeveyn izni yerine geçmez**. Çocuk verileri üçüncü tarafa iletilmeden
+   önce uygulamanın KVKK/uygulanabilir çocuk mahremiyeti yükümlülükleri
+   ve tarayıcı hizmetlerinin koşulları ayrıca değerlendirilmelidir.
+
+**Önemli:** Hiçbir ücretsiz, tarayıcı tarafından sunulan ASR motorunun tüm
+cihazlarda başarı garantisi yoktur. İnternet bağlantısı ve tarayıcı sağlayıcısına
+bağımlılık devam eder. Gerçek çocuk sesleriyle fiziksel cihaz testi zorunludur.

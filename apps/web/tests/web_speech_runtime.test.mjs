@@ -1,6 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
-import {beginWebLocalRecognition,mapWebRecognitionError} from '../src/lib/speech/webLocalRecognition.ts';
+import {beginWebLocalRecognition,beginWebBrowserRecognition,mapWebRecognitionError} from '../src/lib/speech/webLocalRecognition.ts';
 
 class FakeSpeechRecognition {
  static mostRecent=null;
@@ -181,4 +181,30 @@ test('Optional contextual bias uses ALL game choices evenly, with no forced answ
   if(old===undefined)delete globalThis.SpeechRecognitionPhrase;
   else globalThis.SpeechRecognitionPhrase=old;
  }
+});
+
+test('Browser-managed recognition never starts without explicit parent approval',async()=>{
+ const refused=beginWebBrowserRecognition(FakeSpeechRecognition,5000,false);
+ assert.equal((await refused.result).kind,'unavailable');
+ const permitted=beginWebBrowserRecognition(FakeSpeechRecognition,5000,true);
+ const rec=FakeSpeechRecognition.mostRecent;
+ assert.equal(rec.started,true);
+ assert.equal(rec.processLocally,false);
+ rec.onaudiostart();rec.onspeechstart();rec.onresult(spoken(['Hello!']));
+ const result=await permitted.result;
+ assert.equal(result.kind,'recognized');
+ assert.equal(result.mode,'web-browser');
+});
+
+test('Unprefixed or older browser recognition without processLocally stays disabled by default',async()=>{
+ class LegacyRecognition extends FakeSpeechRecognition{
+  constructor(){super();delete this.processLocally;}
+ }
+ const local=beginWebLocalRecognition(LegacyRecognition,5000);
+ assert.equal((await local.result).kind,'unavailable');
+ const remote=beginWebBrowserRecognition(LegacyRecognition,5000,true);
+ const rec=FakeSpeechRecognition.mostRecent;
+ assert.equal(rec.started,true);
+ rec.onaudiostart();rec.onresult(spoken(['Hello!']));
+ assert.equal((await remote.result).mode,'web-browser');
 });

@@ -58,7 +58,7 @@ test('Voice is opt-in, on-device only, with reliable touch fallback and no raw a
  assert.match(speech,/stream\?\.getTracks\(\)\.forEach\(track=>track\.stop\(\)\)/);
  assert.doesNotMatch(speech,/fetch\(|XMLHttpRequest|localStorage|MediaRecorder/);
  assert.match(ui,/matchesExpectedSpeech/);
- assert.match(ui,/setFeedback\('Sesini duydum!/);
+ assert.match(ui,/setFeedback\('🎤 Sesini duydum!/);
  assert.match(ui,/Doğru ifadeyi söyle veya seç!/);
  assert.match(ui,/onClick=\{\(\)=>tap\(option\)\}/);
  assert.match(android,/createOnDeviceSpeechRecognizer/);
@@ -118,4 +118,23 @@ test('Harbor tells the parent when the browser recognizer generates no words',()
  assert.match(engine,/recognition\?\.stop\(\)/);
  assert.match(engine,/if\(provisional\.length\)/);
  assert.match(engine,/interim-result/);
+});
+
+test('Children do not see browser-pack technical messaging; remote browser ASR needs a parent-controlled opt-in',()=>{
+ const ui=read('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
+ const capability=read('../src/lib/speech/childSpeech.ts');
+ const web=read('../src/lib/speech/webLocalRecognition.ts');
+ const parentalGate=read('../src/components/profile/ParentalGateModal.tsx');
+ assert.match(ui,/Veliler için ses seçenekleri/);
+ assert.match(ui,/ParentalGateModal/);
+ assert.match(ui,/parentAcknowledged/);
+ assert.match(ui,/browserServiceApproved/);
+ assert.match(ui,/setBrowserServiceApproved\(true\)/);
+ assert.match(ui,/setBrowserServiceApproved\(false\)/);
+ assert.match(ui,/Sesi tarayıcı sağlayıcısının sunucusuna/);
+ assert.doesNotMatch(ui,/>\{capability\.message\}<\/small>/);
+ assert.match(capability,/parentApprovedBrowserService=false/);
+ assert.match(web,/allowBrowserService\)recognition\.processLocally=false|recognition\.processLocally=false/);
+ assert.match(parentalGate,/description\?: string/);
+ assert.match(parentalGate,/zIndex\?: number/);
 });
