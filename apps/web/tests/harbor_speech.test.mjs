@@ -114,7 +114,7 @@ test('Harbor achievements reach the correct island badge, dock and player card',
 test('Harbor tells the parent when the browser recognizer generates no words',()=>{
  const ui=read('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
  const engine=read('../src/lib/speech/webLocalRecognition.ts');
- assert.match(ui,/tanıma motoru hiçbir kelime üretmedi/);
+ assert.match(ui,/konuşma motoru metin üretmedi/);
  assert.match(engine,/recognition\?\.stop\(\)/);
  assert.match(engine,/if\(provisional\.length\)/);
  assert.match(engine,/interim-result/);
@@ -131,7 +131,7 @@ test('Children do not see browser-pack technical messaging; remote browser ASR n
  assert.match(ui,/browserServiceApproved/);
  assert.match(ui,/setBrowserServiceApproved\(true\)/);
  assert.match(ui,/setBrowserServiceApproved\(false\)/);
- assert.match(ui,/Sesi tarayıcı sağlayıcısının sunucusuna/);
+ assert.match(ui,/sesi tarayıcı sağlayıcısının\s+sunucusuna/);
  assert.doesNotMatch(ui,/>\{capability\.message\}<\/small>/);
  assert.match(capability,/parentApprovedBrowserService=false/);
  assert.match(web,/allowBrowserService\)recognition\.processLocally=false|recognition\.processLocally=false/);
