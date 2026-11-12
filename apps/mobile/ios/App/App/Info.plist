@@ -20,6 +20,10 @@
 	<string>$(MARKETING_VERSION)</string>
 	<key>CFBundleVersion</key>
 	<string>$(CURRENT_PROJECT_VERSION)</string>
+	<key>NSMicrophoneUsageDescription</key>
+    <string>Çocuk yalnızca mikrofon düğmesine bastığında İngilizce konuşma oyununa katılabilsin diye mikrofon kullanılır. Ses kaydı tutulmaz.</string>
+    <key>NSSpeechRecognitionUsageDescription</key>
+    <string>Ventra, çocuğun isteğe bağlı kısa İngilizce yanıtlarını cihaz üzerinde tanımak için konuşma tanıma izni ister. Ses kaydı saklanmaz.</string>
 	<key>LSRequiresIPhoneOS</key>
 	<true/>
 	<key>UILaunchStoryboardName</key>
