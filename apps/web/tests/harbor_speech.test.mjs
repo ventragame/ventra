@@ -63,7 +63,7 @@ test('Voice is opt-in, on-device only, with reliable touch fallback and no raw a
  assert.match(android,/createOnDeviceSpeechRecognizer/);
  assert.match(android,/isOnDeviceRecognitionAvailable/);
  assert.match(android,/RECORD_AUDIO/);
- assert.match(android,/recognizer\.destroy\(\)/);
+ assert.match(android,/previous\.cancel\(\); previous\.destroy\(\)/);
  assert.match(manifest,/android\.permission\.RECORD_AUDIO/);
  assert.match(ios,/requiresOnDeviceRecognition = true/);
  assert.match(ios,/supportsOnDeviceRecognition/);
@@ -83,5 +83,5 @@ test('Harbor completion uses existing per-child game repository, no transcripts'
  assert.match(ui,/stopSpeechCapture\(\)/);
  assert.doesNotMatch(ui,/metrics:\{[^}]*transcripts/);
  assert.match(economy,/island_speaking_harbor_dialogue/);
- assert.match(ui,/episode>completed\+1/);
+ assert.match(ui,/id>completed\+1/);
 });

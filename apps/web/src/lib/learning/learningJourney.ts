@@ -39,13 +39,13 @@ export const ENGLISH_JOURNEY:readonly LearningIslandPlan[]=[
   },
   futureMechanics:['Gezilebilir hikâye sahneleri','Olay kartlarını sıralama','Kısa dinleme ve olay seçimi'],
   evidence:['visual-comprehension','listening-recognition','contextual-cues']},
- {id:'speaking_harbor',title:'Diyalog Limanı',goal:'dialogue',order:4,playable:false,prerequisites:['sentence-building','story-comprehension'],
+ {id:'speaking_harbor',title:'Diyalog Limanı',goal:'dialogue',order:4,playable:true,prerequisites:['sentence-building','story-comprehension'],
   atLevel:{
    'Pre-A1':['Hello! / Goodbye!','My name is…','Yes, please.'],
    'A1':['Yiyecek siparişi verme','Yol sorma','Kısa soru–cevap yapma'],
    'A2':['Tercihleri gerekçelendirme','Nazik istek ve öneri','Çok turlu konuşma']
   },
-  futureMechanics:['Karakter seçimli konuşma','Bağlama göre cevap','Mikrofon olmadan diyalog dallanması'],
+  futureMechanics:['Cihaz içi konuşma tanıma','Bağlama göre cevap','Mikrofon kullanmadan dokunmatik tamamlama'],
   evidence:['context-appropriate-response','turn-taking','pragmatic-communication']},
  {id:'sentence_workshop',title:'Yazı Atölyesi',goal:'writing',order:5,playable:false,prerequisites:['sentence-building','dialogue'],
   atLevel:{
