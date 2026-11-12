@@ -85,3 +85,14 @@ test('Harbor completion uses existing per-child game repository, no transcripts'
  assert.match(economy,/island_speaking_harbor_dialogue/);
  assert.match(ui,/id>completed\+1/);
 });
+
+test('Voice capture pauses music without changing user settings and always cleans up',()=>{
+ const sound=read('../src/lib/audio/SoundService.ts');
+ const ui=read('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
+ assert.match(sound,/private captureActive=false/);
+ assert.match(sound,/this\.music\.setPaused\(!playable\|\|this\.captureActive\)/);
+ assert.match(sound,/setCaptureActive\(active:boolean\)/);
+ assert.match(ui,/soundService\.setCaptureActive\(true\)/);
+ assert.match(ui,/finally\{soundService\.setCaptureActive\(false\)\}/);
+ assert.match(ui,/visibilitychange/);
+});

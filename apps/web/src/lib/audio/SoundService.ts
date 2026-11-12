@@ -55,6 +55,7 @@ class SoundService {
  private settings:AudioSettings={...DEFAULT_AUDIO_SETTINGS};
  private context:AudioContext|null=null;
  private voiceActive=false;
+ private captureActive=false;
  private speechGeneration=0;
  private nativeSpeaking=false;
  private nativeStopQueue:Promise<void>=Promise.resolve();
@@ -129,10 +130,12 @@ class SoundService {
   const playable=this.settings.musicEnabled&&!this.isMuted&&!document.hidden;
   this.music.setEnabled(this.settings.musicEnabled);
   this.music.setVolume(this.settings.music);
-  this.music.setDucked(this.voiceActive);
-  this.music.setPaused(!playable);
-  if(playable&&this.context?.state==='running')this.music.start(this.context);
+  this.music.setDucked(this.voiceActive||this.captureActive);
+  // Music must not pollute speech recognition; settings remain untouched.
+  this.music.setPaused(!playable||this.captureActive);
+  if(playable&&!this.captureActive&&this.context?.state==='running')this.music.start(this.context);
  }
+ setCaptureActive(active:boolean):void{this.captureActive=active;this.refreshMusic();}
  setMusicScene(scene:MusicScene):void{this.music.setScene(scene);this.refreshMusic();}
  getMusicScene():MusicScene{return this.music.getScene();}
  getSettings():AudioSettings{return {...this.settings};}

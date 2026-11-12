@@ -32,7 +32,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  const script=mission.prompts[englishLevel];
  const prompt=script[question]??script[0];
  const close=useCallback(()=>{
-  generation.current++;stopSpeechCapture();soundService.cancelSpeech();
+  generation.current++;stopSpeechCapture();soundService.setCaptureActive(false);soundService.cancelSpeech();
   if(timer.current)clearTimeout(timer.current);
   onBack();
  },[onBack]);
@@ -50,11 +50,11 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
     setCompleted(count);
    }).catch(()=>{if(live)setSaveError('Kayıtlı görevler okunamadı. Sonraki bölüm için önce bağlantını kontrol et.');});
   const stopOnBackground=()=>{if(document.hidden){
-   generation.current++;stopSpeechCapture();setListening(false);
+   generation.current++;stopSpeechCapture();soundService.setCaptureActive(false);setListening(false);
   }};
   document.addEventListener('visibilitychange',stopOnBackground);
   return()=>{document.removeEventListener('visibilitychange',stopOnBackground);
-   live=false;generation.current++;stopSpeechCapture();
+   live=false;generation.current++;stopSpeechCapture();soundService.setCaptureActive(false);
    if(timer.current)clearTimeout(timer.current);
    soundService.cancelSpeech();
   };
@@ -120,7 +120,10 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   setListening(true);setFeedback('');
   const run=++generation.current;
   soundService.cancelSpeech();
-  const result=await listenToChild(capability,8000);
+  soundService.setCaptureActive(true);
+  let result;
+  try{result=await listenToChild(capability,8000);}
+  finally{soundService.setCaptureActive(false);}
   if(run!==generation.current)return;
   setListening(false);
   if(result.kind==='recognized'){
@@ -146,7 +149,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   setFeedback(ok?'İngilizce ses paketi hazır! Şimdi mikrofonu deneyebilirsin.':'Ses paketi indirilemedi. Dokunarak veya sesli tekrar ederek devam edebilirsin.');
  };
  const backToMap=()=>{
-  generation.current++;stopSpeechCapture();soundService.cancelSpeech();
+  generation.current++;stopSpeechCapture();soundService.setCaptureActive(false);soundService.cancelSpeech();
   if(timer.current)clearTimeout(timer.current);locked.current=false;
   setPhase('map');setFeedback('');setSaveError('');
  };
@@ -197,7 +200,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
        className="harbor-mic-button" aria-label={listening?'Dinleniyor':'Mikrofonla konuş'}>
        {listening?'🎙️ Dinliyorum…':'🎤 Konuşarak Dene'}
       </button>
-      {listening&&<button type="button" onClick={()=>{generation.current++;stopSpeechCapture();setListening(false);}} className="harbor-stop">Dur ✕</button>}
+      {listening&&<button type="button" onClick={()=>{generation.current++;stopSpeechCapture();soundService.setCaptureActive(false);setListening(false);}} className="harbor-stop">Dur ✕</button>}
       <small>{capability.message}</small>
      </div>
      {capability.installable&&<button type="button" disabled={busy||listening}
