@@ -8,7 +8,7 @@ export type SpeechCaptureStatus=WebSpeechStatus|'testing';
 export type SpeechCapability={mode:SpeechMode;installable:boolean;message:string};
 export type SpeechAttempt={
  kind:'recognized'|'heard'|'no-speech'|'unrecognized'|'denied'|'unavailable'|'cancelled';
- alternatives:string[];mode:SpeechMode;reason?:WebSpeechReason;
+ alternatives:string[];mode:SpeechMode;reason?:WebSpeechReason;source?:'final'|'interim';
 };
 /** No audio files, transcript history, identifiers or telemetry are uploaded. */
 interface NativeSpeech {

@@ -137,10 +137,21 @@ export function beginWebLocalRecognition(
   recognition.processLocally=true; // Strict no-cloud policy.
   recognition.onstart=()=>{started=true;notify('starting');};
   recognition.onaudiostart=()=>{
-   audioStarted=true;unschedule(startupTimer);notify('microphone-ready');
-   listeningTimer=schedule(requestStop,Math.max(6500,timeoutMs));
+   if(!audioStarted){
+    audioStarted=true;unschedule(startupTimer);
+    listeningTimer=schedule(requestStop,Math.max(6500,timeoutMs));
+   }
+   notify('microphone-ready');
   };
-  recognition.onsoundstart=()=>{notify('microphone-ready');};
+  recognition.onsoundstart=()=>{
+   // Some browsers omit audiostart. Do not let the initial permission timer
+   // misdiagnose a running recognizer as a failed startup.
+   if(!audioStarted){
+    audioStarted=true;unschedule(startupTimer);
+    listeningTimer=schedule(requestStop,Math.max(6500,timeoutMs));
+   }
+   notify('microphone-ready');
+  };
   recognition.onspeechstart=()=>{speechDetected=true;notify('speech-detected');};
   recognition.onspeechend=()=>{
    notify('processing');
