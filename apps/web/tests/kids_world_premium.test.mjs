@@ -228,9 +228,9 @@ test('Profile picker uses illustrated, unlocked characters without weakening pro
  assert.match(picker,/onProfileSwitched\(updated\)/);
  assert.match(picker,/onClick=\{\(\)=>void equipAvatar\(true\)\}/);
  assert.match(picker,/if \(p\.userId\)/);
- assert.match(illustration,/const animals=new Set/);
+ assert.match(illustration,/ANIMAL_ART/);
  assert.match(illustration,/radialGradient/);
- assert.match(illustration,/avatar_fairy/);
+ assert.match(illustration,/FANTASY_ART/);
  assert.match(page,/AvatarPortrait id=\{activeProfile\?\.avatarId/);
 });
 
