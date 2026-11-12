@@ -46,3 +46,21 @@
 @media(max-width:850px){.harbor-episode-grid{grid-template-columns:repeat(2,minmax(0,1fr))}.harbor-episode-card{min-height:183px}.harbor-episode-icon{width:58px;height:58px;font-size:31px}}
 @media(max-width:560px){.harbor-header{padding:8px 12px}.harbor-header h1{font-size:18px}.harbor-cover{background-image:linear-gradient(to bottom,transparent,#0d578433),url('/assets/kids-islands/speaking_harbor_mobile.webp')}.harbor-stage{min-height:155px;gap:5px;padding:10px}.harbor-captain{min-width:96px;min-height:116px;font-size:69px}.harbor-stage-icon{font-size:26px}.harbor-bubble{padding:12px 10px;border-radius:17px}.harbor-bubble h2{font-size:17px;margin:6px 0}.harbor-listen{padding:8px;font-size:11px}.harbor-answer-grid{grid-template-columns:1fr}.harbor-answer{flex-direction:row;min-height:48px;justify-content:flex-start;padding:10px;text-align:left;font-size:13px}.harbor-talk-title{flex-direction:column;align-items:flex-start}.harbor-root .harbor-intro{margin-top:4px}.harbor-episode-grid{gap:10px}.harbor-episode-card{min-height:170px;padding:13px 7px}.harbor-episode-icon{width:53px;height:53px}}
 @media(prefers-reduced-motion:reduce){.harbor-root *{animation:none!important;transition:none!important}}
+
+/* Voice diagnostics: a microphone is not the same as a recognizer.
+   These controls remain readable on small screens and without animations. */
+.harbor-mic-test,.harbor-recheck{border:1px solid #b2e7ec92;border-radius:14px;
+ color:#d9f9ff;background:#0a5772a3;font-size:12px;font-weight:850;
+ padding:12px 15px;min-height:44px}
+.harbor-mic-test:not(:disabled):hover,.harbor-recheck:not(:disabled):hover{
+ border-color:#fff4b2;background:#14718c}
+.harbor-recheck{margin:12px auto 0;display:block}
+.harbor-mic-live{position:relative;text-align:center;max-width:590px;
+ margin:12px auto 0;padding:12px 14px;font-size:13px;font-weight:900;
+ border-radius:16px;color:#143c56;background:#d0faf0;border:2px solid #a6e5e8}
+.harbor-mic-test:focus-visible,.harbor-recheck:focus-visible{
+ outline:3px solid #fff1ae;outline-offset:2px}
+@media(max-width:560px){.harbor-microphone{flex-direction:column}
+ .harbor-microphone small{flex:initial;text-align:center}
+ .harbor-mic-live{font-size:12px}
+ .harbor-mic-test,.harbor-recheck{width:100%}}
