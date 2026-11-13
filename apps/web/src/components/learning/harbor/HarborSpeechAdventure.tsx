@@ -102,6 +102,24 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   soundService.unlockAudio();
   soundService.speakEnglish(prompt.line,{rate:gradeLevel!==null&&gradeLevel<=2?.77:englishLevel==='A2'?.93:.83});
  };
+ const selectSceneObject=(id:HarborPropId)=>{
+  if(sceneSelected||busy||locked.current||listening)return;
+  if(id!==quest.item){
+   setFeedback('Biraz daha bakalım! Doğru nesneyi bulabilirsin.');
+   soundService.playSfx('gentle_retry',.35);return;
+  }
+  setSceneSelected(true);setFeedback('Bulduk! Şimdi arkadaşımızı dinle. ✨');
+  soundService.playSfx('correct',.55);
+ };
+ useEffect(()=>{
+  if(phase!=='playing'||!canAnswer)return;
+  const handle=window.setTimeout(()=>{
+   if(!document.hidden&&!locked.current){
+    soundService.speakEnglish(prompt.line,{rate:gradeLevel!==null&&gradeLevel<=2?.77:englishLevel==='A2'?.92:.83});
+   }
+  },400);
+  return()=>window.clearTimeout(handle);
+ },[phase,episode,question,canAnswer,englishLevel,gradeLevel,prompt.line]);
  const save=async(errors:number,assisted:number,recognized:number)=>{
   setBusy(true);setFeedback('Bölüm tamamlandı! Yıldızların kaydediliyor…');
   const independent=Math.max(0,script.length-errors);
@@ -128,25 +146,28 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   }finally{setBusy(false);}
  };
  const correct=()=>{
-  if(locked.current||busy)return;
-  locked.current=true;
-  generation.current++;stopSpeechCapture();setListening(false);
+  if(locked.current||busy||!canAnswer)return;
+  locked.current=true;setSceneResolved(true);
+  generation.current++;stopSpeechCapture();soundService.setCaptureActive(false);setListening(false);
   setFeedback('Harika! ✨');soundService.playSfx('correct',.7);
   if(timer.current)clearTimeout(timer.current);
   timer.current=setTimeout(()=>{
-   locked.current=false;
-   if(question+1>=script.length)void save(mistakes,hints,voiceRecognized);
-   else{setQuestion(q=>q+1);setFeedback('');}
-  },750);
+   if(question+1>=script.length){void save(mistakes,hints,voiceRecognized);return;}
+   const next=script[question+1];
+   setSceneSelected(next.quest.id===quest.id);
+   setSceneResolved(false);
+   setQuestion(q=>q+1);
+   setFeedback('');locked.current=false;
+  },1000);
  };
  const tap=(choice:string)=>{
-  if(busy||locked.current||listening)return;
+  if(busy||locked.current||listening||!canAnswer)return;
   if(choice===prompt.reply){correct();return;}
   setMistakes(n=>n+1);setFeedback('Bir daha deneyelim! Kaptanı dinle veya ipucunu kullan.');
   soundService.playSfx('gentle_retry',.5);
  };
  const mic=async()=>{
-  if(locked.current||busy||listening)return;
+  if(locked.current||busy||listening||!canAnswer)return;
   const run=++generation.current;
   setListening(true);setMicStatus('starting');setFeedback('');
   soundService.cancelSpeech();
@@ -262,12 +283,10 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  const backToMap=()=>{
   generation.current++;stopSpeechCapture();soundService.setCaptureActive(false);soundService.cancelSpeech();
   if(timer.current)clearTimeout(timer.current);locked.current=false;
-  setPhase('map');setFeedback('');setSaveError('');setMicStatus('idle');setParentDiagnostic('');
+  setPhase('map');setSceneSelected(false);setSceneResolved(false);
+  setFeedback('');setSaveError('');setMicStatus('idle');setParentDiagnostic('');
  };
- const order=question%3;
- const options=order===0?[prompt.choices[1],prompt.choices[0],prompt.choices[2]]:
-  order===1?[prompt.choices[2],prompt.choices[1],prompt.choices[0]]:
-  [prompt.choices[0],prompt.choices[2],prompt.choices[1]];
+ const options=harborChoiceOrder(prompt,englishLevel,question,replayIndex);
  return <div className="harbor-root" role="dialog" aria-modal="true" aria-label="Diyalog Limanı">
   <header className="harbor-header">
    <button type="button" className="harbor-back" onClick={phase==='map'?close:backToMap} aria-label={phase==='map'?'Adalar Evreni’ne dön':'Bölümlere dön'}>←</button>
