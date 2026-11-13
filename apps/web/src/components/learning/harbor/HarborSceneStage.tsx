@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import type {HarborQuest} from '@/lib/learning/harborMissionEngine';
+import {HARBOR_SCENE_ASSETS} from '@/lib/learning/harborSceneAssets';
 
 export type HarborPropId='boat'|'water'|'apple'|'fish'|'map'|'key'|'lantern'|'crystal'|'parrot'|'cat'|'rabbit'|'turtle';
 export const HARBOR_PROPS:Record<HarborPropId,{name:string;image:string|null;fallback:string}>={
@@ -110,13 +111,14 @@ type Props={
 };
 export function HarborSceneStage({quest,questStep,resolved,selected,onSelect,onSpeak,speakerLine,speaking}:Props){
  const props=getHarborSceneObjects(quest);
+ const sceneArt=HARBOR_SCENE_ASSETS[quest.place];
  const requiresItem=questStep===0&&quest.action!=='meet';
  const stageEvent=resolved?'complete':selected?'selected':'waiting';
  return <section className={['hp-scene','hp-place-'+quest.place,'hp-action-'+quest.action,'hp-'+stageEvent].join(' ')}
   aria-label={quest.title} data-quest={quest.id} data-stage={stageEvent}>
    <picture className="hp-scenery" aria-hidden="true">
-    <source media="(max-width: 640px)" srcSet="/assets/kids-islands/speaking_harbor_mobile.webp"/>
-    <img src="/assets/kids-islands/speaking_harbor.webp" alt="" draggable={false}/>
+    <source media="(max-width: 640px)" srcSet={sceneArt.mobile} type="image/webp"/>
+    <img src={sceneArt.desktop} alt="" decoding="async" draggable={false}/>
    </picture>
    <div className="hp-sky" aria-hidden="true"><span/><span/><span/></div>
    <div className="hp-water" aria-hidden="true"><i/><i/><i/></div>
