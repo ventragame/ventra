@@ -2,9 +2,10 @@
 import React from 'react';
 import type {HarborQuest} from '@/lib/learning/harborMissionEngine';
 
-export type HarborPropId='boat'|'apple'|'fish'|'map'|'key'|'lantern'|'crystal'|'parrot'|'cat'|'rabbit'|'turtle';
+export type HarborPropId='boat'|'water'|'apple'|'fish'|'map'|'key'|'lantern'|'crystal'|'parrot'|'cat'|'rabbit'|'turtle';
 export const HARBOR_PROPS:Record<HarborPropId,{name:string;image:string|null;fallback:string}>={
  boat:{name:'Yelkenli',image:null,fallback:'⛵'},
+ water:{name:'Su',image:null,fallback:'💧'},
  apple:{name:'Elma',image:'/assets/story-forest/premium/objects/apple.webp',fallback:'🍎'},
  fish:{name:'Balık',image:'/assets/animals/fluent-3d/fish.png',fallback:'🐟'},
  map:{name:'Harita',image:null,fallback:'🗺️'},
@@ -23,7 +24,7 @@ const ART:Record<Exclude<HarborQuest['actor'],'leo'>,string>={
  rabbit:'/assets/story-forest/premium/characters/rabbit_adventurer.webp'
 };
 export const HARBOR_OBJECT_PAIRS:Record<HarborQuest['action'],readonly HarborPropId[]>={
- meet:['parrot','boat'],crew:['parrot','cat'],board:['boat','map'],deliver:['apple','fish'],
+ meet:['parrot','boat'],crew:['parrot','cat'],board:['boat','map'],deliver:['water','fish'],
  trade:['apple','fish'],help:['fish','apple'],chart:['map','key'],
  navigate:['map','boat'],rescue:['turtle','cat'],light:['lantern','key'],
  repair:['key','lantern'],signal:['crystal','lantern'],invite:['parrot','rabbit'],
@@ -33,8 +34,29 @@ export function getHarborSceneObjects(quest:HarborQuest):readonly HarborPropId[]
  const source=HARBOR_OBJECT_PAIRS[quest.action];
  return [quest.item,...source.filter(x=>x!==quest.item)].slice(0,2);
 }
+export function HarborVectorProp({id}:{id:'boat'|'map'|'water'}){
+ if(id==='water')return <svg viewBox="0 0 88 74" className="hp-prop-vector" role="img" aria-label="Su bardağı">
+ <defs><linearGradient id="hp-glass" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#e1fbff"/><stop offset="1" stopColor="#66d8ee"/></linearGradient></defs>
+ <path d="M18 9H71L64 63Q44 75 24 63Z" fill="url(#hp-glass)" stroke="#317fa5" strokeWidth="3"/>
+ <path d="M25 29H65L60 59Q42 69 29 57Z" fill="#58c5ed" opacity=".8"/><path d="M30 16V37" stroke="white" strokeWidth="5" opacity=".8" strokeLinecap="round"/>
+ </svg>;
+ if(id==='map')return <svg viewBox="0 0 88 74" className="hp-prop-vector" role="img" aria-label="Harita">
+ <defs><linearGradient id="hp-mapfill" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#ffefb9"/><stop offset="1" stopColor="#d8ae69"/></linearGradient></defs>
+ <path d="M9 14L30 8L52 14L78 7V62L52 68L30 61L9 67Z" fill="url(#hp-mapfill)" stroke="#956441" strokeWidth="3" strokeLinejoin="round"/>
+ <path d="M30 8V61M52 14V68" stroke="#ac865b" strokeWidth="2" opacity=".8"/>
+ <path d="M24 45Q33 20 49 34L63 24" stroke="#3786a1" strokeWidth="4" strokeLinecap="round" fill="none" strokeDasharray="5 4"/>
+ <path d="M57 20L68 35M68 20L57 35" stroke="#ba4f53" strokeWidth="5" strokeLinecap="round"/>
+ </svg>;
+ return <svg viewBox="0 0 88 74" className="hp-prop-vector" role="img" aria-label="Yelkenli">
+ <defs><linearGradient id="hp-boathull" x1="0" y1="0" x2="1" y2="1"><stop stopColor="#e0ae6e"/><stop offset="1" stopColor="#85583c"/></linearGradient></defs>
+ <path d="M8 52H81L69 67H22Z" fill="url(#hp-boathull)" stroke="#674a36" strokeWidth="3"/>
+ <path d="M42 13V52" stroke="#725a3b" strokeWidth="4"/><path d="M47 13L77 47H47Z" fill="#f7e8bd" stroke="#dfc29a" strokeWidth="2"/>
+ <path d="M36 18L14 47H36Z" fill="#e9f9ff" stroke="#a2d7dc" strokeWidth="2"/><path d="M10 71Q22 67 35 71T58 71T83 71" stroke="#409cc3" strokeWidth="3" fill="none"/>
+ </svg>;
+}
 export function HarborProp({id}: {id:HarborPropId}){
  const item=HARBOR_PROPS[id];
+ if(id==='boat'||id==='map'||id==='water')return <HarborVectorProp id={id}/>;
  return item.image?<img src={item.image} alt="" loading="eager" draggable={false}
    className="hp-prop-art"/>:
  <div className="hp-prop-icon" aria-hidden="true">{item.fallback}</div>;

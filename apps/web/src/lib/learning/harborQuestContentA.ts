@@ -5,7 +5,7 @@ export type HarborActor='leo'|'parrot'|'turtle'|'fox'|'rabbit';
 export type HarborQuest={
  id:string;episode:number;title:string;mission:string;
  action:HarborAction;place:HarborPlace;actor:HarborActor;
- item:'boat'|'apple'|'fish'|'map'|'key'|'lantern'|'crystal'|'parrot'|'cat'|'rabbit'|'turtle';
+ item:'boat'|'water'|'apple'|'fish'|'map'|'key'|'lantern'|'crystal'|'parrot'|'cat'|'rabbit'|'turtle';
  pre:readonly string[];a1:readonly string[];a2:readonly string[];
 };
 /** Each task is question|correct reply|plausible distractor 1|plausible distractor 2.
@@ -71,7 +71,7 @@ export const QUESTS_A:readonly HarborQuest[]=[
 },
 {
  id:'fresh-water',episode:2,title:'Su Standı',mission:'Susamış yolcuya su götür.',
- action:'deliver',place:'market',actor:'rabbit',item:'apple',
+ action:'deliver',place:'market',actor:'rabbit',item:'water',
  pre:[
  'Water, please!|Water!|Juice!|Milk!',
  'Here you are!|Thank you!|No, thanks!|Goodbye!',

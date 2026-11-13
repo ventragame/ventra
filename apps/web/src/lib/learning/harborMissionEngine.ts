@@ -1,6 +1,6 @@
-import {QUESTS_A,type HarborQuest,type HarborLevel,type HarborAction} from './harborQuestContentA';
-import {QUESTS_B} from './harborQuestContentB';
-import {QUESTS_C} from './harborQuestContentC';
+import {QUESTS_A,type HarborQuest,type HarborLevel,type HarborAction} from './harborQuestContentA.ts';
+import {QUESTS_B} from './harborQuestContentB.ts';
+import {QUESTS_C} from './harborQuestContentC.ts';
 export type {HarborQuest,HarborLevel,HarborAction};
 export type HarborStep={
  line:string;reply:string;choices:readonly [string,string,string];accept:readonly string[];
