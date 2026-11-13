@@ -43,6 +43,8 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  const [browserServiceAvailable,setBrowserServiceAvailable]=useState(false);
  const [failedRecognitionCount,setFailedRecognitionCount]=useState(0);
  const [parentDiagnostic,setParentDiagnostic]=useState('');
+ // Store only recognition mode/outcome, never a child's words or audio.
+ const [speechDiagnosticCode,setSpeechDiagnosticCode]=useState('');
  const timer=useRef<ReturnType<typeof setTimeout>|null>(null);
  const completionSessionId=useRef<string|null>(null);
  const generation=useRef(0);
@@ -109,7 +111,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   setSceneSelected(Boolean(checkpoint&&checkpoint.step%3!==0));setSceneResolved(false);
   setMistakes(checkpoint?.mistakes??0);setHints(checkpoint?.hints??0);
   setVoiceRecognized(checkpoint?.voiceRecognized??0);setReplayIndex(levelPlays[id]??0);
-  setFeedback('');setSaveError('');setParentDiagnostic('');setMicStatus('idle');setPhase('playing');locked.current=false;startedAt.current=Date.now();
+  setFeedback('');setSaveError('');setParentDiagnostic('');setSpeechDiagnosticCode('');setMicStatus('idle');setPhase('playing');locked.current=false;startedAt.current=Date.now();
   soundService.playSfx('tap',.5);
  };
  const speak=()=>{
@@ -212,6 +214,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   }
   if(run!==generation.current)return;
   setListening(false);setMicStatus('idle');
+  setSpeechDiagnosticCode('mode='+result.mode+', kind='+result.kind+', reason='+(result.reason??'none')+', source='+(result.source??'none'));
   setParentDiagnostic(
    result.kind==='recognized'?'İngilizce konuşma metne dönüştürüldü ('+result.mode+', '+(result.source??'final')+').':
    result.kind==='heard'?'Mikrofon ses algıladı, ancak pratik modu İngilizce kelimeleri tanımaz.':
@@ -424,6 +427,9 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
          className="harbor-download" onClick={()=>void install()}>⬇ İngilizce konuşma desteğini kur</button>}
        </div>
        {parentDiagnostic&&<p className="harbor-parent-diagnostic" role="status">{parentDiagnostic}</p>}
+       {speechDiagnosticCode&&<p className="harbor-parent-diagnostic" role="status">
+        <strong>Son ses denemesi (kişisel veri içermez):</strong> <code>{speechDiagnosticCode}</code>
+       </p>}
        {browserServiceAvailable&&<div className="harbor-parent-provider">
         {browserServiceApproved?<>
          <strong>Tarayıcı konuşma hizmeti: Bu oturumda açık</strong>
