@@ -5,7 +5,7 @@ import {beginWebLocalRecognition,beginWebBrowserRecognition,type WebSpeechConstr
 
 export type SpeechMode='native-local'|'web-local'|'web-browser'|'practice'|'none';
 export type SpeechCaptureStatus=WebSpeechStatus|'testing';
-export type SpeechCapability={mode:SpeechMode;installable:boolean;message:string};
+export type SpeechCapability={mode:SpeechMode;installable:boolean;message:string;localAvailable?:boolean};
 export type SpeechAttempt={
  kind:'recognized'|'heard'|'no-speech'|'unrecognized'|'denied'|'unavailable'|'cancelled';
  alternatives:string[];mode:SpeechMode;reason?:WebSpeechReason;source?:'final'|'interim';
@@ -35,7 +35,7 @@ export function stopSpeechCapture():void{
 async function canUseMic():Promise<boolean>{
  return typeof navigator!=='undefined'&&Boolean(navigator.mediaDevices?.getUserMedia);
 }
-export async function speechCapability():Promise<SpeechCapability>{
+export async function speechCapability(preferLocal=false):Promise<SpeechCapability>{
  if(typeof window==='undefined')return {mode:'none',installable:false,message:'Mikrofon kullanılamıyor.'};
  if(Capacitor.isNativePlatform()){
   if(!Capacitor.isPluginAvailable('VentraSpeech'))
@@ -52,25 +52,28 @@ export async function speechCapability():Promise<SpeechCapability>{
   return {mode:'none',installable:false,message:'Tarayıcı İngilizce konuşma tanımayı desteklemiyor.'};
  }
  let installable=false;
+ let localAvailable=false;
  if(ctor.available){
   try{
    const instance=new ctor();
    if('processLocally' in instance){
     const result=await ctor.available({langs:['en-US'],processLocally:true});
-    if(result==='available')
-     return {mode:'web-local',installable:false,message:'İngilizce konuşma cihazında tanınır.'};
+    // 'available' checks an installed pack, not whether it can transcribe audio.
+    localAvailable=result==='available';
     installable=result==='downloadable';
    }
   }catch{
-   // Lack of local-pack support does not mean the browser has no recognizer.
+   // Experimental local APIs must never block browser-managed recognition.
   }
  }
- // The microphone button starts genuine browser-owned word recognition.
- // This provider may process speech remotely: disclose this in the game UI.
- return {mode:'web-browser',installable,
-  message:installable
-   ?'Tarayıcı konuşma tanımayı destekliyor; çevrimdışı İngilizce paketi isteğe bağlı yüklenebilir.'
-   :'İngilizce konuşma tarayıcı tarafından tanınır. Tarayıcı sağlayıcısı sesi işleyebilir.'};
+ if(preferLocal&&localAvailable)
+  return {mode:'web-local',installable:false,localAvailable:true,
+   message:'Cihaz içi İngilizce tanıma seçildi. Sonuç alınamazsa tarayıcı moduna dönülecek.'};
+ // Do not automatically opt into a local recognizer on desktop: Chrome can
+ // report an installed pack but then end with speech-unrecognized/no words.
+ // Browser-owned recognition is the reliable first attempt where supported.
+ return {mode:'web-browser',installable,localAvailable,
+  message:'Konuşma tarayıcı tarafından tanınır. Tarayıcı sağlayıcısı sesi işleyebilir.'};
 }
 /** Only from the explicit "download language pack" click. Never auto-download. */
 export async function installLocalEnglish():Promise<boolean>{
