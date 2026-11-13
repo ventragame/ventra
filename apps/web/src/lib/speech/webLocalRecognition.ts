@@ -2,7 +2,7 @@
  * Browser-only, ON-DEVICE speech recognition.
  *
  * Key design rules:
- * 1. Never start non-local recognition or send audio to a remote service.
+ * 1. Prefer on-device recognition; allow browser-managed recognition only after explicit parent approval.
  * 2. stop() asks the recognizer to FINALIZE the collected words; abort() does not.
  * 3. Keep valid interim transcripts until the final result arrives (or the
  *    recognizer disconnects) rather than throwing away usable recognition.
@@ -125,7 +125,7 @@ function beginWebSpeechRecognition(
   catch{
    finalize();return;
   }
-  finalTimer=schedule(finalize,2500);
+  finalTimer=schedule(finalize,3000);
  };
  const cancel=()=>finish('cancelled','cancelled');
 
@@ -186,7 +186,7 @@ function beginWebSpeechRecognition(
    // Short phrase (e.g. Hello!) finished. Allow a little silence before
    // requesting a final result; don't wait until a hard timeout then abort.
    unschedule(stopTimer);
-   stopTimer=schedule(requestStop,550);
+   stopTimer=schedule(requestStop,900);
   };
   recognition.onnomatch=()=>{
    // The browser sometimes has an interim transcript before 'nomatch'.
@@ -228,7 +228,9 @@ function beginWebSpeechRecognition(
    unschedule(finalTimer);
    // Some browsers issue onend just before a queued onresult callback.
    // Keep handlers around briefly; a final result always takes precedence.
-   endTimer=schedule(finalize,650);
+   // Some Chromium recognizers dispatch the final result after onend.
+   // Allow a bounded grace period rather than converting a late transcript to failure.
+   endTimer=schedule(finalize,1200);
   };
   notify('starting');
   startupTimer=schedule(()=>{
