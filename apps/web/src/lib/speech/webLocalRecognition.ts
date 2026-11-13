@@ -1,8 +1,8 @@
 /**
- * Browser-only, ON-DEVICE speech recognition.
+ * Web Speech capture with a local-first policy and a browser-provider fallback.
  *
  * Key design rules:
- * 1. Prefer on-device recognition; allow browser-managed recognition only after explicit parent approval.
+ * 1. Prefer on-device recognition; browser-managed mode may send audio to its provider.
  * 2. stop() asks the recognizer to FINALIZE the collected words; abort() does not.
  * 3. Keep valid interim transcripts until the final result arrives (or the
  *    recognizer disconnects) rather than throwing away usable recognition.
@@ -11,7 +11,8 @@
 export type WebSpeechStatus='starting'|'microphone-ready'|'speech-detected'|'processing';
 export type WebSpeechReason='no-speech'|'speech-unrecognized'|'permission-denied'|
  'microphone-error'|'language-pack'|'service-unavailable'|'not-started'|
- 'timeout'|'cancelled'|'interim-result';
+ 'timeout'|'cancelled'|'interim-result'|'network-error'|'service-blocked'|
+ 'context-unsupported'|'start-failed';
 export type WebSpeechResult={
  kind:'recognized'|'no-speech'|'unrecognized'|'denied'|'unavailable'|'cancelled';
  alternatives:string[];mode:'web-local'|'web-browser';reason?:WebSpeechReason;
@@ -39,8 +40,9 @@ export function mapWebRecognitionError(code:string,speechDetected=false):Pick<We
   case 'not-allowed':return {kind:'denied',reason:'permission-denied'};
   case 'audio-capture':return {kind:'unavailable',reason:'microphone-error'};
   case 'language-not-supported':return {kind:'unavailable',reason:'language-pack'};
-  case 'network':case 'service-not-allowed':case 'phrases-not-supported':
-   return {kind:'unavailable',reason:'service-unavailable'};
+  case 'network':return {kind:'unavailable',reason:'network-error'};
+  case 'service-not-allowed':return {kind:'unavailable',reason:'service-blocked'};
+  case 'phrases-not-supported':return {kind:'unavailable',reason:'context-unsupported'};
   case 'aborted':return {kind:'cancelled',reason:'cancelled'};
   case 'no-speech':return speechDetected?{kind:'unrecognized',reason:'speech-unrecognized'}:
    {kind:'no-speech',reason:'no-speech'};
@@ -48,12 +50,11 @@ export function mapWebRecognitionError(code:string,speechDetected=false):Pick<We
  }
 }
 
-/** Run on the direct user tap, without awaiting permissions or other promises. */
-/** Internal shared state machine: the caller must positively opt into browser-managed
- * (potentially remote) recognition. Never infer permission from API availability. */
+/** Call directly from a microphone button click, preserving browser user activation.
+ * In browser-managed mode the user agent may use a remote speech provider. */
 function beginWebSpeechRecognition(
  Ctor:WebSpeechConstructor,timeoutMs:number,onStatus:((status:WebSpeechStatus)=>void)|undefined,
- contextPhrases:readonly string[],allowBrowserService:boolean
+ allowBrowserService:boolean
 ):{result:Promise<WebSpeechResult>;cancel:()=>void}{
  let recognition:WebSpeechRecognitionInstance|undefined;
  let resolve!: (value:WebSpeechResult)=>void;
@@ -140,29 +141,14 @@ function beginWebSpeechRecognition(
   recognition.interimResults=true;
   recognition.maxAlternatives=4;
   if(allowBrowserService){
-   // Only reachable after an explicit parent-controlled action in the UI.
-   // The browser provider MAY transmit audio for recognition.
+   // Browser-owned recognition may send speech to its provider.
    if('processLocally' in recognition)recognition.processLocally=false;
   }else{
    recognition.processLocally=true; // Strict no-cloud default.
   }
-  // The spoken answer is one of a few short phrases. Opt into the 2025+
-  // contextual-biasing API only when the local browser implements both parts.
-  // Boost ALL visible choices evenly to avoid biasing the correct answer.
-  // Keep a low boost (2) to reduce false positives.
-  if(contextPhrases.length&&'phrases' in recognition){
-   const Phrase=(globalThis as unknown as {SpeechRecognitionPhrase?:
-    new (phrase:string,boost:number)=>{phrase:string;boost:number}}).SpeechRecognitionPhrase;
-   if(Phrase){
-    try{
-     recognition.phrases=[...new Set(contextPhrases.map(p=>p.trim()).filter(Boolean))]
-      .slice(0,5).map(p=>new Phrase(p,2));
-    }catch{
-     // The constructor or property setter may exist but be unsupported.
-     // The unmodified local recognizer must remain usable.
-    }
-   }
-  }
+  // Do not assign SpeechRecognition.phrases. On Chromium, setting it with
+  // processLocally=false raises phrases-not-supported and prevents recognition.
+  // Even local language packs do not uniformly support this experimental API.
   recognition.onstart=()=>{started=true;notify('starting');};
   recognition.onaudiostart=()=>{
    if(!audioStarted){
@@ -238,8 +224,10 @@ function beginWebSpeechRecognition(
   },20000);
   recognition.start();
   started=true;
- }catch{
-  finish('unavailable','service-unavailable');
+ }catch(error){
+  const name=error instanceof Error?error.name:'';
+  if(name==='NotAllowedError'||name==='SecurityError')finish('denied','permission-denied');
+  else finish('unavailable','start-failed');
  }
  return {result,cancel};
 }
@@ -249,19 +237,15 @@ export function beginWebLocalRecognition(
  Ctor:WebSpeechConstructor,timeoutMs:number,onStatus?:(status:WebSpeechStatus)=>void,
  contextPhrases:readonly string[]=[]
 ):{result:Promise<WebSpeechResult>;cancel:()=>void}{
- return beginWebSpeechRecognition(Ctor,timeoutMs,onStatus,contextPhrases,false);
+ // Retained for API compatibility; answer choice bias is deliberately disabled.
+ void contextPhrases;
+ return beginWebSpeechRecognition(Ctor,timeoutMs,onStatus,false);
 }
 
-/** Browser-owned speech service: may upload the spoken audio to the browser
- * provider. Intentionally requires a TRUE approval flag from the parent UX. */
+/** Browser-managed recognition may transmit speech to a vendor service.
+ * The app must disclose this in its privacy policy; no transcript is stored here. */
 export function beginWebBrowserRecognition(
- Ctor:WebSpeechConstructor,timeoutMs:number,parentApproved:boolean,
- onStatus?:(status:WebSpeechStatus)=>void,
- contextPhrases:readonly string[]=[]
+ Ctor:WebSpeechConstructor,timeoutMs:number,onStatus?:(status:WebSpeechStatus)=>void
 ):{result:Promise<WebSpeechResult>;cancel:()=>void}{
- if(parentApproved!==true){
-  return {result:Promise.resolve({kind:'unavailable',alternatives:[],
-    mode:'web-browser',reason:'service-unavailable'}),cancel:()=>{}};
- }
- return beginWebSpeechRecognition(Ctor,timeoutMs,onStatus,contextPhrases,true);
+ return beginWebSpeechRecognition(Ctor,timeoutMs,onStatus,true);
 }
