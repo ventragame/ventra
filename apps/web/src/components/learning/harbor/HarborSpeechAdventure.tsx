@@ -9,8 +9,7 @@ import {getHarborEpisodeSteps,getHarborEpisodeQuests,harborChoiceOrder} from '@/
 import {HARBOR_SCENE_ASSETS} from '@/lib/learning/harborSceneAssets';
 import {HarborSceneStage,type HarborPropId} from './HarborSceneStage';
 import {readHarborCheckpoint,saveHarborCheckpoint,clearHarborCheckpoint} from '@/lib/learning/harborCheckpoint';
-import {speechCapability,installLocalEnglish,listenToChild,testMicrophoneInput,stopSpeechCapture,canOfferBrowserSpeechService,type SpeechCapability,type SpeechCaptureStatus} from '@/lib/speech/childSpeech';
-import {ParentalGateModal} from '@/components/profile/ParentalGateModal';
+import {speechCapability,installLocalEnglish,listenToChild,stopSpeechCapture,type SpeechCapability,type SpeechCaptureStatus} from '@/lib/speech/childSpeech';
 import './harbor-speech.css';
 import './harbor-premium-scene.css';
 
@@ -36,12 +35,6 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  const [hints,setHints]=useState(0);
  const [voiceRecognized,setVoiceRecognized]=useState(0);
  const [saveError,setSaveError]=useState('');
- const [parentGateOpen,setParentGateOpen]=useState(false);
- const [parentConsentOpen,setParentConsentOpen]=useState(false);
- const [parentAcknowledged,setParentAcknowledged]=useState(false);
- const [browserServiceApproved,setBrowserServiceApproved]=useState(false);
- const [browserServiceAvailable,setBrowserServiceAvailable]=useState(false);
- const [failedRecognitionCount,setFailedRecognitionCount]=useState(0);
  const [parentDiagnostic,setParentDiagnostic]=useState('');
  // Store only recognition mode/outcome, never a child's words or audio.
  const [speechDiagnosticCode,setSpeechDiagnosticCode]=useState('');
@@ -58,12 +51,8 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  const questStep=activeStep.questStep;
  const sceneRequiresSelection=questStep===0&&quest.action!=='meet';
  const canAnswer=!sceneRequiresSelection||sceneSelected;
- const activeCapability:SpeechCapability=browserServiceApproved&&browserServiceAvailable
-  ?{mode:'web-browser',installable:false,message:'Tarayıcı konuşma hizmeti ebeveyn onayıyla açık.'}
-  :capability;
- const voiceActivityOnly=activeCapability.mode==='practice';
- const showSpeechHelp=!browserServiceApproved&&browserServiceAvailable&&
-  (capability.mode==='practice'||capability.mode==='none'||failedRecognitionCount>0);
+ const activeCapability=capability;
+ const speechAvailable=['web-local','web-browser','native-local'].includes(activeCapability.mode);
  const close=useCallback(()=>{
   generation.current++;stopSpeechCapture();soundService.setCaptureActive(false);soundService.cancelSpeech();
   if(timer.current)clearTimeout(timer.current);
@@ -72,7 +61,6 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  useEffect(()=>{
   let live=true;
   void speechCapability().then(result=>{if(live)setCapability(result);});
-  setBrowserServiceAvailable(canOfferBrowserSpeechService());
   void getProgressRepository().getAllLevelProgress(HARBOR_GAME_ID,profileId)
    .then(levels=>{
     if(!live)return;
@@ -201,7 +189,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   try{
    result=await listenToChild(activeCapability,10000,status=>{
     if(run===generation.current)setMicStatus(status);
-   },prompt.choices,browserServiceApproved);
+   },prompt.choices);
   }catch{
    // Browser/OS failures are not evidence that the child spoke incorrectly.
    if(run===generation.current){
@@ -225,7 +213,6 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
    ''
   );
   if(result.kind==='recognized'){
-   setFailedRecognitionCount(0);
    if(matchesExpectedSpeech(result.alternatives,prompt.accept)){ 
     // State setters are async: don't lose the last spoken response on completion.
     const recognizedCount=voiceRecognized+1;
@@ -237,64 +224,33 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
      'Bir daha deneyelim ya da cevabı seçelim!');
    }
   }else if(result.kind==='unrecognized'){
-   setFailedRecognitionCount(n=>n+1);
    setFeedback('🎤 Mikrofon ses algıladı ama konuşma motoru İngilizce kelime üretemedi. Yeniden dene veya cevaba dokun.');
   }else if(result.kind==='heard'){
-   setFeedback('🎤 Mikrofon sesini algıladı; fakat bu mod kelimeleri tanımıyor. İlerlemek için cevaba dokun.');
+   setFeedback('Mikrofon sesi algıladı ancak konuşma tanıma yok. Cevabı seçerek devam et.');
   }else if(result.kind==='denied'){
    setFeedback('Mikrofon kapalı. Cevaplardan birini seçerek devam edebilirsin.');
   }else if(result.kind==='no-speech'){
-   setFailedRecognitionCount(n=>n+1);
    setFeedback('Seni henüz duyamadım. İstersen yeniden dene!');
   }else if(result.kind==='unavailable'){
-   setFailedRecognitionCount(n=>n+1);
    const errorMessage:Record<string,string>={
-    'microphone-error':'Tarayıcı mikrofona erişemedi. Windows ses girişini ve mikrofon iznini kontrol et.',
+    'microphone-error':'Tarayıcı mikrofona erişemedi. Mikrofon iznini ve giriş aygıtını kontrol et.',
     'language-pack':'Cihazdaki İngilizce konuşma paketi başlatılamıyor. Ses paketini yeniden kontrol et.',
-    'not-started':'Konuşma motoru mikrofonu başlatamadı. Mikrofon testini kullan veya tarayıcıyı yeniden aç.',
-    'service-unavailable':'Tarayıcı konuşma hizmeti yanıt vermedi. Bağlantı, tarayıcı izinleri veya farklı bir tarayıcıyı dene.'
+    'not-started':'Konuşma motoru başlatılamadı. Tarayıcıyı yeniden açıp tekrar dene.',
+    'service-unavailable':'Tarayıcının konuşma tanıma motoru çalışmıyor.',
+    'service-blocked':'Tarayıcı konuşma hizmetini engelledi. Farklı tarayıcıyı dene.',
+    'network-error':'Tarayıcı konuşma sunucusuna erişemedi. Bağlantıyı veya ağ engellerini kontrol et.',
+    'context-unsupported':'Tarayıcı deneysel konuşma ipuçlarını desteklemiyor.',
+    'start-failed':'Konuşma tanıma tarayıcı tarafından başlatılamadı.'
    };
    const diagnostic=errorMessage[result.reason??'']??'Konuşma tanıma bu cihazda kullanılamıyor.';
-   setParentDiagnostic(result.mode==='web-browser'
-    ?'Ebeveyn onaylı tarayıcı tanıması başarısız oldu ('+(result.reason??'bilinmiyor')+'). '+diagnostic
-    :diagnostic);
-   setFeedback('⚠️ İngilizce konuşma tanıma sonuç vermedi. Cevaba dokunarak ilerleyebilirsin.');
-   if(capability.mode==='web-local'&&!browserServiceApproved){
-    // An "available" response is not a guarantee that recognition actually starts.
-    // Avoid repeated identical failures and never switch to a remote service.
-    const updated=await speechCapability();
-    if(run!==generation.current)return;
-    setCapability(updated.mode==='web-local'?{
-     mode:'practice',installable:false,
-     message:'Yerel tanıma başlatılamadı. Sesli pratik ve dokunmatik cevap kullanılabilir.'
-    }:updated);
+   setParentDiagnostic(diagnostic);
+   setFeedback('Konuşma tanıma bu denemede çalışmadı. Yeniden söyle ya da cevabı seç.');
+   if(activeCapability.mode==='web-local'&&result.reason!=='microphone-error'){
+    // Next user click may try the browser provider; don't fake recognition.
+    setCapability({mode:'web-browser',installable:false,
+     message:'Yerel tanıma başarısız oldu; bir sonraki denemede tarayıcı hizmeti kullanılacak.'});
+    setFeedback('Cihaz içi tanıma yanıt vermedi. Yeniden konuşmayı deneyebilirsin.');
    }
-  }
- };
- const testMic=async()=>{
-  if(locked.current||busy||listening)return;
-  const run=++generation.current;
-  setListening(true);setMicStatus('testing');setFeedback('');
-  soundService.cancelSpeech();soundService.setCaptureActive(true);
-  let result;
-  try{
-   result=await testMicrophoneInput(5000,status=>{
-    if(run===generation.current)setMicStatus(status);
-   });
-  }finally{
-   if(run===generation.current)soundService.setCaptureActive(false);
-  }
-  if(run!==generation.current)return;
-  setListening(false);setMicStatus('idle');
-  if(result.kind==='heard'){
-   setParentDiagnostic('Mikrofon ses alıyor. Konuşma tanıma ayrı bir özelliktir.');
-   setFeedback('✅ Sesin geliyor! Hadi tekrar deneyelim.');
-  }else if(result.kind==='denied'){
-   setParentDiagnostic('Mikrofon izni tarayıcıdan/işletim sisteminden verilmemiş.');
-   setFeedback('Mikrofonu açabilir ya da cevabını seçebilirsin.');
-  }else{
-   setParentDiagnostic('Mikrofon testinde ses algılanmadı. Giriş cihazı, izin ve ses seviyesini kontrol edin.');
-   setFeedback('Seni duyamadım. İstersen bir daha deneyelim!');
   }
  };
  const recheckSpeech=async()=>{
@@ -317,7 +273,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   generation.current++;stopSpeechCapture();soundService.setCaptureActive(false);soundService.cancelSpeech();
   if(timer.current)clearTimeout(timer.current);locked.current=false;
   setPhase('map');setSceneSelected(false);setSceneResolved(false);
-  setFeedback('');setSaveError('');setMicStatus('idle');setParentDiagnostic('');
+  setFeedback('');setSaveError('');setMicStatus('idle');setParentDiagnostic('');setSpeechDiagnosticCode('');
  };
  const options=harborChoiceOrder(prompt,englishLevel,question,replayIndex);
  return <div className="harbor-root" role="dialog" aria-modal="true" aria-label="Diyalog Limanı">
@@ -374,77 +330,45 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
         className="harbor-answer"><span>{String.fromCharCode(65+i)}</span>{option}</button>)}
      </div>:<p className="hp-need-interaction">Önce sahnedeki nesneyi keşfet! 🔎</p>}
      <div className="harbor-microphone">
-      <button type="button" onClick={()=>void mic()} disabled={busy||listening||locked.current||!canAnswer||activeCapability.mode==='none'}
+      <button type="button" onClick={()=>void mic()} disabled={busy||listening||locked.current||!canAnswer||!speechAvailable}
        className="harbor-mic-button" aria-label={listening?'Dinleniyor':'Mikrofonla konuş'}>
-       {listening?'🎙️ Dinliyorum…':activeCapability.mode==='practice'?'🎤 Sesli Pratik Yap':'🎤 Konuşarak Cevapla'}
+       {listening?'🎙️ Dinliyorum…':'🎤 Konuşarak Cevapla'}
       </button>
       {listening&&<button type="button" onClick={()=>{
        generation.current++;stopSpeechCapture();soundService.setCaptureActive(false);
        setListening(false);setMicStatus('idle');
       }} className="harbor-stop">Dur ✕</button>}
-      <small className="harbor-child-caption">{activeCapability.mode==='practice'
-       ?'Mikrofon sesini duyar; devam etmek için cevaba dokun.'
-       :activeCapability.mode==='none'?'Mikrofon olmadan da cevaba dokunabilirsin.'
-       :'Dinle, söyle veya cevaba dokun! ✨'}</small>
+      <small className="harbor-child-caption">{speechAvailable
+        ?'Dinle, söyle veya cevaba dokun! ✨'
+        :'Bu cihazda sesli cevap desteklenmiyor; cevabı seç.'}</small>
      </div>
-     {showSpeechHelp&&<div className="harbor-speech-help" role="status">
-      <p>{voiceActivityOnly
-       ?'Mikrofon çalışıyor; fakat cihazın yerel motoru İngilizce kelimeleri tanımıyor.'
-       :'Konuşma tanıma birkaç denemede sonuç üretmedi.'} Konuşarak cevap vermek için bir yetişkinin tarayıcı konuşma hizmetini açması gerekir.</p>
-      <button type="button" onClick={()=>setParentGateOpen(true)}
-       disabled={busy||listening||locked.current}>
-       🔒 Veli: Konuşma Tanımayı Etkinleştir
-      </button>
-     </div>}
-     {!browserServiceAvailable&&(voiceActivityOnly||activeCapability.mode==='none')&&
-      <p className="harbor-speech-help harbor-speech-help-static" role="status">
-       Tarayıcının İngilizce konuşma tanıma desteği yok. Chrome veya Edge üzerinde deneyebilir ya da cevaba dokunabilirsin.
+     {!speechAvailable&&<p className="harbor-speech-help harbor-speech-help-static">
+       Bu tarayıcı konuşmayı metne çeviremiyor. Cevabı seçerek devam edebilirsin.
       </p>}
      {listening&&<p className="harbor-mic-live" role="status" aria-live="polite">{
       micStatus==='starting'?'🎤 Hazırlanıyorum…':
       micStatus==='microphone-ready'?'🟢 Seni dinliyorum! Şimdi söyle.':
-      micStatus==='speech-detected'?(voiceActivityOnly?'🎤 Ses algılandı; bu mod kelimeleri tanımaz.':'🎤 Ses algılandı, konuşma tanıma sürüyor…'):
+      micStatus==='speech-detected'?'🎤 Ses algılandı, kelimeler bekleniyor…':
       micStatus==='processing'?'⏳ İngilizce yanıt çözümleniyor…':
       '🎚️ Seni dinliyorum…'
      }</p>}
      <details className="harbor-parent-tools">
-      <summary>👪 Veliler için ses seçenekleri</summary>
+      <summary>Ses tanıma çalışmıyor mu?</summary>
       <div className="harbor-parent-content">
-       <p>Çocuk için mikrofon zorunlu değil. Cihazdaki İngilizce tanıma her zaman doğru çalışmayabilir.</p>
-       <p className="harbor-parent-diagnostic"><strong>Aktif ses modu:</strong> {
-        activeCapability.mode==='web-browser'?'Ebeveyn onaylı tarayıcı tanıması':
-        activeCapability.mode==='web-local'?'Cihaz içi İngilizce kelime tanıma':
-        activeCapability.mode==='native-local'?'Uygulama içi yerel kelime tanıma':
-        activeCapability.mode==='practice'?'Yalnızca mikrofon ses testi (kelime tanıma yok)':
-        'Mikrofon kullanılamıyor'
-       }. {activeCapability.message}</p>
-       <div className="harbor-parent-actions">
-        <button type="button" onClick={()=>void testMic()} disabled={busy||listening||locked.current}
-         className="harbor-mic-test">🎚️ Mikrofonu Test Et</button>
-        <button type="button" onClick={()=>void recheckSpeech()} disabled={busy||listening||locked.current}
-         className="harbor-recheck">↻ Cihazdaki Tanımayı Kontrol Et</button>
-        {capability.installable&&<button type="button" disabled={busy||listening||locked.current}
-         className="harbor-download" onClick={()=>void install()}>⬇ İngilizce konuşma desteğini kur</button>}
-       </div>
+       <p>Tarayıcı mikrofon izni gereklidir. Tarayıcı sağlayıcısı sesi işleyebilir.</p>
+       <p className="harbor-parent-diagnostic"><strong>Tanıma motoru:</strong> {activeCapability.mode}. {activeCapability.message}</p>
        {parentDiagnostic&&<p className="harbor-parent-diagnostic" role="status">{parentDiagnostic}</p>}
        {speechDiagnosticCode&&<p className="harbor-parent-diagnostic" role="status">
-        <strong>Son ses denemesi (kişisel veri içermez):</strong> <code>{speechDiagnosticCode}</code>
+        <strong>Son deneme:</strong> <code>{speechDiagnosticCode}</code>
        </p>}
-       {browserServiceAvailable&&<div className="harbor-parent-provider">
-        {browserServiceApproved?<>
-         <strong>Tarayıcı konuşma hizmeti: Bu oturumda açık</strong>
-         <p>Sesi tarayıcı sağlayıcısı işleyebilir. Ventra konuşmayı saklamaz.</p>
-         <button type="button" className="harbor-recheck" onClick={()=>setBrowserServiceApproved(false)}
-          disabled={listening}>Çevrimiçi tanımayı kapat</button>
-        </>:<>
-         <strong>Ek konuşma tanıma seçeneği</strong>
-         <p>{failedRecognitionCount>=2?'Cihaz içi tanıma birkaç kez yanıt vermedi. ':
-          'Cihaz içi tanıma çalışmazsa '}Tarayıcının ücretsiz konuşma hizmeti denenebilir.
-          Ses tarayıcı sağlayıcısına gönderilebilir; yalnızca veli onayıyla açılır.</p>
-         <button type="button" className="harbor-recheck" disabled={busy||listening||locked.current}
-          onClick={()=>setParentGateOpen(true)}>🔒 Ebeveyn Ayarı</button>
-        </>}
-       </div>}
+       <div className="harbor-parent-actions">
+        <button type="button" onClick={()=>void recheckSpeech()} disabled={busy||listening||locked.current}
+         className="harbor-recheck">↻ Tekrar kontrol et</button>
+        {capability.installable&&<button type="button" onClick={()=>void install()}
+         disabled={busy||listening||locked.current} className="harbor-download">
+         ⬇ Çevrimdışı İngilizce paketini kur
+        </button>}
+       </div>
       </div>
      </details>
      <p role="status" aria-live="polite" className="harbor-feedback">{feedback}</p>
@@ -463,33 +387,6 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
     </div>
    </>}
   </main>
-  <footer className="harbor-footer">🎤 Mikrofon isteğe bağlıdır. Ventra konuşmaları kaydetmez. Konuşma tanıma telaffuz puanı değildir.</footer>
-  <ParentalGateModal isOpen={parentGateOpen} onClose={()=>setParentGateOpen(false)}
-   onSuccess={()=>{setParentGateOpen(false);setParentAcknowledged(false);setParentConsentOpen(true);}}
-   zIndex={160}
-   description="Tarayıcı sağlayıcısının isteğe bağlı konuşma hizmetini açmak yalnızca veli kararıdır. Devam etmek için ebeveyn kontrolünü geçin."/>
-  {parentConsentOpen&&<div className="harbor-consent-backdrop" role="presentation">
-   <div className="harbor-consent-dialog" role="dialog" aria-modal="true"
-    aria-labelledby="harbor-consent-title">
-    <h2 id="harbor-consent-title">Ebeveyn Onayı · Konuşma Desteği</h2>
-    <p>Ventra'nın cihaz içi tanıması yerine, tarayıcının ücretsiz konuşma hizmetini
-     kullanabilirsiniz. <strong>Çocuğun sesi tarayıcı sağlayıcısının sunucusuna
-     gönderilebilir.</strong> Ventra ses kaydı veya konuşma metni saklamaz;
-     ancak tarayıcı sağlayıcısının veri işlemesini Ventra kontrol etmez.</p>
-    <p>Bu seçenek yalnızca bu Diyalog Limanı oturumu boyunca açık kalır.
-     İstediğiniz zaman kapatabilirsiniz. Kullanmak zorunda değilsiniz.</p>
-    <label><input type="checkbox" checked={parentAcknowledged}
-     onChange={e=>setParentAcknowledged(e.target.checked)}/>
-     <span>Veli olarak üçüncü taraf ses işleme ihtimalini anladım ve bu oturum için onaylıyorum.</span></label>
-    <div className="harbor-consent-actions">
-     <button type="button" onClick={()=>setParentConsentOpen(false)}>Vazgeç</button>
-     <button type="button" disabled={!parentAcknowledged}
-      onClick={()=>{setBrowserServiceApproved(true);setFailedRecognitionCount(0);
-       setParentConsentOpen(false);
-       setParentDiagnostic('Tarayıcı konuşma tanıması bu oturum için açıldı. Sonucu test etmek için mikrofonla konuşun.');
-       setFeedback('🎤 Konuşma tanıma açıldı. Mikrofonla İngilizce cevabı tekrar söyle!');}}>Bu Oturum İçin Aç</button>
-    </div>
-   </div>
-  </div>}
- </div>;
+  <footer className="harbor-footer">🎤 Mikrofon isteğe bağlı. Tarayıcı sağlayıcısı sesi işleyebilir; Ventra ses kaydı veya konuşma metni saklamaz.</footer>
+  </div>;
 }
