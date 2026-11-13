@@ -118,7 +118,7 @@ test('Short English speech is finalized with stop() instead of abort(), then acc
  rec.onaudiostart();
  rec.onspeechstart();
  rec.onspeechend();
- await new Promise(resolve=>setTimeout(resolve,620));
+ await new Promise(resolve=>setTimeout(resolve,1020));
  assert.equal(rec.stopped,true,'speechend must trigger stop() to request final words');
  assert.equal(rec.aborted,false,'never abort before trying to obtain the transcript');
  rec.onresult(spoken(['Hello!']));
@@ -207,4 +207,17 @@ test('Unprefixed or older browser recognition without processLocally stays disab
  assert.equal(rec.started,true);
  rec.onaudiostart();rec.onresult(spoken(['Hello!']));
  assert.equal((await remote.result).mode,'web-browser');
+});
+
+test('Late final English transcript after onend is not discarded during bounded grace period',async()=>{
+ const capture=beginWebLocalRecognition(FakeSpeechRecognition,5000);
+ const rec=FakeSpeechRecognition.mostRecent;
+ rec.onaudiostart();rec.onspeechstart();rec.onend();
+ await new Promise(resolve=>setTimeout(resolve,850));
+ assert.equal(typeof rec.onresult,'function','late result must remain observable');
+ rec.onresult(spoken(['Yes, please!']));
+ const actual=await capture.result;
+ assert.equal(actual.kind,'recognized');
+ assert.deepEqual(actual.alternatives,['Yes, please!']);
+ assert.equal(actual.source,'final');
 });
