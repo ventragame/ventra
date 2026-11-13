@@ -135,10 +135,12 @@ test('Speech success persists the final recognized response and save retry stays
  assert.match(ui,/completionSessionId\.current=null/);
 });
 
-test('Voice activity practice never pretends to recognize English and level changes refresh state',()=>{
+test('Speech button only starts actual word recognition and profile level stays isolated',()=>{
  const ui=game('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
- assert.match(ui,/activeCapability\.mode==='practice'\?'🎤 Sesli Pratik Yap'/);
- assert.match(ui,/Mikrofon sesini duyar; devam etmek için cevaba dokun/);
+ assert.match(ui,/speechAvailable=\['web-local','web-browser','native-local'\]/);
+ assert.match(ui,/!speechAvailable/);
+ assert.match(ui,/Konuşarak Cevapla/);
+ assert.doesNotMatch(ui,/Sesli Pratik Yap|ParentalGateModal/);
  assert.match(ui,/\},\[profileId,englishLevel\]\);/);
 });
 
