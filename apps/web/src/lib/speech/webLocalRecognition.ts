@@ -169,10 +169,11 @@ function beginWebSpeechRecognition(
   recognition.onspeechstart=()=>{speechDetected=true;notify('speech-detected');};
   recognition.onspeechend=()=>{
    notify('processing');
-   // Short phrase (e.g. Hello!) finished. Allow a little silence before
-   // requesting a final result; don't wait until a hard timeout then abort.
+   // Give the browser recognizer enough time to emit a transcript naturally.
+   // Chrome local engines may report speechend well before onresult; calling
+   // stop() after just 900ms can terminate word decoding prematurely.
    unschedule(stopTimer);
-   stopTimer=schedule(requestStop,900);
+   stopTimer=schedule(requestStop,2400);
   };
   recognition.onnomatch=()=>{
    // The browser sometimes has an interim transcript before 'nomatch'.
