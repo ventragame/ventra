@@ -144,9 +144,6 @@ public class VentraSpeechPlugin: CAPPlugin, CAPBridgedPlugin {
         }
     }
 
-    override public func handleReset() {
-        session = UUID()
-        finish(error: "cancelled")
-        super.handleReset()
-    }
+    // Capacitor 6 CAPPlugin does not expose an overridable handleReset().
+    // JavaScript stop() and the standard engine timeout own capture cleanup.
 }
