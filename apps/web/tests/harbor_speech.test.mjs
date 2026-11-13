@@ -58,7 +58,7 @@ test('Voice is child-initiated, local-first with touch fallback and no Ventra au
  assert.match(speech,/stream\?\.getTracks\(\)\.forEach\(track=>track\.stop\(\)\)/);
  assert.doesNotMatch(speech,/fetch\(|XMLHttpRequest|localStorage|MediaRecorder/);
  assert.match(ui,/matchesExpectedSpeech/);
- assert.match(ui,/setFeedback\('🎤 Mikrofon ses algıladı ama konuşma motoru İngilizce kelime üretemedi/);
+ assert.match(ui,/Yerel konuşma motoru sesi algıladı ancak metin üretmedi/);
  assert.match(ui,/Doğru ifadeyi söyle veya seç!/);
  assert.match(ui,/onClick=\{\(\)=>tap\(option\)\}/);
  assert.match(android,/createOnDeviceSpeechRecognizer/);
@@ -148,4 +148,19 @@ test('A microphone that cannot transcribe is never presented as a speech answer'
  assert.match(capability,/mode:'web-browser'/);
  assert.match(style,/harbor-parent-tools/);
  assert.doesNotMatch(ui,/Bakalım ne söyledin|parentAcknowledged/);
+});
+
+test('Real browser speech is the default even if an installed local pack falsely reports available',()=>{
+ const capability=read('../src/lib/speech/childSpeech.ts');
+ const ui=read('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
+ assert.match(capability,/speechCapability\(preferLocal=false\)/);
+ assert.match(capability,/if\(preferLocal&&localAvailable\)/);
+ assert.match(capability,/return \{mode:'web-browser',installable,localAvailable/);
+ assert.match(ui,/result\.kind==='unrecognized'/);
+ assert.match(ui,/if\(result\.mode==='web-local'\)/);
+ assert.match(ui,/setCapability\(\{mode:'web-browser',installable:false,localAvailable:true/);
+ assert.match(ui,/Cihaz içi tanımayı dene/);
+ assert.match(ui,/speechCapability\(true\)/);
+ assert.match(ui,/Sonraki deneme farklı motorla yapılacak/);
+ assert.doesNotMatch(ui,/ParentalGateModal|parentConsentOpen|parentGateOpen/);
 });
