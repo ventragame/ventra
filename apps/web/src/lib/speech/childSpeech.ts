@@ -55,12 +55,16 @@ export async function speechCapability():Promise<SpeechCapability>{
    const result=await ctor.available({langs:['en-US'],processLocally:true});
    if(result==='available')
     return {mode:'web-local',installable:false,message:'Sesli yanıtını dinlemeye hazırım!'};
-   if(result==='downloadable'||result==='downloading')
-    return {mode:'practice',installable:result==='downloadable',message:'Yüksek sesle tekrar et, sonra cevabını seç!'};
+   if(result==='downloadable')
+    return {mode:'practice',installable:true,message:'İngilizce konuşma paketi kurulmamış. Bu mod yalnızca ses algılar; kelimeleri tanımaz.'};
+   if(result==='downloading')
+    return {mode:'practice',installable:false,message:'İngilizce konuşma paketi indiriliyor. İndirme bitene kadar kelimeler tanınmaz.'};
+   if(result==='unavailable')
+    return {mode:'practice',installable:false,message:'Bu tarayıcıda cihaz içi İngilizce konuşma tanıma kullanılamıyor. Mikrofon yalnızca sesi algılar.'};
   }catch{}
  }
  return {mode:await canUseMic()?'practice':'none',installable:false,
-  message:'Yüksek sesle tekrar et, sonra cevabını seç!'};
+  message:'Bu tarayıcıda cihaz içi konuşma tanıma hazır değil. Mikrofon sesi algılayabilir ancak İngilizce kelimeleri değerlendiremez.'};
 }
 /** Only from the explicit "download language pack" click. Never auto-download. */
 export async function installLocalEnglish():Promise<boolean>{
@@ -160,6 +164,8 @@ export async function listenToChild(
    finally{if(currentCancel===session.cancel)currentCancel=null;}
   }
  }
+ // Voice-activity practice is NOT speech recognition. Never turn sound into
+ // an accepted answer, and never silently switch to browser cloud services.
  if(capability.mode==='practice')return practiceVoice(Math.min(6000,ms),epoch,onStatus);
  return {kind:'unavailable',alternatives:[],mode:'none'};
 }
