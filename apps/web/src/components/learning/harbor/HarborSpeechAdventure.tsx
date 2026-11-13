@@ -252,7 +252,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
     'microphone-error':'Tarayıcı mikrofona erişemedi. Windows ses girişini ve mikrofon iznini kontrol et.',
     'language-pack':'Cihazdaki İngilizce konuşma paketi başlatılamıyor. Ses paketini yeniden kontrol et.',
     'not-started':'Konuşma motoru mikrofonu başlatamadı. Mikrofon testini kullan veya tarayıcıyı yeniden aç.',
-    'service-unavailable':'Tarayıcının yerel konuşma tanıması hata verdi. Mikrofonu test et; gerekirse farklı tarayıcı kullan.'
+    'service-unavailable':'Tarayıcı konuşma hizmeti yanıt vermedi. Bağlantı, tarayıcı izinleri veya farklı bir tarayıcıyı dene.'
    };
    const diagnostic=errorMessage[result.reason??'']??'Konuşma tanıma bu cihazda kullanılamıyor.';
    setParentDiagnostic(result.mode==='web-browser'
@@ -417,7 +417,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
         activeCapability.mode==='native-local'?'Uygulama içi yerel kelime tanıma':
         activeCapability.mode==='practice'?'Yalnızca mikrofon ses testi (kelime tanıma yok)':
         'Mikrofon kullanılamıyor'
-       }. {capability.message}</p>
+       }. {activeCapability.message}</p>
        <div className="harbor-parent-actions">
         <button type="button" onClick={()=>void testMic()} disabled={busy||listening||locked.current}
          className="harbor-mic-test">🎚️ Mikrofonu Test Et</button>
