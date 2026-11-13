@@ -4,10 +4,13 @@ import React,{useCallback,useEffect,useRef,useState} from 'react';
 import type {GameCompletedPayload} from '@ventra/shared';
 import {getProgressRepository} from '@/lib/progress';
 import {soundService} from '@/lib/audio/SoundService';
-import {HARBOR_EPISODES,HARBOR_GAME_ID,matchesExpectedSpeech,type HarborPrompt,type HarborLevel} from '@/lib/learning/harborDialogueEngine';
+import {HARBOR_EPISODES,HARBOR_GAME_ID,matchesExpectedSpeech,type HarborLevel} from '@/lib/learning/harborDialogueEngine';
+import {getHarborEpisodeSteps,getHarborEpisodeQuests,harborChoiceOrder} from '@/lib/learning/harborMissionEngine';
+import {HarborSceneStage,type HarborPropId} from './HarborSceneStage';
 import {speechCapability,installLocalEnglish,listenToChild,testMicrophoneInput,stopSpeechCapture,canOfferBrowserSpeechService,type SpeechCapability,type SpeechCaptureStatus} from '@/lib/speech/childSpeech';
 import {ParentalGateModal} from '@/components/profile/ParentalGateModal';
 import './harbor-speech.css';
+import './harbor-premium-scene.css';
 
 type Props={profileId:string;englishLevel:HarborLevel;gradeLevel:number|null;onBack:()=>void;onSaved:()=>void};
 type Phase='map'|'playing'|'completed';
@@ -17,6 +20,10 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  const [completed,setCompleted]=useState(0);
  const [episode,setEpisode]=useState(1);
  const [question,setQuestion]=useState(0);
+ const [sceneSelected,setSceneSelected]=useState(false);
+ const [sceneResolved,setSceneResolved]=useState(false);
+ const [levelPlays,setLevelPlays]=useState<Record<number,number>>({});
+ const [replayIndex,setReplayIndex]=useState(0);
  const [capability,setCapability]=useState<SpeechCapability>(EMPTY_CAPABILITY);
  const [listening,setListening]=useState(false);
  const [micStatus,setMicStatus]=useState<SpeechCaptureStatus|'idle'>('idle');
@@ -38,8 +45,13 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  const locked=useRef(false);
  const startedAt=useRef(Date.now());
  const mission=HARBOR_EPISODES[episode-1];
- const script=mission.prompts[englishLevel];
- const prompt=script[question]??script[0];
+ const script=getHarborEpisodeSteps(episode,englishLevel);
+ const activeStep=script[Math.min(question,script.length-1)];
+ const prompt=activeStep.step;
+ const quest=activeStep.quest;
+ const questStep=activeStep.questStep;
+ const sceneRequiresSelection=questStep===0&&quest.action!=='meet';
+ const canAnswer=!sceneRequiresSelection||sceneSelected;
  const activeCapability:SpeechCapability=browserServiceApproved&&browserServiceAvailable
   ?{mode:'web-browser',installable:false,message:'Konuşmaya hazırım.'}
   :capability;
@@ -61,6 +73,9 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
      count++;
     }
     setCompleted(count);
+    setLevelPlays(Object.fromEntries(
+     Array.from({length:HARBOR_EPISODES.length},(_,i)=>[i+1,levels[i+1]?.completedCount??0])
+    ));
    }).catch(()=>{if(live)setSaveError('Kayıtlı görevler okunamadı. Sonraki bölüm için önce bağlantını kontrol et.');});
   const stopOnBackground=()=>{if(document.hidden){
    generation.current++;stopSpeechCapture();soundService.setCaptureActive(false);setListening(false);
@@ -77,7 +92,8 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   generation.current++;
   soundService.unlockAudio();stopSpeechCapture();soundService.cancelSpeech();
   if(timer.current)clearTimeout(timer.current);
-  setEpisode(id);setQuestion(0);setMistakes(0);setHints(0);setVoiceRecognized(0);
+  setEpisode(id);setQuestion(0);setSceneSelected(false);setSceneResolved(false);
+  setMistakes(0);setHints(0);setVoiceRecognized(0);setReplayIndex(levelPlays[id]??0);
   setFeedback('');setSaveError('');setParentDiagnostic('');setMicStatus('idle');setPhase('playing');locked.current=false;startedAt.current=Date.now();
   soundService.playSfx('tap',.5);
  };
@@ -102,6 +118,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   try{
    await getProgressRepository().recordGameCompleted(payload,profileId);
    setCompleted(current=>Math.max(current,episode));
+   setLevelPlays(prev=>({...prev,[episode]:(prev[episode]??0)+1}));
    setPhase('completed');setFeedback(recognized>0?'Sesinle maceraya renk kattın!':'Macera tamamlandı!');
    soundService.playSfx('fanfare',.7);onSaved();
   }catch(err){
