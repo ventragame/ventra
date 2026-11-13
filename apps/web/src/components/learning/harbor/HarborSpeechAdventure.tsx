@@ -43,6 +43,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  const [failedRecognitionCount,setFailedRecognitionCount]=useState(0);
  const [parentDiagnostic,setParentDiagnostic]=useState('');
  const timer=useRef<ReturnType<typeof setTimeout>|null>(null);
+ const completionSessionId=useRef<string|null>(null);
  const generation=useRef(0);
  const locked=useRef(false);
  const startedAt=useRef(Date.now());
@@ -92,10 +93,11 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
    if(timer.current)clearTimeout(timer.current);
    soundService.cancelSpeech();
   };
- },[profileId]);
+ },[profileId,englishLevel]);
  const start=(id:number)=>{
   if(id>completed+1||busy)return;
   generation.current++;
+  completionSessionId.current=null;
   soundService.unlockAudio();stopSpeechCapture();soundService.cancelSpeech();
   if(timer.current)clearTimeout(timer.current);
   const checkpoint=readHarborCheckpoint(profileId,englishLevel,id);
@@ -133,8 +135,11 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   setBusy(true);setFeedback('Bölüm tamamlandı! Yıldızların kaydediliyor…');
   const independent=Math.max(0,script.length-errors);
   const stars:1|2|3=errors===0&&assisted===0?3:errors<=2?2:1;
+  // Reuse the same session id if the server commits but the acknowledgement fails.
+  const sessionId=completionSessionId.current??crypto.randomUUID();
+  completionSessionId.current=sessionId;
   const payload:GameCompletedPayload={
-   sessionId:crypto.randomUUID(),profileId,gameId:HARBOR_GAME_ID,levelId:episode,
+   sessionId,profileId,gameId:HARBOR_GAME_ID,levelId:episode,
    outcomeId:'en.speaking.harbor.dialogue',success:true,starsEarned:stars,
    score:Math.round(100*independent/script.length),
    metrics:{durationSeconds:Math.max(1,Math.round((Date.now()-startedAt.current)/1000)),
@@ -156,17 +161,17 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
    locked.current=false;
   }finally{setBusy(false);}
  };
- const correct=()=>{
+ const correct=(recognizedCount=voiceRecognized)=>{
   if(locked.current||busy||!canAnswer)return;
   locked.current=true;setSceneResolved(true);
   generation.current++;stopSpeechCapture();soundService.setCaptureActive(false);setListening(false);
   setFeedback('Harika! ✨');soundService.playSfx('correct',.7);
   if(timer.current)clearTimeout(timer.current);
   saveHarborCheckpoint(profileId,englishLevel,episode,
-   Math.min(question+1,script.length-1),mistakes,hints,voiceRecognized);
+   Math.min(question+1,script.length-1),mistakes,hints,recognizedCount);
   setCheckpointed(prev=>({...prev,[episode]:true}));
   timer.current=setTimeout(()=>{
-   if(question+1>=script.length){void save(mistakes,hints,voiceRecognized);return;}
+   if(question+1>=script.length){void save(mistakes,hints,recognizedCount);return;}
    const next=script[question+1];
    setSceneSelected(next.quest.id===quest.id);
    setSceneResolved(false);
@@ -213,8 +218,10 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   );
   if(result.kind==='recognized'){
    if(matchesExpectedSpeech(result.alternatives,prompt.accept)){
-    setVoiceRecognized(n=>n+1);
-    correct();
+    // State setters are async: don't lose the last spoken response on completion.
+    const recognizedCount=voiceRecognized+1;
+    setVoiceRecognized(recognizedCount);
+    correct(recognizedCount);
    }else{
     const heard=result.alternatives[0]?.slice(0,70);
     setFeedback(heard?'💬 “'+heard+'” duydum. Bir daha deneyelim!':
@@ -357,13 +364,16 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
      <div className="harbor-microphone">
       <button type="button" onClick={()=>void mic()} disabled={busy||listening||locked.current||!canAnswer||activeCapability.mode==='none'}
        className="harbor-mic-button" aria-label={listening?'Dinleniyor':'Mikrofonla konuş'}>
-       {listening?'🎙️ Dinliyorum…':'🎤 Konuşarak Dene'}
+       {listening?'🎙️ Dinliyorum…':activeCapability.mode==='practice'?'🎤 Sesli Pratik Yap':'🎤 Konuşarak Cevapla'}
       </button>
       {listening&&<button type="button" onClick={()=>{
        generation.current++;stopSpeechCapture();soundService.setCaptureActive(false);
        setListening(false);setMicStatus('idle');
       }} className="harbor-stop">Dur ✕</button>}
-      <small className="harbor-child-caption">Dinle, söyle veya cevaba dokun! ✨</small>
+      <small className="harbor-child-caption">{activeCapability.mode==='practice'
+       ?'Mikrofon sesini duyar; devam etmek için cevaba dokun.'
+       :activeCapability.mode==='none'?'Mikrofon olmadan da cevaba dokunabilirsin.'
+       :'Dinle, söyle veya cevaba dokun! ✨'}</small>
      </div>
      {listening&&<p className="harbor-mic-live" role="status" aria-live="polite">{
       micStatus==='starting'?'🎤 Hazırlanıyorum…':
