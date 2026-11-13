@@ -7,6 +7,7 @@ import {soundService} from '@/lib/audio/SoundService';
 import {HARBOR_EPISODES,HARBOR_GAME_ID,matchesExpectedSpeech,type HarborLevel} from '@/lib/learning/harborDialogueEngine';
 import {getHarborEpisodeSteps,getHarborEpisodeQuests,harborChoiceOrder} from '@/lib/learning/harborMissionEngine';
 import {HarborSceneStage,type HarborPropId} from './HarborSceneStage';
+import {readHarborCheckpoint,saveHarborCheckpoint,clearHarborCheckpoint} from '@/lib/learning/harborCheckpoint';
 import {speechCapability,installLocalEnglish,listenToChild,testMicrophoneInput,stopSpeechCapture,canOfferBrowserSpeechService,type SpeechCapability,type SpeechCaptureStatus} from '@/lib/speech/childSpeech';
 import {ParentalGateModal} from '@/components/profile/ParentalGateModal';
 import './harbor-speech.css';
@@ -24,6 +25,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  const [sceneResolved,setSceneResolved]=useState(false);
  const [levelPlays,setLevelPlays]=useState<Record<number,number>>({});
  const [replayIndex,setReplayIndex]=useState(0);
+ const [checkpointed,setCheckpointed]=useState<Record<number,boolean>>({});
  const [capability,setCapability]=useState<SpeechCapability>(EMPTY_CAPABILITY);
  const [listening,setListening]=useState(false);
  const [micStatus,setMicStatus]=useState<SpeechCaptureStatus|'idle'>('idle');
@@ -76,6 +78,10 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
     setLevelPlays(Object.fromEntries(
      Array.from({length:HARBOR_EPISODES.length},(_,i)=>[i+1,levels[i+1]?.completedCount??0])
     ));
+    setCheckpointed(Object.fromEntries(
+     Array.from({length:HARBOR_EPISODES.length},(_,i)=>
+      [i+1,Boolean(readHarborCheckpoint(profileId,englishLevel,i+1))])
+    ));
    }).catch(()=>{if(live)setSaveError('Kayıtlı görevler okunamadı. Sonraki bölüm için önce bağlantını kontrol et.');});
   const stopOnBackground=()=>{if(document.hidden){
    generation.current++;stopSpeechCapture();soundService.setCaptureActive(false);setListening(false);
@@ -92,8 +98,11 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   generation.current++;
   soundService.unlockAudio();stopSpeechCapture();soundService.cancelSpeech();
   if(timer.current)clearTimeout(timer.current);
-  setEpisode(id);setQuestion(0);setSceneSelected(false);setSceneResolved(false);
-  setMistakes(0);setHints(0);setVoiceRecognized(0);setReplayIndex(levelPlays[id]??0);
+  const checkpoint=readHarborCheckpoint(profileId,englishLevel,id);
+  setEpisode(id);setQuestion(checkpoint?.step??0);
+  setSceneSelected(Boolean(checkpoint&&checkpoint.step%3!==0));setSceneResolved(false);
+  setMistakes(checkpoint?.mistakes??0);setHints(checkpoint?.hints??0);
+  setVoiceRecognized(checkpoint?.voiceRecognized??0);setReplayIndex(levelPlays[id]??0);
   setFeedback('');setSaveError('');setParentDiagnostic('');setMicStatus('idle');setPhase('playing');locked.current=false;startedAt.current=Date.now();
   soundService.playSfx('tap',.5);
  };
@@ -137,6 +146,8 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
    await getProgressRepository().recordGameCompleted(payload,profileId);
    setCompleted(current=>Math.max(current,episode));
    setLevelPlays(prev=>({...prev,[episode]:(prev[episode]??0)+1}));
+   clearHarborCheckpoint(profileId,englishLevel,episode);
+   setCheckpointed(prev=>({...prev,[episode]:false}));
    setPhase('completed');setFeedback(recognized>0?'Sesinle maceraya renk kattın!':'Macera tamamlandı!');
    soundService.playSfx('fanfare',.7);onSaved();
   }catch(err){
@@ -151,6 +162,9 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   generation.current++;stopSpeechCapture();soundService.setCaptureActive(false);setListening(false);
   setFeedback('Harika! ✨');soundService.playSfx('correct',.7);
   if(timer.current)clearTimeout(timer.current);
+  saveHarborCheckpoint(profileId,englishLevel,episode,
+   Math.min(question+1,script.length-1),mistakes,hints,voiceRecognized);
+  setCheckpointed(prev=>({...prev,[episode]:true}));
   timer.current=setTimeout(()=>{
    if(question+1>=script.length){void save(mistakes,hints,voiceRecognized);return;}
    const next=script[question+1];
@@ -311,7 +325,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
        <span className="harbor-episode-number">BÖLÜM {String(item.id).padStart(2,'0')}</span>
        <strong>{item.title}</strong>
        <small>{getHarborEpisodeQuests(item.id).length} görev · {item.subtitle}</small>
-       <span className="harbor-episode-state">{item.id<=completed?'✓ Tekrar Oyna':item.id===completed+1?'Maceraya Gir →':'🔒 Önceki Bölüm'}</span>
+       <span className="harbor-episode-state">{checkpointed[item.id]?'▶ Kaldığın Yerden':item.id<=completed?'✓ Tekrar Oyna':item.id===completed+1?'Maceraya Gir →':'🔒 Önceki Bölüm'}</span>
       </button>)}
     </div>
    </>:phase==='playing'?<>
