@@ -119,3 +119,22 @@ test('Speech remains optional and 5 existing level IDs stay stable for saved coi
  assert.match(ui,/onClick=\{\(\)=>tap\(option\)\}/);
  assert.match(economy,/id:'island_speaking_harbor_dialogue',label:'Diyalog Limanı',count:5/);
 });
+
+test('Speech success persists the final recognized response and save retry stays idempotent',()=>{
+ const ui=game('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
+ assert.match(ui,/const correct=\(recognizedCount=voiceRecognized\)=>/);
+ assert.match(ui,/const recognizedCount=voiceRecognized\+1;/);
+ assert.match(ui,/correct\(recognizedCount\);/);
+ assert.match(ui,/Math\.min\(question\+1,script\.length-1\),mistakes,hints,recognizedCount/);
+ assert.match(ui,/save\(mistakes,hints,recognizedCount\)/);
+ assert.match(ui,/const sessionId=completionSessionId\.current\?\?crypto\.randomUUID\(\)/);
+ assert.match(ui,/completionSessionId\.current=sessionId/);
+ assert.match(ui,/completionSessionId\.current=null/);
+});
+
+test('Voice activity practice never pretends to recognize English and level changes refresh state',()=>{
+ const ui=game('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
+ assert.match(ui,/activeCapability\.mode==='practice'\?'🎤 Sesli Pratik Yap'/);
+ assert.match(ui,/Mikrofon sesini duyar; devam etmek için cevaba dokun/);
+ assert.match(ui,/\},\[profileId,englishLevel\]\);/);
+});
