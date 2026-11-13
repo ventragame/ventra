@@ -56,9 +56,10 @@ test('Device errors are never mislabeled as the child speaking silently',async()
  const examples=[
   ['audio-capture','unavailable','microphone-error'],
   ['language-not-supported','unavailable','language-pack'],
-  ['service-not-allowed','unavailable','service-unavailable'],
-  ['network','unavailable','service-unavailable'],
+  ['service-not-allowed','unavailable','service-blocked'],
+  ['network','unavailable','network-error'],
   ['not-allowed','denied','permission-denied'],
+  ['phrases-not-supported','unavailable','context-unsupported'],
   ['no-speech','no-speech','no-speech'],
   ['aborted','cancelled','cancelled']
  ];
@@ -163,46 +164,51 @@ test('An interim phrase is not invented when only raw sound is detected',async()
  assert.deepEqual(result.alternatives,[]);
 });
 
-test('Optional contextual bias uses ALL game choices evenly, with no forced answer or cloud fallback',async()=>{
+test('Chrome browser provider never receives unsupported phrase bias',async()=>{
  const old=globalThis.SpeechRecognitionPhrase;
  class FakePhrase{constructor(phrase,boost){this.phrase=phrase;this.boost=boost;}}
  globalThis.SpeechRecognitionPhrase=FakePhrase;
  class PhraseAwareRecognition extends FakeSpeechRecognition{phrases=[];}
  try{
-  const session=beginWebLocalRecognition(PhraseAwareRecognition,5000,undefined,
-   ['Hello!','Goodbye!','Good night!']);
-  const rec=FakeSpeechRecognition.mostRecent;
-  assert.deepEqual(rec.phrases.map(p=>p.phrase),['Hello!','Goodbye!','Good night!']);
-  assert.deepEqual(rec.phrases.map(p=>p.boost),[2,2,2]);
-  assert.equal(rec.processLocally,true);
-  rec.onaudiostart();rec.onspeechstart();rec.onresult(spoken(['Hello!']));
-  assert.equal((await session.result).kind,'recognized');
+  const capture=beginWebBrowserRecognition(PhraseAwareRecognition,5000);
+  const remote=FakeSpeechRecognition.mostRecent;
+  assert.equal(remote.started,true);
+  assert.equal(remote.processLocally,false);
+  assert.deepEqual(remote.phrases,[],'browser mode must NOT set phrases');
+  remote.onaudiostart();remote.onspeechstart();remote.onresult(spoken(['Hello!']));
+  assert.equal((await capture.result).kind,'recognized');
+
+  const local=beginWebLocalRecognition(PhraseAwareRecognition,5000,undefined,
+   ['Hello!','Goodbye!']);
+  const offline=FakeSpeechRecognition.mostRecent;
+  assert.equal(offline.processLocally,true);
+  assert.deepEqual(offline.phrases,[],'avoid experimental bias on all browsers');
+  offline.onaudiostart();offline.onspeechstart();offline.onresult(spoken(['Hello!']));
+  assert.equal((await local.result).kind,'recognized');
  }finally{
   if(old===undefined)delete globalThis.SpeechRecognitionPhrase;
   else globalThis.SpeechRecognitionPhrase=old;
  }
 });
 
-test('Browser-managed recognition never starts without explicit parent approval',async()=>{
- const refused=beginWebBrowserRecognition(FakeSpeechRecognition,5000,false);
- assert.equal((await refused.result).kind,'unavailable');
- const permitted=beginWebBrowserRecognition(FakeSpeechRecognition,5000,true);
+test('Browser-managed speech starts on the microphone click without an extra form',async()=>{
+ const capture=beginWebBrowserRecognition(FakeSpeechRecognition,5000);
  const rec=FakeSpeechRecognition.mostRecent;
  assert.equal(rec.started,true);
  assert.equal(rec.processLocally,false);
  rec.onaudiostart();rec.onspeechstart();rec.onresult(spoken(['Hello!']));
- const result=await permitted.result;
+ const result=await capture.result;
  assert.equal(result.kind,'recognized');
  assert.equal(result.mode,'web-browser');
 });
 
-test('Unprefixed or older browser recognition without processLocally stays disabled by default',async()=>{
+test('Older browser APIs can still recognize spoken words in browser mode',async()=>{
  class LegacyRecognition extends FakeSpeechRecognition{
   constructor(){super();delete this.processLocally;}
  }
  const local=beginWebLocalRecognition(LegacyRecognition,5000);
  assert.equal((await local.result).kind,'unavailable');
- const remote=beginWebBrowserRecognition(LegacyRecognition,5000,true);
+ const remote=beginWebBrowserRecognition(LegacyRecognition,5000);
  const rec=FakeSpeechRecognition.mostRecent;
  assert.equal(rec.started,true);
  rec.onaudiostart();rec.onresult(spoken(['Hello!']));
