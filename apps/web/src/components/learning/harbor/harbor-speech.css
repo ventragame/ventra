@@ -104,3 +104,21 @@
 @media(max-width:560px){.harbor-parent-actions{flex-direction:column}
  .harbor-parent-actions>button{width:100%}.harbor-child-caption{text-align:center}
  .harbor-consent-actions button{flex:1}}
+
+/* Guidance only when the current speech mode cannot evaluate English words.
+   Never overlay the game stage or hide the always-available tap choices. */
+.harbor-speech-help{max-width:720px;margin:12px auto 0;padding:12px 16px;
+ display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:12px;
+ background:#103e60;border:1px solid #b7e2f190;border-radius:18px;
+ box-shadow:0 7px 18px #00172c60;color:#edfaff}
+.harbor-speech-help p{flex:1 1 260px;margin:0;font-size:12px;line-height:1.65}
+.harbor-speech-help button{border:1px solid #aef5d4;
+ border-radius:13px;background:#c9f4dd;color:#114d4f;font-weight:900;
+ padding:10px 13px;font-size:12px;min-height:44px}
+.harbor-speech-help button:hover:not(:disabled){background:#fff6ca}
+.harbor-speech-help button:disabled{opacity:.55}
+.harbor-speech-help-static{text-align:center;display:block;
+ font-size:12px;line-height:1.6}
+@media(max-width:560px){.harbor-speech-help{flex-direction:column}
+ .harbor-speech-help p{text-align:center;flex:initial}
+ .harbor-speech-help button{width:100%}}
