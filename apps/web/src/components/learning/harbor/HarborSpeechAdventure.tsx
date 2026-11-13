@@ -57,8 +57,11 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  const sceneRequiresSelection=questStep===0&&quest.action!=='meet';
  const canAnswer=!sceneRequiresSelection||sceneSelected;
  const activeCapability:SpeechCapability=browserServiceApproved&&browserServiceAvailable
-  ?{mode:'web-browser',installable:false,message:'Konuşmaya hazırım.'}
+  ?{mode:'web-browser',installable:false,message:'Tarayıcı konuşma hizmeti ebeveyn onayıyla açık.'}
   :capability;
+ const voiceActivityOnly=activeCapability.mode==='practice';
+ const showSpeechHelp=!browserServiceApproved&&browserServiceAvailable&&
+  (capability.mode==='practice'||capability.mode==='none'||failedRecognitionCount>0);
  const close=useCallback(()=>{
   generation.current++;stopSpeechCapture();soundService.setCaptureActive(false);soundService.cancelSpeech();
   if(timer.current)clearTimeout(timer.current);
@@ -210,15 +213,17 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   if(run!==generation.current)return;
   setListening(false);setMicStatus('idle');
   setParentDiagnostic(
-   result.kind==='recognized'?'Konuşma çözümlendi ('+(result.source??'yerel')+').':
-   result.kind==='unrecognized'?'Ses algılandı, fakat konuşma motoru metin üretmedi.':
+   result.kind==='recognized'?'İngilizce konuşma metne dönüştürüldü ('+result.mode+', '+(result.source??'final')+').':
+   result.kind==='heard'?'Mikrofon ses algıladı, ancak pratik modu İngilizce kelimeleri tanımaz.':
+   result.kind==='unrecognized'?'Ses algılandı, fakat konuşma motoru metin üretmedi. Mod: '+result.mode+'.':
    result.kind==='no-speech'?'Konuşma motoru sesi yakalayamadı.':
    result.kind==='denied'?'Mikrofon izni reddedildi.':
    result.kind==='unavailable'?'Tanıma hizmeti kullanılamıyor ('+(result.reason??'bilinmiyor')+').':
    ''
   );
   if(result.kind==='recognized'){
-   if(matchesExpectedSpeech(result.alternatives,prompt.accept)){
+   setFailedRecognitionCount(0);
+   if(matchesExpectedSpeech(result.alternatives,prompt.accept)){ 
     // State setters are async: don't lose the last spoken response on completion.
     const recognizedCount=voiceRecognized+1;
     setVoiceRecognized(recognizedCount);
@@ -230,9 +235,9 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
    }
   }else if(result.kind==='unrecognized'){
    setFailedRecognitionCount(n=>n+1);
-   setFeedback('🎤 Sesini duydum! Bir daha deneyelim ya da doğru cevabı seçelim.');
+   setFeedback('🎤 Mikrofon ses algıladı ama konuşma motoru İngilizce kelime üretemedi. Yeniden dene veya cevaba dokun.');
   }else if(result.kind==='heard'){
-   setFeedback('🎤 Sesini duydum! Şimdi cevabını seçerek devam edebilirsin.');
+   setFeedback('🎤 Mikrofon sesini algıladı; fakat bu mod kelimeleri tanımıyor. İlerlemek için cevaba dokun.');
   }else if(result.kind==='denied'){
    setFeedback('Mikrofon kapalı. Cevaplardan birini seçerek devam edebilirsin.');
   }else if(result.kind==='no-speech'){
@@ -246,8 +251,11 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
     'not-started':'Konuşma motoru mikrofonu başlatamadı. Mikrofon testini kullan veya tarayıcıyı yeniden aç.',
     'service-unavailable':'Tarayıcının yerel konuşma tanıması hata verdi. Mikrofonu test et; gerekirse farklı tarayıcı kullan.'
    };
-   setParentDiagnostic(errorMessage[result.reason??'']??'Yerel konuşma tanıma şu anda kullanılamıyor.');
-   setFeedback('🎤 Biraz daha deneyelim! İstersen cevabını seçebilirsin.');
+   const diagnostic=errorMessage[result.reason??'']??'Konuşma tanıma bu cihazda kullanılamıyor.';
+   setParentDiagnostic(result.mode==='web-browser'
+    ?'Ebeveyn onaylı tarayıcı tanıması başarısız oldu ('+(result.reason??'bilinmiyor')+'). '+diagnostic
+    :diagnostic);
+   setFeedback('⚠️ İngilizce konuşma tanıma sonuç vermedi. Cevaba dokunarak ilerleyebilirsin.');
    if(capability.mode==='web-local'&&!browserServiceApproved){
     // An "available" response is not a guarantee that recognition actually starts.
     // Avoid repeated identical failures and never switch to a remote service.
@@ -376,17 +384,37 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
        :activeCapability.mode==='none'?'Mikrofon olmadan da cevaba dokunabilirsin.'
        :'Dinle, söyle veya cevaba dokun! ✨'}</small>
      </div>
+     {showSpeechHelp&&<div className="harbor-speech-help" role="status">
+      <p>{voiceActivityOnly
+       ?'Mikrofon çalışıyor; fakat cihazın yerel motoru İngilizce kelimeleri tanımıyor.'
+       :'Konuşma tanıma birkaç denemede sonuç üretmedi.'} Konuşarak cevap vermek için bir yetişkinin tarayıcı konuşma hizmetini açması gerekir.</p>
+      <button type="button" onClick={()=>setParentGateOpen(true)}
+       disabled={busy||listening||locked.current}>
+       🔒 Veli: Konuşma Tanımayı Etkinleştir
+      </button>
+     </div>}
+     {!browserServiceAvailable&&(voiceActivityOnly||activeCapability.mode==='none')&&
+      <p className="harbor-speech-help harbor-speech-help-static" role="status">
+       Tarayıcının İngilizce konuşma tanıma desteği yok. Chrome veya Edge üzerinde deneyebilir ya da cevaba dokunabilirsin.
+      </p>}
      {listening&&<p className="harbor-mic-live" role="status" aria-live="polite">{
       micStatus==='starting'?'🎤 Hazırlanıyorum…':
       micStatus==='microphone-ready'?'🟢 Seni dinliyorum! Şimdi söyle.':
-      micStatus==='speech-detected'?'🎤 Duydum!':
-      micStatus==='processing'?'✨ Bakalım ne söyledin…':
+      micStatus==='speech-detected'?(voiceActivityOnly?'🎤 Ses algılandı; bu mod kelimeleri tanımaz.':'🎤 Ses algılandı, konuşma tanıma sürüyor…'):
+      micStatus==='processing'?'⏳ İngilizce yanıt çözümleniyor…':
       '🎚️ Seni dinliyorum…'
      }</p>}
      <details className="harbor-parent-tools">
       <summary>👪 Veliler için ses seçenekleri</summary>
       <div className="harbor-parent-content">
        <p>Çocuk için mikrofon zorunlu değil. Cihazdaki İngilizce tanıma her zaman doğru çalışmayabilir.</p>
+       <p className="harbor-parent-diagnostic"><strong>Aktif ses modu:</strong> {
+        activeCapability.mode==='web-browser'?'Ebeveyn onaylı tarayıcı tanıması':
+        activeCapability.mode==='web-local'?'Cihaz içi İngilizce kelime tanıma':
+        activeCapability.mode==='native-local'?'Uygulama içi yerel kelime tanıma':
+        activeCapability.mode==='practice'?'Yalnızca mikrofon ses testi (kelime tanıma yok)':
+        'Mikrofon kullanılamıyor'
+       }. {capability.message}</p>
        <div className="harbor-parent-actions">
         <button type="button" onClick={()=>void testMic()} disabled={busy||listening||locked.current}
          className="harbor-mic-test">🎚️ Mikrofonu Test Et</button>
@@ -450,8 +478,10 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
     <div className="harbor-consent-actions">
      <button type="button" onClick={()=>setParentConsentOpen(false)}>Vazgeç</button>
      <button type="button" disabled={!parentAcknowledged}
-      onClick={()=>{setBrowserServiceApproved(true);setParentConsentOpen(false);
-       setFeedback('🎤 Yeniden konuşmayı deneyebilirsin!');}}>Bu Oturum İçin Aç</button>
+      onClick={()=>{setBrowserServiceApproved(true);setFailedRecognitionCount(0);
+       setParentConsentOpen(false);
+       setParentDiagnostic('Tarayıcı konuşma tanıması bu oturum için açıldı. Sonucu test etmek için mikrofonla konuşun.');
+       setFeedback('🎤 Konuşma tanıma açıldı. Mikrofonla İngilizce cevabı tekrar söyle!');}}>Bu Oturum İçin Aç</button>
     </div>
    </div>
   </div>}
