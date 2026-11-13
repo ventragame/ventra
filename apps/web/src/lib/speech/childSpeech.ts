@@ -47,24 +47,30 @@ export async function speechCapability():Promise<SpeechCapability>{
   return {mode:await canUseMic()?'practice':'none',installable:false,message:'Yüksek sesle tekrar et, sonra cevabını seç!'};
  }
  const ctor=browserConstructor();
- if(ctor?.available){
+ if(!ctor){
+  // A raw microphone detector is not an English speech recognizer.
+  return {mode:'none',installable:false,message:'Tarayıcı İngilizce konuşma tanımayı desteklemiyor.'};
+ }
+ let installable=false;
+ if(ctor.available){
   try{
    const instance=new ctor();
-   // Legacy Web Speech implementations may send audio to a remote service.
-   if(!('processLocally' in instance))throw Error('No local processing');
-   const result=await ctor.available({langs:['en-US'],processLocally:true});
-   if(result==='available')
-    return {mode:'web-local',installable:false,message:'Sesli yanıtını dinlemeye hazırım!'};
-   if(result==='downloadable')
-    return {mode:'practice',installable:true,message:'İngilizce konuşma paketi kurulmamış. Bu mod yalnızca ses algılar; kelimeleri tanımaz.'};
-   if(result==='downloading')
-    return {mode:'practice',installable:false,message:'İngilizce konuşma paketi indiriliyor. İndirme bitene kadar kelimeler tanınmaz.'};
-   if(result==='unavailable')
-    return {mode:'practice',installable:false,message:'Bu tarayıcıda cihaz içi İngilizce konuşma tanıma kullanılamıyor. Mikrofon yalnızca sesi algılar.'};
-  }catch{}
+   if('processLocally' in instance){
+    const result=await ctor.available({langs:['en-US'],processLocally:true});
+    if(result==='available')
+     return {mode:'web-local',installable:false,message:'İngilizce konuşma cihazında tanınır.'};
+    installable=result==='downloadable';
+   }
+  }catch{
+   // Lack of local-pack support does not mean the browser has no recognizer.
+  }
  }
- return {mode:await canUseMic()?'practice':'none',installable:false,
-  message:'Bu tarayıcıda cihaz içi konuşma tanıma hazır değil. Mikrofon sesi algılayabilir ancak İngilizce kelimeleri değerlendiremez.'};
+ // The microphone button starts genuine browser-owned word recognition.
+ // This provider may process speech remotely: disclose this in the game UI.
+ return {mode:'web-browser',installable,
+  message:installable
+   ?'Tarayıcı konuşma tanımayı destekliyor; çevrimdışı İngilizce paketi isteğe bağlı yüklenebilir.'
+   :'İngilizce konuşma tarayıcı tarafından tanınır. Tarayıcı sağlayıcısı sesi işleyebilir.'};
 }
 /** Only from the explicit "download language pack" click. Never auto-download. */
 export async function installLocalEnglish():Promise<boolean>{
@@ -142,7 +148,7 @@ async function nativeRecognition(timeoutMs:number):Promise<SpeechAttempt>{
 export async function listenToChild(
  capability:SpeechCapability,timeoutMs=8000,
  onStatus?:(status:SpeechCaptureStatus)=>void,
- contextPhrases:readonly string[]=[],parentApprovedBrowserService=false
+ contextPhrases:readonly string[]=[]
 ):Promise<SpeechAttempt>{
  stopSpeechCapture();
  const epoch=++captureEpoch;
@@ -151,10 +157,10 @@ export async function listenToChild(
  if(capability.mode==='web-local'||capability.mode==='web-browser'){
   const ctor=browserConstructor();
   if(ctor){
-   // Browser-managed remote recognition is never available on native WebViews
-   // and requires affirmative approval within this one adult-authorized session.
+   // No bespoke permission gate: browser microphone permission is handled by
+   // the user agent. Browser mode can use a vendor service; no audio is stored.
    const session=capability.mode==='web-browser'&&!Capacitor.isNativePlatform()
-    ?beginWebBrowserRecognition(ctor,ms,parentApprovedBrowserService,onStatus,contextPhrases)
+    ?beginWebBrowserRecognition(ctor,ms,onStatus)
     :capability.mode==='web-local'
     ?beginWebLocalRecognition(ctor,ms,onStatus,contextPhrases)
     :null;
@@ -181,8 +187,3 @@ export async function testMicrophoneInput(
  return practiceVoice(Math.max(2500,Math.min(6500,timeoutMs)),epoch,onStatus);
 }
 
-/** Used only to reveal an informed adult opt-in, not as evidence of accuracy. */
-export function canOfferBrowserSpeechService():boolean{
- return typeof window!=='undefined'&&!Capacitor.isNativePlatform()
-  &&browserConstructor()!==null;
-}
