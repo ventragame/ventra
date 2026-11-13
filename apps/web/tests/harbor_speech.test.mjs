@@ -58,7 +58,7 @@ test('Voice is opt-in, on-device only, with reliable touch fallback and no raw a
  assert.match(speech,/stream\?\.getTracks\(\)\.forEach\(track=>track\.stop\(\)\)/);
  assert.doesNotMatch(speech,/fetch\(|XMLHttpRequest|localStorage|MediaRecorder/);
  assert.match(ui,/matchesExpectedSpeech/);
- assert.match(ui,/setFeedback\('🎤 Sesini duydum!/);
+ assert.match(ui,/setFeedback\('🎤 Mikrofon sesini algıladı; fakat bu mod kelimeleri tanımıyor/);
  assert.match(ui,/Doğru ifadeyi söyle veya seç!/);
  assert.match(ui,/onClick=\{\(\)=>tap\(option\)\}/);
  assert.match(android,/createOnDeviceSpeechRecognizer/);
@@ -137,4 +137,24 @@ test('Children do not see browser-pack technical messaging; remote browser ASR n
  assert.match(web,/allowBrowserService\)recognition\.processLocally=false|recognition\.processLocally=false/);
  assert.match(parentalGate,/description\?: string/);
  assert.match(parentalGate,/zIndex\?: number/);
+});
+
+test('Unavailable local ASR clearly distinguishes audio detection and offers parent-gated live words',()=>{
+ const ui=read('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
+ const capability=read('../src/lib/speech/childSpeech.ts');
+ const style=read('../src/components/learning/harbor/harbor-speech.css');
+ assert.match(ui,/voiceActivityOnly=activeCapability\.mode==='practice'/);
+ assert.match(ui,/showSpeechHelp/);
+ assert.match(ui,/Konuşma Tanımayı Etkinleştir/);
+ assert.match(ui,/onClick=\{\(\)=>setParentGateOpen\(true\)\}/);
+ assert.match(ui,/parentAcknowledged/);
+ assert.match(ui,/setBrowserServiceApproved\(true\)/);
+ assert.match(ui,/Mikrofon ses algıladı ama konuşma motoru İngilizce kelime üretemedi/);
+ assert.match(ui,/result\.kind==='heard'/);
+ assert.match(ui,/konuşma motoru metin üretmedi/);
+ assert.match(ui,/İngilizce yanıt çözümleniyor/);
+ assert.match(ui,/Aktif ses modu/);
+ assert.match(style,/harbor-speech-help/);
+ assert.match(capability,/This mode only detects sound|bu mod yalnızca ses algılar|kelimeleri tanımaz/i);
+ assert.doesNotMatch(ui,/✨ Bakalım ne söyledin/);
 });
