@@ -304,29 +304,44 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
      {HARBOR_EPISODES.map(item=><button type="button" key={item.id}
        disabled={item.id>completed+1||busy}
        onClick={()=>start(item.id)} className="harbor-episode-card">
+       <span className="harbor-episode-thumb"><img
+        src="/assets/kids-islands/speaking_harbor.webp" alt=""
+        loading="lazy" draggable={false}/></span>
        <span className="harbor-episode-icon">{item.icon}</span>
-       <span className="harbor-episode-number">{String(item.id).padStart(2,'0')}</span>
-       <strong>{item.title}</strong><small>{item.subtitle}</small>
-       <span className="harbor-episode-state">{item.id<=completed?'✓ Tekrar Oyna':item.id===completed+1?'Macera Başlasın →':'🔒 Önceki Bölüm'}</span>
+       <span className="harbor-episode-number">BÖLÜM {String(item.id).padStart(2,'0')}</span>
+       <strong>{item.title}</strong>
+       <small>{getHarborEpisodeQuests(item.id).length} görev · {item.subtitle}</small>
+       <span className="harbor-episode-state">{item.id<=completed?'✓ Tekrar Oyna':item.id===completed+1?'Maceraya Gir →':'🔒 Önceki Bölüm'}</span>
       </button>)}
     </div>
    </>:phase==='playing'?<>
-    <div className="harbor-level-title"><span>{mission.icon} {mission.title}</span><span>{englishLevel} · {question+1}/{script.length}</span></div>
-    <div className="harbor-stage">
-     <div className="harbor-captain" aria-hidden="true"><span>🧑‍✈️</span><span className="harbor-stage-icon">{prompt.illustration}</span></div>
-     <div className="harbor-bubble"><small>KAPTAN LEO SORUYOR</small><h2>{prompt.line}</h2>
-      <button type="button" onClick={speak} disabled={listening||busy} className="harbor-listen">🔊 Tekrar Dinle</button>
+    <div className="harbor-level-title"><span>{mission.icon} {mission.title}</span>
+      <span>{englishLevel} · {question+1}/{script.length}</span>
      </div>
+    <div className="hp-quest-top">
+     <span>{quest.title} — {Math.floor(question/3)+1}/3 görev</span>
+     <div className="hp-progress-track" aria-label="Bölüm ilerlemesi">
+      <i style={{width:((question+1)/script.length*100)+'%'}}/>
+     </div>
+    </div>
+    <HarborSceneStage key={quest.id} quest={quest} questStep={questStep}
+     selected={sceneSelected} resolved={sceneResolved} onSelect={selectSceneObject}
+     onSpeak={speak} speakerLine={prompt.line} speaking={listening||busy}/>
+    <div className="hp-quest-text">
+     {quest.mission}
+     <small>{canAnswer?'Dinle ve cevap ver. Doğru cevapla dünya değişsin!':
+      'Sahnedeki doğru nesneye dokunarak işe başla.'}</small>
     </div>
     <div className="harbor-talk">
      <div className="harbor-talk-title"><strong>Sen ne dersin?</strong><span>Doğru ifadeyi söyle veya seç!</span></div>
-     <div className="harbor-answer-grid">
+     {canAnswer?<div className="harbor-answer-grid">
       {options.map((option,i)=><button type="button" key={option}
+        data-level={englishLevel}
         disabled={busy||listening||locked.current} onClick={()=>tap(option)}
         className="harbor-answer"><span>{String.fromCharCode(65+i)}</span>{option}</button>)}
-     </div>
+     </div>:<p className="hp-need-interaction">Önce sahnedeki nesneyi keşfet! 🔎</p>}
      <div className="harbor-microphone">
-      <button type="button" onClick={()=>void mic()} disabled={busy||listening||locked.current||activeCapability.mode==='none'}
+      <button type="button" onClick={()=>void mic()} disabled={busy||listening||locked.current||!canAnswer||activeCapability.mode==='none'}
        className="harbor-mic-button" aria-label={listening?'Dinleniyor':'Mikrofonla konuş'}>
        {listening?'🎙️ Dinliyorum…':'🎤 Konuşarak Dene'}
       </button>
