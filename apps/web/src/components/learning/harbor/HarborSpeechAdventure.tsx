@@ -6,6 +6,7 @@ import {getProgressRepository} from '@/lib/progress';
 import {soundService} from '@/lib/audio/SoundService';
 import {HARBOR_EPISODES,HARBOR_GAME_ID,matchesExpectedSpeech,type HarborLevel} from '@/lib/learning/harborDialogueEngine';
 import {getHarborEpisodeSteps,getHarborEpisodeQuests,harborChoiceOrder} from '@/lib/learning/harborMissionEngine';
+import {HARBOR_SCENE_ASSETS} from '@/lib/learning/harborSceneAssets';
 import {HarborSceneStage,type HarborPropId} from './HarborSceneStage';
 import {readHarborCheckpoint,saveHarborCheckpoint,clearHarborCheckpoint} from '@/lib/learning/harborCheckpoint';
 import {speechCapability,installLocalEnglish,listenToChild,testMicrophoneInput,stopSpeechCapture,canOfferBrowserSpeechService,type SpeechCapability,type SpeechCaptureStatus} from '@/lib/speech/childSpeech';
@@ -326,7 +327,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
        disabled={item.id>completed+1||busy}
        onClick={()=>start(item.id)} className="harbor-episode-card">
        <span className="harbor-episode-thumb"><img
-        src="/assets/kids-islands/speaking_harbor.webp" alt=""
+        src={HARBOR_SCENE_ASSETS[getHarborEpisodeQuests(item.id)[0].place].desktop} alt=""
         loading="lazy" draggable={false}/></span>
        <span className="harbor-episode-icon">{item.icon}</span>
        <span className="harbor-episode-number">BÖLÜM {String(item.id).padStart(2,'0')}</span>
