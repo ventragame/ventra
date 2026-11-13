@@ -119,7 +119,7 @@ test('Short English speech is finalized with stop() instead of abort(), then acc
  rec.onaudiostart();
  rec.onspeechstart();
  rec.onspeechend();
- await new Promise(resolve=>setTimeout(resolve,1020));
+ await new Promise(resolve=>setTimeout(resolve,2600));
  assert.equal(rec.stopped,true,'speechend must trigger stop() to request final words');
  assert.equal(rec.aborted,false,'never abort before trying to obtain the transcript');
  rec.onresult(spoken(['Hello!']));
@@ -127,6 +127,19 @@ test('Short English speech is finalized with stop() instead of abort(), then acc
  assert.equal(result.kind,'recognized');
  assert.equal(result.source,'final');
  assert.deepEqual(result.alternatives,['Hello!']);
+});
+
+test('Slow decoder can still deliver a valid phrase after speechend without forced stop',async()=>{
+ const session=beginWebBrowserRecognition(FakeSpeechRecognition,5000);
+ const rec=FakeSpeechRecognition.mostRecent;
+ rec.onstart();rec.onaudiostart();rec.onspeechstart();rec.onspeechend();
+ await new Promise(resolve=>setTimeout(resolve,1250));
+ assert.equal(rec.stopped,false,'recognition should not be forced to stop at 900ms');
+ rec.onresult(spoken(['Hello!']));
+ const output=await session.result;
+ assert.equal(output.kind,'recognized');
+ assert.deepEqual(output.alternatives,['Hello!']);
+ assert.equal(rec.stopped,false,'late natural word decoding must work');
 });
 
 test('Last interim transcript is recovered if a local engine disconnects without a final event',async()=>{
