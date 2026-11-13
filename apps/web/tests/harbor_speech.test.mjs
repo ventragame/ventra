@@ -42,7 +42,7 @@ test('Speech matching is deterministic and does not accept a partial word or arb
  assert.equal(matchesExpectedSpeech([],['hello']),false);
 });
 
-test('Voice is opt-in, on-device only, with reliable touch fallback and no raw audio storage',()=>{
+test('Voice is child-initiated, local-first with touch fallback and no Ventra audio storage',()=>{
  const speech=read('../src/lib/speech/childSpeech.ts');
  const browser=read('../src/lib/speech/webLocalRecognition.ts');
  const ui=read('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
@@ -58,7 +58,7 @@ test('Voice is opt-in, on-device only, with reliable touch fallback and no raw a
  assert.match(speech,/stream\?\.getTracks\(\)\.forEach\(track=>track\.stop\(\)\)/);
  assert.doesNotMatch(speech,/fetch\(|XMLHttpRequest|localStorage|MediaRecorder/);
  assert.match(ui,/matchesExpectedSpeech/);
- assert.match(ui,/setFeedback\('🎤 Mikrofon sesini algıladı; fakat bu mod kelimeleri tanımıyor/);
+ assert.match(ui,/setFeedback\('🎤 Mikrofon ses algıladı ama konuşma motoru İngilizce kelime üretemedi/);
  assert.match(ui,/Doğru ifadeyi söyle veya seç!/);
  assert.match(ui,/onClick=\{\(\)=>tap\(option\)\}/);
  assert.match(android,/createOnDeviceSpeechRecognizer/);
@@ -120,41 +120,32 @@ test('Harbor tells the parent when the browser recognizer generates no words',()
  assert.match(engine,/interim-result/);
 });
 
-test('Children do not see browser-pack technical messaging; remote browser ASR needs a parent-controlled opt-in',()=>{
+test('Harbor offers real speech without a custom guardian modal',()=>{
  const ui=read('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
  const capability=read('../src/lib/speech/childSpeech.ts');
  const web=read('../src/lib/speech/webLocalRecognition.ts');
- const parentalGate=read('../src/components/profile/ParentalGateModal.tsx');
- assert.match(ui,/Veliler için ses seçenekleri/);
- assert.match(ui,/ParentalGateModal/);
- assert.match(ui,/parentAcknowledged/);
- assert.match(ui,/browserServiceApproved/);
- assert.match(ui,/setBrowserServiceApproved\(true\)/);
- assert.match(ui,/setBrowserServiceApproved\(false\)/);
- assert.match(ui,/sesi tarayıcı sağlayıcısının\s+sunucusuna/);
- assert.doesNotMatch(ui,/>\{capability\.message\}<\/small>/);
- assert.match(capability,/parentApprovedBrowserService=false/);
- assert.match(web,/allowBrowserService\)recognition\.processLocally=false|recognition\.processLocally=false/);
- assert.match(parentalGate,/description\?: string/);
- assert.match(parentalGate,/zIndex\?: number/);
+ assert.match(ui,/Ses tanıma çalışmıyor mu/);
+ assert.match(ui,/Tarayıcı sağlayıcısı sesi işleyebilir/);
+ assert.match(ui,/speechAvailable/);
+ assert.match(ui,/onClick=\{\(\)=>void mic\(\)\}/);
+ assert.doesNotMatch(ui,/ParentalGateModal|parentConsentOpen|parentGateOpen|setBrowserServiceApproved/);
+ assert.doesNotMatch(capability,/parentApprovedBrowserService/);
+ assert.match(capability,/beginWebBrowserRecognition\(ctor,ms,onStatus\)/);
+ assert.match(web,/recognition\.processLocally=false/);
+ assert.doesNotMatch(web,/recognition\.phrases=/);
 });
 
-test('Unavailable local ASR clearly distinguishes audio detection and offers parent-gated live words',()=>{
+test('A microphone that cannot transcribe is never presented as a speech answer',()=>{
  const ui=read('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
  const capability=read('../src/lib/speech/childSpeech.ts');
  const style=read('../src/components/learning/harbor/harbor-speech.css');
- assert.match(ui,/voiceActivityOnly=activeCapability\.mode==='practice'/);
- assert.match(ui,/showSpeechHelp/);
- assert.match(ui,/Konuşma Tanımayı Etkinleştir/);
- assert.match(ui,/onClick=\{\(\)=>setParentGateOpen\(true\)\}/);
- assert.match(ui,/parentAcknowledged/);
- assert.match(ui,/setBrowserServiceApproved\(true\)/);
- assert.match(ui,/Mikrofon ses algıladı ama konuşma motoru İngilizce kelime üretemedi/);
- assert.match(ui,/result\.kind==='heard'/);
- assert.match(ui,/konuşma motoru metin üretmedi/);
+ assert.match(ui,/speechAvailable/);
+ assert.match(ui,/disabled=\{busy\|\|listening\|\|locked\.current\|\|!canAnswer\|\|!speechAvailable\}/);
+ assert.match(ui,/Ses tanıma çalışmıyor mu/);
  assert.match(ui,/İngilizce yanıt çözümleniyor/);
- assert.match(ui,/Aktif ses modu/);
- assert.match(style,/harbor-speech-help/);
- assert.match(capability,/This mode only detects sound|bu mod yalnızca ses algılar|kelimeleri tanımaz/i);
- assert.doesNotMatch(ui,/✨ Bakalım ne söyledin/);
+ assert.match(ui,/mode='\+result\.mode/);
+ assert.match(ui,/network-error/);
+ assert.match(capability,/mode:'web-browser'/);
+ assert.match(style,/harbor-parent-tools/);
+ assert.doesNotMatch(ui,/Bakalım ne söyledin|parentAcknowledged/);
 });
