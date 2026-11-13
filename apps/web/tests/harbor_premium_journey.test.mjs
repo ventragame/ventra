@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
+import {HARBOR_SCENE_ASSETS} from '../src/lib/learning/harborSceneAssets.ts';
 import {
  HARBOR_QUESTS,HARBOR_TOTAL_MISSIONS,HARBOR_STEPS_PER_EPISODE,
  getHarborEpisodeQuests,getHarborEpisodeSteps,
@@ -97,7 +98,9 @@ test('Scene is layered and uses real existing artwork, with separate mobile comp
  assert.match(stage,/HarborCaptain/);
  assert.match(stage,/hp-scenery/);
  assert.match(stage,/onSelect\(id\)/);
- assert.match(stage,/speaking_harbor_mobile.webp/);
+ assert.match(stage,/HARBOR_SCENE_ASSETS/);
+ assert.match(stage,/srcSet=\{sceneArt.mobile\}/);
+ assert.match(stage,/src=\{sceneArt.desktop\}/);
  assert.match(ui,/HarborSceneStage/);
  assert.match(ui,/setSceneSelected\(true\)/);
  assert.match(ui,/setSceneResolved\(true\)/);
@@ -137,4 +140,39 @@ test('Voice activity practice never pretends to recognize English and level chan
  assert.match(ui,/activeCapability\.mode==='practice'\?'🎤 Sesli Pratik Yap'/);
  assert.match(ui,/Mikrofon sesini duyar; devam etmek için cevaba dokun/);
  assert.match(ui,/\},\[profileId,englishLevel\]\);/);
+});
+
+test('Five unique 3D WebP worlds include responsive mobile scenes with valid bitstreams',()=>{
+ const places=['dock','market','sea','lighthouse','festival'];
+ assert.deepEqual(Object.keys(HARBOR_SCENE_ASSETS),places);
+ const publicRoot=new URL('../public/',import.meta.url);
+ const all=new Set();
+ const dims=(buf)=>{
+  assert.equal(buf.subarray(0,4).toString(),'RIFF');
+  assert.equal(buf.subarray(8,12).toString(),'WEBP');
+  assert.equal(buf.subarray(12,16).toString(),'VP8 ');
+  return {w:buf.readUInt16LE(26)&0x3fff,h:buf.readUInt16LE(28)&0x3fff};
+ };
+ for(const place of places){
+  const pair=HARBOR_SCENE_ASSETS[place];
+  for(const [device,uri] of Object.entries(pair)){
+   assert.ok(uri.startsWith('/assets/harbor-scenes/')&&uri.endsWith('.webp'));
+   assert.ok(!all.has(uri),'Scenes must not reuse the same WebP: '+uri);
+   all.add(uri);
+   const file=new URL(uri.slice(1),publicRoot);
+   assert.ok(fs.existsSync(file),'Missing '+place+' '+device+' scene');
+   const fileBytes=fs.readFileSync(file);
+   assert.ok(fileBytes.byteLength>=8000&&fileBytes.byteLength<150000,
+    'Small placeholders or oversized assets are not permitted: '+uri);
+   const {w,h}=dims(fileBytes);
+   if(device==='desktop'){assert.ok(w>=900&&h>=500,uri);}
+   else {assert.ok(w>=600&&h>=700,uri);}
+  }
+ }
+ assert.equal(all.size,10);
+ const ui=game('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
+ const stage=game('../src/components/learning/harbor/HarborSceneStage.tsx');
+ assert.match(ui,/HARBOR_SCENE_ASSETS\[getHarborEpisodeQuests\(item.id\)\[0\]\.place\]\.desktop/);
+ assert.match(stage,/sceneArt\.mobile/);
+ assert.match(stage,/sceneArt\.desktop/);
 });
