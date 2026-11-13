@@ -224,7 +224,16 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
      'Bir daha deneyelim ya da cevabı seçelim!');
    }
   }else if(result.kind==='unrecognized'){
-   setFeedback('🎤 Mikrofon ses algıladı ama konuşma motoru İngilizce kelime üretemedi. Yeniden dene veya cevaba dokun.');
+   if(result.mode==='web-local'){
+    // Local recognizer reported a real voice but produced no words.
+    // Repeating the same local provider indefinitely cannot fix this.
+    setCapability({mode:'web-browser',installable:false,localAvailable:true,
+     message:'Yerel motor kelime üretemedi. Sonraki denemede tarayıcı konuşma hizmeti kullanılacak.'});
+    setParentDiagnostic('Yerel konuşma motoru sesi algıladı ancak metin üretmedi. Sonraki deneme farklı motorla yapılacak.');
+    setFeedback('🎤 Tekrar söyle! Bu kez farklı bir konuşma motoruyla deneyeceğiz.');
+   }else{
+    setFeedback('🎤 Ses algılandı ama tarayıcı kelime üretemedi. Tekrar söyle veya cevabı seç.');
+   }
   }else if(result.kind==='heard'){
    setFeedback('Mikrofon sesi algıladı ancak konuşma tanıma yok. Cevabı seçerek devam et.');
   }else if(result.kind==='denied'){
@@ -245,9 +254,10 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
    const diagnostic=errorMessage[result.reason??'']??'Konuşma tanıma bu cihazda kullanılamıyor.';
    setParentDiagnostic(diagnostic);
    setFeedback('Konuşma tanıma bu denemede çalışmadı. Yeniden söyle ya da cevabı seç.');
-   if(activeCapability.mode==='web-local'&&result.reason!=='microphone-error'){
+   if(activeCapability.mode==='web-local'&&result.reason!=='microphone-error'&&
+      result.reason!=='permission-denied'){
     // Next user click may try the browser provider; don't fake recognition.
-    setCapability({mode:'web-browser',installable:false,
+    setCapability({mode:'web-browser',installable:false,localAvailable:true,
      message:'Yerel tanıma başarısız oldu; bir sonraki denemede tarayıcı hizmeti kullanılacak.'});
     setFeedback('Cihaz içi tanıma yanıt vermedi. Yeniden konuşmayı deneyebilirsin.');
    }
@@ -261,6 +271,17 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
    setCapability(state);
    setParentDiagnostic(state.mode==='web-local'?'Cihaz içi tanıma kullanılabilir görünüyor; başarı garanti değil.':state.message);
    setFeedback('Konuşmayı yeniden deneyebilirsin!');
+  }finally{setBusy(false);}
+ };
+ const chooseOffline=async()=>{
+  if(busy||listening)return;
+  setBusy(true);
+  try{
+   const offline=await speechCapability(true);
+   setCapability(offline);
+   setParentDiagnostic(offline.mode==='web-local'
+    ?'Cihaz içi tanıma seçildi. Bu motor kelime üretmezse tarayıcı motoruna dönülecek.'
+    :'Cihaz içi tanıma hazır değil. Tarayıcı motoru kullanılacak.');
   }finally{setBusy(false);}
  };
  const install=async()=>{
@@ -368,6 +389,11 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
          disabled={busy||listening||locked.current} className="harbor-download">
          ⬇ Çevrimdışı İngilizce paketini kur
         </button>}
+        {capability.localAvailable&&capability.mode==='web-browser'&&
+         <button type="button" onClick={()=>void chooseOffline()}
+          disabled={busy||listening||locked.current} className="harbor-recheck">
+          Cihaz içi tanımayı dene
+         </button>}
        </div>
       </div>
      </details>
