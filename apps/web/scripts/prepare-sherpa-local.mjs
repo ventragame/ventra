@@ -55,7 +55,7 @@ async function prepareRuntime(){
  const packageRoot=dirname(require.resolve('@sherpaw/asr/package.json'));
  const source=resolve(packageRoot,'dist');
  const names=await readdir(source);
- const runtimeFiles=names.filter(name=>/\\.(?:m?js)$/.test(name));
+ const runtimeFiles=names.filter(name=>/\.(?:m?js)$/.test(name));
  if(!runtimeFiles.includes('index.js'))
   throw Error('Sherpa ESM runtime missing from pinned npm distribution');
  await mkdir(runtimeRoot,{recursive:true});
@@ -118,17 +118,18 @@ async function download(spec) {
  }
 }
 async function main() {
- if (process.env.VENTRA_SKIP_SHERPA_PREPARE !== '1'){
-  try{await prepareRuntime();}
-  catch(error){
-   console.warn('[Ventra STT] Runtime assets could not be prepared:',String(error));
-   if(process.env.VENTRA_REQUIRE_SHERPA_MODEL==='1')throw error;
-   return;
-  }
- }
  if (process.env.VENTRA_SKIP_SHERPA_PREPARE === '1') {
-  console.log('[Ventra STT] Model preparation skipped by environment.');
+  console.warn('[Ventra STT] WARNING: Optional local speech model preparation explicitly disabled.');
   return;
+ }
+ // A voice-learning product must not boot or deploy with half-installed
+ // speech assets while claiming local recognition is ready.
+ try {
+  await prepareRuntime();
+ } catch(error) {
+  console.error('[Ventra STT] FAILED to prepare sherpa WASM runtime. Local recognition cannot work.');
+  console.error('[Ventra STT] Check access to raw.githubusercontent.com; use npm install if @sherpaw/asr is missing.');
+  throw error;
  }
  if (await checkExisting()) {
   console.log('[Ventra STT] English offline model verified (cached).');
@@ -159,9 +160,9 @@ async function main() {
  } catch (error) {
   // A missing model must never pretend to be ready; on failure Web Speech and
   // touch input remain available, including when the build has no network.
-  console.warn('[Ventra STT] Model download unavailable; browser mode remains available:', String(error));
+  console.error('[Ventra STT] FAILED to prepare the English model; manifest.json cannot be served:', String(error));
   await rm(resolve(root, manifestName), {force:true});
-  if (process.env.VENTRA_REQUIRE_SHERPA_MODEL === '1') throw error;
+  throw error;
  }
 }
 await main();
