@@ -107,7 +107,7 @@ export function beginLocalSherpaRecognition(
  let silenceTimeout:ReturnType<typeof setTimeout>|null=null;
  let poolForRun:Pool|null=null;
  let startedOnWorker=false;
- let detected=false,voicedChunks=0,startedVoice=0,lastVoice=0;
+ let detected=false,voicedMs=0,startedVoice=0,lastVoice=0;
  let finishDecodeRequested=false;
  let promiseResolve!:(value:SpeechAttempt)=>void;
  const result=new Promise<SpeechAttempt>(r=>{promiseResolve=r;});
@@ -152,14 +152,17 @@ export function beginLocalSherpaRecognition(
   for(let i=0;i<chunk.length;i++)rms+=chunk[i]*chunk[i];
   rms=Math.sqrt(rms/chunk.length);
   const now=performance.now();
-  // Require consecutive voiced windows; a single tap/pop cannot answer.
+  // A 4096-frame 16kHz worklet chunk is 256 ms. Requiring four such
+  // chunks would incorrectly reject short "Hi", "Bye" and "Hello" answers.
+  // Accumulate voiced duration instead of assuming 10 ms VAD frames.
+  const durationMs=Math.min(320,1000*chunk.length/rate);
   if(rms>0.012){
-   voicedChunks++;
-   if(voicedChunks>=4){
+   voicedMs=Math.min(1000,voicedMs+durationMs);
+   if(voicedMs>=180){
     lastVoice=now;
     if(!detected){detected=true;startedVoice=now;onStatus?.('speech-detected');}
    }
-  }else voicedChunks=Math.max(0,voicedChunks-1);
+  }else voicedMs=Math.max(0,voicedMs-durationMs);
   const samples=resampleTo16k(chunk,rate);
   poolForRun.worker.postMessage({type:'audio',id,samples,sampleRate:16000},[samples.buffer]);
   if(detected&&now-startedVoice>500&&now-lastVoice>1250)requestDecode();
