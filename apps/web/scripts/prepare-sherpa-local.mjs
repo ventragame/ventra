@@ -29,7 +29,7 @@ const wasmBlobSha='5388e425a5c6fbd8a92dad2b2ea2eaa50b895100';
 const wasmSize=13_788_938;
 function validWasm(bytes){
  return bytes.byteLength===wasmSize&&
-  createHash('sha1').update('blob '+bytes.byteLength+'\\0').update(bytes).digest('hex')===wasmBlobSha;
+  createHash('sha1').update('blob '+bytes.byteLength).update(Uint8Array.of(0)).update(bytes).digest('hex')===wasmBlobSha;
 }
 async function prepareWasm(source){
  const wasmOutput=resolve(runtimeRoot,'asr.wasm');
