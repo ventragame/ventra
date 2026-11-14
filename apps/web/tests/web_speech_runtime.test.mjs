@@ -61,7 +61,7 @@ test('Device errors are never mislabeled as the child speaking silently',async()
   ['not-allowed','denied','permission-denied'],
   ['phrases-not-supported','unavailable','context-unsupported'],
   ['no-speech','no-speech','no-speech'],
-  ['aborted','cancelled','cancelled']
+  ['aborted','unavailable','service-aborted']
  ];
  for(const [error,kind,reason] of examples){
   assert.deepEqual(mapWebRecognitionError(error),{kind,reason});
@@ -83,6 +83,16 @@ test('Real microphone audio and detected speech are not mistaken for speech reco
  const result=await capture.result;
  assert.equal(result.kind,'unrecognized');
  assert.deepEqual(result.alternatives,[]);
+});
+
+test('Unsolicited browser aborted error is not falsely treated as child cancel',async()=>{
+ const capture=beginWebBrowserRecognition(FakeSpeechRecognition,5000);
+ const rec=FakeSpeechRecognition.mostRecent;
+ rec.onstart();rec.onaudiostart();
+ rec.onerror({error:'aborted'});
+ const result=await capture.result;
+ assert.equal(result.kind,'unavailable');
+ assert.equal(result.reason,'service-aborted');
 });
 
 test('An engine that closes before capturing audio is an unavailable recognizer, not silence',async()=>{
