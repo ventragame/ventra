@@ -4,7 +4,13 @@
  * k2-fsa/sherpa-onnx via @sherpaw/asr, int8 English Zipformer (20M).
  * No speech samples, transcripts or personal identifiers leave the browser.
  */
-import {createOnlineRecognizer,initASRModule} from '@sherpaw/asr';
+// Runtime is copied from pinned @sherpaw/asr into /public/speech at build
+// time. Dynamic URL imports bypass Next's incorrect bare 'asr.wasm' resolution
+// while retaining same-origin execution and offline/browser caching.
+async function loadRuntime():Promise<{createOnlineRecognizer:(module:any,options:any)=>any;initASRModule:()=>Promise<any>}>{
+ const runtimeUrl=new URL('/speech/sherpa-runtime/index.js',self.location.origin).href;
+ return await import(/* webpackIgnore: true */ runtimeUrl);
+}
 
 type Message =
  | {type:'init'}
@@ -68,6 +74,7 @@ async function loadModel(){
  if(models.some(name=>!entries.some(x=>x.name===name)))
   throw new Error('model-incomplete');
  // WASM is downloaded once. No application-level audio upload occurs.
+ const {initASRModule,createOnlineRecognizer}=await loadRuntime();
  const module:any=await initASRModule();
  for(let i=0;i<models.length;i++){
   const name=models[i];
