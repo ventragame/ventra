@@ -3,6 +3,7 @@ import { createClient } from 'npm:@supabase/supabase-js@2.118.0';
 
 const ORIGINS = new Set([
   'https://ventraapp.vercel.app',
+  'http://localhost', // Android Capacitor WebView origin
   'http://localhost:3000',
   'http://localhost:3001',
   'capacitor://localhost',
