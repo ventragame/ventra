@@ -54,6 +54,8 @@ export function CharacterGuide({character,mood,cueKey,className=''}:CharacterGui
  },[]);
 
  useEffect(()=>{
+  setReady(false);
+  setFailed(false);
   if(reduced)return;
   let active=true;
   let cleanupVisibility=()=>{};
@@ -84,7 +86,7 @@ export function CharacterGuide({character,mood,cueKey,className=''}:CharacterGui
     const onVisibility=()=>{
      if(!active||!animation?.isLoaded)return;
      if(document.hidden)animation.pause();
-     else animation.play();
+     else playState(); // Resume in the current mood, never the full 420-frame reel.
     };
     animation.addEventListener('DOMLoaded',onLoaded);
     animation.addEventListener('data_failed',onFailed);

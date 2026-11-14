@@ -33,6 +33,20 @@ test('Two original royalty-free guide characters contain real independent facial
   assert.ok(json.layers.some(x=>(x.nm.includes('sleeve')||x.nm.includes('wing'))&&x.ks.r.a===1),'Articulated arm or wings');
   assert.ok(json.layers.some(x=>x.nm.includes('head')&&x.ks.p.a===1),'Head independently animated');
   assert.ok(json.layers.every(x=>x.ty===4&&x.shapes.length>0),'Vector geometry only');
+  // Every animated property must stay in its allotted timeline with finite values.
+  for(const layer of json.layers){
+   for(const key of ['o','r','p','s']){
+    const value=layer.ks[key];
+    if(value?.a!==1)continue;
+    const frames=value.k;
+    assert.ok(frames.length>=7,'Each articulated property has state transitions');
+    for(let i=0;i<frames.length;i++){
+     assert.ok(Number.isFinite(frames[i].t));
+     assert.ok(frames[i].s.every(Number.isFinite),'No invalid transform values');
+     if(i>0)assert.ok(frames[i].t>frames[i-1].t,'Strict timeline order');
+    }
+   }
+  }
   assert.match(svg,/<svg/);assert.match(svg,/<path/);
   assert.doesNotMatch(svg,/<image\b|(?:href|src)=["']https?:|url\(https?:/i,'No externally loaded assets');
  }
@@ -48,6 +62,8 @@ test('One lightweight Lottie player handles seven visual states, motion preferen
  assert.match(component,/prefers-reduced-motion: reduce/);
  assert.match(component,/animation\?\.destroy\(\)/);
  assert.match(component,/document\.hidden/);
+ assert.match(component,/else playState\(\)/);
+ assert.match(component,/setReady\(false\)/);
  assert.match(component,/\.svg'/);
  assert.match(component,/aria-hidden="true"/);
  assert.doesNotMatch(component,/https?:\/\/|lottie\.host|lottiefiles\.com/i);
