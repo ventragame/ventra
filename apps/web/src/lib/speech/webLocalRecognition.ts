@@ -12,7 +12,7 @@ export type WebSpeechStatus='starting'|'microphone-ready'|'speech-detected'|'pro
 export type WebSpeechReason='no-speech'|'speech-unrecognized'|'permission-denied'|
  'microphone-error'|'language-pack'|'service-unavailable'|'not-started'|
  'timeout'|'cancelled'|'interim-result'|'network-error'|'service-blocked'|
- 'context-unsupported'|'start-failed';
+ 'context-unsupported'|'start-failed'|'service-aborted';
 export type WebSpeechResult={
  kind:'recognized'|'no-speech'|'unrecognized'|'denied'|'unavailable'|'cancelled';
  alternatives:string[];mode:'web-local'|'web-browser';reason?:WebSpeechReason;
@@ -43,7 +43,9 @@ export function mapWebRecognitionError(code:string,speechDetected=false):Pick<We
   case 'network':return {kind:'unavailable',reason:'network-error'};
   case 'service-not-allowed':return {kind:'unavailable',reason:'service-blocked'};
   case 'phrases-not-supported':return {kind:'unavailable',reason:'context-unsupported'};
-  case 'aborted':return {kind:'cancelled',reason:'cancelled'};
+  // 'aborted' may be emitted by a broken browser provider without an app
+  // cancel(). Never mislabel an unsolicited engine abort as the user's action.
+  case 'aborted':return {kind:'unavailable',reason:'service-aborted'};
   case 'no-speech':return speechDetected?{kind:'unrecognized',reason:'speech-unrecognized'}:
    {kind:'no-speech',reason:'no-speech'};
   default:return {kind:'unavailable',reason:'service-unavailable'};
@@ -126,7 +128,12 @@ function beginWebSpeechRecognition(
   catch{
    finalize();return;
   }
-  finalTimer=schedule(finalize,3000);
+  finalTimer=schedule(()=>{
+   // The provider never finalized after stop(): this is a stalled recognizer,
+   // not evidence that the child failed to pronounce the word correctly.
+   if(provisional.length)finalize();
+   else finish('unavailable','timeout');
+  },3000);
  };
  const cancel=()=>finish('cancelled','cancelled');
 
