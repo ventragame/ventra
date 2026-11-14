@@ -9,7 +9,8 @@ import {getHarborEpisodeSteps,getHarborEpisodeQuests,harborChoiceOrder} from '@/
 import {HARBOR_SCENE_ASSETS} from '@/lib/learning/harborSceneAssets';
 import {HarborSceneStage,type HarborPropId} from './HarborSceneStage';
 import {readHarborCheckpoint,saveHarborCheckpoint,clearHarborCheckpoint} from '@/lib/learning/harborCheckpoint';
-import {speechCapability,installLocalEnglish,listenToChild,stopSpeechCapture,type SpeechCapability,type SpeechCaptureStatus} from '@/lib/speech/childSpeech';
+import {speechCapability,installLocalEnglish,listenToChild,listenToIndependentSpeech,stopSpeechCapture,type SpeechCapability,type SpeechCaptureStatus} from '@/lib/speech/childSpeech';
+import {independentSttConfigured,hasAdultSession} from '@/lib/speech/independentTranscription';
 import './harbor-speech.css';
 import './harbor-premium-scene.css';
 
@@ -27,6 +28,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  const [replayIndex,setReplayIndex]=useState(0);
  const [checkpointed,setCheckpointed]=useState<Record<number,boolean>>({});
  const [capability,setCapability]=useState<SpeechCapability>(EMPTY_CAPABILITY);
+ const [independentEnabled,setIndependentEnabled]=useState(false);
  const [listening,setListening]=useState(false);
  const [micStatus,setMicStatus]=useState<SpeechCaptureStatus|'idle'>('idle');
  const [busy,setBusy]=useState(false);
@@ -51,8 +53,11 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  const questStep=activeStep.questStep;
  const sceneRequiresSelection=questStep===0&&quest.action!=='meet';
  const canAnswer=!sceneRequiresSelection||sceneSelected;
- const activeCapability=capability;
- const speechAvailable=['web-local','web-browser','native-local'].includes(activeCapability.mode);
+ const activeCapability:SpeechCapability=independentEnabled
+  ?{mode:'server-stt',installable:false,
+    message:'Yetişkin hesabıyla etkinleştirilmiş bağımsız İngilizce konuşma tanıma.'}
+  :capability;
+ const speechAvailable=['web-local','web-browser','native-local','server-stt'].includes(activeCapability.mode);
  const close=useCallback(()=>{
   generation.current++;stopSpeechCapture();soundService.setCaptureActive(false);soundService.cancelSpeech();
   if(timer.current)clearTimeout(timer.current);
@@ -187,13 +192,16 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   soundService.setCaptureActive(true);
   let result;
   try{
-   result=await listenToChild(activeCapability,10000,status=>{
+   const onStatus=(status:SpeechCaptureStatus)=>{
     if(run===generation.current)setMicStatus(status);
-   },prompt.choices);
+   };
+   result=independentEnabled
+    ?await listenToIndependentSpeech(profileId,10000,onStatus)
+    :await listenToChild(activeCapability,10000,onStatus,prompt.choices);
   }catch{
    // Browser/OS failures are not evidence that the child spoke incorrectly.
    if(run===generation.current){
-    setFeedback('Konuşma tanıma başlatılamadı. Mikrofon testini dene veya cevaba dokun.');
+    setFeedback('Konuşma tanıma başlatılamadı. Cevabı seçerek devam edebilirsin.');
     setListening(false);setMicStatus('idle');
    }
    return;
@@ -232,7 +240,9 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
     setParentDiagnostic('Yerel konuşma motoru sesi algıladı ancak metin üretmedi. Sonraki deneme farklı motorla yapılacak.');
     setFeedback('🎤 Tekrar söyle! Bu kez farklı bir konuşma motoruyla deneyeceğiz.');
    }else{
-    setFeedback('🎤 Ses algılandı ama tarayıcı kelime üretemedi. Tekrar söyle veya cevabı seç.');
+    setFeedback(result.mode==='server-stt'
+     ?'🎤 Ses algılandı ancak bağımsız motor kelime üretemedi. Tekrar söyle veya cevabı seç.'
+     :'🎤 Ses algılandı ama tarayıcı kelime üretemedi. Tekrar söyle veya cevabı seç.');
    }
   }else if(result.kind==='heard'){
    setFeedback('Mikrofon sesi algıladı ancak konuşma tanıma yok. Cevabı seçerek devam et.');
@@ -249,7 +259,20 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
     'service-blocked':'Tarayıcı konuşma hizmetini engelledi. Farklı tarayıcıyı dene.',
     'network-error':'Tarayıcı konuşma sunucusuna erişemedi. Bağlantıyı veya ağ engellerini kontrol et.',
     'context-unsupported':'Tarayıcı deneysel konuşma ipuçlarını desteklemiyor.',
-    'start-failed':'Konuşma tanıma tarayıcı tarafından başlatılamadı.'
+    'start-failed':'Konuşma tanıma tarayıcı tarafından başlatılamadı.',
+    'backend-not-configured':'Bağımsız STT henüz sunucuda yapılandırılmadı.',
+    'transcription-not-configured':'Sunucuda konuşma tanıma anahtarı eksik.',
+    'authentication-required':'Bağımsız tanıma için yetişkin hesabıyla giriş yapmalısın.',
+    'adult-login-required':'Yetişkin oturumu sona erdi. Yeniden giriş yap.',
+    'not-authorized-or-rate-limited':'Bu hesap için ses tanıma kotası doldu veya çocuk profiline erişim izni bulunmuyor.',
+    'quota-unavailable':'Konuşma kotası sunucuda henüz yapılandırılmadı.',
+    'provider-rate-limited':'Konuşma hizmeti yoğun. Biraz sonra tekrar dene.',
+    'provider-unavailable':'Bağımsız konuşma sağlayıcısı yanıt vermedi.',
+    'provider-timeout-or-network':'Konuşma sağlayıcısına bağlantı zaman aşımına uğradı.',
+    'recording-unsupported':'Tarayıcı ses kaydı yapmayı desteklemiyor.',
+    'audio-too-large':'Ses kaydı izin verilen boyutu aştı.',
+    'origin-denied':'Bu adres konuşma hizmeti için yetkilendirilmemiş.',
+    'backend-error':'Bağımsız konuşma tanıma sunucusu yanıt vermedi.'
    };
    const diagnostic=errorMessage[result.reason??'']??'Konuşma tanıma bu cihazda kullanılamıyor.';
    setParentDiagnostic(diagnostic);
@@ -262,6 +285,27 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
     setFeedback('Cihaz içi tanıma yanıt vermedi. Yeniden konuşmayı deneyebilirsin.');
    }
   }
+ };
+ const toggleIndependent=async()=>{
+  if(independentEnabled){
+   setIndependentEnabled(false);
+   setParentDiagnostic('Tarayıcı konuşma tanımasına geri dönüldü.');
+   return;
+  }
+  if(!independentSttConfigured()){
+   setParentDiagnostic('Bağımsız konuşma hizmeti henüz yapılandırılmadı.');
+   return;
+  }
+  setBusy(true);
+  try{
+   if(!(await hasAdultSession())){
+    setParentDiagnostic('Bağımsız konuşma hizmetini kullanmak için önce yetişkin hesabıyla giriş yap.');
+    return;
+   }
+   // Explicit adult-side choice; do not auto-upload child audio after Web Speech failure.
+   setIndependentEnabled(true);
+   setParentDiagnostic('Bağımsız konuşma tanıma açık. Kısa ses kaydı yalnızca tanıma amacıyla sağlayıcıya gönderilir; Ventra kaydı saklamaz.');
+  }finally{setBusy(false);}
  };
  const recheckSpeech=async()=>{
   if(busy||listening)return;
@@ -376,7 +420,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
      <details className="harbor-parent-tools">
       <summary>Ses tanıma çalışmıyor mu?</summary>
       <div className="harbor-parent-content">
-       <p>Tarayıcı mikrofon izni gereklidir. Tarayıcı sağlayıcısı sesi işleyebilir.</p>
+       <p>Web Speech API doğrudan kullanılabilir. Tarayıcı kelime üretmiyorsa, yapılandırılmış bağımsız konuşma hizmeti yetişkin hesabıyla isteğe bağlı açılabilir.</p>
        <p className="harbor-parent-diagnostic"><strong>Tanıma motoru:</strong> {activeCapability.mode}. {activeCapability.message}</p>
        {parentDiagnostic&&<p className="harbor-parent-diagnostic" role="status">{parentDiagnostic}</p>}
        {speechDiagnosticCode&&<p className="harbor-parent-diagnostic" role="status">
@@ -394,6 +438,14 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
           disabled={busy||listening||locked.current} className="harbor-recheck">
           Cihaz içi tanımayı dene
          </button>}
+        {independentSttConfigured()&&<div className="harbor-stt-option">
+         <p>Bağımsız tanıma: Kısa ses kaydı Groq sağlayıcısına işlenmek üzere gönderilebilir.
+          Ventra ses kaydını ve konuşma metnini saklamaz. Yalnızca yetişkin hesabıyla kullanılabilir.</p>
+         <button type="button" onClick={()=>void toggleIndependent()}
+          disabled={busy||listening||locked.current} className="harbor-recheck">
+          {independentEnabled?'Tarayıcı motorunu kullan':'Bağımsız konuşma tanımayı etkinleştir'}
+         </button>
+        </div>
        </div>
       </div>
      </details>
@@ -413,6 +465,6 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
     </div>
    </>}
   </main>
-  <footer className="harbor-footer">🎤 Mikrofon isteğe bağlı. Tarayıcı sağlayıcısı sesi işleyebilir; Ventra ses kaydı veya konuşma metni saklamaz.</footer>
+  <footer className="harbor-footer">🎤 Mikrofon isteğe bağlıdır. Seçilen sağlayıcı sesi işleyebilir; Ventra ses kaydını ve transkripti saklamaz.</footer>
   </div>;
 }
