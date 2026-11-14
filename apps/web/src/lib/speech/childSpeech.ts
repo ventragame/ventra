@@ -1,14 +1,15 @@
 'use client';
 
 import {Capacitor,registerPlugin} from '@capacitor/core';
-import {beginWebLocalRecognition,beginWebBrowserRecognition,type WebSpeechConstructor,type WebSpeechReason,type WebSpeechStatus} from './webLocalRecognition';
+import {beginWebLocalRecognition,beginWebBrowserRecognition,type WebSpeechConstructor,type WebSpeechStatus} from './webLocalRecognition';
+import {beginIndependentTranscription} from './independentTranscription';
 
-export type SpeechMode='native-local'|'web-local'|'web-browser'|'practice'|'none';
+export type SpeechMode='native-local'|'web-local'|'web-browser'|'server-stt'|'practice'|'none';
 export type SpeechCaptureStatus=WebSpeechStatus|'testing';
 export type SpeechCapability={mode:SpeechMode;installable:boolean;message:string;localAvailable?:boolean};
 export type SpeechAttempt={
  kind:'recognized'|'heard'|'no-speech'|'unrecognized'|'denied'|'unavailable'|'cancelled';
- alternatives:string[];mode:SpeechMode;reason?:WebSpeechReason;source?:'final'|'interim';
+ alternatives:string[];mode:SpeechMode;reason?:string;source?:'final'|'interim';
 };
 /** No audio files, transcript history, identifiers or telemetry are uploaded. */
 interface NativeSpeech {
@@ -177,6 +178,18 @@ export async function listenToChild(
  // an accepted answer, and never silently switch to browser cloud services.
  if(capability.mode==='practice')return practiceVoice(Math.min(6000,ms),epoch,onStatus);
  return {kind:'unavailable',alternatives:[],mode:'none'};
+}
+
+/** Separate, adult-enabled transcription path; uses the same cancellation
+ * protocol as Web Speech and never stores the audio in a browser database. */
+export async function listenToIndependentSpeech(
+ profileId:string,timeoutMs=9500,onStatus?:(status:SpeechCaptureStatus)=>void
+):Promise<SpeechAttempt>{
+ stopSpeechCapture();
+ const session=beginIndependentTranscription(profileId,timeoutMs,onStatus);
+ currentCancel=session.cancel;
+ try{return await session.result;}
+ finally{if(currentCancel===session.cancel)currentCancel=null;}
 }
 
 /** Independent local microphone signal check. No transcript and no uploads.
