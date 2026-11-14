@@ -4,7 +4,7 @@ import React,{useEffect,useRef,useState} from 'react';
 import type {AnimationItem} from 'lottie-web';
 import './learning-motion.css';
 
-type MotionVariant='success'|'victory';
+type MotionVariant='success'|'victory'|'discovery';
 interface Props{
  variant:MotionVariant;
  /** Stable game-event identity. Null stops the effect without affecting play. */

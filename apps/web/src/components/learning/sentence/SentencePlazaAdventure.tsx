@@ -9,6 +9,7 @@ import {SENTENCE_PLAZA_MISSIONS,planPlazaMission,plazaWordTiles,evaluatePlazaSen
  type PlazaMission,type PlazaDeck,type PlazaQuestion} from '@/lib/learning/sentencePlazaEngine';
 import {soundService} from '@/lib/audio/SoundService';
 import {SentencePlazaScene} from './SentencePlazaScene';
+import {LearningMotion} from '@/components/learning/motion/LearningMotion';
 import {SentenceAnimalArtwork,type SentenceAnimalSpecies} from './SentenceAnimalArtwork';
 import {sentenceStart,visibleWord,visibleRepairWord} from './sentencePresentation';
 import {MovementMagicAdventure} from './MovementMagicAdventure';
@@ -399,7 +400,7 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
      <h2>{rule.title}</h2><p className="sr-only">{rule.story}</p></div>
      <div className="sp-stars"><strong>{step+1}/{totalQuestions}</strong>cümle görevi</div></section>
     <div className="sp-game-layout">
-     <div>
+     <div className="relative isolate">
       <SentencePlazaScene effect={sceneEffect} awaken={awakened} chapter={mission}
         preview={mission<=3?task.scene:null}
         previewAtTarget={mission===3&&task.kind!=='instruction'}
@@ -408,6 +409,8 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
         onSceneChoice={mission===3&&task.mode==='scene'?selectScene:undefined}
         interactionDisabled={busy||awakened||Boolean(saveError)}
         onInteract={awakened?()=>soundService.speakEnglish(task.sentence,{rate:.82}):undefined}/>
+      <LearningMotion variant="discovery"
+       trigger={awakened?'sentence-awaken-'+mission+'-'+step:null}/>
       <details className="sp-v2-details sp-v2-scene-help">
         <summary>📖 Yapı yardımı</summary><p>{task.explanation}</p>
        </details>
@@ -499,7 +502,8 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
       <p className="sr-only">İpuçları ve hatalar öğrenme kayıtlarında ayrı tutulur.</p>
      </section>
     </div>
-   </>:screen==='reward'?<div className="sp-reward" role="status">
+   </>:screen==='reward'?<div className="sp-reward relative isolate overflow-hidden" role="status">
+     <LearningMotion variant="victory" trigger={'sentence-reward-'+mission}/>
      <div className="sp-eyebrow">Uyanan Meydan · Görev {mission} tamamlandı</div>
      <h2>Şehir canlandı!</h2><div className="sp-reward-stars">{'★'.repeat(completedStars)}</div>
      <p>İngilizce cümleler kurarak dünyayı değiştirdin. Yeni göreve geçebilir veya bu bölümde başka cümlelerle çalışabilirsin.</p>

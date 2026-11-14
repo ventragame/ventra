@@ -13,6 +13,7 @@ import './food-market-v4.css';
 import './food-market-logic-v5.css';
 import './food-market-visual-v6.css';
 import {GardenHelp} from '../GardenHelp';
+import {LearningMotion} from '@/components/learning/motion/LearningMotion';
 
 type Props={
  profileId:string;gradeLevel?:number|null;englishLevel:EnglishPlacement;
@@ -254,6 +255,10 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
    <section className="fm-play fm4-play" aria-label={stageMeta.title}>
     <div className="fm-scenery fm4-scenery">
       <MarketBackdrop aisle={aisle}/>
+      <LearningMotion variant={finished?'victory':stage===1?'discovery':'success'}
+       trigger={finished?'market-finished-'+aisle+'-'+stage+'-'+revision:
+        success?'market-correct-'+aisle+'-'+stage+'-'+q:
+        stage===1&&visited.length?'market-discovery-'+aisle+'-'+visited.length:null}/>
       <div className="fm-scene-label fm4-scene-label"><span>{currentAisle.icon}</span><div>
         <strong>{currentAisle.title}</strong><small>{currentAisle.subtitle}</small></div>
       </div>

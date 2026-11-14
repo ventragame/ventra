@@ -7,6 +7,10 @@
 - Renk Korusu: completing a mission triggers the original, self-hosted `victory` animation.
 - Sayı Vadisi: correct answers trigger `success`; completed missions trigger `victory`.
 - Keşif Tapınağı: correct answers trigger `success`; completing a chamber task triggers `victory`.
+- Aile Köyü: first-time word discovery has gentle `discovery` motion, correct answers have `success`, and saved missions have `victory`.
+- Lezzet Pazarı: discovery, correct answers and saved milestones use the same three event-specific effects.
+- Cümle Meydanı: newly completed English sentences trigger `discovery` as the scene awakens; saved missions trigger `victory`.
+- Diyalog Limanı: `victory` is shown only after the completed speaking/choice episode is successfully persisted.
 - These integrations reuse the existing learning screens. They do not change grade adaptation, score, persistence, voice output, or correct-answer behavior.
 - The premium 3D rabbit now has phase-aware CSS choreography; **this is not Rive**. True face/eye/mouth/body rigging requires authoring and shipping a licensed, production-ready .riv character asset with a compatible runtime. Do not create placeholder .riv files or brand CSS movement as Rive.
 - No change to scoring, voice, data persistence, student level decisions or answer identity.
@@ -15,7 +19,7 @@
 ## Commercial use and licensing — no animation subscription
 
 - The runtime is pinned to `lottie-web@5.13.0`, **MIT** licensed by Bodymovin/Airbnb; retain its license notice with distributed application dependencies. License: https://github.com/airbnb/lottie-web/blob/master/LICENSE.md
-- Both `success.json` and `victory.json` are original vector animations authored directly for Ventra, not files downloaded from any LottieFiles catalog. Their usage does not require any third-party animation licenses.
+- `success.json`, `victory.json` and `discovery.json` are original vector animations authored directly for Ventra, not files downloaded from any LottieFiles catalog. Their usage does not require any third-party animation licenses.
 - No LottieFiles login, SaaS subscription, cloud API key, or CDN is used for animation playback. `lottie-web` and these local files do not charge per animation play, user or download.
 - This means zero additional **animation license/subscription** cost, **not** literally zero cost to host or distribute Ventra; normal application bandwidth, storage, devices and infrastructure still have costs.
 - Do not introduce Rive, LottieFiles commercial editors, marketplace packs or unverified animated assets without separately reviewing license and production cost.
@@ -23,7 +27,7 @@
 
 ## Quality gates
 
-- Node tests parse both local vector JSON files, require no external animation assets, and verify the MIT package lock.
+- Node tests parse all three local vector JSON files, require no external animation assets, and verify the MIT package lock.
 - GitHub Actions verifies the animation JSON files are reachable from the real Next.js HTTP server and checks key animation metadata. This catches missing-file/404 failures not covered by source tests.
 - Keep Lottie from loading before a real game event; respect reduced motion and hidden pages; handle animation failures without blocking controls or progress.
 

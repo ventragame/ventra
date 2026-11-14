@@ -17,6 +17,7 @@ import './family-village-showcase-v4.css';
 import './family-village-reference-v5.css';
 import './family-village-characters-v6.css';
 import {GardenHelp} from '../GardenHelp';
+import {LearningMotion} from '@/components/learning/motion/LearningMotion';
 
 type Props={
  profileId:string;gradeLevel:number|null;englishLevel:EnglishPlacement;progress:FamilyVillageProgress;
@@ -243,6 +244,10 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
     <main className="fv-card fv3-card fv5-card">
       <div className="fv-scene fv3-scene fv5-scene">
         <FamilyVillageScenery district={district}/>
+        <LearningMotion variant={saved?'victory':stage===1?'discovery':'success'}
+         trigger={saved?'family-finished-'+district+'-'+stage+'-'+revision:
+          answered?'family-correct-'+district+'-'+stage+'-'+question:
+          stage===1&&visited.length?'family-discovery-'+district+'-'+visited.length:null}/>
         {district!=='family'&&<div className="fv-place fv3-place">
          <span aria-hidden="true">{lane.icon}</span><div><strong>{lane.title}</strong>
          <small>{lane.subtitle}</small></div></div>}

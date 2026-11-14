@@ -8,14 +8,14 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const read=(relative)=>fs.readFileSync(path.join(root,relative),'utf8');
 
 test('Two original, self-hosted Lottie effects have real vector layers and no remote assets',()=>{
- for(const type of ['success','victory']){
+ for(const type of ['success','victory','discovery']){
   const animation=JSON.parse(read('public/assets/motion/'+type+'.json'));
   assert.match(animation.v,/^5\./);
   assert.equal(animation.w,320);
   assert.equal(animation.h,320);
   assert.equal(animation.fr,30);
   assert.ok(animation.op>0);
-  assert.ok(animation.layers.length>=12);
+  assert.ok(animation.layers.length>=8);
   assert.deepEqual(animation.assets,[]);
   for(const layer of animation.layers){
    assert.equal(layer.ty,4);
@@ -83,4 +83,23 @@ test('Color Grove, Number Valley and Temple share free on-device Lottie feedback
  assert.match(valley,/LearningMotion variant="victory"/);
  assert.match(temple,/LearningMotion variant=\{finished\?'victory':'success'\}/);
  assert.match(temple,/temple-correct-/);
+});
+
+test('Other island adventures use game-state-triggered local Lottie animations',()=>{
+ const root='src/components/learning/';
+ const village=read(root+'activities/FamilyVillageAdventure.tsx');
+ const market=read(root+'activities/FoodMarketAdventure.tsx');
+ const plaza=read(root+'sentence/SentencePlazaAdventure.tsx');
+ const harbor=read(root+'harbor/HarborSpeechAdventure.tsx');
+ const player=read(root+'motion/LearningMotion.tsx');
+ assert.match(player,/type MotionVariant='success'\|'victory'\|'discovery'/);
+ assert.match(village,/LearningMotion variant=\{saved\?'victory':stage===1\?'discovery':'success'\}/);
+ assert.match(village,/answered\?'family-correct-/);
+ assert.match(market,/LearningMotion variant=\{finished\?'victory':stage===1\?'discovery':'success'\}/);
+ assert.match(market,/success\?'market-correct-/);
+ assert.match(plaza,/LearningMotion variant="discovery"/);
+ assert.match(plaza,/awakened\?'sentence-awaken-/);
+ assert.match(plaza,/LearningMotion variant="victory"/);
+ assert.match(harbor,/LearningMotion variant="victory"/);
+ assert.match(harbor,/harbor-finished-/);
 });

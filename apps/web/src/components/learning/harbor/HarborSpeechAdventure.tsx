@@ -8,6 +8,7 @@ import {HARBOR_EPISODES,HARBOR_GAME_ID,matchesExpectedSpeech,type HarborLevel} f
 import {getHarborEpisodeSteps,getHarborEpisodeQuests,harborChoiceOrder} from '@/lib/learning/harborMissionEngine';
 import {HARBOR_SCENE_ASSETS} from '@/lib/learning/harborSceneAssets';
 import {HarborSceneStage,type HarborPropId} from './HarborSceneStage';
+import {LearningMotion} from '@/components/learning/motion/LearningMotion';
 import {readHarborCheckpoint,saveHarborCheckpoint,clearHarborCheckpoint} from '@/lib/learning/harborCheckpoint';
 import {speechCapability,installLocalEnglish,listenToChild,listenToIndependentSpeech,stopSpeechCapture,type SpeechCapability,type SpeechCaptureStatus} from '@/lib/speech/childSpeech';
 import {independentSttConfigured,hasAdultSession} from '@/lib/speech/independentTranscription';
@@ -515,7 +516,9 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
      {saveError&&<p role="alert" className="harbor-error">{saveError}<button type="button" onClick={()=>void save(mistakes,hints,voiceRecognized)}>Tekrar Kaydet</button></p>}
     </div>
    </>:<>
-    <div className="harbor-finale"><div aria-hidden="true">🎉🏆✨</div>
+    <div className="harbor-finale relative isolate overflow-hidden">
+     <LearningMotion variant="victory" trigger={'harbor-finished-'+episode}/>
+     <div aria-hidden="true">🎉🏆✨</div>
      <h2>{mission.title} Tamamlandı!</h2>
      <p>{feedback}</p>
      <p>İngilizce konuşmaya devam et; her deneme yeni bir keşif!</p>
