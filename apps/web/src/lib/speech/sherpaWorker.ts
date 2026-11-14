@@ -145,7 +145,7 @@ worker.onmessage=(event)=>{
    // Only a bounded diagnostic code: never log or transmit a child's voice.
    const code=error instanceof Error?error.message:'model-initialize';
    console.error('[Ventra STT] Local engine initialization failed:',code);
-   fail(/^wasm-(?:http-\\d{3}|invalid-size|html-or-invalid|loader-invalid|init-invalid|api-invalid)$/.test(code)
+   fail(/^wasm-(?:http-\d{3}|invalid-size|html-or-invalid|loader-invalid|init-invalid|api-invalid)$/.test(code)
     ?code
     :/^model-(?:missing|invalid|incomplete|integrity|download|initialize)$/.test(code)
     ?code:'model-initialize');
