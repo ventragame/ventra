@@ -164,3 +164,32 @@ test('Real browser speech is the default even if an installed local pack falsely
  assert.match(ui,/Sonraki deneme farklı motorla yapılacak/);
  assert.doesNotMatch(ui,/ParentalGateModal|parentConsentOpen|parentGateOpen/);
 });
+
+test('Independent STT is an explicit authenticated fallback, never implicit child audio upload',()=>{
+ const ui=read('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
+ const client=read('../src/lib/speech/independentTranscription.ts');
+ const edge=read('../../../supabase/functions/harbor-transcribe/index.ts');
+ const sql=read('../../../supabase/migrations/20261114000000_harbor_speech_quotas.sql');
+ assert.match(ui,/independentSttConfigured\(\)/);
+ assert.match(ui,/Bağımsız konuşma tanımayı etkinleştir/);
+ assert.match(ui,/hasAdultSession\(\)/);
+ assert.match(ui,/independentEnabled\s*\?await listenToIndependentSpeech/);
+ assert.match(client,/NEXT_PUBLIC_HARBOR_STT_ENABLED==='true'/);
+ assert.match(client,/client\.auth\.getSession\(\)/);
+ assert.match(client,/navigator\.mediaDevices\.getUserMedia/);
+ assert.match(client,/new MediaRecorder/);
+ assert.match(client,/x-ventra-profile/);
+ assert.match(client,/Authorization:'Bearer '\+session\.access_token/);
+ assert.match(client,/abort\.abort\(\)/);
+ assert.doesNotMatch(client,/localStorage|IndexedDB|MediaRecorder\(.+\)\.save/);
+ assert.match(edge,/client\.auth\.getUser\(token\)/);
+ assert.match(edge,/authorize_harbor_transcription/);
+ assert.match(edge,/GROQ_API_KEY/);
+ assert.match(edge,/whisper-large-v3-turbo/);
+ assert.match(edge,/cache-control': 'no-store'/);
+ assert.doesNotMatch(edge,/SUPABASE_SERVICE_ROLE_KEY|console\.log/);
+ assert.match(sql,/SECURITY DEFINER/);
+ assert.match(sql,/p\.user_id = caller/);
+ assert.match(sql,/pg_advisory_xact_lock/);
+ assert.match(sql,/REVOKE ALL ON public\.harbor_speech_quotas FROM PUBLIC, anon, authenticated/);
+});
