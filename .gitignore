@@ -9,6 +9,7 @@ node_modules/
 
 # Downloaded on-device English ASR model assets (generated at build/dev time)
 apps/web/public/speech/sherpa-20m/
+apps/web/public/speech/sherpa-runtime/
 
 # Next.js & Web builds
 .next/
