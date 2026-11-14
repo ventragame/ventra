@@ -61,9 +61,33 @@ test('20M model and WASM are lazy, versioned, integrity checked and excluded fro
  assert.match(prepare,/prepareRuntime\(\)/);
  assert.match(prepare,/manifestName/);
  assert.match(prepare,/sherpa-runtime/);
- assert.match(prepare,/VENTRA_REQUIRE_SHERPA_MODEL/);
+ assert.match(prepare,/throw error;/);
+ assert.match(prepare,/runtimeFiles=names.filter/);
+ assert.doesNotMatch(prepare,/if\s*\(process\.env\.VENTRA_REQUIRE_SHERPA_MODEL/);
+ assert.match(prepare,/FAILED to prepare sherpa WASM runtime/);
+ assert.match(prepare,/FAILED to prepare the English model/);
  assert.match(worker,/cache:'force-cache'/);
  assert.match(worker,/model-integrity/);
  assert.match(worker,/webpackIgnore: true/);
  assert.match(ignore,/apps\/web\/public\/speech\/sherpa-20m\//);
+});
+
+test('Release verification checks the physical runtime and four model files',()=>{
+ const script=read('../scripts/verify-sherpa-assets.mjs');
+ assert.match(script,/manifest\.json/);
+ assert.match(script,/encoder\.onnx/);
+ assert.match(script,/decoder\.onnx/);
+ assert.match(script,/joiner\.onnx/);
+ assert.match(script,/tokens\.txt/);
+ assert.match(script,/sha256/);
+ assert.match(script,/asr\.wasm/);
+ assert.match(script,/--export/);
+ assert.match(script,/process\.exitCode=1/);
+ const prepare=read('../scripts/prepare-sherpa-local.mjs');
+ const regexLine=prepare.split('\n').find(line=>line.includes('runtimeFiles=names.filter'));
+ assert.ok(regexLine);
+ assert.ok(regexLine.includes(String.raw`/\\.(?:m?js)$/` )===false,
+  'Double-escaped .js regex causes manifest.json to remain missing and must be rejected');
+ assert.ok(regexLine.includes(String.raw`/\.(?:m?js)$/`),
+  'Correct regex must match .js npm distribution files');
 });
