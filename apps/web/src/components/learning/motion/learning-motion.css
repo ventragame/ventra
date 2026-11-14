@@ -1,0 +1,16 @@
+/* Decorative stage effect: no layout shifts and never blocks touch. */
+.learning-motion{
+ position:absolute;inset:0;display:grid;place-items:center;z-index:18;
+ overflow:hidden;isolation:isolate;pointer-events:none!important;
+ transition:opacity .12s ease-out;
+}
+.learning-motion-canvas{display:block;width:100%;height:100%;pointer-events:none!important}
+.learning-motion-canvas svg{display:block;width:100%;height:100%}
+.learning-motion-fallback{
+ position:absolute;left:50%;top:36%;transform:translate(-50%,-50%);
+ font-size:clamp(32px,9vw,75px);color:#fff3a3;
+ text-shadow:0 0 14px #e9a942,0 4px 12px #295a58;
+}
+@media(prefers-reduced-motion:reduce){
+ .learning-motion{transition:none!important}
+}

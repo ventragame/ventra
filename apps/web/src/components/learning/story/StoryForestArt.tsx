@@ -45,9 +45,11 @@ const ANIMAL_COLORS:Record<string,{main:string;stroke:string;belly:string}>={
  cat:{main:'#e8b9d7',stroke:'#bd8faf',belly:'#fdf1f7'},
  dog:{main:'#c9a68e',stroke:'#977a74',belly:'#ffe8d0'}
 };
-export function StoryForestActor({id}: {id:ForestActorId}){
+export type StoryActorMotion='idle'|'listen'|'search'|'cheer';
+export function StoryForestActor({id,motion}: {id:ForestActorId;motion?:StoryActorMotion}){
  const premium=PREMIUM_STORY_CHARACTERS[id];
- if(premium)return <img className="sf-actor-illustration sf-premium-actor"
+ const motionClass=id==='rabbit'&&motion?' sf-rabbit-motion sf-rabbit-'+motion:'';
+ if(premium)return <img className={'sf-actor-illustration sf-premium-actor'+motionClass}
    src={PREMIUM_ROOT+premium} alt="" aria-hidden="true" draggable={false}
    decoding="async" loading="eager"/>;
  const kind=id.startsWith('rabbit_')?'rabbit':

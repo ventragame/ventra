@@ -12,10 +12,12 @@ import {getProgressRepository} from '@/lib/progress';
 import {getStoryForestProgress,saveForestJourney,type ForestProgress} from '@/lib/progress/storyForestProgress';
 import {soundService} from '@/lib/audio/SoundService';
 import {StoryForestActor,StoryForestScenery,STORY_FOREST_PREMIUM_COVER} from './StoryForestArt';
+import {LearningMotion} from '@/components/learning/motion/LearningMotion';
 import './story-forest-journey.css';
 import './story-forest-object-staging.css';
 import './story-forest-mobile-cast.css';
 import './story-forest-level-checks.css';
+import './story-forest-rabbit-motion.css';
 
 type Screen='chapters'|'playing'|'reward';
 type Props={profileId:string;gradeLevel:number|null;englishLevel:ForestPlacement;onBack:()=>void;onSaved:()=>void};
@@ -35,7 +37,9 @@ function JourneyObjectArt({object}:{object:JourneyObject}){
    src={src} alt="" aria-hidden="true" draggable={false}
    loading="eager" decoding="async"/>:null;
 }
-function Actor({id}:{id:ForestActorId}){return <StoryForestActor id={id}/>;}
+function Actor({id,motion}:{id:ForestActorId;motion?:'idle'|'listen'|'search'|'cheer'}){
+ return <StoryForestActor id={id} motion={motion}/>;
+}
 function StoryConsequenceArt({object}:{object:JourneyObject}){
  return <div className={'sj-outcome-art sj-outcome-'+object} aria-hidden="true">
   <StoryForestScenery scene={object==='bird'?'treehouse':object==='crystal'?'camp':
@@ -56,6 +60,9 @@ function StoryScene({plan,phase,location}:{
  const {route}=plan;
  const scene=(['result','friend','consequence','ending'] as JourneyPhase[]).includes(phase)&&location?location:route.scene;
  const showHero=true; // the main character must never vanish between story beats
+ const rabbitMotion=phase==='ending'||phase==='result'?'cheer':
+  phase==='opening'||phase==='meet'?'listen':
+  phase==='discover'?'search':'idle';
  const showFriend=['meet','choose','result','friend','place','consequence','ending'].includes(phase);
  // A lost object must not be visible in the opening scene.
  const objectRecovered=phase==='result'||phase==='ending';
@@ -69,7 +76,7 @@ function StoryScene({plan,phase,location}:{
   <div className="sj-scene-haze"/>
   <div className="sj-scene-shimmer">✦ <span>✧</span> ✦</div>
   <div className={castClass}>
-   {showHero&&<div className="sj-hero"><Actor id={route.hero}/></div>}
+   {showHero&&<div className="sj-hero"><Actor id={route.hero} motion={route.hero==='rabbit'?rabbitMotion:undefined}/></div>}
    {showFriend&&<div className="sj-friend"><Actor id={route.helper}/></div>}
   </div>
   {objectRecovered&&(route.object==='bird'?
@@ -342,6 +349,9 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
    <main className="sj-play">
     <div className="sj-scene" aria-label="Resimli, etkileşimli hikâye sahnesi">
      <StoryScene plan={plan} phase={phase} location={destination}/>
+     <LearningMotion variant={phase==='ending'?'victory':'success'}
+      trigger={phase==='ending'?'story-ending':correct?'story-'+phase: null}
+      className="sj-feedback-motion"/>
      <div className="sj-caption">
       <button type="button" className="sj-speak" onClick={replay}
        aria-label="İngilizce anlatımı tekrar dinle" disabled={busy}>🔊</button>

@@ -3,6 +3,7 @@
 import React from 'react';
 import type {AnimalId,AnimalWord} from '@/lib/learning/animalMissionEngine';
 import './animal-meadow-v3.css';
+import {LearningMotion} from '@/components/learning/motion/LearningMotion';
 
 export type MeadowMode='discover'|'match'|'listen'|'command'|'rescue'|'complete';
 export interface MeadowPlayStageProps {
@@ -51,6 +52,10 @@ export function MeadowPlayStage({
  return <section className={'am3-stage am3-stage--'+mode} data-mode={mode}
   aria-label={labels[mode]}>
   <div className="am3-atmosphere" aria-hidden="true"/>
+  <LearningMotion variant={isComplete?'victory':'success'}
+   trigger={isComplete?'meadow-complete':correctId?
+    mode+':'+correctId:isDiscovery&&seen.size?'discover:'+Array.from(seen).sort().join('|'):null}
+   className="am3-motion-layer"/>
   <div className="am3-topline">
    <span className="am3-step"><span aria-hidden="true">{icons[mode]}</span>
     <span>{labels[mode]}</span></span>
