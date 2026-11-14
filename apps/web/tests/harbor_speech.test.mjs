@@ -159,7 +159,7 @@ test('Real browser speech is the default even if an installed local pack falsely
  assert.match(ui,/result\.kind==='unrecognized'/);
  assert.match(ui,/if\(result\.mode==='web-local'\)/);
  assert.match(ui,/setCapability\(\{mode:'web-browser',installable:false,localAvailable:true/);
- assert.match(ui,/Cihaz içi tanımayı dene/);
+ assert.match(ui,/Chrome cihaz içi tanımayı dene/);
  assert.match(ui,/Ücretsiz cihaz içi motoru dene/);
  assert.match(ui,/speechCapability\(true\)/);
  assert.match(ui,/Sonraki deneme farklı motorla yapılacak/);
