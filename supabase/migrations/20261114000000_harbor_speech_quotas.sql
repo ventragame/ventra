@@ -23,7 +23,7 @@ SET search_path = pg_catalog, public, pg_temp
 AS $$
 DECLARE
   caller uuid := auth.uid();
-  current_time timestamptz := now();
+  v_now timestamptz := now();
   minute_used integer;
   day_used integer;
 BEGIN
@@ -35,22 +35,22 @@ BEGIN
   -- Serialize quota adjustments for this account, even under parallel requests.
   PERFORM pg_advisory_xact_lock(hashtextextended(caller::text, 20261114));
   INSERT INTO public.harbor_speech_quotas(user_id, minute_started, minute_count, day_started, day_count, updated_at)
-   VALUES(caller, current_time, 0, current_time, 0, current_time)
+   VALUES(caller, v_now, 0, v_now, 0, v_now)
    ON CONFLICT(user_id) DO NOTHING;
   SELECT
-   CASE WHEN q.minute_started <= current_time - interval '1 minute' THEN 0 ELSE q.minute_count END,
-   CASE WHEN q.day_started <= current_time - interval '1 day' THEN 0 ELSE q.day_count END
+   CASE WHEN q.minute_started <= v_now - interval '1 minute' THEN 0 ELSE q.minute_count END,
+   CASE WHEN q.day_started <= v_now - interval '1 day' THEN 0 ELSE q.day_count END
   INTO minute_used, day_used
   FROM public.harbor_speech_quotas q WHERE q.user_id = caller FOR UPDATE;
   IF minute_used >= 10 OR day_used >= 120 THEN RETURN false; END IF;
   UPDATE public.harbor_speech_quotas SET
-    minute_started = CASE WHEN minute_started <= current_time - interval '1 minute'
-      THEN current_time ELSE minute_started END,
+    minute_started = CASE WHEN minute_started <= v_now - interval '1 minute'
+      THEN v_now ELSE minute_started END,
     minute_count = minute_used + 1,
-    day_started = CASE WHEN day_started <= current_time - interval '1 day'
-      THEN current_time ELSE day_started END,
+    day_started = CASE WHEN day_started <= v_now - interval '1 day'
+      THEN v_now ELSE day_started END,
     day_count = day_used + 1,
-    updated_at = current_time
+    updated_at = v_now
    WHERE user_id = caller;
   RETURN true;
 END $$;
