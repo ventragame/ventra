@@ -3,7 +3,7 @@
 import {Capacitor,registerPlugin} from '@capacitor/core';
 import {beginWebLocalRecognition,beginWebBrowserRecognition,type WebSpeechConstructor,type WebSpeechStatus} from './webLocalRecognition';
 import {beginIndependentTranscription} from './independentTranscription';
-import {beginLocalSherpaRecognition,localSherpaAvailable} from './localSherpa';
+import {beginLocalSherpaRecognition,localSherpaAvailable,localSherpaReadiness} from './localSherpa';
 
 export type SpeechMode='native-local'|'web-local'|'web-browser'|'sherpa-local'|'server-stt'|'practice'|'none';
 export type SpeechCaptureStatus=WebSpeechStatus|'testing'|'model-loading';
@@ -51,9 +51,17 @@ export async function speechCapability(preferLocal=false,preferBrowser=false):Pr
     message:'Ventra İngilizce konuşmayı cihaz üzerinde tanır. Sesi internete göndermez.'};
   return {mode:await canUseMic()?'practice':'none',installable:false,message:'Yüksek sesle tekrar et, sonra cevabını seç!'};
  }
- if(!preferLocal&&!preferBrowser&&await localSherpaAvailable())
-  return {mode:'sherpa-local',installable:false,
-   message:'Ventra İngilizce konuşmayı cihaz üzerinde tanır. İlk açılışta model hazırlanabilir.'};
+ let localAssetProblem='';
+ if(!preferLocal&&!preferBrowser){
+  const readiness=await localSherpaReadiness();
+  if(readiness.ready)
+   return {mode:'sherpa-local',installable:false,
+    message:'Ventra İngilizce konuşmayı cihaz üzerinde tanır. İlk açılışta model hazırlanabilir.'};
+  if(readiness.reason==='manifest-missing')
+   localAssetProblem='Yerel İngilizce konuşma modeli eksik (manifest.json: 404). Model hazırlanmadı. Terminalde kurulum hatasını kontrol et.';
+  if(readiness.reason==='manifest-invalid')
+   localAssetProblem='Yerel konuşma modeli bildirimi uyumsuz. Model dosyaları yeniden hazırlanmalı.';
+ }
  const ctor=browserConstructor();
  if(!ctor){
   // A raw microphone detector is not an English speech recognizer.
@@ -81,7 +89,9 @@ export async function speechCapability(preferLocal=false,preferBrowser=false):Pr
  // report an installed pack but then end with speech-unrecognized/no words.
  // Browser-owned recognition is the reliable first attempt where supported.
  return {mode:'web-browser',installable,localAvailable,
-  message:'Konuşma tarayıcı tarafından tanınır. Tarayıcı sağlayıcısı sesi işleyebilir.'};
+  message:localAssetProblem
+   ?localAssetProblem+' Geçici olarak tarayıcı konuşma motoru kullanılıyor.'
+   :'Konuşma tarayıcı tarafından tanınır. Tarayıcı sağlayıcısı sesi işleyebilir.'};
 }
 /** Only from the explicit "download language pack" click. Never auto-download. */
 export async function installLocalEnglish():Promise<boolean>{
