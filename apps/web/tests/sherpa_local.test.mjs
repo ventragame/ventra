@@ -55,7 +55,7 @@ test('Only a deliberate microphone click starts Sherpa; no audio leaves the devi
 test('20M model and WASM are lazy, versioned, integrity checked and excluded from git',()=>{
  const prepare=read('../scripts/prepare-sherpa-local.mjs');
  const worker=read('../src/lib/speech/sherpaWorker.ts');
- const ignore=read('../../../../.gitignore');
+ const ignore=read('../../../.gitignore');
  assert.match(prepare,/sherpa-onnx-streaming-zipformer-en-20M-2023-02-17/);
  assert.match(prepare,/sha256/);
  assert.match(prepare,/prepareRuntime\(\)/);
