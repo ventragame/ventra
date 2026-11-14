@@ -1,7 +1,7 @@
 'use client';
 
 import type {SpeechAttempt,SpeechCaptureStatus} from './childSpeech';
-import {advanceShortVoice,type ShortVoiceState} from './shortUtteranceVAD';
+import {advanceShortVoice,type ShortVoiceState} from './shortUtteranceVAD.ts';
 
 // Bound-memory, local-only Sherpa recognition. The model is prepared during
 // build; it is loaded only after the learner starts a microphone attempt.
