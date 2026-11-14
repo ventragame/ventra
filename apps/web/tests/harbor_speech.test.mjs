@@ -153,13 +153,14 @@ test('A microphone that cannot transcribe is never presented as a speech answer'
 test('Real browser speech is the default even if an installed local pack falsely reports available',()=>{
  const capability=read('../src/lib/speech/childSpeech.ts');
  const ui=read('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
- assert.match(capability,/speechCapability\(preferLocal=false\)/);
+ assert.match(capability,/speechCapability\(preferLocal=false,preferBrowser=false\)/);
  assert.match(capability,/if\(preferLocal&&localAvailable\)/);
  assert.match(capability,/return \{mode:'web-browser',installable,localAvailable/);
  assert.match(ui,/result\.kind==='unrecognized'/);
  assert.match(ui,/if\(result\.mode==='web-local'\)/);
  assert.match(ui,/setCapability\(\{mode:'web-browser',installable:false,localAvailable:true/);
  assert.match(ui,/Cihaz içi tanımayı dene/);
+ assert.match(ui,/Ücretsiz cihaz içi motoru dene/);
  assert.match(ui,/speechCapability\(true\)/);
  assert.match(ui,/Sonraki deneme farklı motorla yapılacak/);
  assert.doesNotMatch(ui,/ParentalGateModal|parentConsentOpen|parentGateOpen/);
