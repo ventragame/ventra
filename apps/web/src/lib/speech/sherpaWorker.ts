@@ -4,12 +4,38 @@
  * k2-fsa/sherpa-onnx via @sherpaw/asr, int8 English Zipformer (20M).
  * No speech samples, transcripts or personal identifiers leave the browser.
  */
-// Runtime is copied from pinned @sherpaw/asr into /public/speech at build
-// time. Dynamic URL imports bypass Next's incorrect bare 'asr.wasm' resolution
-// while retaining same-origin execution and offline/browser caching.
-async function loadRuntime():Promise<{createOnlineRecognizer:(module:any,options:any)=>any;initASRModule:()=>Promise<any>}>{
- const runtimeUrl=new URL('/speech/sherpa-runtime/index.js',self.location.origin).href;
- return await import(/* webpackIgnore: true */ runtimeUrl);
+// The bundled initASRModule() computes its own WASM URL. In the real
+// Windows/Next.js worker it resolved to an HTML fallback (<!DOCTYPE ...) and
+// WebAssembly.instantiate failed. Load the *known* same-origin asset first,
+// check that it is actual WASM, then inject the bytes into the pinned
+// Emscripten loader. No compiled bundle can silently redirect this fetch.
+async function loadRuntime():Promise<{
+ module:any;createOnlineRecognizer:(module:any,options:any)=>any
+}>{
+ const root=new URL('/speech/sherpa-runtime/',self.location.origin);
+ const wasmUrl=new URL('asr.wasm',root).href;
+ const res=await fetch(wasmUrl,{cache:'force-cache'});
+ if(!res.ok)throw new Error('wasm-http-'+res.status);
+ const bytes=new Uint8Array(await res.arrayBuffer());
+ if(bytes.byteLength!==13_788_938)throw new Error('wasm-invalid-size');
+ if(bytes[0]!==0||bytes[1]!==97||bytes[2]!==115||bytes[3]!==109)
+  throw new Error('wasm-html-or-invalid');
+ // Dynamically import the exact source Emscripten loader that was pinned
+ // and verified at build time. It accepts wasmBinary and never guesses a URL.
+ const sourceUrl=new URL('asr-prebuilt.js',root).href;
+ const sourceModule=await import(/* webpackIgnore: true */ sourceUrl);
+ const createModule=sourceModule.default;
+ if(typeof createModule!=='function')throw new Error('wasm-loader-invalid');
+ const module=await createModule({
+  wasmBinary:bytes,
+  locateFile:()=>wasmUrl
+ });
+ if(!module?.FS_createDataFile)throw new Error('wasm-init-invalid');
+ const indexUrl=new URL('index.js',root).href;
+ const runtime=await import(/* webpackIgnore: true */ indexUrl);
+ if(typeof runtime.createOnlineRecognizer!=='function')
+  throw new Error('wasm-api-invalid');
+ return {module,createOnlineRecognizer:runtime.createOnlineRecognizer};
 }
 
 type Message =
@@ -74,8 +100,7 @@ async function loadModel(){
  if(models.some(name=>!entries.some(x=>x.name===name)))
   throw new Error('model-incomplete');
  // WASM is downloaded once. No application-level audio upload occurs.
- const {initASRModule,createOnlineRecognizer}=await loadRuntime();
- const module:any=await initASRModule();
+ const {module,createOnlineRecognizer}=await loadRuntime();
  for(let i=0;i<models.length;i++){
   const name=models[i];
   const entry=entries.find(f=>f.name===name)!;
@@ -116,7 +141,15 @@ worker.onmessage=(event)=>{
   worker.close();return;
  }
  if(message.type==='init'){
-  void ensureReady().then(()=>post({type:'ready'}),()=>fail('model-initialize'));return;
+  void ensureReady().then(()=>post({type:'ready'}),error=>{
+   // Only a bounded diagnostic code: never log or transmit a child's voice.
+   const code=error instanceof Error?error.message:'model-initialize';
+   console.error('[Ventra STT] Local engine initialization failed:',code);
+   fail(/^wasm-(?:http-\\d{3}|invalid-size|html-or-invalid|loader-invalid|init-invalid|api-invalid)$/.test(code)
+    ?code
+    :/^model-(?:missing|invalid|incomplete|integrity|download|initialize)$/.test(code)
+    ?code:'model-initialize');
+  });return;
  }
  if(message.type==='cancel'){
   if(running===message.id)disposeStream();
