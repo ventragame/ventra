@@ -137,7 +137,7 @@ test('Speech success persists the final recognized response and save retry stays
 
 test('Speech button only starts actual word recognition and profile level stays isolated',()=>{
  const ui=game('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
- assert.match(ui,/speechAvailable=\['web-local','web-browser','native-local'\]/);
+ assert.match(ui,/speechAvailable=\['web-local','web-browser','native-local','server-stt'\]/);
  assert.match(ui,/!speechAvailable/);
  assert.match(ui,/Konuşarak Cevapla/);
  assert.doesNotMatch(ui,/Sesli Pratik Yap|ParentalGateModal/);
