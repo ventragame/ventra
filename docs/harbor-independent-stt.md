@@ -46,7 +46,7 @@ calling Groq Whisper. The independent path is **not active by default**.
    supabase secrets set VENTRA_ALLOWED_ORIGINS="https://your-domain.example" --project-ref YOUR_PROJECT_REF
    ```
    `https://ventraapp.vercel.app`, `http://localhost:3000`,
-   `http://localhost:3001` and `capacitor://localhost` are in the default
+   `http://localhost:3001`, `http://localhost` (Android WebView), and `capacitor://localhost` are in the default
    allowlist. The allowed origin alone is not authentication.
 4. Deploy the function to the **same** Supabase project used by Ventra:
    ```bash
