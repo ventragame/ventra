@@ -28,29 +28,37 @@ const require = createRequire(import.meta.url);
 const wasmRevision='2b12da09ab0cf45894e9565c386bf003cf44a106';
 const wasmBlobSha='5388e425a5c6fbd8a92dad2b2ea2eaa50b895100';
 const wasmSize=13_788_938;
-function validWasm(bytes){
- return bytes.byteLength===wasmSize&&
-  createHash('sha1').update('blob '+bytes.byteLength).update(Uint8Array.of(0)).update(bytes).digest('hex')===wasmBlobSha;
+const loaderBlobSha='5c1ce958b1117b2d78c1eec0c20e59ae4033600d';
+const loaderSize=80_364;
+function validGitBlob(bytes,expectedSize,expectedHash){
+ return bytes.byteLength===expectedSize&&
+  createHash('sha1').update('blob '+bytes.byteLength).update(Uint8Array.of(0)).update(bytes).digest('hex')===expectedHash;
 }
-async function prepareWasm(source){
- const wasmOutput=resolve(runtimeRoot,'asr.wasm');
- for(const candidate of [resolve(source,'asr.wasm'),wasmOutput]){
-  try{
-   const bytes=await readFile(candidate);
-   if(validWasm(bytes)){if(candidate!==wasmOutput)await writeFile(wasmOutput,bytes);return;}
-  }catch{}
- }
+async function downloadPinnedRuntimeAsset(sourceName,outputName,size,gitHash){
+ const output=resolve(runtimeRoot,outputName);
+ try{
+  const existing=await readFile(output);
+  if(validGitBlob(existing,size,gitHash))return;
+ }catch{}
  const url='https://raw.githubusercontent.com/moeru-ai/sherpaw/'+wasmRevision+
-  '/packages/asr/src/prebuilt/asr.wasm';
+  '/packages/asr/src/prebuilt/'+sourceName;
  const response=await fetch(url,{signal:AbortSignal.timeout(90_000)});
- if(!response.ok)throw Error('Sherpa WASM download HTTP '+response.status);
+ if(!response.ok)throw Error(sourceName+' download HTTP '+response.status);
  const declared=Number(response.headers.get('content-length')||'0');
- if(declared&&declared!==wasmSize)throw Error('Sherpa WASM download size mismatch');
+ if(declared&&declared!==size)throw Error(sourceName+' download size mismatch');
  const bytes=Buffer.from(await response.arrayBuffer());
- if(!validWasm(bytes))throw Error('Sherpa WASM Git blob checksum mismatch');
- await writeFile(wasmOutput+'.download',bytes);
- await rm(wasmOutput,{force:true});
- await rename(wasmOutput+'.download',wasmOutput);
+ if(!validGitBlob(bytes,size,gitHash))throw Error(sourceName+' pinned Git blob checksum mismatch');
+ await writeFile(output+'.download',bytes);
+ await rename(output+'.download',output);
+}
+async function prepareWasm(){
+ await downloadPinnedRuntimeAsset('asr.wasm','asr.wasm',wasmSize,wasmBlobSha);
+}
+async function prepareLoader(){
+ // Do not call the bundled initASRModule(): its WASM URL may be rewritten
+ // by the JS bundler and resolve to an HTML 404 page. Import this exact
+ // pinned Emscripten module and supply verified wasmBinary explicitly.
+ await downloadPinnedRuntimeAsset('asr.js','asr-prebuilt.js',loaderSize,loaderBlobSha);
 }
 async function prepareRuntime(){
  const packageRoot=dirname(require.resolve('@sherpaw/asr/package.json'));
@@ -61,10 +69,11 @@ async function prepareRuntime(){
   throw Error('Sherpa ESM runtime missing from pinned npm distribution');
  await mkdir(runtimeRoot,{recursive:true});
  for(const name of runtimeFiles)await copyFile(resolve(source,name),resolve(runtimeRoot,name));
- await prepareWasm(source);
+ await prepareWasm();
+ await prepareLoader();
  // Serving ESM and WASM from one origin avoids Webpack's bare asr.wasm
  // resolution and keeps model inference entirely on the learner's device.
- console.log('[Ventra STT] Local sherpa ESM/WASM runtime ready ('+runtimeFiles.length+' JS files).');
+ console.log('[Ventra STT] Pinned Sherpa ESM, raw Emscripten loader and WASM verified ('+runtimeFiles.length+' JS chunks).');
 }
 
 const base = 'https://huggingface.co/csukuangfj/sherpa-onnx-streaming-zipformer-en-20M-2023-02-17/resolve/d42f2d9';
