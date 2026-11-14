@@ -3,6 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import path from 'node:path';
 import {HARBOR_SCENE_ASSETS} from '../src/lib/learning/harborSceneAssets.ts';
+import {matchesExpectedSpeech} from '../src/lib/learning/harborDialogueEngine.ts';
 import {
  HARBOR_QUESTS,HARBOR_TOTAL_MISSIONS,HARBOR_STEPS_PER_EPISODE,
  getHarborEpisodeQuests,getHarborEpisodeSteps,
@@ -177,4 +178,18 @@ test('Five unique 3D WebP worlds include responsive mobile scenes with valid bit
  assert.match(ui,/HARBOR_SCENE_ASSETS\[getHarborEpisodeQuests\(item.id\)\[0\]\.place\]\.desktop/);
  assert.match(stage,/sceneArt\.mobile/);
  assert.match(stage,/sceneArt\.desktop/);
+});
+
+test('Mimi parrot question rejects clearly recognized wrong A CAT and accepts A PARROT',()=>{
+ const quest=HARBOR_QUESTS.find(q=>q.id==='meet-parrot');
+ assert.ok(quest);
+ const step=getHarborQuestSteps(quest,'Pre-A1')[1];
+ assert.equal(step.line,'What animal is Mimi?');
+ assert.equal(step.reply,'A parrot!');
+ assert.equal(step.choices[1],'A cat!');
+ assert.deepEqual(step.accept,['A parrot!']);
+ assert.equal(matchesExpectedSpeech(['A CAT'],step.accept),false,
+  'Recognizing speech must not turn the wrong choice into a correct answer');
+ assert.equal(matchesExpectedSpeech(['A PARROT'],step.accept),true);
+ assert.equal(matchesExpectedSpeech(['a parrot!'],step.accept),true);
 });
