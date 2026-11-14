@@ -12,12 +12,29 @@
  */
 import { createHash } from 'node:crypto';
 import { createWriteStream } from 'node:fs';
-import { mkdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
+import { mkdir, readFile, rename, rm, writeFile, readdir, copyFile } from 'node:fs/promises';
+import {createRequire} from 'node:module';
 import { resolve, dirname } from 'node:path';
 import { pipeline } from 'node:stream/promises';
 import { Readable } from 'node:stream';
 
 const root = resolve(import.meta.dirname, '../public/speech/sherpa-20m');
+const runtimeRoot = resolve(import.meta.dirname,'../public/speech/sherpa-runtime');
+const require = createRequire(import.meta.url);
+async function prepareRuntime(){
+ const packageRoot=dirname(require.resolve('@sherpaw/asr/package.json'));
+ const source=resolve(packageRoot,'dist');
+ const names=await readdir(source);
+ const runtimeFiles=names.filter(name=>/\.(?:m?js|wasm)$/.test(name));
+ if(!runtimeFiles.includes('index.js')||!runtimeFiles.some(name=>name.endsWith('.wasm')))
+  throw Error('Sherpa WASM runtime missing from pinned npm distribution');
+ await mkdir(runtimeRoot,{recursive:true});
+ for(const name of runtimeFiles)await copyFile(resolve(source,name),resolve(runtimeRoot,name));
+ // Serving the npm dist as ESM from one origin avoids Webpack's incorrect
+ // resolution of new URL('asr.wasm', import.meta.url) as a bare dependency.
+ console.log('[Ventra STT] Local sherpa WASM runtime installed ('+runtimeFiles.length+' files).');
+}
+
 const base = 'https://huggingface.co/csukuangfj/sherpa-onnx-streaming-zipformer-en-20M-2023-02-17/resolve/d42f2d9';
 const files = [
  { name: 'encoder.onnx', source: 'encoder-epoch-99-avg-1.int8.onnx', min: 38e6, max: 48e6 },
@@ -70,6 +87,14 @@ async function download(spec) {
  }
 }
 async function main() {
+ if (process.env.VENTRA_SKIP_SHERPA_PREPARE !== '1'){
+  try{await prepareRuntime();}
+  catch(error){
+   console.warn('[Ventra STT] Runtime assets could not be prepared:',String(error));
+   if(process.env.VENTRA_REQUIRE_SHERPA_MODEL==='1')throw error;
+   return;
+  }
+ }
  if (process.env.VENTRA_SKIP_SHERPA_PREPARE === '1') {
   console.log('[Ventra STT] Model preparation skipped by environment.');
   return;
