@@ -21,15 +21,25 @@ export type LocalSession={result:Promise<SpeechAttempt>;cancel:()=>void};
 const failed=(reason:string,kind:SpeechAttempt['kind']='unavailable'):SpeechAttempt=>
  ({mode:'sherpa-local',kind,reason,alternatives:[]});
 
-export async function localSherpaAvailable():Promise<boolean>{
+export type SherpaReadiness={
+ ready:boolean;
+ reason:'ready'|'unsupported'|'manifest-missing'|'manifest-invalid'|'manifest-network';
+};
+export async function localSherpaReadiness():Promise<SherpaReadiness>{
  if(typeof window==='undefined'||typeof Worker==='undefined'||typeof AudioContext==='undefined'
-    ||!navigator.mediaDevices?.getUserMedia||typeof crypto?.subtle==='undefined')return false;
+    ||!navigator.mediaDevices?.getUserMedia||typeof crypto?.subtle==='undefined')
+  return {ready:false,reason:'unsupported'};
  try{
   const response=await fetch(MODEL,{cache:'no-store'});
-  if(!response.ok)return false;
+  if(response.status===404)return {ready:false,reason:'manifest-missing'};
+  if(!response.ok)return {ready:false,reason:'manifest-network'};
   const data:unknown=await response.json();
-  return !!data&&typeof data==='object'&&'version' in data&&data.version===VERSION;
- }catch{return false;}
+  const valid=!!data&&typeof data==='object'&&'version' in data&&data.version===VERSION;
+  return {ready:valid,reason:valid?'ready':'manifest-invalid'};
+ }catch{return {ready:false,reason:'manifest-network'};}
+}
+export async function localSherpaAvailable():Promise<boolean>{
+ return (await localSherpaReadiness()).ready;
 }
 function stopIdle(p:Pool){
  if(p.idle)clearTimeout(p.idle);
