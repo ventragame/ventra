@@ -278,6 +278,14 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
     'audio-too-large':'Ses kaydı izin verilen boyutu aştı.',
     'origin-denied':'Bu adres konuşma hizmeti için yetkilendirilmemiş.',
     'backend-error':'Bağımsız konuşma tanıma sunucusu yanıt vermedi.',
+    'wasm-http-404':'WebAssembly dosyası bulunamadı (404). Yerel ses motorunun çalışma dosyaları eksik.',
+    'wasm-http-403':'WebAssembly dosyasına erişim engellendi (403).',
+    'wasm-http-500':'WebAssembly sunucusu hata döndürdü (500).',
+    'wasm-html-or-invalid':'WASM yerine HTML veya hatalı ikili döndü. Ses motorunun dosya adresi yanlış olabilir.',
+    'wasm-invalid-size':'WebAssembly dosyası eksik veya hasarlı.',
+    'wasm-loader-invalid':'WebAssembly yükleme modülü geçersiz.',
+    'wasm-init-invalid':'WebAssembly belleği veya dosya sistemi başlatılamadı.',
+    'wasm-api-invalid':'Cihaz içi konuşma motoru API uyumsuzluğu.',
     'model-initialize':'İngilizce sherpa-onnx modeli hazırlanamadı. Model dosyalarını kontrol et.',
     'model-missing':'Yerel İngilizce model dosyaları henüz bulunamadı.',
     'model-invalid':'İngilizce model bildirimi geçersiz.',
@@ -294,12 +302,11 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
    const diagnostic=errorMessage[result.reason??'']??'Konuşma tanıma bu cihazda kullanılamıyor.';
    setParentDiagnostic(diagnostic);
    setFeedback('Konuşma tanıma bu denemede çalışmadı. Yeniden söyle ya da cevabı seç.');
-   if(activeCapability.mode==='sherpa-local'&&result.reason!=='microphone-error'&&
-      result.reason!=='permission-denied'){
-    const browser=await speechCapability(false,true);
-    if(run!==generation.current)return;
-    setCapability(browser);
-    setParentDiagnostic('Cihaz içi sherpa-onnx çalıştırılamadı ('+(result.reason??'bilinmiyor')+'). Tarayıcı motoruna geçildi; istersen dokunarak cevap verebilirsin.');
+   if(activeCapability.mode==='sherpa-local'){
+    // Keep the selected independent on-device engine. Automatically falling
+    // back to Chrome concealed the real WASM error, then retried the already
+    // broken Web Speech API. The adult can explicitly choose a fallback.
+    setParentDiagnostic('Ventra cihaz içi motoru: '+diagnostic+' (hata: '+(result.reason??'bilinmiyor')+'). Tarayıcı motoruna geçiş yalnızca yetişkin tarafından seçilebilir.');
    }else if(activeCapability.mode==='web-local'&&result.reason!=='microphone-error'&&
       result.reason!=='permission-denied'){
     // Next user click may try the browser provider; don't fake recognition.
@@ -487,7 +494,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
         {capability.localAvailable&&capability.mode==='web-browser'&&
          <button type="button" onClick={()=>void chooseOffline()}
           disabled={busy||listening||locked.current} className="harbor-recheck">
-          Cihaz içi tanımayı dene
+          Chrome cihaz içi tanımayı dene
          </button>}
         {independentSttConfigured()&&<div className="harbor-stt-option">
          <p>Bağımsız tanıma: Kısa ses kaydı Groq sağlayıcısına işlenmek üzere gönderilebilir.
