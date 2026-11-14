@@ -14,6 +14,7 @@ import './number-valley.css';
 import './number-valley-v5.css';
 import {useAutoQuestionAdvance} from '@/lib/learning/useAutoQuestionAdvance';
 import {GardenHelp} from '../GardenHelp';
+import {LearningMotion} from '@/components/learning/motion/LearningMotion';
 
 const CHAPTERS=[
   {icon:'💎',title:'Kristal Keşfi',caption:'Kayıp sayı kristallerini keşfet'},
@@ -332,6 +333,8 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
           <section aria-label="Sayı Vadisi oyun sahnesi"
             className={`nv-landscape nv5-landscape nv-world-${stage} relative min-h-[270px] overflow-hidden rounded-[22px] px-3 py-7 sm:min-h-[355px] sm:p-8`}>
             <NumberValleyScenery stage={stage}/>
+            <LearningMotion variant="success"
+             trigger={awaitingNext?'valley-'+band+'-'+stage+'-'+question:null}/>
             <div className="nv5-scene-top">
               <span className="nv5-scene-kicker">{['KRİSTALLER','IŞIK KÖPRÜSÜ','YILDIZ ATÖLYESİ','YANKI KANYONU','PORTAL'][stage-1]}</span>
               <span className="nv5-scene-level">{bandLabel}</span>
@@ -487,6 +490,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
         </div>
       )}
        {completed&&<section className="nv-panel nv5-finale mx-auto max-w-2xl rounded-[28px] p-6 text-center sm:p-10">
+          <LearningMotion variant="victory" trigger={'valley-finale-'+band+'-'+stage}/>
          <div className="nv5-finale-stage">
            <NumberValleyScenery stage={stage}/>
            <span className="nv5-finale-medal" aria-hidden="true">🏆</span>

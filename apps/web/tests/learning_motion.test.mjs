@@ -71,3 +71,16 @@ test('No third-party animation subscriptions or hosted runtime are required',()=
  assert.match(notes,/original/);
  assert.match(notes,/No LottieFiles login, SaaS subscription, cloud API key, or CDN/);
 });
+
+test('Color Grove, Number Valley and Temple share free on-device Lottie feedback',()=>{
+ const grove=read('src/components/learning/activities/ColorGroveAdventure.tsx');
+ const valley=read('src/components/learning/activities/NumberValleyAdventure.tsx');
+ const temple=read('src/components/learning/activities/TempleAdventure.tsx');
+ assert.match(grove,/LearningMotion variant="victory"/);
+ assert.match(grove,/trigger=\{complete\?/);
+ assert.match(valley,/LearningMotion variant="success"/);
+ assert.match(valley,/trigger=\{awaitingNext\?/);
+ assert.match(valley,/LearningMotion variant="victory"/);
+ assert.match(temple,/LearningMotion variant=\{finished\?'victory':'success'\}/);
+ assert.match(temple,/temple-correct-/);
+});

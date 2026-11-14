@@ -4,6 +4,10 @@
 - `LearningMotion` is one self-hosted Lottie JSON player per interactive stage, loaded only when triggered, paused when the page is hidden, stopped when the game event clears and destroyed on unmount. All animation assets are original vectors in `public/assets/motion`.
 - Hayvan Çayırı: discovery / correct answer triggers `success`; completed mission triggers `victory`.
 - Hikâye Ormanı: correct-answer feedback and final story celebration use the same shared player.
+- Renk Korusu: completing a mission triggers the original, self-hosted `victory` animation.
+- Sayı Vadisi: correct answers trigger `success`; completed missions trigger `victory`.
+- Keşif Tapınağı: correct answers trigger `success`; completing a chamber task triggers `victory`.
+- These integrations reuse the existing learning screens. They do not change grade adaptation, score, persistence, voice output, or correct-answer behavior.
 - The premium 3D rabbit now has phase-aware CSS choreography; **this is not Rive**. True face/eye/mouth/body rigging requires authoring and shipping a licensed, production-ready .riv character asset with a compatible runtime. Do not create placeholder .riv files or brand CSS movement as Rive.
 - No change to scoring, voice, data persistence, student level decisions or answer identity.
 - Every animation is decorative (`aria-hidden`, `pointer-events:none`); screen-reader text feedback stays unchanged. Reduced-motion mode falls back to a static star. No third-party CDN calls.

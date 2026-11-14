@@ -10,6 +10,7 @@ import { EventBus } from '@/lib/game/EventBus';
 import { ColorGroveScene } from './ColorGroveScene';
 import {GardenHelp} from '../GardenHelp';
 import { MobileColorGroveWorld } from './MobileColorGroveWorld';
+import {LearningMotion} from '@/components/learning/motion/LearningMotion';
 
 type Word = (typeof COLOR_GROVE_WORDS)[number];
 type Step = 1 | 2 | 3;
@@ -328,7 +329,8 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
           </div>
         )}
         {!loadError && !invalidPlan && (complete ? (
-          <section className="cg-complete mx-auto max-w-3xl rounded-3xl border border-lime-300/50 bg-emerald-900/70 p-4 text-center shadow-xl sm:p-7">
+          <section className="cg-complete relative isolate overflow-hidden mx-auto max-w-3xl rounded-3xl border border-lime-300/50 bg-emerald-900/70 p-4 text-center shadow-xl sm:p-7">
+            <LearningMotion variant="victory" trigger={complete?'grove-complete-'+step+'-'+replayNonce:null}/>
             <div className="cg-desktop-view"><ColorGroveScene
               mode={step === 1 ? 'discovery' : step === 2 ? 'matching' : 'painting'}
               paintedIds={paintedIds}

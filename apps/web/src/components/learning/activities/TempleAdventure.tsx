@@ -14,6 +14,7 @@ import './temple-adventure.css';
 import './temple-v6.css';
 import './temple-v7.css';
 import {GardenHelp} from '../GardenHelp';
+import {LearningMotion} from '@/components/learning/motion/LearningMotion';
 
 type Props={profileId:string;gradeLevel:number|null;englishLevel:EnglishPlacement;
  progress:TempleProgress;onBack:()=>void;
@@ -256,6 +257,9 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
    <section className="tp-quest tp6-quest">
     <div className="tp-scenery tp6-scenery">
      <TempleScenery chamber={chamber} cleared={completedSteps}/>
+     <LearningMotion variant={finished?'victory':'success'}
+      trigger={finished?'temple-finished-'+chamber+'-'+stage:
+       correct?'temple-correct-'+chamber+'-'+stage+'-'+question:null}/>
      <div className="tp-scene-label tp6-scene-label"><span>{roomInfo.icon}</span><div>
       <strong>{roomInfo.title}</strong><small>{roomInfo.subtitle}</small></div></div>
      <div className="tp-mission-tag tp6-mission-tag">✦ GÖREV {TEMPLE_OFFSETS[chamber]+stage}/{TEMPLE_TOTAL}</div>
