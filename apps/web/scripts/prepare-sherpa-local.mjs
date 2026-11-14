@@ -7,8 +7,9 @@
  * Apache-2.0 English 20M Zipformer model to a specific Hugging Face revision
  * and installs only its int8 encoder/joiner, fp32 decoder and token vocabulary.
  *
- * This is an optional build asset: a download failure must not break the rest
- * of Ventra, and the runtime will never claim sherpa is ready without manifest.
+ * This is required for a working local speech recognizer: fail the dev
+ * startup or production build if any runtime/model asset cannot be prepared.
+ * Do not silently fall back while telling the developer the setup passed.
  */
 import { createHash } from 'node:crypto';
 import { createWriteStream } from 'node:fs';
