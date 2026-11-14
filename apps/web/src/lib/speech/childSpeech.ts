@@ -3,9 +3,10 @@
 import {Capacitor,registerPlugin} from '@capacitor/core';
 import {beginWebLocalRecognition,beginWebBrowserRecognition,type WebSpeechConstructor,type WebSpeechStatus} from './webLocalRecognition';
 import {beginIndependentTranscription} from './independentTranscription';
+import {beginLocalSherpaRecognition,localSherpaAvailable} from './localSherpa';
 
-export type SpeechMode='native-local'|'web-local'|'web-browser'|'server-stt'|'practice'|'none';
-export type SpeechCaptureStatus=WebSpeechStatus|'testing';
+export type SpeechMode='native-local'|'web-local'|'web-browser'|'sherpa-local'|'server-stt'|'practice'|'none';
+export type SpeechCaptureStatus=WebSpeechStatus|'testing'|'model-loading';
 export type SpeechCapability={mode:SpeechMode;installable:boolean;message:string;localAvailable?:boolean};
 export type SpeechAttempt={
  kind:'recognized'|'heard'|'no-speech'|'unrecognized'|'denied'|'unavailable'|'cancelled';
@@ -36,7 +37,7 @@ export function stopSpeechCapture():void{
 async function canUseMic():Promise<boolean>{
  return typeof navigator!=='undefined'&&Boolean(navigator.mediaDevices?.getUserMedia);
 }
-export async function speechCapability(preferLocal=false):Promise<SpeechCapability>{
+export async function speechCapability(preferLocal=false,preferBrowser=false):Promise<SpeechCapability>{
  if(typeof window==='undefined')return {mode:'none',installable:false,message:'Mikrofon kullanılamıyor.'};
  if(Capacitor.isNativePlatform()){
   if(!Capacitor.isPluginAvailable('VentraSpeech'))
@@ -45,8 +46,14 @@ export async function speechCapability(preferLocal=false):Promise<SpeechCapabili
    const status=await plugin.getStatus();
    if(status.available)return {mode:'native-local',installable:false,message:'Konuşman cihazında tanınır.'};
   }catch{}
+  if(await localSherpaAvailable()&&!preferBrowser)
+   return {mode:'sherpa-local',installable:false,
+    message:'Ventra İngilizce konuşmayı cihaz üzerinde tanır. Sesi internete göndermez.'};
   return {mode:await canUseMic()?'practice':'none',installable:false,message:'Yüksek sesle tekrar et, sonra cevabını seç!'};
  }
+ if(!preferLocal&&!preferBrowser&&await localSherpaAvailable())
+  return {mode:'sherpa-local',installable:false,
+   message:'Ventra İngilizce konuşmayı cihaz üzerinde tanır. İlk açılışta model hazırlanabilir.'};
  const ctor=browserConstructor();
  if(!ctor){
   // A raw microphone detector is not an English speech recognizer.
@@ -158,6 +165,12 @@ export async function listenToChild(
  const epoch=++captureEpoch;
  const ms=Math.min(12000,Math.max(3000,timeoutMs));
  if(capability.mode==='native-local')return nativeRecognition(ms);
+ if(capability.mode==='sherpa-local'){
+  const session=beginLocalSherpaRecognition(ms,onStatus);
+  currentCancel=session.cancel;
+  try{return await session.result;}
+  finally{if(currentCancel===session.cancel)currentCancel=null;}
+ }
  if(capability.mode==='web-local'||capability.mode==='web-browser'){
   const ctor=browserConstructor();
   if(ctor){
