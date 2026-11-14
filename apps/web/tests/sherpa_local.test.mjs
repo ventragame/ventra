@@ -42,6 +42,10 @@ test('Only a deliberate microphone click starts Sherpa; no audio leaves the devi
  assert.match(sherpa,/audio-pipeline-failed/);
  assert.match(worker,/createOnlineRecognizer/);
  assert.match(worker,/SHA-256/);
+ assert.match(worker,/wasm-html-or-invalid/);
+ assert.match(worker,/wasmBinary:bytes/);
+ assert.match(worker,/asr-prebuilt\\.js/);
+ assert.doesNotMatch(worker,/initASRModule\\(\\)/);
  assert.match(worker,/stream\.acceptWaveform\(16000/);
  assert.match(worker,/post\(\{type:'result',id:message\.id,text\}\)/);
  assert.doesNotMatch(sherpa,/fetch\([^)]*audio|\.functions\.invoke|Groq|SpeechRecognition\(/);
@@ -81,6 +85,8 @@ test('Release verification checks the physical runtime and four model files',()=
  assert.match(script,/tokens\.txt/);
  assert.match(script,/sha256/);
  assert.match(script,/asr\.wasm/);
+ assert.match(script,/asr-prebuilt\\.js/);
+ assert.match(script,/loaderBlob/);
  assert.match(script,/--export/);
  assert.match(script,/process\.exitCode=1/);
  const prepare=read('../scripts/prepare-sherpa-local.mjs');
