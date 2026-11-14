@@ -186,6 +186,7 @@ export function beginLocalSherpaRecognition(
    return;
   }
   if(done)return;
+  try{
   // Same loaded module is reused between answers until idle to avoid 40 MB
   // redownload and WASM initialization on every child microphone click.
   const worker=engine.worker;
