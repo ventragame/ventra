@@ -34,7 +34,7 @@ test('Two original royalty-free guide characters contain real independent facial
   assert.ok(json.layers.some(x=>x.nm.includes('head')&&x.ks.p.a===1),'Head independently animated');
   assert.ok(json.layers.every(x=>x.ty===4&&x.shapes.length>0),'Vector geometry only');
   assert.match(svg,/<svg/);assert.match(svg,/<path/);
-  assert.doesNotMatch(svg,/https?:\/\//i);
+  assert.doesNotMatch(svg,/<image\b|(?:href|src)=["']https?:|url\(https?:/i,'No externally loaded assets');
  }
 });
 
