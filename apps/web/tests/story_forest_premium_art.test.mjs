@@ -57,7 +57,9 @@ test('Art stays as separate, responsive layers in both games and island menu',()
  const css=fs.readFileSync(path.join(root,'src/components/learning/story/premium-story-art.css'),'utf8');
  assert.match(code,/export function StoryForestActor/);
  assert.match(code,/export function StoryForestScenery/);
- assert.match(code,/<img className="sf-actor-illustration sf-premium-actor"/);
+ assert.match(code,/if\(premium\)return <img className=/);
+ assert.match(code,/sf-actor-illustration sf-premium-actor/);
+ assert.match(code,/motionClass/);
  assert.ok(code.includes("className={'sf-scenery sf-premium-scenery"));
  assert.match(game,/JourneyObjectArt/);
  assert.match(game,/sj-path-choices/);
