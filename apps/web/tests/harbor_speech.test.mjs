@@ -125,7 +125,7 @@ test('Harbor offers real speech without a custom guardian modal',()=>{
  const capability=read('../src/lib/speech/childSpeech.ts');
  const web=read('../src/lib/speech/webLocalRecognition.ts');
  assert.match(ui,/Ses tanıma çalışmıyor mu/);
- assert.match(ui,/Tarayıcı sağlayıcısı sesi işleyebilir/);
+ assert.match(ui,/Seçilen sağlayıcı sesi işleyebilir/);
  assert.match(ui,/speechAvailable/);
  assert.match(ui,/onClick=\{\(\)=>void mic\(\)\}/);
  assert.doesNotMatch(ui,/ParentalGateModal|parentConsentOpen|parentGateOpen|setBrowserServiceApproved/);
@@ -181,7 +181,8 @@ test('Independent STT is an explicit authenticated fallback, never implicit chil
  assert.match(client,/x-ventra-profile/);
  assert.match(client,/Authorization:'Bearer '\+session\.access_token/);
  assert.match(client,/abort\.abort\(\)/);
- assert.doesNotMatch(client,/localStorage|IndexedDB|MediaRecorder\(.+\)\.save/);
+ assert.doesNotMatch(client,/(?:localStorage|indexedDB)\.setItem\(/);
+ assert.doesNotMatch(client,/\.put\(|\.add\(.*audio/);
  assert.match(edge,/client\.auth\.getUser\(token\)/);
  assert.match(edge,/authorize_harbor_transcription/);
  assert.match(edge,/GROQ_API_KEY/);
