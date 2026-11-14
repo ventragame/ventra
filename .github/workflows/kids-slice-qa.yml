@@ -47,8 +47,12 @@ jobs:
         run: npm --workspace=apps/web run test:ci
       - name: Build production web bundle (no deployment)
         run: npm run build:web
+      - name: Verify packaged offline English model and WASM (web)
+        run: npm --workspace=apps/web run speech:verify
       - name: Build static mobile web bundle (no deployment)
         run: npm --workspace=apps/web run export
+      - name: Verify packaged offline English model and WASM (mobile)
+        run: npm --workspace=apps/web run speech:verify:export
       - name: Sync Android Capacitor assets (no APK or deployment)
         run: npm --workspace=apps/mobile run sync:android
       - name: Set up Java 17 for native Android
@@ -108,6 +112,8 @@ jobs:
         run: npm ci
       - name: Build static mobile web bundle
         run: npm --workspace=apps/web run export
+      - name: Verify packaged offline English model and WASM (iOS)
+        run: npm --workspace=apps/web run speech:verify:export
       - name: Sync iOS Capacitor assets and CocoaPods
         run: npm --workspace=apps/mobile run sync:ios
       - name: Compile iOS Simulator app (no signing or App Store publishing)
