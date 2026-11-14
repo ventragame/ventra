@@ -44,8 +44,9 @@ async function downloadPinnedRuntimeAsset(sourceName,outputName,size,gitHash){
   '/packages/asr/src/prebuilt/'+sourceName;
  const response=await fetch(url,{signal:AbortSignal.timeout(90_000)});
  if(!response.ok)throw Error(sourceName+' download HTTP '+response.status);
- const declared=Number(response.headers.get('content-length')||'0');
- if(declared&&declared!==size)throw Error(sourceName+' download size mismatch');
+ // Content-Length may describe the compressed transfer (gzip/br) instead
+ // of the decompressed bytes returned by fetch(). The verified Git blob hash
+ // is authoritative; compare actual bytes after decompression.
  const bytes=Buffer.from(await response.arrayBuffer());
  if(!validGitBlob(bytes,size,gitHash))throw Error(sourceName+' pinned Git blob checksum mismatch');
  await writeFile(output+'.download',bytes);
