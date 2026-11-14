@@ -21,18 +21,49 @@ import { Readable } from 'node:stream';
 const root = resolve(import.meta.dirname, '../public/speech/sherpa-20m');
 const runtimeRoot = resolve(import.meta.dirname,'../public/speech/sherpa-runtime');
 const require = createRequire(import.meta.url);
+// The npm 0.3.0 archive omitted asr.wasm even though package exports it.
+// Pin the binary to the upstream release commit instead of silently using a
+// moving main branch or an unauthenticated external CDN at runtime.
+const wasmRevision='2b12da09ab0cf45894e9565c386bf003cf44a106';
+const wasmBlobSha='5388e425a5c6fbd8a92dad2b2ea2eaa50b895100';
+const wasmSize=13_788_938;
+function validWasm(bytes){
+ return bytes.byteLength===wasmSize&&
+  createHash('sha1').update('blob '+bytes.byteLength+'\\0').update(bytes).digest('hex')===wasmBlobSha;
+}
+async function prepareWasm(source){
+ const wasmOutput=resolve(runtimeRoot,'asr.wasm');
+ for(const candidate of [resolve(source,'asr.wasm'),wasmOutput]){
+  try{
+   const bytes=await readFile(candidate);
+   if(validWasm(bytes)){if(candidate!==wasmOutput)await writeFile(wasmOutput,bytes);return;}
+  }catch{}
+ }
+ const url='https://raw.githubusercontent.com/moeru-ai/sherpaw/'+wasmRevision+
+  '/packages/asr/src/prebuilt/asr.wasm';
+ const response=await fetch(url,{signal:AbortSignal.timeout(90_000)});
+ if(!response.ok)throw Error('Sherpa WASM download HTTP '+response.status);
+ const declared=Number(response.headers.get('content-length')||'0');
+ if(declared&&declared!==wasmSize)throw Error('Sherpa WASM download size mismatch');
+ const bytes=Buffer.from(await response.arrayBuffer());
+ if(!validWasm(bytes))throw Error('Sherpa WASM Git blob checksum mismatch');
+ await writeFile(wasmOutput+'.download',bytes);
+ await rm(wasmOutput,{force:true});
+ await rename(wasmOutput+'.download',wasmOutput);
+}
 async function prepareRuntime(){
  const packageRoot=dirname(require.resolve('@sherpaw/asr/package.json'));
  const source=resolve(packageRoot,'dist');
  const names=await readdir(source);
- const runtimeFiles=names.filter(name=>/\.(?:m?js|wasm)$/.test(name));
- if(!runtimeFiles.includes('index.js')||!runtimeFiles.some(name=>name.endsWith('.wasm')))
-  throw Error('Sherpa WASM runtime missing from pinned npm distribution');
+ const runtimeFiles=names.filter(name=>/\\.(?:m?js)$/.test(name));
+ if(!runtimeFiles.includes('index.js'))
+  throw Error('Sherpa ESM runtime missing from pinned npm distribution');
  await mkdir(runtimeRoot,{recursive:true});
  for(const name of runtimeFiles)await copyFile(resolve(source,name),resolve(runtimeRoot,name));
- // Serving the npm dist as ESM from one origin avoids Webpack's incorrect
- // resolution of new URL('asr.wasm', import.meta.url) as a bare dependency.
- console.log('[Ventra STT] Local sherpa WASM runtime installed ('+runtimeFiles.length+' files).');
+ await prepareWasm(source);
+ // Serving ESM and WASM from one origin avoids Webpack's bare asr.wasm
+ // resolution and keeps model inference entirely on the learner's device.
+ console.log('[Ventra STT] Local sherpa ESM/WASM runtime ready ('+runtimeFiles.length+' JS files).');
 }
 
 const base = 'https://huggingface.co/csukuangfj/sherpa-onnx-streaming-zipformer-en-20M-2023-02-17/resolve/d42f2d9';
