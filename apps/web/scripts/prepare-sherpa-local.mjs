@@ -129,7 +129,7 @@ async function main() {
   await prepareRuntime();
  } catch(error) {
   console.error('[Ventra STT] FAILED to prepare sherpa WASM runtime. Local recognition cannot work.');
-  console.error('[Ventra STT] Check access to raw.githubusercontent.com; use npm install if @sherpaw/asr is missing.');
+  console.error('[Ventra STT] Confirm raw.githubusercontent.com is accessible. After git pull, run npm ci once from the project root to install @sherpaw/asr.');
   throw error;
  }
  if (await checkExisting()) {
