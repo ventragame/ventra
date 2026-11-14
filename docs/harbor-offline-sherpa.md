@@ -54,10 +54,21 @@ npm --workspace=apps/web run speech:prepare
 ```
 Model dosyaları `apps/web/public/speech/sherpa-20m/` içinde,
 WASM modülleri `apps/web/public/speech/sherpa-runtime/` içinde olmalıdır.
-Network kapalıysa model daha önce hazırlanmışsa kullanılabilir; model
-indirilemiyorsa Web Speech ve dokunmatik cevaplar çalışmaya devam eder.
-Sıkı CI/modelleri dağıtıma zorlamak için
-`VENTRA_REQUIRE_SHERPA_MODEL=1` kullanın.
+Ağ kapalı olsa bile model ve WASM dosyaları daha önce hazırlanmış ve
+doğrulanmışsa kullanılabilir. İlk indirme başarısız olursa artık
+`npm run dev:web` veya production derlemesi **hata verip durur**: model
+eksikken çalışan bir uygulamanın başarılı sanılması engellenir.
+
+Ayrıca şu iki bağımsız doğrulama vardır:
+```powershell
+npm --workspace=apps/web run speech:verify
+npm --workspace=apps/web run speech:verify:export
+```
+İkincisi yalnızca mobil `export` yapıldıktan sonra çalıştırılır. Bu
+kontrollerin her ikisi de model dosyalarını SHA-256 ile, WASM ikilisini
+sabit Git kaynak özetiyle doğrular; eksik `manifest.json` varsa hata
+verir. GitHub Actions web, Android ve iOS paketlerinde bu kontrolleri
+zorunlu tutar.
 
 Diyalog Limanı → Ses tanıma çalışmıyor mu? → Tanıma motoru:
 `sherpa-local`. Model hazırlanırken `İngilizce tanıma modeli hazırlanıyor`
@@ -85,3 +96,18 @@ doğrular. Gerçek tarayıcıda model initialize/decode edildiği ve
 çocuk sesleriyle doğru/yanlış oranı **ayrıca sınanmalıdır**.
 Ses kaydı uygulama sunucusuna gönderilmiyor ancak kamuya açık model
 varlıklarını indirirken dosya sunucusu normal bağlantı bilgilerini görebilir.
+
+## 14 Kasım 2026 — 404 manifest düzeltmesi
+
+Önceki `prepare-sherpa-local.mjs` sürümünde JavaScript varlıklarını
+seçen regex yanlışlıkla çift kaçışla yazılmıştı. Sonuç olarak npm
+dağıtımındaki `.js` dosyaları bulunamıyor, kurulum hata veriyor, ancak
+istisna yakalanıp işlem başarıyla sonlandırılıyordu. Kullanıcılar
+`/speech/sherpa-20m/manifest.json` için 404 alırken Web Speech API'ye
+sessizce dönülüyordu. Bu durum uygulamanın konuşma özelliğini
+çalıştırmıyordu.
+
+Düzeltmede regex, fail-fast davranışı ve üretim varlık bütünlük
+kontrolleri eklendi. Derlemenin geçmesi konuşmanın gerçek bir cihazda
+anlaşıldığını **kanıtlamaz**. İngilizce çocuk sesleriyle cihaz kabul
+testleri yine zorunludur.
