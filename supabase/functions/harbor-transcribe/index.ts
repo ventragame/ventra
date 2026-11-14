@@ -68,15 +68,15 @@ Deno.serve(async req => {
   if (authError || !user)
     return json({ error: 'adult-login-required' }, 401, origin);
 
+  const apiKey = Deno.env.get('GROQ_API_KEY');
+  if (!apiKey) return json({ error: 'transcription-not-configured' }, 503, origin);
+
   // SECURITY DEFINER RPC requires a profile owned by the authenticated adult.
   // It serializes and bounds requests (10/min, 120/day); no child voice is saved.
   const { data: authorized, error: quotaError } =
     await client.rpc('authorize_harbor_transcription', { p_profile_id: profileId });
   if (quotaError) return json({ error: 'quota-unavailable' }, 503, origin);
   if (authorized !== true) return json({ error: 'not-authorized-or-rate-limited' }, 429, origin);
-
-  const apiKey = Deno.env.get('GROQ_API_KEY');
-  if (!apiKey) return json({ error: 'transcription-not-configured' }, 503, origin);
 
   let audio: ArrayBuffer;
   try { audio = await req.arrayBuffer(); }
