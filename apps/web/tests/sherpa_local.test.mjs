@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
 import {resampleTo16k} from '../src/lib/speech/localSherpa.ts';
+import {advanceShortVoice,SHERPA_AUDIO_WORKLET_FRAMES,SHERPA_MIN_VOICED_MS} from '../src/lib/speech/shortUtteranceVAD.ts';
 
 const read=path=>readFileSync(new URL(path,import.meta.url),'utf8');
 
@@ -96,4 +97,38 @@ test('Release verification checks the physical runtime and four model files',()=
   'Double-escaped .js regex causes manifest.json to remain missing and must be rejected');
  assert.ok(regexLine.includes(String.raw`/\.(?:m?js)$/`),
   'Correct regex must match .js npm distribution files');
+});
+
+test('100–150ms English short answers are detected with 1024-frame 16kHz chunks',()=>{
+ assert.equal(SHERPA_AUDIO_WORKLET_FRAMES,1024);
+ assert.ok(SHERPA_MIN_VOICED_MS<=128);
+ let state={voicedMs:0,detected:false};
+ const voice=new Float32Array(1024).fill(.07);
+ state=advanceShortVoice(state,voice,16000);
+ assert.equal(state.detected,false,'One 64ms pop must not register as an utterance');
+ state=advanceShortVoice(state,voice,16000);
+ assert.equal(state.detected,true,'A 128ms word must trigger recognition');
+ const silent=new Float32Array(1024);
+ state=advanceShortVoice(state,silent,16000);
+ assert.equal(state.detected,true,'A pause must not erase speech already detected');
+});
+test('Short speech detector resists a single impulse and quiet microphone noise',()=>{
+ let state={voicedMs:0,detected:false};
+ const pop=new Float32Array(1024);
+ pop[0]=.8;
+ state=advanceShortVoice(state,pop,16000);
+ assert.equal(state.detected,false);
+ for(let i=0;i<20;i++)state=advanceShortVoice(state,new Float32Array(1024).fill(.002),16000);
+ assert.equal(state.detected,false);
+ assert.equal(state.voicedMs,0);
+});
+test('Short-word capture uses small AudioWorklet chunks and no false transcript acceptance',()=>{
+ const worklet=read('../public/speech/ventra-speech-processor.js');
+ const capture=read('../src/lib/speech/localSherpa.ts');
+ const ui=read('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
+ assert.match(worklet,/Float32Array\(1024\)/);
+ assert.doesNotMatch(worklet,/Float32Array\(4096\)/);
+ assert.match(capture,/advanceShortVoice\(voiceState,chunk,rate\)/);
+ assert.match(capture,/voiceState\.detected/);
+ assert.match(ui,/matchesExpectedSpeech\(result\.alternatives,prompt\.accept\)/);
 });
