@@ -1,5 +1,17 @@
 # Ventra animation system — self-hosted, no paid animation services
 
+## Character 1.0 — original articulated guides
+
+- Aile Köyü: **village-fox**, a 25-layer original fox with separately animated eyes, smiling mouth, sleeves/arms, ears and tail. Replaces only the inactive instructional emoji and the trophy-only celebration; the family relationship learning illustrations, 3D backgrounds and answer buttons stay intact.
+- Hayvan Çayırı: **meadow-owl**, a 20-layer original owl guide with independently animated blinking eyes, mouth, feather head, two wings and backpack badge. The owl stays beside the stage title and celebrates on the final panel. All 40 animal recognition images remain unchanged to avoid answer bias.
+- Both guides are genuine offline **Lottie vector animations**, not static WebP bobbing. Each character has 7 event-driven segments: `idle`, `listen`, `point`, `hint`, `happy`, `celebrate`, `try_again`.
+- One Lottie JSON and one matching static SVG fallback per character live in `public/assets/characters/`. All art is newly authored, not from a marketplace or downloaded animation pack. No paid services.
+- `CharacterGuide` lazy-loads the already-installed MIT-licensed `lottie-web`, plays the requested sub-segment with `playSegments()`, loops only idle/listen states, pauses when backgrounded and destroys the player on unmount. Users requesting reduced motion or having runtime/asset errors see an original static illustration.
+- Assistive feedback is provided by existing game text and screen-reader statuses. Animated guides are decorative only, not a source of hints that bypass assessment or a new clickable control.
+- Keeping rich WebP scenery and recognized family/animal assets is deliberate: those high-fidelity references are more useful for young learners than simplified vector replacements.
+
+
+
 - The original WebP and 3D PNG learning imagery remains authoritative.
 - `LearningMotion` is one self-hosted Lottie JSON player per interactive stage, loaded only when triggered, paused when the page is hidden, stopped when the game event clears and destroyed on unmount. All animation assets are original vectors in `public/assets/motion`.
 - Hayvan Çayırı: discovery / correct answer triggers `success`; completed mission triggers `victory`.
@@ -29,7 +41,7 @@
 
 ## Quality gates
 
-- Node tests parse all three local vector JSON files, require no external animation assets, and verify the MIT package lock. They also guard story sequencing, detective rewards, reduced-motion, and identity-safe stage-only character motion.
+- Node tests parse all three local vector JSON files, both articulated mascot rigs and their static fallbacks, require no external animation assets, and verify the MIT package lock. They also guard story sequencing, detective rewards, reduced-motion, and identity-safe stage-only character motion.
 - GitHub Actions verifies the animation JSON files are reachable from the real Next.js HTTP server and checks key animation metadata. This catches missing-file/404 failures not covered by source tests.
 - Keep Lottie from loading before a real game event; respect reduced motion and hidden pages; handle animation failures without blocking controls or progress.
 

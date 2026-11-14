@@ -319,7 +319,6 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
         </div>}
         {!loadError && completed && <section className="mx-auto max-w-3xl rounded-3xl border border-lime-300/50 bg-emerald-950/75 p-5 text-center shadow-2xl">
           <MeadowPlayStage mode="complete" animals={[]}/>
-          <div aria-hidden="true" className="mt-4 text-5xl">🏆</div>
           <h2 className="mt-2 text-2xl font-black">Görev Tamamlandı!</h2>
           <p className="mt-2 text-sm text-lime-100">Bu görevdeki en iyi ödülün: ⭐ {localProgress.starsByLevel[stage]??0}/3</p>
           <p className="mt-1 text-xs text-white/75">{correctCount || discovered.length} doğru/keşif · {wrongCount} yanlış deneme</p>
@@ -335,6 +334,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
             <MeadowPlayStage mode="discover"
               animals={activePlan.animals.map(id=>findAnimal(id)!)}
               discovered={discovered} disabled={saving||completed}
+              speaking={speaking}
               onSelect={id=>{const word=findAnimal(id);if(word)discover(word);}}/>
             <div className="am-discovery-progress" role="progressbar"
               aria-label="Keşfedilen hayvanlar" aria-valuemin={0}
@@ -387,7 +387,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
               correctId={awaiting?target.id:null}
               disabled={saving||awaiting}
               noAudioMode={noAudioMode}
-              canSpeak={canSpeak(target)}
+              canSpeak={canSpeak(target)} speaking={speaking}
               onListen={()=>speak(target,stage===4||stage===5)}
               onSelect={choose}/>
             {activePlan.reviewIds.length>0 && <p className="mt-3 rounded-xl bg-sky-950/65 p-2 text-center text-xs text-sky-100">🔁 Pekiştirme turu: zorlandığın kelimeler yeniden karşına çıkıyor.</p>}

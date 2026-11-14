@@ -1,0 +1,16 @@
+/* Only two original vector characters; independent from classroom answer art. */
+.ventra-character{
+ position:relative;display:block;isolation:isolate;flex:none;
+ width:100%;aspect-ratio:1;min-width:0;overflow:hidden;contain:layout paint;
+ pointer-events:none!important;user-select:none!important;
+}
+.ventra-character-fallback,.ventra-character-player{
+ position:absolute;inset:0;display:block;width:100%;height:100%;
+ object-fit:contain;pointer-events:none!important;
+}
+.ventra-character-fallback{transition:opacity .18s ease}
+.ventra-character-player svg{display:block;width:100%!important;height:100%!important}
+@media(prefers-reduced-motion:reduce){
+ .ventra-character-fallback{transition:none!important}
+ .ventra-character-player{display:none!important}
+}

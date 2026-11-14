@@ -4,6 +4,8 @@ import React from 'react';
 import type {AnimalId,AnimalWord} from '@/lib/learning/animalMissionEngine';
 import './animal-meadow-v3.css';
 import {LearningMotion} from '@/components/learning/motion/LearningMotion';
+import {CharacterGuide,type CharacterMood} from '@/components/learning/motion/CharacterGuide';
+import './animal-meadow-guides.css';
 
 export type MeadowMode='discover'|'match'|'listen'|'command'|'rescue'|'complete';
 export interface MeadowPlayStageProps {
@@ -16,6 +18,7 @@ export interface MeadowPlayStageProps {
  disabled?:boolean;
  noAudioMode?:boolean;
  canSpeak?:boolean;
+ speaking?:boolean;
  onSelect?:(id:AnimalId)=>void;
  onListen?:()=>void;
 }
@@ -43,12 +46,16 @@ function safeDestination(word:AnimalWord|null|undefined):string{
  */
 export function MeadowPlayStage({
  mode,animals,target,discovered=[],wrongId=null,correctId=null,disabled=false,
- noAudioMode=false,canSpeak=true,onSelect,onListen
+ noAudioMode=false,canSpeak=true,speaking=false,onSelect,onListen
 }:MeadowPlayStageProps){
  const seen=new Set(discovered);
  const isDiscovery=mode==='discover',isMatch=mode==='match',isListening=mode==='listen';
  const isRescue=mode==='rescue',isComplete=mode==='complete';
  const imageChoices=!isMatch;
+ const guideMood:CharacterMood=isComplete?'celebrate':wrongId?'try_again':
+  correctId?'happy':speaking?'listen':noAudioMode?'hint':
+  isDiscovery&&seen.size?'point':isRescue?'hint':'idle';
+ const guideCue=mode+':'+(correctId??'')+':'+(wrongId??'')+':'+seen.size;
  return <section className={'am3-stage am3-stage--'+mode} data-mode={mode}
   aria-label={labels[mode]}>
   <div className="am3-atmosphere" aria-hidden="true"/>
@@ -59,14 +66,21 @@ export function MeadowPlayStage({
   <div className="am3-topline">
    <span className="am3-step"><span aria-hidden="true">{icons[mode]}</span>
     <span>{labels[mode]}</span></span>
-   {isDiscovery&&<span className="am3-discovered" aria-label={seen.size+' hayvan keşfedildi'}>
-    ✨ {seen.size}/{animals.length}</span>}
+   <div className="am3-topline-side">
+    {isDiscovery&&<span className="am3-discovered" aria-label={seen.size+' hayvan keşfedildi'}>
+     ✨ {seen.size}/{animals.length}</span>}
+    {!isComplete&&<div className="am3-guide-inline">
+     <CharacterGuide character="meadow-owl" mood={guideMood} cueKey={guideCue}/>
+    </div>}
+   </div>
   </div>
   {isComplete?(
    <div className="am3-victory" role="img" aria-label="Üç yıldız ve görev başarısı">
+    <div className="am3-guide-finale">
+     <CharacterGuide character="meadow-owl" mood="celebrate" cueKey="meadow-saved"/>
+    </div>
     <span className="am3-victory-stars">⭐ ⭐ ⭐</span>
     <strong>Harika!</strong>
-    <span aria-hidden="true">🎉 ✨ 🎉</span>
    </div>
   ):<>
    {isMatch&&target&&<div className="am3-focus" aria-label="İngilizce adı sorulan hayvan">

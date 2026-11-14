@@ -18,6 +18,8 @@ import './family-village-reference-v5.css';
 import './family-village-characters-v6.css';
 import {GardenHelp} from '../GardenHelp';
 import {LearningMotion} from '@/components/learning/motion/LearningMotion';
+import {CharacterGuide,type CharacterMood} from '@/components/learning/motion/CharacterGuide';
+import './family-village-guides.css';
 
 type Props={
  profileId:string;gradeLevel:number|null;englishLevel:EnglishPlacement;progress:FamilyVillageProgress;
@@ -197,6 +199,12 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
    blocked:busy||saved||Boolean(saveError)||!current,
    onAdvance:()=>{void complete(answers);},delayMs:950,speaking
  });
+ // Only a decorative guide responds. Correctness and answer artwork are unchanged.
+ const guideMood:CharacterMood=saved?'celebrate':wrongIds.length?'try_again':
+  answered?'happy':hint?'hint':speaking?'listen':
+  stage===1&&visited.length?'point':'idle';
+ const guideCue=revision+':'+question+':'+visited.length+':'+wrongIds.length+':'+
+  Number(answered)+':'+Number(hint)+':'+Number(saved);
  const access=(index:number)=>index===0||(index===1?progress.completedByDistrict.family===5:
    index===2?progress.completedByDistrict.rooms===5:progress.completedByDistrict.objects===5);
  return <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Aile Köyü İngilizce öğrenme dünyası"
@@ -282,7 +290,9 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
           <button onClick={()=>start(stage)}>Tekrar Dene</button></div>:
         !current?<p className="fv-loading" role="status">Aile Köyü hazırlanıyor…</p>:
         saved?<div className="fv-celebrate fv3-celebrate">
-          <div className="fv-medal">🏆</div><h2>Well done! Great English!</h2>
+          <div className="fv-guide-reward">
+            <CharacterGuide character="village-fox" mood="celebrate" cueKey={'saved-'+revision}/>
+          </div><h2>Well done! Great English!</h2>
           <p>Görev ilerlemen kaydedildi. Yeniden oynayarak öğrendiklerini pekiştirebilirsin.</p>
           <p className="fv-result" aria-label={`${villageMissionStars(mistakes,answers)} yıldız kazanıldı`}>
             {'⭐'.repeat(villageMissionStars(mistakes,answers))}
@@ -297,7 +307,9 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
           <button className="fv-secondary" onClick={()=>start(stage)}>↻ Tekrar Oyna</button>
         </div>:<div className="fv-activity fv3-activity fv5-activity">
           {stage===1?<><div className="fv-prompt fv3-prompt fv5-prompt">
-            <span>👆</span><div><strong>Explore and listen!</strong>
+            <span className="fv-guide-portrait">
+              <CharacterGuide character="village-fox" mood={guideMood} cueKey={guideCue}/>
+            </span><div><strong>Explore and listen!</strong>
             <small>Her kutuya dokun, İngilizce kelimeyi öğren.</small></div>
           </div><div className="fv-grid fv-grid-discover fv3-grid-discover">
            {current.words.map(id=><button key={id} type="button"
@@ -314,7 +326,9 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
                'Çizimlere dokun, İngilizcesini dinle. Son karttan sonra bölüm tamamlanır.'}
              </p></>:
           task?<><div className="fv-prompt fv3-prompt fv5-prompt">
-            <span>{stage===2?'🔠':stage===3?'🎧':stage===4?'🏠':'💬'}</span>
+            <span className="fv-guide-portrait">
+              <CharacterGuide character="village-fox" mood={guideMood} cueKey={guideCue}/>
+            </span>
             <div>{stage===2?<><strong>What's this in English?</strong>
               <small>{district==='family'?`Türkçesi: ${villageWord(task.target).tr}`:'Görseli incele, doğru İngilizce kelimeyi seç.'}</small></>:
              stage===3?<><strong>Listen and find it!</strong><small>İngilizce sesi dinle, görseli bul.</small></>:
