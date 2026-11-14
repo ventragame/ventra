@@ -19,7 +19,7 @@ type Message =
  | {type:'finish';id:number}
  | {type:'cancel';id:number}
  | {type:'shutdown'};
-type Event =
+type SherpaWorkerEvent =
  | {type:'ready'}
  | {type:'progress';file:string;index:number;total:number}
  | {type:'partial';id:number;text:string}
@@ -27,7 +27,7 @@ type Event =
  | {type:'error';id?:number;reason:string};
 
 const worker=self as unknown as {
- postMessage:(message:Event)=>void;
+ postMessage:(message:SherpaWorkerEvent)=>void;
  onmessage:((event:MessageEvent<Message>)=>void)|null;
  close:()=>void;
 };
@@ -37,7 +37,7 @@ const models=['encoder.onnx','decoder.onnx','joiner.onnx','tokens.txt'] as const
 let recognizer:any=null,stream:any=null;
 let running=0,previous='',segments:string[]=[];
 let loading:Promise<void>|null=null;
-const post=(event:Event)=>worker.postMessage(event);
+const post=(event:SherpaWorkerEvent)=>worker.postMessage(event);
 const fail=(reason:string,id?:number)=>post({type:'error',id,reason});
 
 function disposeStream(){
