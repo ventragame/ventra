@@ -445,7 +445,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
           disabled={busy||listening||locked.current} className="harbor-recheck">
           {independentEnabled?'Tarayıcı motorunu kullan':'Bağımsız konuşma tanımayı etkinleştir'}
          </button>
-        </div>
+        </div>}
        </div>
       </div>
      </details>
