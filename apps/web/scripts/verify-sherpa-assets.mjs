@@ -18,6 +18,8 @@ const expectedNames=['encoder.onnx','decoder.onnx','joiner.onnx','tokens.txt'];
 const expectedVersion='sherpa-onnx-zipformer-en-20m-int8-d42f2d9';
 const wasmGitBlob='5388e425a5c6fbd8a92dad2b2ea2eaa50b895100';
 const wasmSize=13_788_938;
+const loaderSize=80_364;
+const loaderBlob='5c1ce958b1117b2d78c1eec0c20e59ae4033600d';
 function digest(bytes){return createHash('sha256').update(bytes).digest('hex');}
 function gitBlobDigest(bytes){
  return createHash('sha1')
@@ -49,7 +51,12 @@ async function main(){
  ensure(wasm.subarray(0,4).equals(Buffer.from([0,97,115,109])),
   'invalid wasm file header');
  ensure(gitBlobDigest(wasm)===wasmGitBlob,'WASM Git object hash mismatch');
- console.log('[Ventra STT] VERIFIED: 4 English model files + index.js + ESM runtime + 13.8MB WASM in '+base);
+ const loader=await readFile(resolve(runtimeDir,'asr-prebuilt.js'));
+ ensure(loader.length===loaderSize,'invalid pinned Emscripten loader size');
+ ensure(gitBlobDigest(loader)===loaderBlob,'pinned Emscripten loader checksum mismatch');
+ ensure(loader.toString('utf8').includes('export default Module'),
+  'pinned Emscripten loader has no expected default export');
+ console.log('[Ventra STT] VERIFIED: 4 English model files + index.js + ESM runtime + pinned Emscripten loader + 13.8MB WASM in '+base);
 }
 await main().catch(error=>{
  console.error('[Ventra STT] Local voice recognition is NOT ready:',error.message);
