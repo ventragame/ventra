@@ -11,6 +11,7 @@ import {HarborSceneStage,type HarborPropId} from './HarborSceneStage';
 import {readHarborCheckpoint,saveHarborCheckpoint,clearHarborCheckpoint} from '@/lib/learning/harborCheckpoint';
 import {speechCapability,installLocalEnglish,listenToChild,listenToIndependentSpeech,stopSpeechCapture,type SpeechCapability,type SpeechCaptureStatus} from '@/lib/speech/childSpeech';
 import {independentSttConfigured,hasAdultSession} from '@/lib/speech/independentTranscription';
+import {localSherpaAvailable} from '@/lib/speech/localSherpa';
 import './harbor-speech.css';
 import './harbor-premium-scene.css';
 
@@ -57,7 +58,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   ?{mode:'server-stt',installable:false,
     message:'Yetişkin hesabıyla etkinleştirilmiş bağımsız İngilizce konuşma tanıma.'}
   :capability;
- const speechAvailable=['web-local','web-browser','native-local','server-stt'].includes(activeCapability.mode);
+ const speechAvailable=['web-local','web-browser','native-local','sherpa-local','server-stt'].includes(activeCapability.mode);
  const close=useCallback(()=>{
   generation.current++;stopSpeechCapture();soundService.setCaptureActive(false);soundService.cancelSpeech();
   if(timer.current)clearTimeout(timer.current);
@@ -241,7 +242,9 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
     setFeedback('🎤 Tekrar söyle! Bu kez farklı bir konuşma motoruyla deneyeceğiz.');
    }else{
     setFeedback(result.mode==='server-stt'
-     ?'🎤 Ses algılandı ancak bağımsız motor kelime üretemedi. Tekrar söyle veya cevabı seç.'
+     ?'🎤 Ses algılandı ancak sunucu motoru kelime üretemedi. Yeniden söyle veya cevabı seç.'
+     :result.mode==='sherpa-local'
+     ?'🎤 Cihaz içi model kelimeyi anlayamadı. Bir kez daha söyle veya cevaba dokun.'
      :'🎤 Ses algılandı ama tarayıcı kelime üretemedi. Tekrar söyle veya cevabı seç.');
    }
   }else if(result.kind==='heard'){
@@ -274,12 +277,30 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
     'recording-unsupported':'Tarayıcı ses kaydı yapmayı desteklemiyor.',
     'audio-too-large':'Ses kaydı izin verilen boyutu aştı.',
     'origin-denied':'Bu adres konuşma hizmeti için yetkilendirilmemiş.',
-    'backend-error':'Bağımsız konuşma tanıma sunucusu yanıt vermedi.'
+    'backend-error':'Bağımsız konuşma tanıma sunucusu yanıt vermedi.',
+    'model-initialize':'İngilizce sherpa-onnx modeli hazırlanamadı. Model dosyalarını kontrol et.',
+    'model-missing':'Yerel İngilizce model dosyaları henüz bulunamadı.',
+    'model-invalid':'İngilizce model bildirimi geçersiz.',
+    'model-download':'İngilizce model indirilemedi.',
+    'model-integrity':'İngilizce model doğrulaması başarısız.',
+    'model-incomplete':'İngilizce model dosyaları eksik.',
+    'model-not-ready':'Yerel model henüz hazır değil.',
+    'decode-failed':'Yerel İngilizce tanıma motoru çözümlenemedi.',
+    'decoder-timeout':'Yerel İngilizce konuşma çözümlemesi zaman aşımına uğradı.',
+    'wasm-worker-error':'Tarayıcı WebAssembly worker başlatamadı.',
+    'audio-pipeline-failed':'Cihazın mikrofon ses akışı başlatılamadı.',
+    'stream-create':'Yerel konuşma akışı oluşturulamadı.'
    };
    const diagnostic=errorMessage[result.reason??'']??'Konuşma tanıma bu cihazda kullanılamıyor.';
    setParentDiagnostic(diagnostic);
    setFeedback('Konuşma tanıma bu denemede çalışmadı. Yeniden söyle ya da cevabı seç.');
-   if(activeCapability.mode==='web-local'&&result.reason!=='microphone-error'&&
+   if(activeCapability.mode==='sherpa-local'&&result.reason!=='microphone-error'&&
+      result.reason!=='permission-denied'){
+    const browser=await speechCapability(false,true);
+    if(run!==generation.current)return;
+    setCapability(browser);
+    setParentDiagnostic('Cihaz içi sherpa-onnx çalıştırılamadı ('+(result.reason??'bilinmiyor')+'). Tarayıcı motoruna geçildi; istersen dokunarak cevap verebilirsin.');
+   }else if(activeCapability.mode==='web-local'&&result.reason!=='microphone-error'&&
       result.reason!=='permission-denied'){
     // Next user click may try the browser provider; don't fake recognition.
     setCapability({mode:'web-browser',installable:false,localAvailable:true,
@@ -307,6 +328,25 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
    // Explicit adult-side choice; do not auto-upload child audio after Web Speech failure.
    setIndependentEnabled(true);
    setParentDiagnostic('Bağımsız konuşma tanıma açık. Kısa ses kaydı yalnızca tanıma amacıyla sağlayıcıya gönderilir; Ventra kaydı saklamaz.');
+  }finally{setBusy(false);}
+ };
+ const selectBrowserEngine=async()=>{
+  if(busy||listening)return;
+  setBusy(true);
+  try{
+   setCapability(await speechCapability(false,true));
+   setParentDiagnostic('Tarayıcının konuşma motoru seçildi. Sesi tarayıcı sağlayıcısı işleyebilir.');
+  }finally{setBusy(false);}
+ };
+ const selectSherpaEngine=async()=>{
+  if(busy||listening)return;
+  setBusy(true);
+  try{
+   if(await localSherpaAvailable()){
+    setCapability({mode:'sherpa-local',installable:false,
+     message:'Ventra İngilizce konuşmayı cihaz üzerinde, ücretsiz sherpa-onnx modeliyle tanır.'});
+    setParentDiagnostic('Cihaz içi model seçildi. İlk konuşma denemesinde modelin yüklenmesi biraz sürebilir.');
+   }else setParentDiagnostic('Cihaz içi model henüz hazır değil. npm run speech:prepare ile model dosyaları hazırlanmalı.');
   }finally{setBusy(false);}
  };
  const recheckSpeech=async()=>{
@@ -413,6 +453,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
        Bu tarayıcı konuşmayı metne çeviremiyor. Cevabı seçerek devam edebilirsin.
       </p>}
      {listening&&<p className="harbor-mic-live" role="status" aria-live="polite">{
+      micStatus==='model-loading'?'⏳ İngilizce tanıma modeli hazırlanıyor…':
       micStatus==='starting'?'🎤 Hazırlanıyorum…':
       micStatus==='microphone-ready'?'🟢 Seni dinliyorum! Şimdi söyle.':
       micStatus==='speech-detected'?'🎤 Ses algılandı, kelimeler bekleniyor…':
@@ -422,7 +463,9 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
      <details className="harbor-parent-tools">
       <summary>Ses tanıma çalışmıyor mu?</summary>
       <div className="harbor-parent-content">
-       <p>Web Speech API doğrudan kullanılabilir. Tarayıcı kelime üretmiyorsa, yapılandırılmış bağımsız konuşma hizmeti yetişkin hesabıyla isteğe bağlı açılabilir.</p>
+       <p>Varsayılan motor: cihaz içi sherpa-onnx (ücretsiz, API anahtarı yok).
+        İlk kullanımda yaklaşık 45 MB İngilizce model indirilebilir; ses ve kelimeler cihazda kalır.
+        Web Speech API ve yetişkin hesabıyla isteğe bağlı sunucu motoru alternatif olarak korunur.</p>
        <p className="harbor-parent-diagnostic"><strong>Tanıma motoru:</strong> {activeCapability.mode}. {activeCapability.message}</p>
        {parentDiagnostic&&<p className="harbor-parent-diagnostic" role="status">{parentDiagnostic}</p>}
        {speechDiagnosticCode&&<p className="harbor-parent-diagnostic" role="status">
@@ -431,6 +474,12 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
        <div className="harbor-parent-actions">
         <button type="button" onClick={()=>void recheckSpeech()} disabled={busy||listening||locked.current}
          className="harbor-recheck">↻ Tekrar kontrol et</button>
+        {capability.mode==='sherpa-local'&&<button type="button"
+         onClick={()=>void selectBrowserEngine()} disabled={busy||listening||locked.current}
+         className="harbor-recheck">Tarayıcı motorunu dene</button>}
+        {capability.mode!=='sherpa-local'&&<button type="button"
+         onClick={()=>void selectSherpaEngine()} disabled={busy||listening||locked.current}
+         className="harbor-recheck">Ücretsiz cihaz içi motoru dene</button>}
         {capability.installable&&<button type="button" onClick={()=>void install()}
          disabled={busy||listening||locked.current} className="harbor-download">
          ⬇ Çevrimdışı İngilizce paketini kur
