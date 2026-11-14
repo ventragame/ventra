@@ -1,6 +1,7 @@
 'use client';
 
 import type {SpeechAttempt,SpeechCaptureStatus} from './childSpeech';
+import {advanceShortVoice,type ShortVoiceState} from './shortUtteranceVAD';
 
 // Bound-memory, local-only Sherpa recognition. The model is prepared during
 // build; it is loaded only after the learner starts a microphone attempt.
@@ -117,7 +118,8 @@ export function beginLocalSherpaRecognition(
  let silenceTimeout:ReturnType<typeof setTimeout>|null=null;
  let poolForRun:Pool|null=null;
  let startedOnWorker=false;
- let detected=false,voicedMs=0,startedVoice=0,lastVoice=0;
+ let voiceState:ShortVoiceState={voicedMs:0,detected:false};
+ let startedVoice=0,lastVoice=0;
  let finishDecodeRequested=false;
  let promiseResolve!:(value:SpeechAttempt)=>void;
  const result=new Promise<SpeechAttempt>(r=>{promiseResolve=r;});
@@ -158,24 +160,17 @@ export function beginLocalSherpaRecognition(
  };
  const onSamples=(chunk:Float32Array,rate:number)=>{
   if(done||finishDecodeRequested||!poolForRun)return;
-  let rms=0;
-  for(let i=0;i<chunk.length;i++)rms+=chunk[i]*chunk[i];
-  rms=Math.sqrt(rms/chunk.length);
   const now=performance.now();
-  // A 4096-frame 16kHz worklet chunk is 256 ms. Requiring four such
-  // chunks would incorrectly reject short "Hi", "Bye" and "Hello" answers.
-  // Accumulate voiced duration instead of assuming 10 ms VAD frames.
-  const durationMs=Math.min(320,1000*chunk.length/rate);
-  if(rms>0.012){
-   voicedMs=Math.min(1000,voicedMs+durationMs);
-   if(voicedMs>=180){
-    lastVoice=now;
-    if(!detected){detected=true;startedVoice=now;onStatus?.('speech-detected');}
-   }
-  }else voicedMs=Math.max(0,voicedMs-durationMs);
+  const previouslyDetected=voiceState.detected;
+  voiceState=advanceShortVoice(voiceState,chunk,rate);
+  if(voiceState.detected){
+   if(!previouslyDetected){startedVoice=now;onStatus?.('speech-detected');}
+   // A quiet tail should not reset the last genuinely voiced frame.
+   if(voiceState.voicedMs>0)lastVoice=now;
+  }
   const samples=resampleTo16k(chunk,rate);
   poolForRun.worker.postMessage({type:'audio',id,samples,sampleRate:16000},[samples.buffer]);
-  if(detected&&now-startedVoice>500&&now-lastVoice>1250)requestDecode();
+  if(voiceState.detected&&now-startedVoice>350&&now-lastVoice>1050)requestDecode();
  };
  void (async()=>{
   if(!navigator.mediaDevices?.getUserMedia){finish(failed('microphone-unsupported'));return;}
@@ -209,7 +204,7 @@ export function beginLocalSherpaRecognition(
    if(message.type==='result'){
     const words=message.text.trim().slice(0,180);
     finish(words?{kind:'recognized',alternatives:[words],mode:'sherpa-local',source:'final'}
-     :failed(detected?'speech-unrecognized':'no-speech',detected?'unrecognized':'no-speech'));
+     :failed(voiceState.detected?'speech-unrecognized':'no-speech',voiceState.detected?'unrecognized':'no-speech'));
    }else if(message.type==='error')finish(failed(message.reason));
   };
   worker.addEventListener('message',listener);
@@ -247,7 +242,7 @@ export function beginLocalSherpaRecognition(
   onStatus?.('microphone-ready');
   micTimeout=setTimeout(()=>{
    if(done)return;
-   if(detected)requestDecode();
+   if(voiceState.detected)requestDecode();
    else finish(failed('no-speech','no-speech'));
   },Math.max(3500,Math.min(10500,timeoutMs)));
   // Keep processing bounded even if a browser suspends timers on idle tabs.
