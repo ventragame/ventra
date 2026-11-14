@@ -43,7 +43,7 @@ test('Only a deliberate microphone click starts Sherpa; no audio leaves the devi
  assert.match(worker,/createOnlineRecognizer/);
  assert.match(worker,/SHA-256/);
  assert.match(worker,/stream\.acceptWaveform\(16000/);
- assert.match(worker,/post\(\{type:'result',id,text\}\)/);
+ assert.match(worker,/post\(\{type:'result',id:message\.id,text\}\)/);
  assert.doesNotMatch(sherpa,/fetch\([^)]*audio|\.functions\.invoke|Groq|SpeechRecognition\(/);
  assert.doesNotMatch(worker,/XMLHttpRequest|\.upload\(|Authorization:|fetch\([^)]*audio/);
  assert.match(speech,/mode:'sherpa-local'/);
