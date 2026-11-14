@@ -7,6 +7,9 @@ node_modules/
 .pnp/
 .pnp.js
 
+# Downloaded on-device English ASR model assets (generated at build/dev time)
+apps/web/public/speech/sherpa-20m/
+
 # Next.js & Web builds
 .next/
 out/
