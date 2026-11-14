@@ -39,6 +39,7 @@ export function beginIndependentTranscription(
  let stream:MediaStream|null=null,recorder:MediaRecorder|null=null;
  let context:AudioContext|null=null;
  let recordTimer:ReturnType<typeof setTimeout>|null=null;
+ let uploadTimer:ReturnType<typeof setTimeout>|null=null;
  let monitorTimer:ReturnType<typeof setInterval>|null=null;
  let settle!: (value:SpeechAttempt)=>void;
  let completed=false;
@@ -47,6 +48,7 @@ export function beginIndependentTranscription(
   if(completed)return;
   completed=true;
   if(recordTimer)clearTimeout(recordTimer);
+  if(uploadTimer)clearTimeout(uploadTimer);
   if(monitorTimer)clearInterval(monitorTimer);
   abort.abort();
   try{if(recorder?.state==='recording')recorder.stop();}catch{}
@@ -141,6 +143,7 @@ export function beginIndependentTranscription(
    const url=process.env.NEXT_PUBLIC_SUPABASE_URL!;
    const apikey=process.env.NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY||
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!;
+   uploadTimer=setTimeout(()=>finish(fallback('unavailable','provider-timeout-or-network')),18_000);
    const request=await fetch(url+'/functions/v1/harbor-transcribe',{
     method:'POST',
     headers:{
@@ -153,7 +156,7 @@ export function beginIndependentTranscription(
     signal:abort.signal,
     cache:'no-store'
    });
-   if(cancelled)return;
+   if(cancelled||completed)return;
    if(!request.ok){
     let failure='';
     try{const body=await request.json();failure=String(body.error??'');}catch{}
@@ -163,14 +166,14 @@ export function beginIndependentTranscription(
     finish(fallback('unavailable',allowed.includes(failure)?failure:'backend-error'));return;
    }
    const payload:unknown=await request.json();
-   if(cancelled)return;
+   if(cancelled||completed)return;
    const transcript=payload&&typeof payload==='object'&&'text' in payload&&
     typeof payload.text==='string'?payload.text.trim().slice(0,180):'';
    finish(transcript?{
     kind:'recognized',alternatives:[transcript],mode:'server-stt',source:'final'
    }:fallback('unrecognized','speech-unrecognized'));
   }catch(e){
-   if(cancelled)return;
+   if(cancelled||completed)return;
    finish(fallback('unavailable',
     e instanceof Error&&e.message==='recorder-error'?'microphone-error':'backend-error'));
   }finally{
