@@ -49,6 +49,8 @@ jobs:
         run: npm run build:web
       - name: Verify packaged offline English model and WASM (web)
         run: npm --workspace=apps/web run speech:verify
+      - name: Initialize real Sherpa WASM and decode deterministic silent PCM
+        run: npm --workspace=apps/web run speech:smoke
       - name: Smoke test actual Next.js HTTP speech assets (prevent manifest 404)
         run: |
           npm --workspace=apps/web run start -- --port 3217 > /tmp/ventra-speech-next.log 2>&1 &
@@ -69,6 +71,7 @@ jobs:
           fi
           node -e "const fs=require('node:fs');const m=JSON.parse(fs.readFileSync('/tmp/ventra-speech-manifest.json'));if(m.version!=='sherpa-onnx-zipformer-en-20m-int8-d42f2d9'||m.files?.length!==4)process.exit(1);console.log('HTTP speech manifest valid with four English model files')"
           curl -fsSI http://127.0.0.1:3217/speech/sherpa-runtime/index.js > /dev/null
+          curl -fsSI http://127.0.0.1:3217/speech/sherpa-runtime/asr-prebuilt.js > /dev/null
           curl -fsSI http://127.0.0.1:3217/speech/sherpa-runtime/asr.wasm > /dev/null
           echo 'HTTP speech model and WebAssembly assets served successfully.'
       - name: Build static mobile web bundle (no deployment)
