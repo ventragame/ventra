@@ -1,10 +1,10 @@
 /* Ventra Speech Worklet: microphone PCM never leaves the local device.
- * Sends bounded 4096-sample mono chunks to the same-origin UI for sherpa.
+ * Sends bounded 1024-sample mono chunks to the same-origin UI for sherpa.
  * Worklet output stays silent: microphone cannot feed the speakers.
  */
 class VentraSpeechProcessor extends AudioWorkletProcessor {
  constructor(){
-  super();this.samples=new Float32Array(4096);this.offset=0;
+  super();this.samples=new Float32Array(1024);this.offset=0;
  }
  process(inputs,outputs){
   const channel=inputs[0]?.[0];
@@ -14,7 +14,7 @@ class VentraSpeechProcessor extends AudioWorkletProcessor {
     if(this.offset===this.samples.length){
      const ready=this.samples;
      this.port.postMessage(ready,[ready.buffer]);
-     this.samples=new Float32Array(4096);
+     this.samples=new Float32Array(1024);
      this.offset=0;
     }
    }
