@@ -115,10 +115,10 @@ test('Story Forest sequence and detective effects track validated choices and sa
  assert.match(sequence,/checks.length>checkIndex\?'sequence-understood-/);
  assert.match(sequence,/page==='reward'.*LearningMotion variant="victory"/s);
  assert.match(sequence,/characterMotion="cheer"/);
- assert.match(detect,/correct\?'detective-correct-/);
- assert.match(detect,/phase==='ending'\?'detective-found-/);
- assert.match(detect,/detective-saved-/);
- assert.match(detect,/motion=\{phase==='ending'\|\|correct\?'cheer'/);
+ assert.match(detective,/correct\?'detective-correct-/);
+ assert.match(detective,/phase==='ending'\?'detective-found-/);
+ assert.match(detective,/detective-saved-/);
+ assert.match(detective,/motion=\{phase==='ending'\|\|correct\?'cheer'/);
  assert.match(frame,/characterMotion\?:StoryActorMotion/);
  assert.match(frame,/motion=\{characterMotion\}/);
  assert.doesNotMatch(frame,/frame,scene\}\:\{frame:SequenceFrame;scene:ForestScene/);
