@@ -7,17 +7,15 @@ import './learning-motion.css';
 type MotionVariant='success'|'victory';
 interface Props{
  variant:MotionVariant;
- /** Unique game-state event; null immediately hides and stops the animation. */
+ /** Stable game-event identity. Null stops the effect without affecting play. */
  trigger:string|null;
  className?:string;
 }
 
 /**
- * Self-hosted Lottie JSON player. One instance per stage, never per answer card.
- * It is decorative only, so the game's accessibility feedback remains textual.
- *
- * The player code is split into an on-demand JS chunk, assets are local, and
- * any failures have a lightweight static fallback. No CDN dependency.
+ * Original on-device Lottie vectors; no LottieFiles API or external CDN.
+ * One decorative player per interactive stage, never one per answer card.
+ * Only downloads the player and animation when a real game event requests one.
  */
 export function LearningMotion({variant,trigger,className=''}:Props){
  const container=useRef<HTMLSpanElement|null>(null);
@@ -27,6 +25,7 @@ export function LearningMotion({variant,trigger,className=''}:Props){
  const [reduced,setReduced]=useState(false);
  const [visible,setVisible]=useState(false);
  const [failed,setFailed]=useState(false);
+ const enabled=Boolean(trigger)&&!reduced;
 
  useEffect(()=>{
   const mq=window.matchMedia('(prefers-reduced-motion: reduce)');
@@ -37,57 +36,84 @@ export function LearningMotion({variant,trigger,className=''}:Props){
  },[]);
 
  useEffect(()=>{
+  if(!enabled)return;
   let active=true;
-  if(reduced)return;
+  let started=false;
+  let detachVisibility:()=>void=()=>{};
   setFailed(false);
+
   void import('lottie-web').then(mod=>{
    if(!active||!container.current)return;
-   const lottie=mod.default;
-   const animation=lottie.loadAnimation({
-    container:container.current,
-    renderer:'svg',
-    loop:false,
-    autoplay:false,
-    path:'/assets/motion/'+variant+'.json',
-    rendererSettings:{preserveAspectRatio:'xMidYMid meet'}
-   });
+   let animation:AnimationItem;
+   try{
+    animation=mod.default.loadAnimation({
+     container:container.current,
+     renderer:'svg',
+     loop:false,
+     autoplay:false,
+     path:'/assets/motion/'+variant+'.json',
+     rendererSettings:{preserveAspectRatio:'xMidYMid meet'}
+    });
+   }catch(error){
+    console.error('[LearningMotion] Could not create animation',error);
+    if(active){setFailed(true);setVisible(false);}
+    return;
+   }
    player.current=animation;
    const start=()=>{
-    if(!active||!latestTrigger.current)return;
+    if(!active||!latestTrigger.current||document.hidden||started)return;
+    started=true;
     setVisible(true);
     animation.goToAndPlay(0,true);
    };
    const completed=()=>{if(active)setVisible(false);};
-   const errored=()=>{if(active){setFailed(true);setVisible(false);}};
+   const errored=()=>{
+    if(active){setFailed(true);setVisible(false);animation.stop();}
+   };
+   const onVisibility=()=>{
+    if(document.hidden){
+     animation.pause();
+     setVisible(false);
+    }else if(latestTrigger.current){
+     if(!started)start();
+     else if(animation.isPaused){
+      setVisible(true);
+      animation.play();
+     }
+    }
+   };
    animation.addEventListener('DOMLoaded',start);
    animation.addEventListener('complete',completed);
    animation.addEventListener('data_failed',errored);
    animation.addEventListener('error',errored);
+   document.addEventListener('visibilitychange',onVisibility);
+   detachVisibility=()=>document.removeEventListener('visibilitychange',onVisibility);
    if(animation.isLoaded)start();
-  }).catch(()=>{
+  }).catch(error=>{
+   console.error('[LearningMotion] Player import unavailable',error);
    if(active){setFailed(true);setVisible(false);}
   });
+
   return()=>{
    active=false;
+   detachVisibility();
    player.current?.destroy();
    player.current=null;
   };
- },[variant,reduced]);
+ },[enabled,variant]);
 
+ // Repeat a correctly answered challenge while the same stage stays mounted.
  useEffect(()=>{
   const animation=player.current;
-  if(reduced){
-   setVisible(false);
-   return;
-  }
-  if(!trigger){
+  if(!enabled){
    animation?.stop();
    setVisible(false);
-  }else if(animation?.isLoaded){
+  }else if(animation?.isLoaded&&!document.hidden){
+   setFailed(false);
    setVisible(true);
    animation.goToAndPlay(0,true);
   }
- },[trigger,variant,reduced]);
+ },[trigger,enabled]);
 
  const showFallback=Boolean(trigger)&&(reduced||failed);
  return <span

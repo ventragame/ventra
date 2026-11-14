@@ -74,6 +74,10 @@ jobs:
           curl -fsSI http://127.0.0.1:3217/speech/sherpa-runtime/asr-prebuilt.js > /dev/null
           curl -fsSI http://127.0.0.1:3217/speech/sherpa-runtime/asr.wasm > /dev/null
           echo 'HTTP speech model and WebAssembly assets served successfully.'
+          for variant in success victory; do
+            curl -fsS "http://127.0.0.1:3217/assets/motion/${variant}.json" -o "/tmp/ventra-${variant}-lottie.json"
+            node -e "const fs=require('node:fs');const a=JSON.parse(fs.readFileSync('/tmp/ventra-${variant}-lottie.json','utf8'));if(!/^5\\./.test(a.v)||a.w!==320||a.h!==320||!Array.isArray(a.layers)||a.layers.length<12||a.assets.length!==0)process.exit(1);console.log('HTTP Lottie ${variant}: valid self-hosted vector animation');"
+          done
       - name: Build static mobile web bundle (no deployment)
         run: npm --workspace=apps/web run export
       - name: Verify packaged offline English model and WASM (mobile)

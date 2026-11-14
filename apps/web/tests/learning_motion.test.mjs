@@ -30,6 +30,12 @@ test('Animation lifecycle is isolated, reduced motion compliant and CDN independ
  const code=read('src/components/learning/motion/LearningMotion.tsx');
  const css=read('src/components/learning/motion/learning-motion.css');
  assert.match(code,/import\('lottie-web'\)/);
+ assert.match(code,/const enabled=Boolean\(trigger\)&&!reduced/);
+ assert.match(code,/if\(!enabled\)return/);
+ assert.match(code,/document\.hidden/);
+ assert.match(code,/animation\.pause\(\)/);
+ assert.match(code,/document\.addEventListener\('visibilitychange',onVisibility\)/);
+ assert.match(code,/detachVisibility\(\)/);
  assert.match(code,/player\.current\?\.destroy\(\)/);
  assert.match(code,/animation\?\.stop\(\)|animation\?\.stop\(\)/);
  assert.match(code,/prefers-reduced-motion: reduce/);
@@ -50,4 +56,18 @@ test('Both games connect animations to real game state, not decorative timers',(
  assert.match(art,/sf-rabbit-motion/);
  assert.match(characterCss,/sf-rabbit-cheer/);
  assert.match(characterCss,/prefers-reduced-motion/);
+});
+
+test('No third-party animation subscriptions or hosted runtime are required',()=>{
+ const rootPackage=JSON.parse(read('package.json'));
+ const webPackage=JSON.parse(read('package.json'));
+ const lock=JSON.parse(fs.readFileSync(path.resolve(root,'../../package-lock.json'),'utf8'));
+ assert.equal(webPackage.dependencies['lottie-web'],'5.13.0');
+ assert.equal(lock.packages['node_modules/lottie-web'].license,'MIT');
+ assert.equal(lock.packages['node_modules/lottie-web'].version,'5.13.0');
+ assert.equal(rootPackage.dependencies['@rive-app/react-canvas'],undefined);
+ const notes=read('docs/animation-system.md');
+ assert.match(notes,/MIT/);
+ assert.match(notes,/original/);
+ assert.match(notes,/No LottieFiles login, SaaS subscription, cloud API key, or CDN/);
 });
