@@ -13,8 +13,11 @@ import {getSequenceProgress,saveSequenceStory,type SequenceProgress}
 import {getProgressRepository} from '@/lib/progress';
 import {soundService} from '@/lib/audio/SoundService';
 import {StorySequenceFrame} from './StorySequenceFrame';
+import {LearningMotion} from '@/components/learning/motion/LearningMotion';
 import './story-sequence.css';
 import './story-sequence-comprehension.css';
+import './story-character-motion.css';
+import './story-motion-guards.css';
 
 interface Props{
  profileId:string;
@@ -306,7 +309,8 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
         className={'ss-pip '+(i<watchIndex?'done':i===watchIndex?'active':'')}/>)}
     </div>
     <div className="ss-screen" aria-label="Hikâye resmi">
-     <StorySequenceFrame frame={watchFrame} scene={scene}/>
+     <StorySequenceFrame frame={watchFrame} scene={scene}
+      characterMotion={watchFrame.action==='help'||watchFrame.action==='share'?'cheer':'listen'}/>
     </div>
     <div className="ss-narration">
      <button type="button" className="ss-speak" onClick={replayNarration}
@@ -326,7 +330,9 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
      </button>
     </div>
   </main>}
-  {page==='order'&&deck&&<main className="ss-main ss-order-screen">
+  {page==='order'&&deck&&<main className="ss-main ss-order-screen relative isolate">
+    <LearningMotion variant="success"
+     trigger={selectedIds.length>slot?'sequence-ordered-'+episode+'-'+slot:null}/>
     <div className="ss-instruction">
       <button type="button" onClick={replayNarration} aria-label="Sesli ipucunu tekrarla">🔊</button>
       <span>Hikâyede önce ne oldu?</span>
@@ -366,8 +372,10 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
        disabled={busy} className="ss-secondary">Yeniden kaydet</button>
     </div>}
   </main>}
-  {page==='check'&&deck&&activeCheck&&<main className="ss-main ss-comprehension"
+  {page==='check'&&deck&&activeCheck&&<main className="ss-main ss-comprehension relative isolate"
    aria-label="Dinlediğini anlama görevi">
+   <LearningMotion variant="discovery"
+    trigger={checks.length>checkIndex?'sequence-understood-'+episode+'-'+checkIndex:null}/>
    <div className="ss-check-heading">
     <span>🧠 {englishLevel==='A2'?'Hikâyeyi Yorumla':'Sonra Ne Oldu?'}</span>
     <strong>{activeCheck.kind==='next'?'Bir Sonraki Olay':
@@ -409,9 +417,11 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
     <button type="button" onClick={()=>void finish(deck,answers,checks)}
      disabled={busy} className="ss-secondary">Yeniden kaydet</button></div>}
   </main>}
-  {page==='reward'&&<main className="ss-main ss-reward">
+  {page==='reward'&&<main className="ss-main ss-reward relative isolate">
+     <LearningMotion variant="victory" trigger={'sequence-saved-'+episode}/> 
      <div className="ss-reward-visual">
-      <StorySequenceFrame frame={currentStory.frames[4]} scene={scene}/>
+      <StorySequenceFrame frame={currentStory.frames[4]} scene={scene}
+       characterMotion="cheer"/>
      </div>
      <p>HİKÂYE TAMAMLANDI</p>
      <h2>{currentStory.title}</h2>

@@ -20,8 +20,11 @@ import {getProgressRepository} from '@/lib/progress';
 import {soundService} from '@/lib/audio/SoundService';
 import {StoryForestActor,StoryForestScenery} from './StoryForestArt';
 import {DetectiveClueArt,DetectiveLostItem} from './StoryDetectiveArt';
+import {LearningMotion} from '@/components/learning/motion/LearningMotion';
 import './story-detective.css';
 import './story-detective-adventure.css';
+import './story-character-motion.css';
+import './story-motion-guards.css';
 
 interface Props{
  profileId:string;gradeLevel:number|null;englishLevel:ForestPlacement;
@@ -363,10 +366,15 @@ export function StoryDetectiveAdventure({profileId,gradeLevel,englishLevel,onBac
    <div className={'sd-world sd-adventure-world sd-world-'+phase+
      ' sd-palette-'+plan.palette}>
     <StoryForestScenery scene={currentScene}/>
+    <LearningMotion variant={phase==='ending'?'discovery':'success'}
+     trigger={phase==='ending'?'detective-found-'+chapter.episode:
+      correct?'detective-correct-'+chapter.episode+'-'+stepIndex:null}/>
     <div className="sd-world-vignette"/>
-    <div className="sd-world-hero"><StoryForestActor id={plan.setup.hero}/></div>
+    <div className="sd-world-hero"><StoryForestActor id={plan.setup.hero}
+     motion={phase==='ending'||correct?'cheer':phase==='opening'?'listen':'search'}/></div>
     {showFriend&&<div className="sd-world-friend">
-     <StoryForestActor id={plan.setup.friend}/></div>}
+     <StoryForestActor id={plan.setup.friend}
+      motion={phase==='ending'?'cheer':'idle'}/></div>}
     {showTreasure&&<div className="sd-world-treasure">
      <DetectiveLostItem id={plan.setup.item}/></div>}
     {phase==='opening'&&<div className="sd-lost-bubble" aria-hidden="true">
@@ -485,8 +493,9 @@ export function StoryDetectiveAdventure({profileId,gradeLevel,englishLevel,onBac
   {view==='reward'&&plan&&chapter&&<main className="sd-reward">
    <div className="sd-reward-illustration">
     <StoryForestScenery scene={plan.chosen.destination}/>
-    <div className="sd-reward-mascot"><StoryForestActor id={plan.setup.hero}/></div>
-    <div className="sd-reward-helper"><StoryForestActor id={plan.setup.friend}/></div>
+    <LearningMotion variant="victory" trigger={'detective-saved-'+chapter.episode}/> 
+    <div className="sd-reward-mascot"><StoryForestActor id={plan.setup.hero} motion="cheer"/></div>
+    <div className="sd-reward-helper"><StoryForestActor id={plan.setup.friend} motion="cheer"/></div>
     <div className="sd-reward-item"><DetectiveLostItem id={plan.setup.item}/></div>
    </div>
    <h2>Gizem Çözüldü!</h2>

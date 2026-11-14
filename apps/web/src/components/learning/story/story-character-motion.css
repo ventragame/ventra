@@ -1,0 +1,52 @@
+/*
+ * Identity-safe, sprite-level choreography for STORY stages only.
+ * The original isolated WebP remains unchanged: this is not face rigging or Rive.
+ * Only the explicit motion prop animates. Interactive assessment cards use no motion.
+ * No extra JS timers, animation service or network asset.
+ */
+.ss-root .sf-premium-actor.sf-actor-motion,
+.sd-root .sf-premium-actor.sf-actor-motion {
+ transform-origin:50% 88%;
+ will-change:transform;
+}
+.ss-root .sf-premium-actor.sf-actor-idle,
+.sd-root .sf-premium-actor.sf-actor-idle {
+ animation:sf-stage-breathe 4s ease-in-out infinite;
+}
+.ss-root .sf-premium-actor.sf-actor-listen,
+.sd-root .sf-premium-actor.sf-actor-listen {
+ animation:sf-stage-listen 2.4s ease-in-out infinite;
+}
+.ss-root .sf-premium-actor.sf-actor-search,
+.sd-root .sf-premium-actor.sf-actor-search {
+ animation:sf-stage-search 2.8s ease-in-out infinite;
+}
+.ss-root .sf-premium-actor.sf-actor-cheer,
+.sd-root .sf-premium-actor.sf-actor-cheer {
+ animation:sf-stage-cheer .9s cubic-bezier(.22,.72,.3,1) 2 both;
+}
+@keyframes sf-stage-breathe {
+ 0%,100%{transform:translate3d(0,0,0) scale(1)}
+ 50%{transform:translate3d(0,-3px,0) scale(1.012)}
+}
+@keyframes sf-stage-listen {
+ 0%,100%{transform:translate3d(0,0,0) rotate(0)}
+ 42%{transform:translate3d(0,-3px,0) rotate(-1.5deg)}
+ 72%{transform:translate3d(0,-2px,0) rotate(1.2deg)}
+}
+@keyframes sf-stage-search {
+ 0%,100%{transform:translate3d(0,0,0) rotate(0)}
+ 34%{transform:translate3d(-2px,-3px,0) rotate(-3deg)}
+ 69%{transform:translate3d(2px,-2px,0) rotate(3deg)}
+}
+@keyframes sf-stage-cheer {
+ 0%,100%{transform:translate3d(0,0,0) scale(1)}
+ 38%{transform:translate3d(0,-11px,0) scale(1.055)}
+ 70%{transform:translate3d(0,2px,0) scale(.99)}
+}
+@media(prefers-reduced-motion:reduce) {
+ .ss-root .sf-premium-actor.sf-actor-motion,
+ .sd-root .sf-premium-actor.sf-actor-motion {
+  animation:none!important;transition:none!important;will-change:auto!important;
+ }
+}

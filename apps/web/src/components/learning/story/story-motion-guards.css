@@ -1,0 +1,19 @@
+/*
+ * Event effects are absolute overlays, always decorative, never hit targets.
+ * z-index is below the active controls and stays within game-specific clipping.
+ */
+.ss-root .ss-order-screen,
+.ss-root .ss-comprehension,
+.ss-root .ss-reward {
+ position:relative;isolation:isolate;
+}
+.ss-root .ss-reward-visual,
+.sd-root .sd-reward-illustration {position:relative;isolation:isolate}
+.ss-root .ss-order-screen>.learning-motion,
+.ss-root .ss-comprehension>.learning-motion,
+.ss-root .ss-reward>.learning-motion {z-index:4}
+.sd-root .sd-adventure-world>.learning-motion,
+.sd-root .sd-reward-illustration>.learning-motion {z-index:16}
+@media(prefers-reduced-motion:reduce) {
+ .ss-root .learning-motion,.sd-root .learning-motion{transition:none!important}
+}

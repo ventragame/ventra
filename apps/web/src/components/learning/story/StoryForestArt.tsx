@@ -48,7 +48,11 @@ const ANIMAL_COLORS:Record<string,{main:string;stroke:string;belly:string}>={
 export type StoryActorMotion='idle'|'listen'|'search'|'cheer';
 export function StoryForestActor({id,motion}: {id:ForestActorId;motion?:StoryActorMotion}){
  const premium=PREMIUM_STORY_CHARACTERS[id];
- const motionClass=id==='rabbit'&&motion?' sf-rabbit-motion sf-rabbit-'+motion:'';
+ // Motion is opt-in and applies to staged premium art, not assessment cards.
+ // All source WebP images remain the single canonical character identity.
+ const motionClass=motion&&premium?
+  ' sf-actor-motion sf-actor-'+motion+
+   (id==='rabbit'?' sf-rabbit-motion sf-rabbit-'+motion:''):'';
  if(premium)return <img className={'sf-actor-illustration sf-premium-actor'+motionClass}
    src={PREMIUM_ROOT+premium} alt="" aria-hidden="true" draggable={false}
    decoding="async" loading="eager"/>;

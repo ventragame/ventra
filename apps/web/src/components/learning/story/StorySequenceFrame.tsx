@@ -1,7 +1,7 @@
 
 'use client';
 import React from 'react';
-import {StoryForestActor,StoryForestScenery} from './StoryForestArt';
+import {StoryForestActor,StoryForestScenery,type StoryActorMotion} from './StoryForestArt';
 import type {ForestScene,ForestActorId} from '@/lib/learning/storyForestEngine';
 import type {SequenceFrame,SequenceProp} from '@/lib/learning/storySequenceEngine';
 
@@ -34,13 +34,17 @@ function StoryItem({kind}:{kind:SequenceProp}){
     <path d="M15 91V110M105 91V110" stroke="#8a6b78" strokeWidth="9"/></>}</svg>;
  return null;
 }
-export function StorySequenceFrame({frame,scene}:{frame:SequenceFrame;scene:ForestScene}){
+export function StorySequenceFrame({frame,scene,characterMotion}:{
+ frame:SequenceFrame;scene:ForestScene;characterMotion?:StoryActorMotion
+}){
  return <div className={'ss-illustration ss-action-'+frame.action+' ss-placement-'+frame.placement} aria-hidden="true">
   <StoryForestScenery scene={scene}/>
   <div className="ss-frame-glow"/>
   <div className="ss-frame-ground"/>
-  <div className="ss-primary-character"><StoryForestActor id={frame.actor}/></div>
-  {frame.companion&&<div className="ss-companion"><StoryForestActor id={frame.companion}/></div>}
+  <div className="ss-primary-character"><StoryForestActor id={frame.actor} motion={characterMotion}/></div>
+  {frame.companion&&<div className="ss-companion">
+   <StoryForestActor id={frame.companion} motion={characterMotion==='cheer'?'cheer':characterMotion?'idle':undefined}/>
+  </div>}
   {frame.prop!=='none'&&<div className="ss-prop"><StoryItem kind={frame.prop}/></div>}
   <span className="ss-spark ss-spark-a">✦</span><span className="ss-spark ss-spark-b">✧</span>
   {['arrive','move','help','share'].includes(frame.action)&&<div className="ss-motion" aria-hidden="true">✧ ✧ ✧</div>}

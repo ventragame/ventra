@@ -103,3 +103,27 @@ test('Other island adventures use game-state-triggered local Lottie animations',
  assert.match(harbor,/LearningMotion variant="victory"/);
  assert.match(harbor,/harbor-finished-/);
 });
+
+test('Story Forest sequence and detective effects track validated choices and saved rewards',()=>{
+ const sequence=read('src/components/learning/story/StorySequenceAdventure.tsx');
+ const detective=read('src/components/learning/story/StoryDetectiveAdventure.tsx');
+ const frame=read('src/components/learning/story/StorySequenceFrame.tsx');
+ const art=read('src/components/learning/story/StoryForestArt.tsx');
+ const motion=read('src/components/learning/story/story-character-motion.css');
+ const guards=read('src/components/learning/story/story-motion-guards.css');
+ assert.match(sequence,/selectedIds.length>slot\?'sequence-ordered-/);
+ assert.match(sequence,/checks.length>checkIndex\?'sequence-understood-/);
+ assert.match(sequence,/page==='reward'.*LearningMotion variant="victory"/s);
+ assert.match(sequence,/characterMotion="cheer"/);
+ assert.match(detect,/correct\?'detective-correct-/);
+ assert.match(detect,/phase==='ending'\?'detective-found-/);
+ assert.match(detect,/detective-saved-/);
+ assert.match(detect,/motion=\{phase==='ending'\|\|correct\?'cheer'/);
+ assert.match(frame,/characterMotion\?:StoryActorMotion/);
+ assert.match(frame,/motion=\{characterMotion\}/);
+ assert.doesNotMatch(frame,/frame,scene\}\:\{frame:SequenceFrame;scene:ForestScene/);
+ assert.match(art,/motion&&premium/);
+ assert.match(motion,/prefers-reduced-motion:reduce/);
+ assert.match(guards,/isolation:isolate/);
+ assert.match(guards,/learning-motion/);
+});
