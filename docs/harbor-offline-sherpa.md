@@ -46,9 +46,10 @@ transkript Ventra sunucusuna gönderilmez veya kalıcı olarak yazılmaz.
 ```powershell
 cd C:\active_projects\ventra
 git pull --ff-only origin main
+npm ci
 npm run dev:web
 ```
-`predev` ilk çalışmada modeli hazırlar. Yalnızca modeli hazırlamak:
+`npm ci`, yeni `@sherpaw/asr` bağımlılığını kilit dosyasından kurmak için bu güncellemede bir defaya mahsus gereklidir. Sadece `git pull` mevcut `node_modules` içeriğini değiştirmez. `predev` ilk çalışmada modeli hazırlar. Yalnızca modeli hazırlamak:
 ```powershell
 npm --workspace=apps/web run speech:prepare
 ```
