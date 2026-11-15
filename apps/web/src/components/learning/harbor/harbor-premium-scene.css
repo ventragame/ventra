@@ -209,3 +209,47 @@
  }
  .harbor-mic-button{padding:10px 12px}
 }
+
+/* Story beat polish: the child can see that each NPC scene advances across
+ * three different actions without replacing existing authored quest images.
+ */
+.hp-beat-label{
+ position:absolute;top:11px;left:13px;z-index:3;
+ display:inline-flex;align-items:center;gap:7px;
+ max-width:44%;min-height:32px;padding:4px 10px 4px 5px;
+ border:1px solid #ebffeb99;border-radius:999px;
+ color:#fafff6;background:#07415edb;box-shadow:0 5px 14px #032d4d5b;
+ font-size:clamp(10px,1.25vw,12px);font-weight:850;line-height:1.25;
+ pointer-events:none;
+}
+.hp-beat-label span{
+ display:grid;place-items:center;flex:none;min-width:25px;height:25px;
+ border-radius:50%;color:#164e61;background:#d6ffdf;font-weight:950;
+}
+.hp-scene[data-step="1"].hp-action-board .hp-ship{
+ transform:translateX(7%);filter:drop-shadow(0 8px 5px #023353aa);
+}
+.hp-scene[data-step="2"].hp-action-board .hp-ship{transform:translateX(17%)}
+.hp-scene[data-step="1"].hp-place-lighthouse .hp-lighthouse span{
+ box-shadow:0 0 26px 11px #fff5aaac;
+}
+.hp-scene[data-step="2"].hp-place-lighthouse .hp-lighthouse span{
+ box-shadow:0 0 42px 16px #fff6b3;
+}
+.hp-scene[data-step="2"].hp-place-festival .hp-festival-lights span{
+ filter:brightness(1.3);box-shadow:0 0 23px #fff4b6c7;
+}
+.hp-scene[data-stage="complete"] .hp-beat-label{
+ background:#176453ed;border-color:#fff2b0;
+}
+@media(max-width:640px){
+ .hp-beat-label{top:7px;left:7px;max-width:40%;min-height:28px;
+  font-size:10px;padding:3px 7px 3px 3px;gap:5px}
+ .hp-beat-label span{min-width:23px;height:23px}
+ .hp-scene .hp-speech-card{max-height:66%;overflow-y:auto;overscroll-behavior:contain}
+ .hp-scene .hp-speech-card p{overflow-wrap:break-word;hyphens:auto}
+}
+@media(max-width:370px){
+ .hp-scene .hp-speech-card p{font-size:clamp(13px,3.6vw,17px)}
+ .hp-beat-label{max-width:37%;font-size:9px}
+}

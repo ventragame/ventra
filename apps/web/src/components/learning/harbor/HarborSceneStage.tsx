@@ -2,6 +2,7 @@
 import React from 'react';
 import type {HarborQuest} from '@/lib/learning/harborMissionEngine';
 import {HARBOR_SCENE_ASSETS} from '@/lib/learning/harborSceneAssets';
+import {harborBeat} from '@/lib/learning/harborGamePolish';
 import {HarborCharacterAvatar,type HarborCaptainMood} from './HarborCaptainAvatar';
 
 export type HarborPropId='boat'|'water'|'apple'|'fish'|'map'|'key'|'lantern'|'crystal'|'parrot'|'cat'|'rabbit'|'turtle';
@@ -68,13 +69,18 @@ export function HarborSceneStage({quest,questStep,resolved,selected,onSelect,onS
  const sceneArt=HARBOR_SCENE_ASSETS[quest.place];
  const requiresItem=questStep===0&&quest.action!=='meet';
  const stageEvent=resolved?'complete':selected?'selected':'waiting';
+ const beat=harborBeat(quest.action,questStep);
  return <section className={['hp-scene','hp-place-'+quest.place,'hp-action-'+quest.action,'hp-'+stageEvent].join(' ')}
-  aria-label={quest.title} data-quest={quest.id} data-stage={stageEvent}>
+  aria-label={quest.title} data-quest={quest.id} data-stage={stageEvent}
+  data-step={questStep} data-beat={quest.action}>
    <picture className="hp-scenery" aria-hidden="true">
     <source media="(max-width: 640px)" srcSet={sceneArt.mobile} type="image/webp"/>
     <img src={sceneArt.desktop} alt="" decoding="async" draggable={false}/>
    </picture>
    <div className="hp-sky" aria-hidden="true"><span/><span/><span/></div>
+   <div className="hp-beat-label" aria-label={'Görev aşaması '+(questStep+1)+' / 3'}>
+    <span>{questStep+1}/3</span>{beat}
+   </div>
    <div className="hp-water" aria-hidden="true"><i/><i/><i/></div>
    <div className="hp-dock-floor" aria-hidden="true"/>
    <div className="hp-ship" aria-hidden="true"><span className="hp-ship-mast"/><span className="hp-ship-sail"/><span className="hp-ship-hull"/></div>
