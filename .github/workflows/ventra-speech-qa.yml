@@ -1,0 +1,35 @@
+name: Ventra Speech Recognition QA
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'apps/web/src/lib/speech/**'
+      - 'apps/web/scripts/smoke-sherpa-engine.mjs'
+      - 'apps/web/scripts/prepare-sherpa-local.mjs'
+      - '.github/workflows/ventra-speech-qa.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  speech-fixtures:
+    runs-on: ubuntu-latest
+    timeout-minutes: 12
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+      - name: Use Node 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: npm
+      - name: Install locked dependencies
+        run: npm ci
+      - name: Prepare pinned local English model and verified WASM
+        run: npm --workspace=apps/web run speech:prepare
+      - name: Decode real English speech WAV and compare endpoint variants
+        run: npm --workspace=apps/web run speech:smoke
+      - name: Test microphone resampler and local-only speech lifecycle
+        run: node --test --experimental-strip-types apps/web/tests/sherpa_local.test.mjs apps/web/tests/harbor_speech.test.mjs

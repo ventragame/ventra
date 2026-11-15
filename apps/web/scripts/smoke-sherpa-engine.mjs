@@ -142,6 +142,50 @@ async function main(){
    const cleaned=recognized.toLowerCase().replace(/[^a-z ]/g,' ').replace(/\\s+/g,' ').trim();
    console.log('[Ventra STT] Speech fixture',name,'expect:',expected,'actual:',JSON.stringify(cleaned));
    if(!cleaned)throw Error('Model produced NO WORDS for actual English speech: '+name);
+
+   // Diagnostic variants (not production inference): determine whether the
+   // partial-word bug is input trimming, low gain, or premature endpoint reset.
+   const totalRms=Math.sqrt(pcm.reduce((n,s)=>n+s*s,0)/Math.max(1,pcm.length));
+   console.log('[Ventra STT] WAV metadata',name,JSON.stringify({
+    sampleRate:audio.rate,durationSeconds:+(pcm.length/16000).toFixed(2),
+    rms:+totalRms.toFixed(5)}));
+   for(const variant of [
+    {id:'lead500',lead:8000,gain:1,resetEndpoint:true},
+    {id:'gain2',lead:0,gain:2,resetEndpoint:true},
+    {id:'lead500_gain2',lead:8000,gain:2,resetEndpoint:true},
+    {id:'no_endpoint_reset',lead:0,gain:1,resetEndpoint:false}
+   ]){
+    const diagnostic=recognizer.createStream();
+    if(!diagnostic?.handle)throw Error('Diagnostic stream unavailable');
+    try{
+     let spins=0;
+     const parts=[];
+     const emit=()=>{
+      while(recognizer.isReady(diagnostic)){
+       recognizer.decode(diagnostic);
+       if(++spins>3500)throw Error('Diagnostic decoder stalled');
+      }
+      if(variant.resetEndpoint&&recognizer.isEndpoint(diagnostic)){
+       const phrase=String(recognizer.getResult(diagnostic)?.text??'').trim();
+       if(phrase)parts.push(phrase);
+       recognizer.reset(diagnostic);
+      }
+     };
+     if(variant.lead){diagnostic.acceptWaveform(16000,new Float32Array(variant.lead));emit();}
+     const scaled=variant.gain===1?pcm:Float32Array.from(pcm,x=>
+      Math.max(-1,Math.min(1,x*variant.gain)));
+     for(let i=0;i<scaled.length;i+=1600){
+      diagnostic.acceptWaveform(16000,scaled.subarray(i,Math.min(i+1600,scaled.length)));
+      emit();
+     }
+     diagnostic.acceptWaveform(16000,new Float32Array(16000));
+     diagnostic.inputFinished();
+     emit();
+     const tail=String(recognizer.getResult(diagnostic)?.text??'').trim();
+     const answer=[...parts,tail].filter(Boolean).join(' ').trim();
+     console.log('[Ventra STT] DIAGNOSTIC',name,variant.id,JSON.stringify(answer));
+    }finally{diagnostic.free();}
+   }
   }finally{trial.free();}
  }
  console.log('[Ventra STT] PASS: local model decoded real prerecorded English speech fixtures.');
