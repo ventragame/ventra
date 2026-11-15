@@ -63,3 +63,18 @@ test('Guided 2.2 uses spoken examples, honest hints, stateful wrong options and 
  assert.match(css,/harbor-answer\[data-answer="try-again"\]/);
  assert.match(css,/height:100dvh/);
 });
+
+test('Incorrect scene objects are taught and tracked once; transient Lottie moods return to idle',()=>{
+ const game=read('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
+ const stage=read('../src/components/learning/harbor/HarborSceneStage.tsx');
+ const avatar=read('../src/components/learning/harbor/HarborCaptainAvatar.tsx');
+ const css=read('../src/components/learning/harbor/harbor-premium-scene.css');
+ assert.match(game,/wrongSceneObjects\.includes\(id\)/);
+ assert.match(game,/setMistakes\(count=>count\+1\)/);
+ assert.match(game,/wrongObjects=\{wrongSceneObjects\}/);
+ assert.match(stage,/data-wrong=\{wrongObjects\.includes\(id\)\}/);
+ assert.match(css,/hp-object-choice\[data-wrong="true"\]/);
+ assert.match(avatar,/addEventListener\('complete',onComplete\)/);
+ assert.match(avatar,/HARBOR_CAPTAIN_SEGMENTS\.idle/);
+ assert.match(avatar,/LOOPING.has\(desired.current\)/);
+});

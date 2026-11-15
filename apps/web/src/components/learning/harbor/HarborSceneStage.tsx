@@ -60,11 +60,12 @@ export function HarborProp({id}: {id:HarborPropId}){
 }
 type Props={
  quest:HarborQuest;questStep:number;resolved:boolean;selected:boolean;
+ wrongObjects:readonly HarborPropId[];
  onSelect:(id:HarborPropId)=>void;onSpeak:()=>void;
  speakerLine:string;speaking:boolean;
  avatarMood:HarborCaptainMood;avatarCue:string;
 };
-export function HarborSceneStage({quest,questStep,resolved,selected,onSelect,onSpeak,speakerLine,speaking,avatarMood,avatarCue}:Props){
+export function HarborSceneStage({quest,questStep,resolved,selected,wrongObjects,onSelect,onSpeak,speakerLine,speaking,avatarMood,avatarCue}:Props){
  const props=getHarborSceneObjects(quest);
  const sceneArt=HARBOR_SCENE_ASSETS[quest.place];
  const requiresItem=questStep===0&&quest.action!=='meet';
@@ -101,7 +102,8 @@ export function HarborSceneStage({quest,questStep,resolved,selected,onSelect,onS
     <strong>🔎 {quest.mission}</strong>
     <div className="hp-object-options">
      {props.map(id=><button key={id} type="button" onClick={()=>onSelect(id)}
-      className="hp-object-choice" aria-label={HARBOR_PROPS[id].name}>
+      className="hp-object-choice" data-wrong={wrongObjects.includes(id)}
+      aria-label={HARBOR_PROPS[id].name+(wrongObjects.includes(id)?', bir daha dene':'')}>
       <HarborProp id={id}/><span>{HARBOR_PROPS[id].name}</span>
      </button>)}
     </div>

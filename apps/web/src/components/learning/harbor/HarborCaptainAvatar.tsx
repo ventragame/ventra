@@ -74,12 +74,20 @@ export function HarborCharacterAvatar({actor,mood,cue,className=''}:CastProps){
     player.current=animation;
     const onLoaded=()=>{if(active){setReady(true);playMood();}};
     const onError=()=>{if(active){setFailed(true);setReady(false);animation?.stop();}};
+    const onComplete=()=>{
+     if(!active||!animation?.isLoaded||document.hidden||LOOPING.has(desired.current))return;
+     // Return from a brief smile/try-again/celebration to natural breathing
+     // instead of leaving a child's character frozen at its final keyframe.
+     animation.setLoop(true);
+     animation.playSegments([...HARBOR_CAPTAIN_SEGMENTS.idle],true);
+    };
     const onVisibility=()=>{
      if(!active||!animation)return;
      if(document.hidden)animation.pause();
      else playMood();
     };
     animation.addEventListener('DOMLoaded',onLoaded);
+    animation.addEventListener('complete',onComplete);
     animation.addEventListener('data_failed',onError);
     animation.addEventListener('error',onError);
     document.addEventListener('visibilitychange',onVisibility);

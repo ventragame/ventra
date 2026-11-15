@@ -45,6 +45,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  const [hintStage,setHintStage]=useState(0);
  const [modeledAnswer,setModeledAnswer]=useState(false);
  const [wrongChoices,setWrongChoices]=useState<readonly string[]>([]);
+ const [wrongSceneObjects,setWrongSceneObjects]=useState<readonly HarborPropId[]>([]);
  const [summary,setSummary]=useState<HarborSummary|null>(null);
  const [voiceRecognized,setVoiceRecognized]=useState(0);
  const [saveError,setSaveError]=useState('');
@@ -116,7 +117,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   setEpisode(id);setQuestion(checkpoint?.step??0);
   setSceneSelected(Boolean(checkpoint&&checkpoint.step%3!==0));setSceneResolved(false);
   setMistakes(checkpoint?.mistakes??0);setHints(checkpoint?.hints??0);
-  setHintStage(0);setWrongChoices([]);setModeledAnswer(false);setSummary(null);
+  setHintStage(0);setWrongChoices([]);setWrongSceneObjects([]);setModeledAnswer(false);setSummary(null);
   setVoiceRecognized(checkpoint?.voiceRecognized??0);setReplayIndex(levelPlays[id]??0);
   setFeedback('');setSaveError('');setParentDiagnostic('');setSpeechDiagnosticCode('');setMicStatus('idle');setPhase('playing');locked.current=false;startedAt.current=Date.now();
   soundService.playSfx('tap',.5);
@@ -139,7 +140,11 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  const selectSceneObject=(id:HarborPropId)=>{
   if(sceneSelected||busy||locked.current||listening)return;
   if(id!==quest.item){
-   setFeedback('Biraz daha bakalım! Doğru nesneyi bulabilirsin.');
+   if(!wrongSceneObjects.includes(id)){
+    setWrongSceneObjects(previous=>[...previous,id]);
+    setMistakes(count=>count+1);
+   }
+   setFeedback('Bir daha bakalım! Bu eşya değil; diğerini dene.');
    soundService.playSfx('gentle_retry',.35);return;
   }
   setSceneSelected(true);setFeedback('Bulduk! Şimdi arkadaşımızı dinle. ✨');
@@ -203,7 +208,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
    setSceneSelected(next.quest.id===quest.id);
    setSceneResolved(false);
    setQuestion(q=>q+1);
-   setHintStage(0);setModeledAnswer(false);setWrongChoices([]);
+   setHintStage(0);setModeledAnswer(false);setWrongChoices([]);setWrongSceneObjects([]);
    setFeedback('');locked.current=false;
   },1000);
  };
@@ -438,7 +443,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   generation.current++;narrationRun.current++;setNarrating(false);stopSpeechCapture();soundService.setCaptureActive(false);soundService.cancelSpeech();
   if(timer.current)clearTimeout(timer.current);locked.current=false;
   setPhase('map');setSceneSelected(false);setSceneResolved(false);
-  setHintStage(0);setModeledAnswer(false);setWrongChoices([]);setSummary(null);
+  setHintStage(0);setModeledAnswer(false);setWrongChoices([]);setWrongSceneObjects([]);setSummary(null);
   setFeedback('');setSaveError('');setMicStatus('idle');setParentDiagnostic('');setSpeechDiagnosticCode('');
  };
  const options=harborChoiceOrder(prompt,englishLevel,question,replayIndex);
@@ -494,7 +499,8 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
      </div>
     </div>
     <HarborSceneStage key={quest.id} quest={quest} questStep={questStep}
-     selected={sceneSelected} resolved={sceneResolved} onSelect={selectSceneObject}
+     selected={sceneSelected} resolved={sceneResolved} wrongObjects={wrongSceneObjects}
+     onSelect={selectSceneObject}
      onSpeak={speak} speakerLine={prompt.line} speaking={listening||busy}
      avatarMood={captainMood} avatarCue={captainCue}/>
     <div className="hp-quest-text">
