@@ -2,7 +2,7 @@
 import React from 'react';
 import type {HarborQuest} from '@/lib/learning/harborMissionEngine';
 import {HARBOR_SCENE_ASSETS} from '@/lib/learning/harborSceneAssets';
-import {HarborCaptainAvatar,type HarborCaptainMood} from './HarborCaptainAvatar';
+import {HarborCharacterAvatar,type HarborCaptainMood} from './HarborCaptainAvatar';
 
 export type HarborPropId='boat'|'water'|'apple'|'fish'|'map'|'key'|'lantern'|'crystal'|'parrot'|'cat'|'rabbit'|'turtle';
 export const HARBOR_PROPS:Record<HarborPropId,{name:string;image:string|null;fallback:string}>={
@@ -18,12 +18,6 @@ export const HARBOR_PROPS:Record<HarborPropId,{name:string;image:string|null;fal
  cat:{name:'Kedi',image:'/assets/story-forest/premium/characters/cat_orange.webp',fallback:'🐈'},
  rabbit:{name:'Tavşan',image:'/assets/story-forest/premium/characters/rabbit_adventurer.webp',fallback:'🐇'},
  turtle:{name:'Kaplumbağa',image:'/assets/animals/fluent-3d/turtle.png',fallback:'🐢'}
-};
-const ART:Record<Exclude<HarborQuest['actor'],'leo'>,string>={
- parrot:'/assets/animals/fluent-3d/parrot.png',
- turtle:'/assets/animals/fluent-3d/turtle.png',
- fox:'/assets/story-forest/premium/characters/cat_orange.webp',
- rabbit:'/assets/story-forest/premium/characters/rabbit_adventurer.webp'
 };
 export const HARBOR_OBJECT_PAIRS:Record<HarborQuest['action'],readonly HarborPropId[]>={
  meet:['parrot','boat'],crew:['parrot','cat'],board:['boat','map'],deliver:['water','fish'],
@@ -87,8 +81,7 @@ export function HarborSceneStage({quest,questStep,resolved,selected,onSelect,onS
    <div className="hp-lighthouse" aria-hidden="true"><span/></div>
    <div className="hp-festival-lights" aria-hidden="true"><span/><span/><span/><span/><span/></div>
    <div className="hp-actor" data-actor={quest.actor}>
-    {quest.actor==='leo'?<HarborCaptainAvatar mood={avatarMood} cue={avatarCue}/>:
-     <img src={ART[quest.actor]} alt="" draggable={false}/>}
+    <HarborCharacterAvatar actor={quest.actor} mood={avatarMood} cue={avatarCue}/>
    </div>
    <div className="hp-speech-card">
     <span className="hp-speaker-tag">{quest.actor==='leo'?'KAPTAN LEO':

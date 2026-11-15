@@ -10,8 +10,11 @@
 }
 .harbor-captain-avatar-static{transition:opacity .18s ease}
 .harbor-captain-avatar-motion svg{display:block;width:100%!important;height:100%!important}
-.hp-actor[data-actor="leo"]{animation:none!important}
-.hp-actor[data-actor="leo"]>.harbor-captain-avatar{width:min(100%,370px);height:100%}
+.hp-actor{animation:none!important}
+.hp-actor>.harbor-captain-avatar{width:min(100%,370px);height:100%}
+.hp-actor .harbor-captain-avatar-static{
+ width:100%;height:100%;object-fit:contain;object-position:center bottom;filter:none;
+}
 .harbor-intro-character{
  display:grid;grid-template-columns:clamp(135px,18vw,205px) minmax(0,1fr);
  align-items:center;gap:clamp(8px,2.8vw,24px);
@@ -36,8 +39,9 @@
 }
 .harbor-finale-captain>.harbor-captain-avatar{height:100%;width:100%}
 @media(max-width:640px){
- .hp-actor[data-actor="leo"]{left:0;bottom:15%;height:58%;width:49%}
- .hp-actor[data-actor="leo"]>.harbor-captain-avatar{width:100%}
+ .hp-actor{left:0;bottom:15%;height:58%;width:49%}
+ .hp-actor>.harbor-captain-avatar{width:100%}
+ .hp-actor .harbor-captain-avatar-static{width:100%;height:100%}
  .harbor-intro-character{
   grid-template-columns:clamp(105px,30vw,146px) minmax(0,1fr);
   gap:10px;padding:10px;border-radius:20px;
@@ -55,9 +59,28 @@
  .harbor-intro-captain{height:146px}
  .harbor-intro-character .harbor-intro-copy h2{font-size:18px}
  .harbor-intro-character .harbor-intro-copy p{font-size:10px}
- .hp-actor[data-actor="leo"]{bottom:17%;height:53%;width:47%}
+ .hp-actor{bottom:17%;height:53%;width:47%}
 }
 @media(prefers-reduced-motion:reduce){
  .harbor-captain-avatar-static{transition:none!important}
  .harbor-captain-avatar-motion{display:none!important}
+}
+
+/* All NPCs are now individually animated puppets, without duplicated CSS bobbing. */
+.hp-actor[data-actor="parrot"]{bottom:7%;height:76%;width:32%}
+.hp-actor[data-actor="turtle"]{bottom:8%;height:72%;width:34%}
+.hp-actor[data-actor="fox"]{bottom:7%;height:76%;width:34%}
+.hp-actor[data-actor="rabbit"]{bottom:7%;height:76%;width:34%}
+@media(max-width:640px){
+ .hp-actor[data-actor="parrot"],.hp-actor[data-actor="turtle"],
+ .hp-actor[data-actor="fox"],.hp-actor[data-actor="rabbit"]{
+  left:0;bottom:18%;height:54%;width:49%;
+ }
+ .hp-actor[data-actor="turtle"]{height:50%;bottom:19%}
+}
+@media(max-width:360px){
+ .hp-actor[data-actor="parrot"],.hp-actor[data-actor="turtle"],
+ .hp-actor[data-actor="fox"],.hp-actor[data-actor="rabbit"]{
+  left:0;bottom:19%;height:50%;width:46%;
+ }
 }
