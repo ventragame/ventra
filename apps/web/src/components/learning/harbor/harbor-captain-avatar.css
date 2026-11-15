@@ -1,0 +1,63 @@
+/* Dialogue Harbor: the actual captain is animated, not an extra mascot. */
+.harbor-captain-avatar{
+ position:relative;isolation:isolate;display:block;flex:none;
+ width:100%;height:100%;min-width:0;
+ pointer-events:none!important;user-select:none!important;contain:layout paint;
+}
+.harbor-captain-avatar-static,.harbor-captain-avatar-motion{
+ position:absolute;inset:0;width:100%;height:100%;display:block;
+ pointer-events:none!important;object-fit:contain;object-position:center bottom;
+}
+.harbor-captain-avatar-static{transition:opacity .18s ease}
+.harbor-captain-avatar-motion svg{display:block;width:100%!important;height:100%!important}
+.hp-actor[data-actor="leo"]{animation:none!important}
+.hp-actor[data-actor="leo"]>.harbor-captain-avatar{width:min(100%,370px);height:100%}
+.harbor-intro-character{
+ display:grid;grid-template-columns:clamp(135px,18vw,205px) minmax(0,1fr);
+ align-items:center;gap:clamp(8px,2.8vw,24px);
+ max-width:910px;text-align:left;padding:clamp(12px,2vw,24px);margin:7px auto 18px;
+ border:2px solid #f9e5a8aa;border-radius:27px;
+ background:radial-gradient(circle at 14% 36%,#4dbfca58,transparent 47%),
+ linear-gradient(125deg,#0b3658f0,#0c4b68ed);
+ box-shadow:0 14px 29px #062c4b76,inset 0 1px 0 #ffffff36;
+}
+.harbor-intro-captain{
+ display:block;position:relative;min-width:0;height:clamp(166px,19vw,215px);
+ background:radial-gradient(ellipse at 50% 80%,#8ddad24a,transparent 68%);
+}
+.harbor-intro-captain>.harbor-captain-avatar{height:100%;width:100%}
+.harbor-intro-copy{min-width:0}
+.harbor-intro-character .harbor-intro-copy h2{font-size:clamp(21px,3.1vw,38px)}
+.harbor-intro-character .harbor-intro-copy p{line-height:1.55}
+.harbor-finale-captain{
+ width:clamp(135px,28vw,235px);height:clamp(155px,34vw,262px);
+ margin:0 auto 9px;pointer-events:none;
+ background:radial-gradient(circle at 50% 65%,#f8dc9059,transparent 69%);
+}
+.harbor-finale-captain>.harbor-captain-avatar{height:100%;width:100%}
+@media(max-width:640px){
+ .hp-actor[data-actor="leo"]{left:0;bottom:15%;height:58%;width:49%}
+ .hp-actor[data-actor="leo"]>.harbor-captain-avatar{width:100%}
+ .harbor-intro-character{
+  grid-template-columns:clamp(105px,30vw,146px) minmax(0,1fr);
+  gap:10px;padding:10px;border-radius:20px;
+ }
+ .harbor-intro-captain{height:clamp(154px,42vw,202px)}
+ .harbor-intro-character .harbor-intro-copy h2{
+  font-size:clamp(19px,4.9vw,29px);line-height:1.16;margin:6px 0;
+ }
+ .harbor-intro-character .harbor-intro-copy p{font-size:11px;line-height:1.42}
+ .harbor-intro-character .harbor-intro-copy>span{font-size:9px;letter-spacing:.06em}
+ .harbor-finale-captain{height:185px;width:167px}
+}
+@media(max-width:360px){
+ .harbor-intro-character{grid-template-columns:92px minmax(0,1fr);gap:6px;padding:7px}
+ .harbor-intro-captain{height:146px}
+ .harbor-intro-character .harbor-intro-copy h2{font-size:18px}
+ .harbor-intro-character .harbor-intro-copy p{font-size:10px}
+ .hp-actor[data-actor="leo"]{bottom:17%;height:53%;width:47%}
+}
+@media(prefers-reduced-motion:reduce){
+ .harbor-captain-avatar-static{transition:none!important}
+ .harbor-captain-avatar-motion{display:none!important}
+}
