@@ -79,7 +79,7 @@ async function prepareRuntime(){
  console.log('[Ventra STT] Pinned Sherpa ESM, raw Emscripten loader and WASM verified ('+runtimeFiles.length+' JS chunks).');
 }
 
-const base = 'https://huggingface.co/csukuangfj/sherpa-onnx-streaming-zipformer-en-2023-06-26/resolve/6037ea0/';
+const base = 'https://huggingface.co/csukuangfj/sherpa-onnx-streaming-zipformer-en-2023-06-26/resolve/6037ea0';
 const files = [
  { name:'encoder.onnx',source:'encoder-epoch-99-avg-1-chunk-16-left-128.int8.onnx',bytes:71083163,sha256:'563fde436d16cf7607cf408cd6b30909819d03162652ef389c2450ced3f45ac1' },
  { name:'decoder.onnx',source:'decoder-epoch-99-avg-1-chunk-16-left-128.int8.onnx',bytes:1307236,sha256:'98da299f471e38bb4e1a8df579b8cc9122d6039576a77e357b3c60f17dd83b02' },
