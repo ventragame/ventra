@@ -184,3 +184,17 @@ test('Production model promotion prevents silent 20M fallback or duplicate expor
  assert.match(smoke,/English ASR failed required word recognition/);
  assert.doesNotMatch(worker,/sherpa-20m/);
 });
+
+test('Mobile audio context unlock occurs in the user gesture before the offline model is ready',()=>{
+ const audio=read('../src/lib/speech/localSherpa.ts');
+ const begin=audio.indexOf('const mic=navigator.mediaDevices.getUserMedia');
+ const unlocked=audio.indexOf('contextReady=context.resume()',begin);
+ const init=audio.indexOf('const engine=acquireWorker()',begin);
+ const ready=audio.indexOf('await engine.ready',begin);
+ const micConnect=audio.indexOf('source=context.createMediaStreamSource(stream)',begin);
+ assert.ok(begin>=0&&unlocked>begin&&init>unlocked&&ready>init&&micConnect>ready);
+ assert.match(audio,/audio-context-suspended/);
+ assert.match(audio,/context.state!=='running'/);
+ const harbor=read('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
+ assert.match(harbor,/audio-context-suspended/);
+});

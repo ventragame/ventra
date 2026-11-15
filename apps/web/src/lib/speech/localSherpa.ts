@@ -224,6 +224,15 @@ export function beginLocalSherpaRecognition(
   const mic=navigator.mediaDevices.getUserMedia({
    video:false,audio:{echoCancellation:true,noiseSuppression:true,autoGainControl:true}
   });
+  // Initiate audio context while the microphone-button gesture is still
+  // active. Safari/Chrome may suspend an AudioContext resumed only after the
+  // first 73MB download, even when permission itself has been granted.
+  let contextReady:Promise<void>|null=null;
+  try{context=new AudioContext({sampleRate:OUT_RATE});}
+  catch{context=new AudioContext();}
+  if(context.state==='suspended'){
+   contextReady=context.resume().catch(()=>{});
+  }
   const engine=acquireWorker();
   poolForRun=engine;
   try{stream=await mic;}catch(error){
@@ -239,7 +248,7 @@ export function beginLocalSherpaRecognition(
   }
   if(done)return;
   try{
-  // Same loaded module is reused between answers until idle to avoid 40 MB
+  // Same loaded module is reused between answers until idle to avoid model
   // redownload and WASM initialization on every child microphone click.
   const worker=engine.worker;
   listener=(event)=>{
@@ -254,12 +263,18 @@ export function beginLocalSherpaRecognition(
   worker.addEventListener('message',listener);
   startedOnWorker=true;
   worker.postMessage({type:'start',id});
-  // Initialize the capture AFTER the model is ready, so no child utterance
-  // gets thrown away while the first model download is in progress.
-  try{context=new AudioContext({sampleRate:OUT_RATE});}
-  catch{context=new AudioContext();}
-  if(context.state==='suspended')await context.resume();
+  // The mic is connected only once model download and initialization finish;
+  // previously requested audio context has already been unlocked on tap.
+  if(contextReady)await contextReady;
   if(done)return;
+  if(!context){finish(failed('audio-pipeline-failed'));return;}
+  if(context.state==='suspended'){
+   try{await context.resume();}catch{}
+  }
+  if(done)return;
+  if(context.state!=='running'){
+   finish(failed('audio-context-suspended'));return;
+  }
   source=context.createMediaStreamSource(stream);
   if(context.audioWorklet&&typeof AudioWorkletNode!=='undefined'){
    try{

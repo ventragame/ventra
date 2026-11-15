@@ -315,6 +315,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
     'decoder-timeout':'Yerel İngilizce konuşma çözümlemesi zaman aşımına uğradı.',
     'wasm-worker-error':'Tarayıcı WebAssembly worker başlatamadı.',
     'audio-pipeline-failed':'Cihazın mikrofon ses akışı başlatılamadı.',
+    'audio-context-suspended':'Tarayıcı mikrofon ses işleyicisini askıda tuttu. Ekrana dokunup tekrar deneyin.',
     'stream-create':'Yerel konuşma akışı oluşturulamadı.'
    };
    const diagnostic=errorMessage[result.reason??'']??'Konuşma tanıma bu cihazda kullanılamıyor.';
