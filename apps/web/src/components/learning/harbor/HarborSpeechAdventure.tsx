@@ -8,6 +8,7 @@ import {HARBOR_EPISODES,HARBOR_GAME_ID,matchesExpectedSpeech,type HarborLevel} f
 import {getHarborEpisodeSteps,getHarborEpisodeQuests,harborChoiceOrder} from '@/lib/learning/harborMissionEngine';
 import {HARBOR_SCENE_ASSETS} from '@/lib/learning/harborSceneAssets';
 import {HarborSceneStage,type HarborPropId} from './HarborSceneStage';
+import {HarborCaptainAvatar,type HarborCaptainMood} from './HarborCaptainAvatar';
 import {LearningMotion} from '@/components/learning/motion/LearningMotion';
 import {readHarborCheckpoint,saveHarborCheckpoint,clearHarborCheckpoint} from '@/lib/learning/harborCheckpoint';
 import {speechCapability,installLocalEnglish,listenToChild,listenToIndependentSpeech,stopSpeechCapture,type SpeechCapability,type SpeechCaptureStatus} from '@/lib/speech/childSpeech';
@@ -15,6 +16,7 @@ import {independentSttConfigured,hasAdultSession} from '@/lib/speech/independent
 import {localSherpaAvailable} from '@/lib/speech/localSherpa';
 import './harbor-speech.css';
 import './harbor-premium-scene.css';
+import './harbor-captain-avatar.css';
 
 type Props={profileId:string;englishLevel:HarborLevel;gradeLevel:number|null;onBack:()=>void;onSaved:()=>void};
 type Phase='map'|'playing'|'completed';
@@ -32,6 +34,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  const [capability,setCapability]=useState<SpeechCapability>(EMPTY_CAPABILITY);
  const [independentEnabled,setIndependentEnabled]=useState(false);
  const [listening,setListening]=useState(false);
+ const [narrating,setNarrating]=useState(false);
  const [micStatus,setMicStatus]=useState<SpeechCaptureStatus|'idle'>('idle');
  const [busy,setBusy]=useState(false);
  const [feedback,setFeedback]=useState('');
@@ -45,6 +48,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  const timer=useRef<ReturnType<typeof setTimeout>|null>(null);
  const completionSessionId=useRef<string|null>(null);
  const generation=useRef(0);
+ const narrationRun=useRef(0);
  const locked=useRef(false);
  const startedAt=useRef(Date.now());
  const mission=HARBOR_EPISODES[episode-1];
@@ -61,7 +65,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   :capability;
  const speechAvailable=['web-local','web-browser','native-local','sherpa-local','server-stt'].includes(activeCapability.mode);
  const close=useCallback(()=>{
-  generation.current++;stopSpeechCapture();soundService.setCaptureActive(false);soundService.cancelSpeech();
+  generation.current++;narrationRun.current++;setNarrating(false);stopSpeechCapture();soundService.setCaptureActive(false);soundService.cancelSpeech();
   if(timer.current)clearTimeout(timer.current);
   onBack();
  },[onBack]);
@@ -86,10 +90,11 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
     ));
    }).catch(()=>{if(live)setSaveError('Kayıtlı görevler okunamadı. Sonraki bölüm için önce bağlantını kontrol et.');});
   const stopOnBackground=()=>{if(document.hidden){
-   generation.current++;stopSpeechCapture();soundService.setCaptureActive(false);setListening(false);
+   generation.current++;narrationRun.current++;setNarrating(false);soundService.cancelSpeech();
+   stopSpeechCapture();soundService.setCaptureActive(false);setListening(false);
   }};
   document.addEventListener('visibilitychange',stopOnBackground);
-  return()=>{document.removeEventListener('visibilitychange',stopOnBackground);
+  return()=>{narrationRun.current++;document.removeEventListener('visibilitychange',stopOnBackground);
    live=false;generation.current++;stopSpeechCapture();soundService.setCaptureActive(false);
    if(timer.current)clearTimeout(timer.current);
    soundService.cancelSpeech();
@@ -97,7 +102,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  },[profileId,englishLevel]);
  const start=(id:number)=>{
   if(id>completed+1||busy)return;
-  generation.current++;
+  generation.current++;narrationRun.current++;setNarrating(false);
   completionSessionId.current=null;
   soundService.unlockAudio();stopSpeechCapture();soundService.cancelSpeech();
   if(timer.current)clearTimeout(timer.current);
@@ -112,7 +117,15 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  const speak=()=>{
   if(busy||listening)return;
   soundService.unlockAudio();
-  soundService.speakEnglish(prompt.line,{rate:gradeLevel!==null&&gradeLevel<=2?.77:englishLevel==='A2'?.93:.83});
+  const run=++narrationRun.current;
+  setNarrating(false);
+  const started=soundService.speakEnglish(prompt.line,{
+   rate:gradeLevel!==null&&gradeLevel<=2?.77:englishLevel==='A2'?.93:.83,
+   onStart:()=>{if(run===narrationRun.current)setNarrating(true);},
+   onEnd:()=>{if(run===narrationRun.current)setNarrating(false);},
+   onError:()=>{if(run===narrationRun.current)setNarrating(false);}
+  });
+  if(!started)setNarrating(false);
  };
  const selectSceneObject=(id:HarborPropId)=>{
   if(sceneSelected||busy||locked.current||listening)return;
@@ -127,12 +140,13 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   if(phase!=='playing'||!canAnswer)return;
   const handle=window.setTimeout(()=>{
    if(!document.hidden&&!locked.current){
-    soundService.speakEnglish(prompt.line,{rate:gradeLevel!==null&&gradeLevel<=2?.77:englishLevel==='A2'?.92:.83});
+    speak(); // Real narration callbacks drive the captain mouth.
    }
   },400);
   return()=>window.clearTimeout(handle);
  },[phase,episode,question,canAnswer,englishLevel,gradeLevel,prompt.line]);
  const save=async(errors:number,assisted:number,recognized:number)=>{
+  narrationRun.current++;setNarrating(false);
   setBusy(true);setFeedback('Bölüm tamamlandı! Yıldızların kaydediliyor…');
   const independent=Math.max(0,script.length-errors);
   const stars:1|2|3=errors===0&&assisted===0?3:errors<=2?2:1;
@@ -165,7 +179,8 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  const correct=(recognizedCount=voiceRecognized)=>{
   if(locked.current||busy||!canAnswer)return;
   locked.current=true;setSceneResolved(true);
-  generation.current++;stopSpeechCapture();soundService.setCaptureActive(false);setListening(false);
+  generation.current++;narrationRun.current++;setNarrating(false);
+  stopSpeechCapture();soundService.setCaptureActive(false);setListening(false);
   setFeedback('Harika! ✨');soundService.playSfx('correct',.7);
   if(timer.current)clearTimeout(timer.current);
   saveHarborCheckpoint(profileId,englishLevel,episode,
@@ -190,7 +205,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   if(locked.current||busy||listening||!canAnswer)return;
   const run=++generation.current;
   setListening(true);setMicStatus('starting');setFeedback('');
-  soundService.cancelSpeech();
+  narrationRun.current++;setNarrating(false);soundService.cancelSpeech();
   soundService.setCaptureActive(true);
   let result;
   try{
@@ -385,12 +400,20 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   setFeedback(ok?'Artık konuşmayı yeniden deneyebilirsin!':'Cevabı seçerek de devam edebilirsin.');
  };
  const backToMap=()=>{
-  generation.current++;stopSpeechCapture();soundService.setCaptureActive(false);soundService.cancelSpeech();
+  generation.current++;narrationRun.current++;setNarrating(false);stopSpeechCapture();soundService.setCaptureActive(false);soundService.cancelSpeech();
   if(timer.current)clearTimeout(timer.current);locked.current=false;
   setPhase('map');setSceneSelected(false);setSceneResolved(false);
   setFeedback('');setSaveError('');setMicStatus('idle');setParentDiagnostic('');setSpeechDiagnosticCode('');
  };
  const options=harborChoiceOrder(prompt,englishLevel,question,replayIndex);
+ // Real TTS events control talk; microphone capture controls listen. The
+ // existing NPC art remains intact in quests not spoken by Captain Leo.
+ const captainMood:HarborCaptainMood=phase==='completed'?'celebrate':
+  listening?'listen':narrating?'talk':sceneResolved?'happy':
+  feedback.startsWith('Bir daha')||feedback.startsWith('Biraz daha')||
+  feedback.startsWith('🎤 Tekrar')?'try_again':'idle';
+ const captainCue=episode+':'+question+':'+Number(sceneSelected)+':'+
+  Number(sceneResolved)+':'+Number(listening)+':'+Number(narrating)+':'+feedback;
  return <div className="harbor-root" role="dialog" aria-modal="true" aria-label="Diyalog Limanı">
   <header className="harbor-header">
    <button type="button" className="harbor-back" onClick={phase==='map'?close:backToMap} aria-label={phase==='map'?'Adalar Evreni’ne dön':'Bölümlere dön'}>←</button>
@@ -400,9 +423,15 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   <main className="harbor-main">
    <div className="harbor-cover" aria-hidden="true"/>
    {phase==='map'?<>
-    <div className="harbor-intro"><span>⚓ KAPTANIN SANA BİR MESAJI VAR!</span>
-     <h2>Konuş, Dinle, Maceraya Katıl!</h2>
-     <p>Beş eğlenceli yolculukta İngilizce konuşmayı keşfet. Mikrofon isteğe bağlı; her görevi dokunarak da tamamlayabilirsin.</p>
+    <div className="harbor-intro harbor-intro-character">
+     <div className="harbor-intro-captain">
+      <HarborCaptainAvatar mood="idle" cue="harbor-map"/>
+     </div>
+     <div className="harbor-intro-copy">
+      <span>⚓ KAPTAN LEO SENİ BEKLİYOR!</span>
+      <h2>Konuş, Dinle, Maceraya Katıl!</h2>
+      <p>Beş eğlenceli yolculukta İngilizce konuşmayı keşfet. Mikrofon isteğe bağlı; her görevi dokunarak da tamamlayabilirsin.</p>
+     </div>
     </div>
     <div className="harbor-episode-grid">
      {HARBOR_EPISODES.map(item=><button type="button" key={item.id}
@@ -430,7 +459,8 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
     </div>
     <HarborSceneStage key={quest.id} quest={quest} questStep={questStep}
      selected={sceneSelected} resolved={sceneResolved} onSelect={selectSceneObject}
-     onSpeak={speak} speakerLine={prompt.line} speaking={listening||busy}/>
+     onSpeak={speak} speakerLine={prompt.line} speaking={listening||busy}
+     avatarMood={captainMood} avatarCue={captainCue}/>
     <div className="hp-quest-text">
      {quest.mission}
      <small>{canAnswer?'Dinle ve cevap ver. Doğru cevapla dünya değişsin!':
@@ -518,7 +548,9 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
    </>:<>
     <div className="harbor-finale relative isolate overflow-hidden">
      <LearningMotion variant="victory" trigger={'harbor-finished-'+episode}/>
-     <div aria-hidden="true">🎉🏆✨</div>
+     <div className="harbor-finale-captain" aria-hidden="true">
+      <HarborCaptainAvatar mood="celebrate" cue={'saved-'+episode}/>
+     </div>
      <h2>{mission.title} Tamamlandı!</h2>
      <p>{feedback}</p>
      <p>İngilizce konuşmaya devam et; her deneme yeni bir keşif!</p>
