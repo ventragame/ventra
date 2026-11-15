@@ -112,3 +112,11 @@ Düzeltmede regex, fail-fast davranışı ve üretim varlık bütünlük
 kontrolleri eklendi. Derlemenin geçmesi konuşmanın gerçek bir cihazda
 anlaşıldığını **kanıtlamaz**. İngilizce çocuk sesleriyle cihaz kabul
 testleri yine zorunludur.
+
+## 15 Kasım 2026 — kısa çocuk konuşmalarının doğrulanması
+
+- Eski enerji-eşiği davranışı düşük sesli konuşmaları modele göndermeden reddedebiliyordu; artık yeterli PCM ve ölçülebilir giriş olduğunda gerçek decode yapılır.
+- Ses işleyici 44.1/48 kHz girişleri parçaların sınırında fazı koruyarak sürekli 16 kHz'e dönüştürür.
+- Kısa/boş (ör. tek harf) çıktı için tam kısa konuşma, yüklenmiş yerel modelle ikinci kez denenir; en fazla 12 saniyelik PCM geçici Worker belleğinde tutulur ve sonlandırmada silinir. Bu bir "doğru cevap seçme" hilesi değildir.
+- GitHub Actions smoke testi artık yalnızca sessizlik değil, ürünün içindeki gerçek İngilizce WAV örnekleriyle de modeli çalıştırır; metin sonuçları CI'da görünür (bunlar çocuk kayıtları değildir).
+- Bu önlemler gerçek çocuk konuşmaları üzerinde bir doğruluk garantisi değildir. Modelin küçük olması, mikrofon kalitesi, aksan, gürültü ve ilk model indirmesi hâlâ ölçülmesi gereken sınırlamalardır.

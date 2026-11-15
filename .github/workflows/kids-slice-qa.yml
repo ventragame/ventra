@@ -49,7 +49,7 @@ jobs:
         run: npm run build:web
       - name: Verify packaged offline English model and WASM (web)
         run: npm --workspace=apps/web run speech:verify
-      - name: Initialize real Sherpa WASM and decode deterministic silent PCM
+      - name: Initialize real Sherpa WASM and decode silent plus spoken English WAV fixtures
         run: npm --workspace=apps/web run speech:smoke
       - name: Smoke test actual Next.js HTTP speech assets (prevent manifest 404)
         run: |
