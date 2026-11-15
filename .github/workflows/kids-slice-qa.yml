@@ -58,7 +58,7 @@ jobs:
           trap 'kill "$server_pid" 2>/dev/null || true' EXIT
           found=0
           for attempt in $(seq 1 40); do
-            if curl -fsS http://127.0.0.1:3217/speech/sherpa-20m/manifest.json -o /tmp/ventra-speech-manifest.json; then
+            if curl -fsS http://127.0.0.1:3217/speech/sherpa-english-2023-06-26/manifest.json -o /tmp/ventra-speech-manifest.json; then
               found=1
               break
             fi
@@ -69,7 +69,7 @@ jobs:
             cat /tmp/ventra-speech-next.log
             exit 1
           fi
-          node -e "const fs=require('node:fs');const m=JSON.parse(fs.readFileSync('/tmp/ventra-speech-manifest.json'));if(m.version!=='sherpa-onnx-zipformer-en-20m-int8-d42f2d9'||m.files?.length!==4)process.exit(1);console.log('HTTP speech manifest valid with four English model files')"
+          node -e "const fs=require('node:fs');const m=JSON.parse(fs.readFileSync('/tmp/ventra-speech-manifest.json'));if(m.version!=='sherpa-onnx-zipformer-en-2023-06-26-int8-6037ea0'||m.files?.length!==4)process.exit(1);console.log('HTTP speech manifest valid with four English model files')"
           curl -fsSI http://127.0.0.1:3217/speech/sherpa-runtime/index.js > /dev/null
           curl -fsSI http://127.0.0.1:3217/speech/sherpa-runtime/asr-prebuilt.js > /dev/null
           curl -fsSI http://127.0.0.1:3217/speech/sherpa-runtime/asr.wasm > /dev/null

@@ -29,9 +29,7 @@ jobs:
         run: npm ci
       - name: Prepare pinned local English model and verified WASM
         run: npm --workspace=apps/web run speech:prepare
-      - name: Decode real English speech WAV and compare endpoint variants
+      - name: Decode real English WAV fixtures with strict expected-word checks
         run: npm --workspace=apps/web run speech:smoke
-      - name: Compare stronger Apache-2.0 offline English ASR model on real WAV fixtures
-        run: node apps/web/scripts/compare-sherpa-models.mjs
       - name: Test microphone resampler and local-only speech lifecycle
         run: node --test --experimental-strip-types apps/web/tests/sherpa_local.test.mjs apps/web/tests/harbor_speech.test.mjs

@@ -5,8 +5,8 @@ import {advanceShortVoice,type ShortVoiceState} from './shortUtteranceVAD.ts';
 
 // Bound-memory, local-only Sherpa recognition. The model is prepared during
 // build; it is loaded only after the learner starts a microphone attempt.
-const MODEL='/speech/sherpa-20m/manifest.json';
-const VERSION='sherpa-onnx-zipformer-en-20m-int8-d42f2d9';
+const MODEL='/speech/sherpa-english-2023-06-26/manifest.json';
+const VERSION='sherpa-onnx-zipformer-en-2023-06-26-int8-6037ea0';
 type WorkerReply=
  | {type:'ready'}
  | {type:'progress';file:string;index:number;total:number}

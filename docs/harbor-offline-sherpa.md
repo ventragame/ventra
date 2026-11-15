@@ -36,7 +36,7 @@ Türkçeye çevirmiyoruz; İngilizce ses → İngilizce yazı → mevcut
 
 ## Ücretsiz ve gizlilik
 Konuşma başına API ücreti **yoktur**; hiçbir servis anahtarı gerekmez.
-Ancak ~45MB ilk indirme, CDN bandwidth, cihaz CPU/bellek kullanımı
+Ancak ~73MB ilk indirme, CDN bandwidth, cihaz CPU/bellek kullanımı
 bedava değildir. Model daha önceden yüklenmediyse çevrimdışı ilk
 kullanım çalışmaz. Tarayıcı cache temizlenirse yeniden indirilir.
 Model dosyaları tarayıcı cache ve WASM belleğinde olabilir; ses ve
@@ -120,3 +120,9 @@ testleri yine zorunludur.
 - Kısa/boş (ör. tek harf) çıktı için tam kısa konuşma, yüklenmiş yerel modelle ikinci kez denenir; en fazla 12 saniyelik PCM geçici Worker belleğinde tutulur ve sonlandırmada silinir. Bu bir "doğru cevap seçme" hilesi değildir.
 - GitHub Actions smoke testi artık yalnızca sessizlik değil, ürünün içindeki gerçek İngilizce WAV örnekleriyle de modeli çalıştırır; metin sonuçları CI'da görünür (bunlar çocuk kayıtları değildir).
 - Bu önlemler gerçek çocuk konuşmaları üzerinde bir doğruluk garantisi değildir. Modelin küçük olması, mikrofon kalitesi, aksan, gürültü ve ilk model indirmesi hâlâ ölçülmesi gereken sınırlamalardır.
+
+## 15 Kasım 2026 — 2023-06-26 güçlü model terfisi
+
+Daha küçük 20M model, gerçek yerel İngilizce ses dosyalarında 'great job' -> 'y job', 'listen carefully' -> 'ly', 'find the cat' -> 't' gibi kabul edilemez sonuçlar üretti. Ses seviyesini artırmak veya modele sessizlik eklemek bunu düzeltmedi. Daha güçlü, 2023-06-26 Apache-2.0 Zipformer INT8 modeli aynı WAV testlerinde 7/7 beklenen kelimeyi yakaladı (ilk kaydın sonunda fazladan 'and' üretildi). Üç WAV testi gerçek çocuk konuşması doğruluğunu garanti etmez. CI bunu doğru kelimelerin tümünü yakalayabilme koşulu olarak zorlar.
+
+Üretim dosyaları `public/speech/sherpa-english-2023-06-26/` içinde oluşturulur. İndirme yaklaşık 73 MB + 13.8 MB WASM ve runtime olup ücretsiz API kullanımına sahiptir; ilk indirme, barındırma/veri aktarımı ve cihaz RAM/CPU tüketimi ücretsiz değildir. Eski `sherpa-20m` yerel klasörü başarılı hazırlık sonunda silinir, böylece Android/iOS paketlerine çift model girmez. Model dosyaları sabit upstream revizyona bağlı SHA-256 değerleriyle doğrulanır. Yeni bir ses tanıma servisine çocuk sesi gönderilmez. İlk kullanımda hazırlık aşaması geçmeden konuşma başlanmamalıdır.

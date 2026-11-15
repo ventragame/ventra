@@ -58,7 +58,7 @@ function linearResample(input,sourceRate,targetRate){
 
 const root=resolve(import.meta.dirname,'../public/speech');
 const runtime=resolve(root,'sherpa-runtime');
-const model=resolve(root,'sherpa-20m');
+const model=resolve(root,'sherpa-english-2023-06-26');
 let recognizer=null,stream=null;
 async function main(){
  const {default:initialize}=await import(pathToFileURL(resolve(runtime,'asr-prebuilt.js')).href);
@@ -141,7 +141,11 @@ async function main(){
    const recognized=[...collected,current].filter(Boolean).join(' ').trim();
    const cleaned=recognized.toLowerCase().replace(/[^a-z ]/g,' ').replace(/\\s+/g,' ').trim();
    console.log('[Ventra STT] Speech fixture',name,'expect:',expected,'actual:',JSON.stringify(cleaned));
-   if(!cleaned)throw Error('Model produced NO WORDS for actual English speech: '+name);
+   const expectedTokens=expected.split(' ');
+   const actualTokens=cleaned.split(' ');
+   if(!expectedTokens.every(token=>actualTokens.includes(token)))
+    throw Error('English ASR failed required word recognition: '+name+
+     ' expected '+JSON.stringify(expected)+' got '+JSON.stringify(cleaned));
 
    // Diagnostic variants (not production inference): determine whether the
    // partial-word bug is input trimming, low gain, or premature endpoint reset.

@@ -57,11 +57,11 @@ test('Only a deliberate microphone click starts Sherpa; no audio leaves the devi
  assert.match(harbor,/Tarayıcı motorunu dene/);
 });
 
-test('20M model and WASM are lazy, versioned, integrity checked and excluded from git',()=>{
+test('Pinned stronger English model and WASM are lazy, integrity checked and excluded from git',()=>{
  const prepare=read('../scripts/prepare-sherpa-local.mjs');
  const worker=read('../src/lib/speech/sherpaWorker.ts');
  const ignore=read('../../../.gitignore');
- assert.match(prepare,/sherpa-onnx-streaming-zipformer-en-20M-2023-02-17/);
+ assert.match(prepare,/sherpa-onnx-streaming-zipformer-en-2023-06-26/);
  assert.match(prepare,/sha256/);
  assert.match(prepare,/prepareRuntime\(\)/);
  assert.match(prepare,/manifestName/);
@@ -74,7 +74,7 @@ test('20M model and WASM are lazy, versioned, integrity checked and excluded fro
  assert.match(worker,/cache:'force-cache'/);
  assert.match(worker,/model-integrity/);
  assert.match(worker,/webpackIgnore: true/);
- assert.match(ignore,/apps\/web\/public\/speech\/sherpa-20m\//);
+ assert.match(ignore,/apps\/web\/public\/speech\/sherpa-english-2023-06-26\//);
 });
 
 test('Release verification checks the physical runtime and four model files',()=>{
@@ -166,4 +166,21 @@ test('Speech pipeline decodes weak microphone energy instead of silently droppin
  assert.match(worker,/selectClearTranscript\(first,retry\)/);
  assert.match(worker,/if\(!\/\[a-z\]\{2,\}\/i\.test\(first\)\)/);
  assert.doesNotMatch(worker,/expectedSpeech|prompt\.reply|correctAnswer|acceptSpeech/);
+});
+
+test('Production model promotion prevents silent 20M fallback or duplicate exported weights',()=>{
+ const setup=read('../scripts/prepare-sherpa-local.mjs');
+ const verify=read('../scripts/verify-sherpa-assets.mjs');
+ const smoke=read('../scripts/smoke-sherpa-engine.mjs');
+ const worker=read('../src/lib/speech/sherpaWorker.ts');
+ const capture=read('../src/lib/speech/localSherpa.ts');
+ for(const file of [setup,verify,worker,capture]){
+  assert.match(file,/sherpa-english-2023-06-26/);
+  assert.match(file,/sherpa-onnx-zipformer-en-2023-06-26-int8-6037ea0/);
+ }
+ assert.match(setup,/cleanLegacyModel/);
+ assert.match(setup,/Pinned English model size or SHA-256 mismatch/);
+ assert.match(verify,/expectedFiles/);
+ assert.match(smoke,/English ASR failed required word recognition/);
+ assert.doesNotMatch(worker,/sherpa-20m/);
 });

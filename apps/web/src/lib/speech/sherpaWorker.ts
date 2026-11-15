@@ -57,8 +57,8 @@ const worker=self as unknown as {
  onmessage:((event:MessageEvent<Message>)=>void)|null;
  close:()=>void;
 };
-const MODEL_ROOT='/speech/sherpa-20m/';
-const MODEL_VERSION='sherpa-onnx-zipformer-en-20m-int8-d42f2d9';
+const MODEL_ROOT='/speech/sherpa-english-2023-06-26/';
+const MODEL_VERSION='sherpa-onnx-zipformer-en-2023-06-26-int8-6037ea0';
 const models=['encoder.onnx','decoder.onnx','joiner.onnx','tokens.txt'] as const;
 let recognizer:any=null,stream:any=null;
 let running=0,previous='',segments:string[]=[];
