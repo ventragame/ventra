@@ -1,5 +1,15 @@
 # Ventra animation system — self-hosted, no paid animation services
 
+## Dialogue Harbor Character Pilot 1.0 — Captain Leo is the actor
+
+- This pilot **replaces the old monolithic inline SVG HarborCaptain** with an original **46-layer Captain Leo Lottie vector puppet** in the real speaking scenes while preserving his classic blue-and-gold uniform. No extra mascot is introduced beside a static captain.
+- Captain Leo appears on the welcome panel, in `quest.actor==='leo'` story scenes, and after the mission has been successfully saved. Other harbor speakers retain their WebP/PNG character art; WebP backdrops, quest objects and answer buttons remain unchanged.
+- The self-hosted `public/assets/characters/harbor-captain-leo.json` includes blinking eyes, moving mouth, hat/head, coat, arms and gold details in six state segments: `idle`, `listen`, `talk`, `happy`, `try_again`, `celebrate`. A matching original `.svg` file is the static fallback when loading, when motion is reduced, or when a Lottie asset is unavailable.
+- `HarborCaptainAvatar` loads the existing MIT-licensed `lottie-web` package on demand. It never accesses child recordings, transcripts or user data, and each Harbor view renders only one avatar.
+- The `talk` mood is driven by actual **SoundService onStart/onEnd** callbacks, rather than a timer that guesses when speech plays; microphone capture maps to `listen`; validated answers to `happy`; and `celebrate` is shown after the progress repository confirms a successful save. Late speech callbacks are ignored after interruptions and navigation.
+- Responsive layout retains a separate space for speech balloons and touch targets, including narrow-device overrides. Existing voice-recognition choices, checkpoints, learning content, scoring and speech consent remain unchanged.
+- The runtime and authored vectors are bundled with Ventra — no animation subscription, external playback API, downloaded marketplace packs or per-use license.
+
 ## Character 1.0 — original articulated guides
 
 - Aile Köyü: **village-fox**, a 25-layer original fox with separately animated eyes, smiling mouth, sleeves/arms, ears and tail. Replaces only the inactive instructional emoji and the trophy-only celebration; the family relationship learning illustrations, 3D backgrounds and answer buttons stay intact.
