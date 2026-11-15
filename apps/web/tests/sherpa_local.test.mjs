@@ -1,7 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import {readFileSync} from 'node:fs';
-import {resampleTo16k} from '../src/lib/speech/localSherpa.ts';
+import {resampleTo16k,createStreamingResamplerTo16k} from '../src/lib/speech/localSherpa.ts';
 import {advanceShortVoice,SHERPA_AUDIO_WORKLET_FRAMES,SHERPA_MIN_VOICED_MS} from '../src/lib/speech/shortUtteranceVAD.ts';
 
 const read=path=>readFileSync(new URL(path,import.meta.url),'utf8');
@@ -37,7 +37,7 @@ test('Only a deliberate microphone click starts Sherpa; no audio leaves the devi
  assert.match(sherpa,/new Worker\(new URL\('\.\/sherpaWorker\.ts',import\.meta\.url\)/);
  assert.match(sherpa,/navigator\.mediaDevices\.getUserMedia/);
  assert.match(sherpa,/audioWorklet\.addModule/);
- assert.match(sherpa,/resampleTo16k\(chunk,rate\)/);
+ assert.match(sherpa,/resampler\.push\(chunk,rate\)/);
  assert.match(sherpa,/requestDecode\(\)/);
  assert.match(sherpa,/stream\?\.getTracks\(\)\.forEach/);
  assert.match(sherpa,/audio-pipeline-failed/);
@@ -131,4 +131,39 @@ test('Short-word capture uses small AudioWorklet chunks and no false transcript 
  assert.match(capture,/advanceShortVoice\(voiceState,chunk,rate\)/);
  assert.match(capture,/voiceState\.detected/);
  assert.match(ui,/matchesExpectedSpeech\(result\.alternatives,prompt\.accept\)/);
+});
+
+test('44.1k and 48k streaming resampling is invariant to arbitrary worklet frame cuts',()=>{
+ for(const rate of [44100,48000]){
+  const seconds=1.32,source=new Float32Array(Math.floor(rate*seconds));
+  for(let i=0;i<source.length;i++){
+   source[i]=0.35*Math.sin(2*Math.PI*150*i/rate)
+    +0.16*Math.sin(2*Math.PI*720*i/rate);
+  }
+  const baseline=resampleTo16k(source,rate);
+  const streaming=createStreamingResamplerTo16k();
+  const pieces=[];
+  for(let i=0;i<source.length;i+=1024)pieces.push(streaming.push(source.subarray(i,i+1024),rate));
+  const joined=new Float32Array(pieces.reduce((n,p)=>n+p.length,0));
+  let offset=0;
+  for(const p of pieces){joined.set(p,offset);offset+=p.length;}
+  assert.equal(joined.length,baseline.length,'Same sample timeline regardless of chunk boundaries');
+  let maxDifference=0;
+  for(let i=0;i<joined.length;i++)maxDifference=Math.max(maxDifference,Math.abs(joined[i]-baseline[i]));
+  assert.ok(maxDifference<1e-5,'No 64ms discontinuities from resetting interpolation phase');
+ }
+});
+
+test('Speech pipeline decodes weak microphone energy instead of silently dropping child words',()=>{
+ const capture=read('../src/lib/speech/localSherpa.ts');
+ const worker=read('../src/lib/speech/sherpaWorker.ts');
+ assert.match(capture,/capturedSamples>=OUT_RATE\/4&&peakRms>=0\.0018/);
+ assert.match(capture,/quietAfterVoiceMs>=1350/);
+ assert.match(capture,/createStreamingResamplerTo16k\(\)/);
+ assert.match(capture,/resampler\.push\(chunk,rate\)/);
+ assert.match(worker,/MAX_REPLAY_FRAMES=16000\*12/);
+ assert.match(worker,/replayFinalUtterance\(\)/);
+ assert.match(worker,/selectClearTranscript\(first,retry\)/);
+ assert.match(worker,/if\(!\/\[a-z\]\{2,\}\/i\.test\(first\)\)/);
+ assert.doesNotMatch(worker,/expectedSpeech|prompt\.reply|correctAnswer|acceptSpeech/);
 });

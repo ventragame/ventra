@@ -62,6 +62,10 @@ const MODEL_VERSION='sherpa-onnx-zipformer-en-20m-int8-d42f2d9';
 const models=['encoder.onnx','decoder.onnx','joiner.onnx','tokens.txt'] as const;
 let recognizer:any=null,stream:any=null;
 let running=0,previous='',segments:string[]=[];
+let pcmChunks:Float32Array[]=[];
+let pcmFrames=0;
+const MAX_REPLAY_FRAMES=16000*12; // < 768 KiB, only within active attempt
+
 let loading:Promise<void>|null=null;
 const post=(event:SherpaWorkerEvent)=>worker.postMessage(event);
 const fail=(reason:string,id?:number)=>post({type:'error',id,reason});
@@ -69,6 +73,7 @@ const fail=(reason:string,id?:number)=>post({type:'error',id,reason});
 function disposeStream(){
  if(stream){try{stream.free();}catch{}stream=null;}
  previous='';segments=[];running=0;
+ pcmChunks=[];pcmFrames=0;
 }
 function drain(id:number){
  if(!stream||!recognizer)return '';
@@ -89,6 +94,55 @@ function drain(id:number){
  }
  return combined;
 }
+/** Rerun short/garbled output against the COMPLETE captured waveform.
+ * Sherpa's live endpoint detector can finalize a tiny English interjection
+ * as one letter. A fresh, bounded streaming pass with inputFinished avoids
+ * accepting the first truncated partial as the child's actual answer.
+ * Does NOT use answer-choice bias, phonetic guessing, or a cloud service.
+ */
+function replayFinalUtterance():string{
+ if(!recognizer||pcmFrames<16000/4)return '';
+ const trial=recognizer.createStream();
+ if(!trial?.handle)return '';
+ try{
+  const pcm=new Float32Array(pcmFrames);
+  let offset=0,power=0;
+  for(const chunk of pcmChunks){pcm.set(chunk,offset);offset+=chunk.length;}
+  for(let i=0;i<pcm.length;i++)power+=pcm[i]*pcm[i];
+  const rms=Math.sqrt(power/Math.max(1,pcm.length));
+  // Very quiet microphones need a conservative gain. Do not fabricate text
+  // from digital silence or amplify ambient hiss without bounds.
+  if(rms>0.0018&&rms<0.045){
+   const gain=Math.min(3.5,0.075/rms);
+   for(let i=0;i<pcm.length;i++)pcm[i]=Math.max(-1,Math.min(1,pcm[i]*gain));
+  }
+  let spins=0;
+  for(let pos=0;pos<pcm.length;pos+=3200){
+   trial.acceptWaveform(16000,pcm.subarray(pos,Math.min(pos+3200,pcm.length)));
+   while(recognizer.isReady(trial)){
+    recognizer.decode(trial);
+    if(++spins>2500)throw new Error('replay-stall');
+   }
+  }
+  trial.acceptWaveform(16000,new Float32Array(16000));
+  trial.inputFinished();
+  while(recognizer.isReady(trial)){
+   recognizer.decode(trial);
+   if(++spins>3000)throw new Error('replay-stall');
+  }
+  return String(recognizer.getResult(trial)?.text??'').trim().slice(0,180);
+ }finally{try{trial.free();}catch{}}
+}
+function selectClearTranscript(first:string,replayed:string):string{
+ const a=first.trim(),b=replayed.trim();
+ // A single character ("Y", "H") is never evidence that "Hello" was
+ // pronounced. If the second pass cannot recover a word, report uncertainty.
+ const wordLike=(s:string)=>/[a-z]{2,}/i.test(s);
+ if(!wordLike(a))return wordLike(b)?b:'';
+ if(wordLike(b)&&b.length>a.length+2)return b;
+ return a;
+}
+
 async function loadModel(){
  const response=await fetch(MODEL_ROOT+'manifest.json',{cache:'force-cache'});
  if(!response.ok)throw new Error('model-missing');
@@ -172,6 +226,10 @@ worker.onmessage=(event)=>{
    // sherpa consumes float PCM. Keep the configured 16k rate invariant;
    // the device pipeline resamples before sending worker messages.
    if(message.sampleRate!==16000){fail('sample-rate',message.id);disposeStream();return;}
+   if(pcmFrames<MAX_REPLAY_FRAMES){
+    const clip=message.samples.subarray(0,MAX_REPLAY_FRAMES-pcmFrames);
+    pcmChunks.push(clip);pcmFrames+=clip.length;
+   }
    stream.acceptWaveform(16000,message.samples);
    drain(message.id);
   }catch{fail('decode-failed',message.id);disposeStream();}
@@ -181,7 +239,14 @@ worker.onmessage=(event)=>{
   try{
    stream.acceptWaveform(16000,new Float32Array(16000));
    stream.inputFinished();
-   const text=drain(message.id).slice(0,180);
+   const first=drain(message.id).slice(0,180);
+   let retry='';
+   // Only pay for the second pass when an output is empty or suspiciously
+   // short. If the replay itself errors, retain the original result.
+   if(!/[a-z]{2,}/i.test(first)){
+    try{retry=replayFinalUtterance();}catch{}
+   }
+   const text=selectClearTranscript(first,retry);
    post({type:'result',id:message.id,text});
   }catch{fail('decode-failed',message.id);}
   finally{disposeStream();}

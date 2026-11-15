@@ -9,7 +9,7 @@
  */
 export const SHERPA_AUDIO_WORKLET_FRAMES=1024;
 export const SHERPA_MIN_VOICED_MS=96;
-export const SHERPA_VOICE_RMS_THRESHOLD=0.010;
+export const SHERPA_VOICE_RMS_THRESHOLD=0.006;
 
 export type ShortVoiceState={voicedMs:number;detected:boolean};
 export function advanceShortVoice(

@@ -86,21 +86,51 @@ function acquireWorker():Pool{
  return p;
 }
 
-/** Resample a short mono chunk from the real AudioContext rate to 16k.
- * Every frame gets a fresh typed buffer to transfer; no caller retains audio. */
+/** Stateful audio resampling: retain fractional phase AND the final source
+ * sample across worklet messages. Restarting interpolation every 1024 frames
+ * adds periodic discontinuities at 44.1/48 kHz, damaging short phonemes.
+ * No audio is stored beyond the previous sample in this helper.
+ */
+export function createStreamingResamplerTo16k(){
+ let inputRate=0;
+ let offset=0;
+ let position=0;
+ let previous=0;
+ return {
+  push(source:Float32Array,sampleRate:number):Float32Array{
+   if(!Number.isFinite(sampleRate)||sampleRate<8000||sampleRate>192000)
+    throw new Error('invalid-sample-rate');
+   if(inputRate!==0&&inputRate!==sampleRate)
+    throw new Error('sample-rate-changed');
+   inputRate=sampleRate;
+   if(source.length===0)return new Float32Array();
+   if(sampleRate===OUT_RATE){
+    offset+=source.length;
+    previous=source[source.length-1];
+    position=offset;
+    return new Float32Array(source);
+   }
+   const start=offset,end=start+source.length,step=sampleRate/OUT_RATE;
+   const out:number[]=[];
+   // A fractional output sample spanning two worklet chunks is completed
+   // only when the next chunk arrives, using "previous" as its left sample.
+   while(position<=end-1){
+    const lo=Math.floor(position),hi=lo+1,frac=position-lo;
+    if(frac>1e-8&&hi>=end)break;
+    const left=lo<start?previous:source[lo-start];
+    const right=hi<end?source[hi-start]:left;
+    out.push(left+(right-left)*frac);
+    position+=step;
+   }
+   offset=end;
+   previous=source[source.length-1];
+   return Float32Array.from(out);
+  }
+ };
+}
+/** One-shot compatibility wrapper, also used by deterministic fixture tests. */
 export function resampleTo16k(source:Float32Array,sampleRate:number):Float32Array{
- if(!Number.isFinite(sampleRate)||sampleRate<8000||sampleRate>192000)
-  throw new Error('invalid-sample-rate');
- if(sampleRate===OUT_RATE)return new Float32Array(source);
- const ratio=sampleRate/OUT_RATE;
- const count=Math.max(1,Math.round(source.length/ratio));
- const samples=new Float32Array(count);
- for(let i=0;i<count;i++){
-  const at=i*ratio,lo=Math.floor(at),hi=Math.min(source.length-1,lo+1);
-  const t=at-lo;
-  samples[i]=(source[lo]??0)*(1-t)+(source[hi]??0)*t;
- }
- return samples;
+ return createStreamingResamplerTo16k().push(source,sampleRate);
 }
 
 /** One attempt. Worker retains *model weights*, never audio. A no-speech
@@ -119,7 +149,9 @@ export function beginLocalSherpaRecognition(
  let poolForRun:Pool|null=null;
  let startedOnWorker=false;
  let voiceState:ShortVoiceState={voicedMs:0,detected:false};
- let startedVoice=0,lastVoice=0;
+ const resampler=createStreamingResamplerTo16k();
+ let capturedMs=0,voiceStartMs=0,quietAfterVoiceMs=0;
+ let capturedSamples=0,peakRms=0;
  let finishDecodeRequested=false;
  let promiseResolve!:(value:SpeechAttempt)=>void;
  const result=new Promise<SpeechAttempt>(r=>{promiseResolve=r;});
@@ -155,22 +187,34 @@ export function beginLocalSherpaRecognition(
   stopAudio();onStatus?.('processing');
   if(poolForRun?.worker&&startedOnWorker){
    poolForRun.worker.postMessage({type:'finish',id});
-   silenceTimeout=setTimeout(()=>finish(failed('decoder-timeout')),4500);
+   silenceTimeout=setTimeout(()=>finish(failed('decoder-timeout')),8000);
   }else finish(failed('model-not-ready'));
  };
  const onSamples=(chunk:Float32Array,rate:number)=>{
-  if(done||finishDecodeRequested||!poolForRun)return;
-  const now=performance.now();
+  if(done||finishDecodeRequested||!poolForRun||chunk.length===0)return;
+  const durationMs=1000*chunk.length/rate;
+  capturedMs+=durationMs;
   const previouslyDetected=voiceState.detected;
   voiceState=advanceShortVoice(voiceState,chunk,rate);
+  let power=0;
+  for(let i=0;i<chunk.length;i++)power+=chunk[i]*chunk[i];
+  const rms=Math.sqrt(power/chunk.length);
+  peakRms=Math.max(peakRms,rms);
   if(voiceState.detected){
-   if(!previouslyDetected){startedVoice=now;onStatus?.('speech-detected');}
-   // A quiet tail should not reset the last genuinely voiced frame.
-   if(voiceState.voicedMs>0)lastVoice=now;
+   if(!previouslyDetected){voiceStartMs=capturedMs;onStatus?.('speech-detected');}
+   // Count actual quiet audio frames. Do not extend the timer simply because
+   // the VAD's smoothed voicedMs is still decaying after a long sentence.
+   quietAfterVoiceMs=rms>0.006?0:quietAfterVoiceMs+durationMs;
   }
-  const samples=resampleTo16k(chunk,rate);
-  poolForRun.worker.postMessage({type:'audio',id,samples,sampleRate:16000},[samples.buffer]);
-  if(voiceState.detected&&now-startedVoice>350&&now-lastVoice>1050)requestDecode();
+  const samples=resampler.push(chunk,rate);
+  capturedSamples+=samples.length;
+  if(samples.length){
+   poolForRun.worker.postMessage({type:'audio',id,samples,sampleRate:16000},[samples.buffer]);
+  }
+  // Short "yes" and full A2 sentences both need a genuine quiet tail.
+  // Avoid cutting after the first syllable or a pause between words.
+  if(voiceState.detected&&capturedMs-voiceStartMs>=1800&&
+   quietAfterVoiceMs>=1350)requestDecode();
  };
  void (async()=>{
   if(!navigator.mediaDevices?.getUserMedia){finish(failed('microphone-unsupported'));return;}
@@ -242,7 +286,10 @@ export function beginLocalSherpaRecognition(
   onStatus?.('microphone-ready');
   micTimeout=setTimeout(()=>{
    if(done)return;
-   if(voiceState.detected)requestDecode();
+   // Quiet children often remain below the energy VAD threshold. Decode the
+   // recorded PCM anyway if there is plausible input, rather than discard it
+   // as silence without even asking the speech recognizer.
+   if(capturedSamples>=OUT_RATE/4&&peakRms>=0.0018)requestDecode();
    else finish(failed('no-speech','no-speech'));
   },Math.max(3500,Math.min(10500,timeoutMs)));
   // Keep processing bounded even if a browser suspends timers on idle tabs.
