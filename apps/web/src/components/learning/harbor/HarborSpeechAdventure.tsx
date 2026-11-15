@@ -7,6 +7,7 @@ import {soundService} from '@/lib/audio/SoundService';
 import {HARBOR_EPISODES,HARBOR_GAME_ID,matchesExpectedSpeech,type HarborLevel} from '@/lib/learning/harborDialogueEngine';
 import {getHarborEpisodeSteps,getHarborEpisodeQuests,harborChoiceOrder} from '@/lib/learning/harborMissionEngine';
 import {HARBOR_SCENE_ASSETS} from '@/lib/learning/harborSceneAssets';
+import {harborCoachHint,harborRetryMessage} from '@/lib/learning/harborGamePolish';
 import {HarborSceneStage,type HarborPropId} from './HarborSceneStage';
 import {HarborCaptainAvatar,type HarborCaptainMood} from './HarborCaptainAvatar';
 import {LearningMotion} from '@/components/learning/motion/LearningMotion';
@@ -20,6 +21,7 @@ import './harbor-captain-avatar.css';
 
 type Props={profileId:string;englishLevel:HarborLevel;gradeLevel:number|null;onBack:()=>void;onSaved:()=>void};
 type Phase='map'|'playing'|'completed';
+type HarborSummary={stars:1|2|3;score:number;spoken:number};
 const EMPTY_CAPABILITY:SpeechCapability={mode:'none',installable:false,message:'Mikrofon kontrol ediliyor…'};
 export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,onSaved}:Props){
  const [phase,setPhase]=useState<Phase>('map');
@@ -40,6 +42,10 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  const [feedback,setFeedback]=useState('');
  const [mistakes,setMistakes]=useState(0);
  const [hints,setHints]=useState(0);
+ const [hintStage,setHintStage]=useState(0);
+ const [modeledAnswer,setModeledAnswer]=useState(false);
+ const [wrongChoices,setWrongChoices]=useState<readonly string[]>([]);
+ const [summary,setSummary]=useState<HarborSummary|null>(null);
  const [voiceRecognized,setVoiceRecognized]=useState(0);
  const [saveError,setSaveError]=useState('');
  const [parentDiagnostic,setParentDiagnostic]=useState('');
@@ -110,16 +116,17 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   setEpisode(id);setQuestion(checkpoint?.step??0);
   setSceneSelected(Boolean(checkpoint&&checkpoint.step%3!==0));setSceneResolved(false);
   setMistakes(checkpoint?.mistakes??0);setHints(checkpoint?.hints??0);
+  setHintStage(0);setWrongChoices([]);setModeledAnswer(false);setSummary(null);
   setVoiceRecognized(checkpoint?.voiceRecognized??0);setReplayIndex(levelPlays[id]??0);
   setFeedback('');setSaveError('');setParentDiagnostic('');setSpeechDiagnosticCode('');setMicStatus('idle');setPhase('playing');locked.current=false;startedAt.current=Date.now();
   soundService.playSfx('tap',.5);
  };
- const speak=()=>{
-  if(busy||listening)return;
+ const speakLine=(line:string)=>{
+  if(busy||listening||locked.current)return;
   soundService.unlockAudio();
   const run=++narrationRun.current;
   setNarrating(false);
-  const started=soundService.speakEnglish(prompt.line,{
+  const started=soundService.speakEnglish(line,{
    rate:gradeLevel!==null&&gradeLevel<=2?.77:englishLevel==='A2'?.93:.83,
    onStart:()=>{if(run===narrationRun.current)setNarrating(true);},
    onEnd:()=>{if(run===narrationRun.current)setNarrating(false);},
@@ -127,6 +134,8 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   });
   if(!started)setNarrating(false);
  };
+ const speak=()=>speakLine(prompt.line);
+ const speakReply=()=>speakLine(prompt.reply);
  const selectSceneObject=(id:HarborPropId)=>{
   if(sceneSelected||busy||locked.current||listening)return;
   if(id!==quest.item){
@@ -150,13 +159,14 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   setBusy(true);setFeedback('Bölüm tamamlandı! Yıldızların kaydediliyor…');
   const independent=Math.max(0,script.length-errors);
   const stars:1|2|3=errors===0&&assisted===0?3:errors<=2?2:1;
+  const score=Math.max(0,Math.round(100*independent/script.length));
   // Reuse the same session id if the server commits but the acknowledgement fails.
   const sessionId=completionSessionId.current??crypto.randomUUID();
   completionSessionId.current=sessionId;
   const payload:GameCompletedPayload={
    sessionId,profileId,gameId:HARBOR_GAME_ID,levelId:episode,
    outcomeId:'en.speaking.harbor.dialogue',success:true,starsEarned:stars,
-   score:Math.round(100*independent/script.length),
+   score,
    metrics:{durationSeconds:Math.max(1,Math.round((Date.now()-startedAt.current)/1000)),
     attemptsCount:script.length+errors,wrongAttempts:errors,hintsUsed:assisted,
     accuracyRate:independent/script.length},
@@ -168,7 +178,8 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
    setLevelPlays(prev=>({...prev,[episode]:(prev[episode]??0)+1}));
    clearHarborCheckpoint(profileId,englishLevel,episode);
    setCheckpointed(prev=>({...prev,[episode]:false}));
-   setPhase('completed');setFeedback(recognized>0?'Sesinle maceraya renk kattın!':'Macera tamamlandı!');
+   setSummary({stars,score,spoken:recognized});
+    setPhase('completed');setFeedback(recognized>0?'Sesinle maceraya renk kattın!':'Macera tamamlandı!');
    soundService.playSfx('fanfare',.7);onSaved();
   }catch(err){
    console.error('[Harbor] progress',err);
@@ -192,14 +203,35 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
    setSceneSelected(next.quest.id===quest.id);
    setSceneResolved(false);
    setQuestion(q=>q+1);
+   setHintStage(0);setModeledAnswer(false);setWrongChoices([]);
    setFeedback('');locked.current=false;
   },1000);
  };
  const tap=(choice:string)=>{
   if(busy||locked.current||listening||!canAnswer)return;
   if(choice===prompt.reply){correct();return;}
-  setMistakes(n=>n+1);setFeedback('Bir daha deneyelim! Kaptanı dinle veya ipucunu kullan.');
+  if(!wrongChoices.includes(choice)){
+   setWrongChoices(previous=>[...previous,choice]);
+   setMistakes(n=>n+1);
+  }
+  setFeedback(harborRetryMessage(wrongChoices.length+1));
   soundService.playSfx('gentle_retry',.5);
+ };
+ // Sample speech is scaffolding, not confirmation that the child pronounced it.
+ // Replaying an example is charged as ONE hint per question.
+ const hearReply=()=>{
+  if(busy||locked.current||listening||!canAnswer)return;
+  if(!modeledAnswer){setHints(n=>n+1);setModeledAnswer(true);}
+  speakReply();
+ };
+ const help=()=>{
+  if(busy||locked.current||listening||!canAnswer)return;
+  const stage=Math.min(3,hintStage+1);
+  if(stage>hintStage){setHints(n=>n+1);setHintStage(stage);}
+  const hint=harborCoachHint(prompt.reply,englishLevel,stage);
+  setFeedback('💡 '+hint.message);
+  if(hint.action==='replay-question')speak();
+  else if(hint.action==='model-answer'){setModeledAnswer(true);speakReply();}
  };
  const mic=async()=>{
   if(locked.current||busy||listening||!canAnswer)return;
@@ -406,6 +438,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   generation.current++;narrationRun.current++;setNarrating(false);stopSpeechCapture();soundService.setCaptureActive(false);soundService.cancelSpeech();
   if(timer.current)clearTimeout(timer.current);locked.current=false;
   setPhase('map');setSceneSelected(false);setSceneResolved(false);
+  setHintStage(0);setModeledAnswer(false);setWrongChoices([]);setSummary(null);
   setFeedback('');setSaveError('');setMicStatus('idle');setParentDiagnostic('');setSpeechDiagnosticCode('');
  };
  const options=harborChoiceOrder(prompt,englishLevel,question,replayIndex);
@@ -456,8 +489,8 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
      </div>
     <div className="hp-quest-top">
      <span>{quest.title} — {Math.floor(question/3)+1}/3 görev</span>
-     <div className="hp-progress-track" aria-label="Bölüm ilerlemesi">
-      <i style={{width:((question+1)/script.length*100)+'%'}}/>
+     <div className="hp-progress-track" role="progressbar" aria-label="Bölüm ilerlemesi" aria-valuemin={0} aria-valuemax={script.length} aria-valuenow={question}>
+      <i style={{width:(question/script.length*100)+'%'}}/>
      </div>
     </div>
     <HarborSceneStage key={quest.id} quest={quest} questStep={questStep}
@@ -466,7 +499,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
      avatarMood={captainMood} avatarCue={captainCue}/>
     <div className="hp-quest-text">
      {quest.mission}
-     <small>{canAnswer?'Dinle ve cevap ver. Doğru cevapla dünya değişsin!':
+     <small>{canAnswer?'Dinle, sonra cevabı söyle veya seç!':
       'Sahnedeki doğru nesneye dokunarak işe başla.'}</small>
     </div>
     <div className="harbor-talk">
@@ -474,6 +507,8 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
      {canAnswer?<div className="harbor-answer-grid">
       {options.map((option,i)=><button type="button" key={option}
         data-level={englishLevel}
+        data-answer={sceneResolved&&option===prompt.reply?'correct':wrongChoices.includes(option)?'try-again':undefined}
+        aria-label={String.fromCharCode(65+i)+'. '+option}
         disabled={busy||listening||locked.current} onClick={()=>tap(option)}
         className="harbor-answer"><span>{String.fromCharCode(65+i)}</span>{option}</button>)}
      </div>:<p className="hp-need-interaction">Önce sahnedeki nesneyi keşfet! 🔎</p>}
@@ -505,7 +540,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
       <summary>Ses tanıma çalışmıyor mu?</summary>
       <div className="harbor-parent-content">
        <p>Varsayılan motor: cihaz içi sherpa-onnx (ücretsiz, API anahtarı yok).
-        İlk kullanımda yaklaşık 45 MB İngilizce model indirilebilir; ses ve kelimeler cihazda kalır.
+        İlk kullanımda yaklaşık 73 MB İngilizce model indirilebilir; ses ve kelimeler cihazda kalır.
         Web Speech API ve yetişkin hesabıyla isteğe bağlı sunucu motoru alternatif olarak korunur.</p>
        <p className="harbor-parent-diagnostic"><strong>Tanıma motoru:</strong> {activeCapability.mode}. {activeCapability.message}</p>
        {parentDiagnostic&&<p className="harbor-parent-diagnostic" role="status">{parentDiagnostic}</p>}
@@ -542,10 +577,14 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
       </div>
      </details>
      <p role="status" aria-live="polite" className="harbor-feedback">{feedback}</p>
-     <button type="button" className="harbor-hint" disabled={busy||listening||locked.current}
-      onClick={()=>{setHints(x=>x+1);setFeedback('💡 İpucu: '+prompt.reply);}}>
-      💡 Yardım Et
-     </button>
+     {canAnswer&&<div className="harbor-coach-actions">
+      <button type="button" className="harbor-model-answer"
+       disabled={busy||listening||locked.current} onClick={hearReply}>🔊 Örnek cevabı dinle</button>
+      <button type="button" className="harbor-hint"
+       disabled={busy||listening||locked.current} onClick={help}>
+       💡 {hintStage>0?'İpucu '+hintStage+'/3':'Yardım Et'}
+      </button>
+     </div>}
      {saveError&&<p role="alert" className="harbor-error">{saveError}<button type="button" onClick={()=>void save(mistakes,hints,voiceRecognized)}>Tekrar Kaydet</button></p>}
     </div>
    </>:<>
@@ -555,9 +594,20 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
       <HarborCaptainAvatar mood="celebrate" cue={'saved-'+episode}/>
      </div>
      <h2>{mission.title} Tamamlandı!</h2>
+     <div className="harbor-finale-stars" role="img" aria-label={(summary?.stars??1)+' yıldız'}>
+      {'⭐'.repeat(summary?.stars??1)}<span aria-hidden="true">{'☆'.repeat(3-(summary?.stars??1))}</span>
+     </div>
      <p>{feedback}</p>
-     <p>İngilizce konuşmaya devam et; her deneme yeni bir keşif!</p>
-     <button type="button" onClick={backToMap}>Yeni Maceraya Geç →</button>
+     <div className="harbor-finale-stats" aria-label="Bölüm sonuçları">
+      <span><strong>{script.length}/{script.length}</strong> öğrenme adımı</span>
+      <span><strong>{summary?.spoken??0}</strong> sesli cevap</span>
+      <span><strong>{summary?.score??0}%</strong> başarı</span>
+     </div>
+     <p className="harbor-finale-tip">Öğrendiğin ifadeleri günlük hayatta da kullanabilirsin.</p>
+     <div className="harbor-finale-actions">
+      {episode<HARBOR_EPISODES.length&&<button type="button" onClick={()=>start(episode+1)}>Sonraki Bölüm →</button>}
+      <button type="button" className="harbor-finale-secondary" onClick={backToMap}>Bölüm Haritası</button>
+     </div>
     </div>
    </>}
   </main>
