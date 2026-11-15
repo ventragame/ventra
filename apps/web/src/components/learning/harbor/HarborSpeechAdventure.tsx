@@ -560,6 +560,6 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
     </div>
    </>}
   </main>
-  <footer className="harbor-footer">🎤 Mikrofon isteğe bağlı. Sağlayıcı sesi işleyebilir; Ventra ses veya transkript saklamaz.</footer>
+  <footer className="harbor-footer">🎤 Mikrofon isteğe bağlı. Seçilen sağlayıcı sesi işleyebilir; Ventra ses veya transkript saklamaz.</footer>
   </div>;
 }
