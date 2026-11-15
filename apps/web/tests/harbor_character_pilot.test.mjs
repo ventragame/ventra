@@ -44,7 +44,7 @@ test('The animated captain replaces the existing NPC, not the question or answer
  const stage=read('src/components/learning/harbor/HarborSceneStage.tsx');
  const game=read('src/components/learning/harbor/HarborSpeechAdventure.tsx');
  const css=read('src/components/learning/harbor/harbor-captain-avatar.css');
- assert.match(stage,/quest.actor==='leo'\?<HarborCaptainAvatar mood=\{avatarMood\}/);
+ assert.match(stage,/<HarborCharacterAvatar actor=\{quest.actor\} mood=\{avatarMood\}/);
  assert.doesNotMatch(stage,/function HarborCaptain\(/);
  assert.match(stage,/hp-object-choice/);
  assert.match(stage,/speakerLine/);
@@ -57,7 +57,7 @@ test('The animated captain replaces the existing NPC, not the question or answer
  assert.match(game,/onStart:\(\)=>\{if\(run===narrationRun.current\)setNarrating\(true\)/);
  assert.match(game,/onEnd:\(\)=>\{if\(run===narrationRun.current\)setNarrating\(false\)/);
  assert.match(game,/recordGameCompleted/);
- assert.match(css,/hp-actor\[data-actor="leo"\]\{animation:none/);
+ assert.match(css,/\.hp-actor\{animation:none/);
  assert.match(css,/max-width:360px/);
 });
 
@@ -67,6 +67,13 @@ test('Self-hosted character preserves lifecycle, static fallback and reduced mot
  for(const mood of ['idle','listen','talk','happy','try_again','celebrate'])
   assert.match(component,new RegExp(mood));
  assert.match(component,/import\('lottie-web'\)/);
+ assert.match(component,/export function HarborCharacterAvatar/);
+ assert.match(component,/parrot:'harbor-mimi'/);
+ assert.match(component,/turtle:'harbor-nino'/);
+ assert.match(component,/fox:'harbor-fox'/);
+ assert.match(component,/rabbit:'harbor-luna'/);
+ assert.match(component,/actor="leo"/);
+ assert.match(component,/\[actor,reduced\]/);
  assert.match(component,/playSegments\(\[\.\.\.HARBOR_CAPTAIN_SEGMENTS\[state\]\],true\)/);
  assert.match(component,/setLoop\(LOOPING.has/);
  assert.match(component,/animation\?\.destroy\(\)/);
@@ -76,4 +83,48 @@ test('Self-hosted character preserves lifecycle, static fallback and reduced mot
  assert.doesNotMatch(component,/https?:\/\/|lottiefiles\.com|lottie\.host/);
  assert.match(css,/pointer-events:none/);
  assert.match(css,/prefers-reduced-motion:reduce/);
+});
+
+test('Four additional friendly Lottie speakers have original visible pupils, gestures and no remote assets',()=>{
+ for(const id of ['harbor-mimi','harbor-nino','harbor-fox','harbor-luna']){
+  const a=JSON.parse(read('public/assets/characters/'+id+'.json'));
+  const fallback=read('public/assets/characters/'+id+'.svg');
+  assert.equal(a.w,320);assert.equal(a.h,380);assert.equal(a.fr,30);assert.equal(a.op,432);
+  assert.deepEqual(a.assets,[]);
+  assert.deepEqual(a.markers.map(x=>x.cm),
+    ['idle','listen','talk','happy','try_again','celebrate']);
+  assert.ok(a.layers.length>=27,'Each character has separate facial/anatomical layers');
+  const leftWhite=a.layers.findIndex(x=>x.nm==='left eye white');
+  const leftIris=a.layers.findIndex(x=>x.nm==='left eye iris');
+  const rightWhite=a.layers.findIndex(x=>x.nm==='right eye white');
+  const rightIris=a.layers.findIndex(x=>x.nm==='right eye iris');
+  assert.ok(leftIris>=0&&leftWhite>=0&&leftIris<leftWhite,'Left pupil draws on top of white');
+  assert.ok(rightIris>=0&&rightWhite>=0&&rightIris<rightWhite,'Right pupil draws on top of white');
+  assert.ok(a.layers.some(x=>x.nm.includes('smile')&&x.ks.s.a===1),
+    'Friendly speaking mouth is independently articulated');
+  assert.ok(a.layers.some(x=>x.nm.includes('arm')&&x.ks.r.a===1)||
+   a.layers.some(x=>x.nm.includes('flipper')&&x.ks.r.a===1),
+   'Independently articulated limbs');
+  assert.match(fallback,/viewBox="0 0 320 380"/);
+  assert.doesNotMatch(fallback,/<image\b|(?:href|src)=["']https?:|url\(https?:/i);
+  assert.ok(Buffer.byteLength(JSON.stringify(a))<400000,'Mobile-conscious vector animation size');
+ }
+ const stage=read('src/components/learning/harbor/HarborSceneStage.tsx');
+ assert.match(stage,/HarborCharacterAvatar actor=\{quest.actor\}/);
+ assert.doesNotMatch(stage,/const ART:Record/);
+});
+
+test('Captain Leo has dark pupils drawn above white sclera and an unobstructed hat brim',()=>{
+ const a=JSON.parse(read('public/assets/characters/harbor-captain-leo.json'));
+ const left=a.layers.find(x=>x.nm==='Left eye white');
+ const right=a.layers.find(x=>x.nm==='Right eye white');
+ assert.deepEqual(left.shapes.slice(0,3).map(x=>x.nm),
+  ['left glint','left pupil','left eye white']);
+ assert.deepEqual(right.shapes.slice(0,3).map(x=>x.nm),
+  ['right glint','right pupil','right eye white']);
+ const brim=a.layers.find(x=>x.nm==='Cap broad navy brim');
+ const path=brim.shapes[0].it.find(x=>x.ty==='sh').ks.k;
+ assert.ok(Math.max(...path.v.map(pt=>pt[1]))<=149,'Hat not drawn across eyes');
+ const mouth=a.layers.find(x=>x.nm==='Captain friendly mouth');
+ assert.ok(mouth.shapes.some(x=>x.nm==='smiling friendly mouth corners'));
 });
