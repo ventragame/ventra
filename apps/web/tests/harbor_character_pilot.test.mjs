@@ -128,3 +128,10 @@ test('Captain Leo has dark pupils drawn above white sclera and an unobstructed h
  const mouth=a.layers.find(x=>x.nm==='Captain friendly mouth');
  assert.ok(mouth.shapes.some(x=>x.nm==='smiling friendly mouth corners'));
 });
+
+test('Legacy parrot and turtle img sizing cannot shrink SVG reduced-motion fallback',()=>{
+ const css=read('src/components/learning/harbor/harbor-captain-avatar.css');
+ assert.match(css,/hp-actor\[data-actor="parrot"\] \.harbor-captain-avatar-static/);
+ assert.match(css,/hp-actor\[data-actor="turtle"\] \.harbor-captain-avatar-static/);
+ assert.match(css,/height:100%;width:100%;object-fit:contain/);
+});

@@ -84,3 +84,12 @@
   left:0;bottom:19%;height:50%;width:46%;
  }
 }
+
+/* Override legacy size rules for parrot/turtle <img> tags. This matters for
+ * children using reduced motion and during the first Lottie download.
+ * The SVG fallback must be full-height and visually match the live NPC.
+ */
+.hp-actor[data-actor="parrot"] .harbor-captain-avatar-static,
+.hp-actor[data-actor="turtle"] .harbor-captain-avatar-static{
+ height:100%;width:100%;object-fit:contain;object-position:center bottom;
+}
