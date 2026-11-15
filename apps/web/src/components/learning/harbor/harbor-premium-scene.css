@@ -141,3 +141,71 @@
 }
 @media(prefers-reduced-motion:reduce){.hp-scene *, .hp-episode-thumb img, .harbor-answer{animation:none!important;transition:none!important}
  .hp-complete.hp-action-board .hp-ship{transform:translateX(24px)}}
+
+/* Diyalog Limanı mobile QA: 360-440px.
+ * Root causes from real device screenshots:
+ * 1. Desktop absolute A/B badges overlap answer text on mobile.
+ * 2. A !important 190px flex basis creates a huge blank column under mic CTA.
+ * 3. 325-396px scene plus wrapping header pushes answers below first fold.
+ * Keep character, child choices, TTS and listening mechanics unchanged.
+ */
+@media(max-width:640px){
+ .harbor-root .harbor-header{gap:8px;padding:7px 10px;min-height:62px}
+ .harbor-header>div:not(.harbor-progress){min-width:0;flex:1}
+ .harbor-root .harbor-header small{display:block;font-size:9px;letter-spacing:.035em;white-space:nowrap}
+ .harbor-root .harbor-header h1{font-size:18px;line-height:1.2;margin:2px 0 0}
+ .harbor-back{min-width:44px;min-height:44px;flex:0 0 44px}
+ .harbor-progress{flex:none;margin-left:0;padding:8px 9px;border-radius:14px;font-size:12px}
+ .harbor-root .harbor-main{min-height:0;padding:8px 8px max(22px,env(safe-area-inset-bottom))}
+ .hp-scene{height:clamp(280px,76vw,350px)}
+ .hp-dock-floor{display:none}
+ .hp-replay{min-height:44px;padding:9px 12px}
+ .harbor-level-title{margin-bottom:7px}
+ .hp-quest-top{margin-bottom:7px}
+ .hp-quest-text{margin-top:9px}
+ .harbor-talk{margin-top:10px;padding:12px}
+ .harbor-talk-title{gap:3px;margin-bottom:10px;align-items:flex-start;text-align:left}
+ .harbor-talk-title strong{font-size:18px}
+ .harbor-talk-title span{font-size:11px}
+ .harbor-answer-grid{gap:8px}
+ .harbor-answer,.harbor-answer[data-level="Pre-A1"]{
+  position:relative;display:flex;flex-direction:row;align-items:center;
+  justify-content:flex-start;gap:12px;padding:10px 13px;
+  min-height:65px;text-align:left;font-size:clamp(16px,4.4vw,19px);
+  line-height:1.3;
+ }
+ .harbor-answer>span,.harbor-answer[data-level="Pre-A1"]>span{
+  position:static;top:auto;left:auto;flex:0 0 30px;
+  width:30px;height:30px;border-radius:10px;font-size:12px;
+ }
+ .harbor-microphone{margin-top:12px;gap:8px}
+ .harbor-root .harbor-microphone .harbor-child-caption{
+  flex:0 0 auto!important;width:100%;min-height:0;margin:0;
+  font-size:12px!important;line-height:1.4;text-align:center;
+ }
+ .harbor-parent-tools{margin:12px auto 0;padding:5px 9px}
+ .harbor-parent-tools summary{
+  min-height:44px;display:flex;align-items:center;justify-content:center;
+  font-size:12px;
+ }
+ .harbor-feedback{min-height:0;margin:10px 0 6px;line-height:1.45}
+ .harbor-hint{
+  display:flex;align-items:center;justify-content:center;
+  min-width:130px;min-height:44px;padding:10px 14px;
+  margin:3px auto 2px;border-radius:12px;border:1px solid #b9e5ff70;
+  background:#ffffff12;
+ }
+ .harbor-footer{
+  flex:none;padding:6px 10px max(6px,env(safe-area-inset-bottom));
+  font-size:10px;line-height:1.3;
+ }
+}
+@media(max-width:370px){
+ .harbor-root .harbor-header small{font-size:8.5px;letter-spacing:.02em}
+ .harbor-root .harbor-header h1{font-size:17px}
+ .hp-scene{height:280px}
+ .harbor-answer,.harbor-answer[data-level="Pre-A1"]{
+  min-height:63px;font-size:16px;
+ }
+ .harbor-mic-button{padding:10px 12px}
+}

@@ -193,3 +193,22 @@ test('Mimi parrot question rejects clearly recognized wrong A CAT and accepts A 
  assert.equal(matchesExpectedSpeech(['A PARROT'],step.accept),true);
  assert.equal(matchesExpectedSpeech(['a parrot!'],step.accept),true);
 });
+
+test('Mobile QA: A/B answer badges flow with text, and mic caption never reserves 190px blank space',()=>{
+ const sceneCSS=game('../src/components/learning/harbor/harbor-premium-scene.css');
+ const speechCSS=game('../src/components/learning/harbor/harbor-speech.css');
+ const page=game('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
+ assert.match(speechCSS,/\.harbor-child-caption\{[^}]*flex:1 1 190px!important/);
+ assert.match(sceneCSS,/Diyalog Limanı mobile QA: 360-440px/);
+ assert.match(sceneCSS,/\.harbor-root \.harbor-microphone \.harbor-child-caption\{\s*flex:0 0 auto!important/);
+ assert.match(sceneCSS,/\.harbor-answer>span,\.harbor-answer\[data-level="Pre-A1"\]>span\{\s*position:static/);
+ assert.match(sceneCSS,/flex:0 0 30px/);
+ assert.match(sceneCSS,/\.hp-scene\{height:clamp\(280px,76vw,350px\)\}/);
+ assert.match(sceneCSS,/\.hp-dock-floor\{display:none\}/);
+ assert.match(sceneCSS,/\.hp-replay\{min-height:44px/);
+ assert.match(sceneCSS,/\.harbor-parent-tools summary\{\s*min-height:44px/);
+ assert.match(sceneCSS,/\.harbor-hint\{[\s\S]*?min-width:130px;min-height:44px/);
+ assert.match(page,/heard&&heard.length>=3/);
+ assert.match(page,/Sesini duydum ama kelimeleri net anlayamadım/);
+ assert.match(page,/Seçilen sağlayıcı sesi işleyebilir|Sağlayıcı sesi işleyebilir/);
+});

@@ -244,9 +244,11 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
     setVoiceRecognized(recognizedCount);
     correct(recognizedCount);
    }else{
-    const heard=result.alternatives[0]?.slice(0,70);
-    setFeedback(heard?'💬 “'+heard+'” duydum. Bir daha deneyelim!':
-     'Bir daha deneyelim ya da cevabı seçelim!');
+    const heard=result.alternatives[0]?.trim().slice(0,70);
+    // A lone letter (e.g. "Y") is an uncertain ASR fragment, not a
+    // trustworthy representation of what a child actually pronounced.
+    setFeedback(heard&&heard.length>=3?'💬 “'+heard+'” olarak algılandı. Bir daha deneyelim!':
+     '🎤 Sesini duydum ama kelimeleri net anlayamadım. Tekrar söyle veya cevabı seç!');
    }
   }else if(result.kind==='unrecognized'){
    if(result.mode==='web-local'){
@@ -558,6 +560,6 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
     </div>
    </>}
   </main>
-  <footer className="harbor-footer">🎤 Mikrofon isteğe bağlıdır. Seçilen sağlayıcı sesi işleyebilir; Ventra ses kaydını ve transkripti saklamaz.</footer>
+  <footer className="harbor-footer">🎤 Mikrofon isteğe bağlı. Sağlayıcı sesi işleyebilir; Ventra ses veya transkript saklamaz.</footer>
   </div>;
 }
