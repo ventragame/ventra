@@ -44,3 +44,22 @@ test('Stage shows authored 3-beat badge without stealing focus from TTS and opti
  assert.match(styles,/pointer-events:none/);
  assert.match(styles,/\.hp-scene \.hp-speech-card\{max-height:66%;overflow-y:auto/);
 });
+
+test('Guided 2.2 uses spoken examples, honest hints, stateful wrong options and saved stars',()=>{
+ const game=read('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
+ const css=read('../src/components/learning/harbor/harbor-premium-scene.css');
+ assert.match(game,/harborCoachHint\(prompt.reply,englishLevel,stage\)/);
+ assert.match(game,/const hearReply=\(\)=>/);
+ assert.match(game,/const speakReply=\(\)=>speakLine\(prompt.reply\)/);
+ assert.match(game,/wrongChoices\.includes\(choice\)/);
+ assert.match(game,/data-answer=\{sceneResolved&&option===prompt.reply/);
+ assert.match(game,/setHintStage\(0\);setModeledAnswer\(false\);setWrongChoices\(\[\]\)/);
+ assert.match(game,/setSummary\(\{stars,score,spoken:recognized\}\)/);
+ assert.match(game,/role="progressbar"/);
+ assert.match(game,/harbor-finale-stars/);
+ assert.match(game,/Sonraki Bölüm/);
+ assert.match(game,/yaklaşık 73 MB/);
+ assert.match(css,/\.harbor-coach-actions/);
+ assert.match(css,/harbor-answer\[data-answer="try-again"\]/);
+ assert.match(css,/height:100dvh/);
+});

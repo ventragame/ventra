@@ -21,3 +21,12 @@
 - Test every cast member in responsive layouts at 320, 360, 390, 430, and 768 CSS px; verify the character never covers the speech card or tappable answer options.
 - Node tests check actual iris stacking, independent limb/mouth animation, frame markers and upper asset size. GitHub Actions checks that every Lottie JSON and SVG serves over HTTP.
 - Automated build success does **not** mean the art is visually approved. Perform real Android and iPhone device review for FPS, rendering, expressions and child-facing comprehension before treating the art as final.
+
+## Diyalog Limanı 2.2 — Öğrenme ve oyun standardı
+
+- 15 görev için 45 ayrı, üç aşamalı hikâye vuruşu: sahne etiketi, ilerleme durumu ve seçili liman efektleri.
+- Doğru cevabı sesli örnek olarak dinlemek isteğe bağlıdır ve aynı soru için en fazla bir ipucu sayılır; öğrenme ile konuşmanın gerçekten tanınması kesinlikle karıştırılmaz.
+- İpucu sıralaması: (1) soruyu tekrar duy; (2) doğru İngilizce ses örneğini duy; (3) örnek metni oku. Anında doğru cevabı göstermek yerine öğrenmeyi yönlendirir.
+- Yanlış cevaplar çocuk dostu biçimde işaretlenir; aynı yanlış seçeneğe tekrar basmak gereksiz ek yanlış hakkı saymaz. Ses tanıma hataları ise çocuğun hatası olarak puanlanmaz.
+- Tamamlama panelinde **kaydedilmiş** puan ve yıldız gösterilir; kayıt başarısızlığında sahte başarı ekranı açılmaz. Beş eski bölüm ID'si ve dokuz-adımlı checkpoint sistemi korunur.
+- Mobilde 320–440 px responsive cevap seçenekleri, 44+ px kontroller, reduced-motion ve uzun A2 replikleri için kaydırılabilir konuşma balonu korunur.
