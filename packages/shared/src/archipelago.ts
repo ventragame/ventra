@@ -122,15 +122,15 @@ export const ARCHIPELAGO_ISLANDS_CATALOG: Record<IslandId, IslandDefinition> = {
     badgeText: 'Pre-A1 · A1 · A2',
     descriptionTr: 'Kelime kartlarından kısa notlara ve yaratıcı metinlere uzanan İngilizce yazılar üret.',
     cefrLevel: 'Pre-A1–A2',
-    totalPublishedRequiredLevels: 0,
+    totalPublishedRequiredLevels: 5,
     desktopAsset: '/assets/kids-islands/sentence_workshop.webp',
     mobileAsset: '/assets/kids-islands/sentence_workshop_mobile.webp',
     defaultWorldPos: { x: 1160, y: 1090 }, // Sağ alt
     hitRadius: 210,
     order: 5,
-    isUnlockedDefault: false,
-    contentPublished: false,
-    unlockRequirementNotice: 'Yazma görevleri henüz geliştirme aşamasında.'
+    isUnlockedDefault: true,
+    contentPublished: true,
+    unlockRequirementNotice: 'Beş özgün yazma bölümü harflerden cümlelere ve kendi notlarına uzanıyor.'
   },
   story_castle: {
     id: 'story_castle',

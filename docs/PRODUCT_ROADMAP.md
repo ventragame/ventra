@@ -303,3 +303,12 @@ See [CM1 acceptance and implemented grammatical families](./CM1_UYANAN_MEYDAN_GD
 
 ### 2026-11-03 — Mobile-first milestone M2: Hayvan Çayırı
 - Five-stage Mobile-first reference design: lightweight touchable world for mobile, large premium SVG animals + existing optimized WebP garden background, compact child-focused HUD and short task cue above the scene, accessible optional hints, grade/English placement speech consistency. Desktop Phaser preserved and authoritative learning history/stars untouched. QA: [mobile-first acceptance](./HAYVAN_CAYIRI_MOBILE_FIRST_ACCEPTANCE.md). No production release; physical Android/iOS phone checks required before broad rollout.
+
+### 2026-11-16 — L5 Yazı Atölyesi: harflerden bağımsız yazıya
+- `sentence_workshop` kararlı ada ID'si korundu; 5 özgün bölüm ve üç İngilizce seviyesi için toplam 75 yazma görevi eklendi.
+- Temel oyun döngüleri harfleri kurma (`spell`), anlamlı sözcük sıralama (`assemble`) ve gerçekten yazı üretme (`write`). Sınıfa göre 3/4/5 görev; Pre-A1/A1/A2 dil düzeyleri sınıftan bağımsız uygulanır.
+- Kaydedilen `writingAnswers` kanıtları metin değil kategori/miktar içerir; gerçek çocuk yazısı yerel veya sunucu veri deposuna alınmaz. Açık uçlu yaratıcı metin puanlanmaz veya kalıcı saklanmaz.
+- 5 yeni atölye seviyesi mevcut progress repository, tekrar güvenli session ID, profil ayrımı ve P5 bir kez coin ödülü ile bağlıdır.
+- Mevcut WebP adanın ana görseli korunup responsive, erişilebilir dokunmatik harf/kâğıt sahneleri üretildi. Üretim deploy edilmedi.
+- **Açık QA:** fiziksel Android/iPhone 320–440px sahne/klavye, öğretmen tarafından cümle kabul listelerinin gözden geçirilmesi, çocuklarla pedagojik kullanılabilirlik, 2 hafta sonra bağımsız hatırlama testi.
+- [L5 GDD ve kabul notları](./WRITING_WORKSHOP_L5_GDD.md).

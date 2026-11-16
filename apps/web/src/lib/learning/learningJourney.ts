@@ -47,7 +47,7 @@ export const ENGLISH_JOURNEY:readonly LearningIslandPlan[]=[
   },
   futureMechanics:['Cihaz içi konuşma tanıma','Bağlama göre cevap','Mikrofon kullanmadan dokunmatik tamamlama'],
   evidence:['context-appropriate-response','turn-taking','pragmatic-communication']},
- {id:'sentence_workshop',title:'Yazı Atölyesi',goal:'writing',order:5,playable:false,prerequisites:['sentence-building','dialogue'],
+ {id:'sentence_workshop',title:'Yazı Atölyesi',goal:'writing',order:5,playable:true,prerequisites:['sentence-building','dialogue'],
   atLevel:{
    'Pre-A1':['Sözcükten kısa cümle','Harf eşleştirme','Resimli notu tamamlama'],
    'A1':['Kısa mesaj ve açıklama','Yönlendirilmiş üç cümle','Kelime sıralama'],

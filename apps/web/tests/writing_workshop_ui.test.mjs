@@ -46,3 +46,21 @@ test('Writing Workshop uses real profile progress and is mounted through the isl
  assert.match(page,/activeRegion==='sentence_workshop'&&activeProfile/);
  assert.match(page,/onSaved=\{\(\)=>void loadProfileAndProgress\(activeProfile\)\}/);
 });
+
+test('Writing Workshop publication is backed by real chapter runner and economy ledger',async()=>{
+ const {ARCHIPELAGO_ISLANDS_CATALOG}=await import('../../../packages/shared/src/archipelago.ts');
+ const {ENGLISH_JOURNEY}=await import('../src/lib/learning/learningJourney.ts');
+ const {WORLD_GAMES,reconcileRewards,initialEconomy}=await import('../src/lib/rewards/economyEngine.ts');
+ const island=ARCHIPELAGO_ISLANDS_CATALOG.sentence_workshop;
+ assert.equal(island.isUnlockedDefault,true);
+ assert.equal(island.contentPublished,true);
+ assert.equal(island.totalPublishedRequiredLevels,5);
+ assert.equal(ENGLISH_JOURNEY.find(x=>x.id==='sentence_workshop').playable,true);
+ const game=WORLD_GAMES.find(g=>g.id===WRITING_WORKSHOP_GAME_ID);
+ assert.equal(game?.count,5);
+ const at='2026-11-16T00:00:00.000Z';
+ const old=initialEconomy('child-a');
+ const earned=reconcileRewards(old,[{gameId:WRITING_WORKSHOP_GAME_ID,levelId:1,stars:3}],at);
+ const replay=reconcileRewards(earned,[{gameId:WRITING_WORKSHOP_GAME_ID,levelId:1,stars:3}],at);
+ assert.deepEqual(replay,earned,'Replaying a chapter cannot mint coins twice');
+});

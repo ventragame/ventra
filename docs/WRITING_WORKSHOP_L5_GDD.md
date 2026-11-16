@@ -15,7 +15,7 @@ Kanonik `docs/PRODUCT_ROADMAP.md` ve `docs/VENTRA_ENGLISH_LEARNING_JOURNEY_V2.md
 - Lottie gerekmeyen öğrenme adımlarında ağır animasyon yüklemiyoruz. Önceden mevcut 3D WebP ada resmi korunur; çocuk odaklı kalem/kâğıt tasarımı ve reduced-motion kullanılır.
 
 ## Yayına geçiş ve kalite kapıları
-- `npm run type-check`, web testleri, web static export, Android debug ve iOS Simulator CI kontrolünden önce `contentPublished` açılmaz.
+- `contentPublished` yalnız TypeScript, web testleri, web static export, Android debug ve iOS Simulator CI kontrolünün başarılı olmasından sonra açılmıştır. Son söz yine fiziksel cihaz ve dil öğretmeni kabul testindedir.
 - Gerçek cihazda 320/360/390/440 px; dokunmatik klavye, uzun A2 metni, ekran okuyucu, düşük ağ hızı, IndexedDB kapalı ve oturum kesilmesi kontrol edilmeli.
 - Dil öğretmeni onayı, çocuklarla gözlemli kullanılabilirlik ve gerçek öğrenme kazanımı ölçümü otomatik testlerin yerini tutmaz.
 - Production deploy yok; GitHub ve yerel kontrol üzerinden ilerlenir.
