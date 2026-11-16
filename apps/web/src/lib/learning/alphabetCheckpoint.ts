@@ -33,13 +33,14 @@ export function parseAlphabetCheckpoint(
    !numberIn(x.step,x.taskIds.length)||!Array.isArray(x.answers)||
    x.answers.length!==x.step||!numberIn(x.mistakes,100000)||
    !numberIn(x.hints,100000)||new Set(x.taskIds).size!==x.taskIds.length)return null;
+  const ids=x.taskIds as string[];
   const answers=x.answers as unknown[];
   if(!answers.every((row,i)=>{
    if(!row||typeof row!=='object'||Array.isArray(row))return false;
    const a=row as Record<string,unknown>;
    const allowed=new Set(['taskId','kind','firstTryCorrect','mistakes','hintUsed','audioPlayed','independent']);
    return Object.keys(a).every(key=>allowed.has(key))&&
-    a.taskId===x.taskIds[i]&&kinds.has(String(a.kind))&&
+    a.taskId===ids[i]&&kinds.has(String(a.kind))&&
     typeof a.firstTryCorrect==='boolean'&&typeof a.hintUsed==='boolean'&&
     typeof a.audioPlayed==='boolean'&&typeof a.independent==='boolean'&&
     numberIn(a.mistakes,10000);
