@@ -87,13 +87,15 @@ test('Number Valley remains English-only and obeys separate grade/placement ceil
  assert.match(src,/numberWordParts\(current.target\)/);
  assert.doesNotMatch(src,/Which costs less/);
 });
-test('Active map displays selected grade AND English placement, future islands remain locked',()=>{
+test('Active map displays selected grade AND English placement, future islands remain locked',async()=>{
  const src=fs.readFileSync(new URL('../src/components/learning/WordGardenDistrictMap.tsx',import.meta.url),'utf8');
  const modal=fs.readFileSync(new URL('../src/components/learning/LearningPathModal.tsx',import.meta.url),'utf8');
  assert.match(src,/describeLearnerRoute\(gradeLevel,englishLevel\)/);
  assert.match(src,/Bugünkü hedef:/);
  assert.match(modal,/englishLevel=\{englishLevel\}\s+colorsAvailable/);
- const scene=fs.readFileSync(new URL('../src/components/game/scenes/WorldScene.ts',import.meta.url),'utf8');
- assert.ok(scene.indexOf("from: 'story_castle'")>scene.indexOf("from: 'word_garden'"));
- assert.ok(scene.indexOf("from: 'listening_forest'")>scene.indexOf("from: 'story_castle'"));
+ const {ARCHIPELAGO_SKYBRIDGES}=await import('../src/lib/game/archipelagoBridges.ts');
+ assert.deepEqual(ARCHIPELAGO_SKYBRIDGES.map(route=>route.from),
+  ['word_garden','story_castle','listening_forest','speaking_harbor',
+   'sentence_workshop','language_academy']);
+ assert.equal(ARCHIPELAGO_SKYBRIDGES[5].to,'word_garden');
 });
