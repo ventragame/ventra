@@ -187,11 +187,11 @@ export function planAlphabetLesson(input:{
  const grade=input.gradeLevel;
  if(grade!=null&&Number.isInteger(grade)&&grade>=3){
   const extra=sample(learned,1,seed+77);
-  if(extra.length)tasks.push(wordTask('read-word',extra[0],97));
+  if(learned.length>=2&&extra.length)tasks.push(wordTask('read-word',extra[0],97));
  }
  if(grade!=null&&Number.isInteger(grade)&&grade>=5){
   const extra=sample(learned,1,seed+89);
-  if(extra.length)tasks.push(wordTask('build-word',extra[0],98));
+  if(learned.length>=2&&extra.length)tasks.push(wordTask('build-word',extra[0],98));
  }
  return tasks;
 }

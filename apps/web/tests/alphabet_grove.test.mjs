@@ -80,10 +80,12 @@ test('Upper/lower choices and short decoded words grade case-insensitively, no g
   assert.equal(alphabetTaskCorrect(task,'__invalid__'),false);
   assert.ok(alphabetHint(task).length>=15);
  }
- const first=planAlphabetLesson({lesson:1,placement:'Pre-A1',gradeLevel:1,replay:0});
- assert.ok(first.some(t=>t.kind==='introduce'));
- assert.ok(first.every(t=>t.kind!=='read-word'));
- assert.ok(first.every(t=>t.kind!=='build-word'));
+ for(const gradeLevel of [1,3,6,null]){
+  const first=planAlphabetLesson({lesson:1,placement:'Pre-A1',gradeLevel,replay:0});
+  assert.ok(first.some(t=>t.kind==='introduce'));
+  assert.ok(first.every(t=>t.kind!=='read-word'));
+  assert.ok(first.every(t=>t.kind!=='build-word'));
+ }
  const q=planAlphabetLesson({lesson:9,placement:'A1',gradeLevel:4,replay:0});
  assert.ok(q.some(t=>t.kind==='sound-in-word'&&t.letterId==='x'&&t.audioText==='fox'));
  assert.ok(q.some(t=>t.kind==='sound-in-word'&&t.letterId==='q'&&t.audioText==='queen'));
