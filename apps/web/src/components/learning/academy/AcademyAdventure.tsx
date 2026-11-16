@@ -247,7 +247,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
     <section className="academy-scene" style={{'--zone-tint':currentZone.tint,'--zone-light':currentZone.light} as React.CSSProperties}>
      <div className="academy-scene-glow" aria-hidden="true"/>
      <div className="academy-scene-icon" aria-hidden="true">{plan.icon}</div>
-     <div className="academy-scene-dialogue"><span className="academy-lumi" aria-hidden="true">✦</span>
+     <div className="academy-scene-dialogue"><span className="academy-lumi" aria-hidden="true"><span className="academy-lumi-eyes"><i/><i/></span><span className="academy-lumi-smile"/></span>
       <div><strong>{plan.caseTitle}</strong><p>{plan.mission}</p></div>
      </div>
     </section>
