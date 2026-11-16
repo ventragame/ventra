@@ -30,6 +30,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
  const [hints,setHints]=useState(0);
  const [errorOnStep,setErrorOnStep]=useState(0);
  const [hintOnStep,setHintOnStep]=useState(false);
+ const [audioPlayed,setAudioPlayed]=useState(false);
  const [typed,setTyped]=useState('');
  const [picked,setPicked]=useState<number[]>([]);
  const [message,setMessage]=useState('');
@@ -66,7 +67,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
  const stop=()=>{audioEpoch.current++;stopSpeechCapture();soundService.setCaptureActive(false);soundService.cancelSpeech();};
  function open(id:number){
   if(busy||loading||id>available||id<1)return;
-  stop();setSaveError('');setMessage('');setErrorOnStep(0);setHintOnStep(false);
+  stop();setSaveError('');setMessage('');setErrorOnStep(0);setHintOnStep(false);setAudioPlayed(false);
   setTyped('');setPicked([]);
   const checkpoint=readAcademyCheckpoint(profileId,englishLevel,id);
   const count=Math.max(0,levels[id]?.completedCount??0);
@@ -85,7 +86,8 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
  function readLine(){
   soundService.unlockAudio();
   const phrase=task.kind==='talk'?task.line:task.kind==='build'||task.kind==='write'?task.answer:task.line;
-  soundService.speakEnglish(phrase,{rate:gradeLevel!==null&&gradeLevel<=2?.78:.88});
+  const started=soundService.speakEnglish(phrase,{rate:gradeLevel!==null&&gradeLevel<=2?.78:.88});
+  if(task.kind==='hear'&&started)setAudioPlayed(true);
  }
  function showHint(){
   if(busy||hintOnStep)return;
@@ -140,7 +142,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
    if(step+1>=plan.tasks.length){
     void save(next,mistakes,hints);return;
    }
-   stop();setStep(step+1);setErrorOnStep(0);setHintOnStep(false);
+   stop();setStep(step+1);setErrorOnStep(0);setHintOnStep(false);setAudioPlayed(false);
    setPicked([]);setTyped('');setMessage('');setBusy(false);
   },700);
  }
@@ -151,7 +153,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
   soundService.playSfx('gentle_retry',.35);
  }
  function choose(value:string){
-  if(matchesAcademyAnswer(value,task.answer))accept(false,false);
+  if(matchesAcademyAnswer(value,task.answer))accept(false,task.kind==='read'||(task.kind==='hear'&&audioPlayed));
   else wrong();
  }
  function submit(){
@@ -185,7 +187,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
     window.setTimeout(()=>{
      pending.current=false;if(!alive.current)return;
      if(step+1>=plan.tasks.length){void save(next,mistakes,hints);return;}
-     stop();setStep(step+1);setErrorOnStep(0);setHintOnStep(false);setPicked([]);
+     stop();setStep(step+1);setErrorOnStep(0);setHintOnStep(false);setAudioPlayed(false);setPicked([]);
      setTyped('');setMessage('');setBusy(false);
     },700);
    }else{
