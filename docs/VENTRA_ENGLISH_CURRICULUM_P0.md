@@ -6,8 +6,8 @@
 
 ## Ne değişti, ne değişmedi?
 
-- **26 konu × 3 İngilizce içerik düzeyi = 78 öğrenme kazanımı**. 54 kazanımın öğretim etkinliği mevcut oyun kodunda var (`authored`); 24 kazanımda sistematik ilgili öğretim ünitesi henüz yok (`gap`). `authored`, dil öğretmeni ya da çocuk üzerinde doğrulanmış *mastery* anlamına gelmez.
-- **13 kanıtlanmış oyun yüzeyi** altı kalıcı ada kimliğine bağlandı; her yüzeyin gerçek `gameId`, mevcut oyun motoru dosyası, kapsadığı kazanımlar ve beceri hedefi bulunuyor.
+- **26 konu × 3 İngilizce içerik düzeyi = 78 öğrenme kazanımı**. 58 kazanımın kod destekli oyunu var (`authored`), 1 kazanım yalnızca kısmi (`partial`), 19 kazanımda sistematik öğretim ünitesi henüz yok (`gap`). `authored`, dil öğretmeni ya da çocuk üzerinde doğrulanmış *mastery* anlamına gelmez.
+- **14 oyun yüzeyi** altı kalıcı ada kimliğine bağlandı; her yüzeyin gerçek `gameId`, mevcut oyun motoru dosyası, kapsadığı kazanımlar ve beceri hedefi bulunuyor.
 - Her kazanımın **kalıcı ID'si, Türkçe kazanım cümlesi, İngilizce model örneği, konu/tema, seviye, öğrenme becerileri, ders durumu, oyun bağlantıları ve önerilen önkoşulları** mevcut.
 - Grade 1–8 **sunum ve soru miktarını** yönetir. Pre-A1/A1/A2 **İngilizce içeriğini** yönetir. İkisi birbirinden ve resmî seviyelendirmeden bağımsızdır.
 - Yalnız metadata ve bağımsız sorgu araçları eklendi. Yeni harf oyunu, ek ada, kurs ekranı, SQL migration, yeni kullanıcı kaydı, mevcut oyun açma koşulunda değişiklik, yıldız/coin işlemi ve production deploy **yoktur**.
@@ -27,8 +27,8 @@
 | Diyalog ve sıralı cevap | Kod destekli | Diyalog Limanı |
 | Kelime harflerini sıralama, yazılı üretim | Kod destekli | Yazı Atölyesi |
 | Karma beceri tekrarı | Kod destekli | Keşif Akademisi + Keşif Tapınağı |
-| **A–Z harf adları ve büyük/küçük harf** | **Eksik** | Harf dizme görevleri sistematik alfabe öğretimi değildir |
-| **Phonics: İngilizce harf–ses ve okuma** | **Eksik** | Yeni, aşamalı ses/harf öğrenimi gerektirir |
+| **A–Z harf adları ve büyük/küçük harf** | **Kod destekli** | Harf Korusu: 26 harf, 9 tanıtım + 3 tekrar mini dersi |
+| **Phonics: İngilizce harf–ses ve okuma** | **Pre-A1 kod destekli / A1 kısmi / A2 açık** | Harf Korusu: kelime içindeki başlangıç/bitiş sesi ve kısa sözcük okuma; ileri ses çiftleri ve yazım kuralları yok |
 | **Okul/sınıf, kıyafet, vücut, hava durumu** | **Eksik** | Bazı oyunlarda örnek sözcük geçmesi tam ünite demek değildir |
 | **Takvim/günler/aylar/saat ve hobiler** | **Eksik** | Düzenli keşif–dinleme–uygulama–tekrar akışı yok |
 
@@ -61,7 +61,7 @@ Bu bağlantılar **öğretim sıralama tavsiyesidir**. Çocuk örneğin doğruda
 |---|---|
 | `ENGLISH_CURRICULUM_OUTCOMES` | Bütün stabil ve seviye bazlı kazanımlar |
 | `ENGLISH_CURRICULUM_TOPICS` | 26 sıralı konu kimliği ve etiketi |
-| `CURRICULUM_SURFACES` | 13 gerçek oyun ve altı ada eşleşmesi |
+| `CURRICULUM_SURFACES` | 14 oyun ve altı ada eşleşmesi |
 | `getEnglishCurriculum({placement, topics?, islandId?, includeGaps?})` | Okuma amaçlı filtreleme |
 | `getEnglishCurriculumByIsland(islandId, placement)` | Bir adanın mevcut seviye hedefleri |
 | `getJourneyCurriculum(islandId, placement)` | Var olan `learningJourney.ts` üzerinden aynı hedefler |
@@ -80,7 +80,7 @@ Bu bağlantılar **öğretim sıralama tavsiyesidir**. Çocuk örneğin doğruda
 
 ## Güncel boşluklar ve sonraki fazlar
 
-- **P1 Harf Korusu:** `letters` ve `phonics` kazanımları için ses, harf adı, büyük/küçük harf, kodlanabilir kısa kelime ve erişilebilir sesli oyunlar. Şu anda P0 kapsamında oynanabilir bir şey yapılmadı.
+- **P1 Harf Korusu:** Kelime Bahçesi içinde oynanabilir mini alan eklendi; 26 harf/12 ders/40 kısa kelime. Sesin cihazın TTS çıktısına bağlı olması nedeniyle gerçek fonem kayıtları, A2 ileri phonics ve fiziksel cihaz/dil öğretmeni kabulü açık. [P1 kabul belgesi](./VENTRA_ALPHABET_GROVE_P1.md).
 - **P2 İngilizce Yolculuğum:** Bu statik haritayı gerçek öğrenme kanıtlarıyla desteklenmiş, yanlışa hedefli geri dönüş yapan **öneri katmanına** bağlamak. Eski ilerleme korunur; erişim otomatik kilitlenmez.
 - **P3 Tematik genişleme:** `school`, `clothes`, `body`, `weather`, `calendar`, `hobbies` için gerçekten öğretici oyunlar ve uzman içerik incelemesi.
 - Resmî MEB/CEFR kazanım eşlemesi, güncel müfredat referansları, doğru İngilizce telaffuz incelemesi ve çocuklarla ölçülen hatırlama kazanımları **ayrı QA kapısıdır**. P0 bunları yapılmış saymaz.
