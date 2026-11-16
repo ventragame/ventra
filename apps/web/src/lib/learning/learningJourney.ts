@@ -6,6 +6,7 @@
  */
 import type { IslandId } from '@ventra/shared';
 import type { EnglishPlacement, GradeBand } from './gradeAwareLearningPolicy.ts';
+import {getEnglishCurriculumByIsland,type EnglishCurriculumOutcome} from './englishCurriculum.ts';
 export type CommunicationGoal='vocabulary'|'sentence-building'|'story-comprehension'|'dialogue'|'writing'|'integrated-mastery';
 export interface LearningIslandPlan{
  id:IslandId;title:string;goal:CommunicationGoal;order:number;
@@ -65,10 +66,20 @@ export const ENGLISH_JOURNEY:readonly LearningIslandPlan[]=[
   evidence:['independent-transfer','spaced-retention','multiskill-application']}
 ];
 export const JOURNEY_ORDER:readonly IslandId[]=ENGLISH_JOURNEY.map(x=>x.id);
+/** P0 curriculum metadata for the existing six islands. This does NOT unlock
+ * or grade anything; gameplay/progress remains under each original engine.
+ */
+export function getJourneyCurriculum(
+ islandId:IslandId,placement:EnglishPlacement
+):readonly EnglishCurriculumOutcome[]{
+ return getEnglishCurriculumByIsland(islandId,placement);
+}
 export type LearnerRoute={
  gradeBand:GradeBand;englishLevel:EnglishPlacement;gradeLabel:string;
  instructionSupport:'supported'|'guided'|'independent';
  goals:readonly string[];
+ /** Non-binding, level-specific goal IDs for the future guided course. */
+ curriculumOutcomeIds:readonly string[];
 };
 /** Grade controls cognitive scaffolding; placement controls English complexity.
  * The two axes must never be silently conflated or used as a formal CEFR test. */
@@ -77,5 +88,6 @@ export function describeLearnerRoute(grade:number|null|undefined,level:EnglishPl
  const gradeBand:GradeBand=!valid?'unselected':grade!<=2?'early':grade!<=4?'middle':'upper';
  const instructionSupport=level==='Pre-A1'||gradeBand==='early'?'supported':gradeBand==='upper'?'independent':'guided';
  return {gradeBand,englishLevel:level,gradeLabel:valid?`${grade}. sınıf`:'Sınıf seçilmedi',
-  instructionSupport,goals:ENGLISH_JOURNEY[0].atLevel[level]};
+  instructionSupport,goals:ENGLISH_JOURNEY[0].atLevel[level],
+   curriculumOutcomeIds:getJourneyCurriculum('word_garden',level).map(o=>o.id)};
 }
