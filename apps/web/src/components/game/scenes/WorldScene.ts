@@ -2,6 +2,7 @@ import Phaser from 'phaser';
 import { EventBus } from '@/lib/game/EventBus';
 import { soundService } from '@/lib/audio/SoundService';
 import {archipelagoBadgeAnchor,archipelagoOpticalShiftPixels,archipelagoCameraFraming} from '@/lib/game/archipelagoPresentation';
+import {ARCHIPELAGO_SKYBRIDGES,ARCHIPELAGO_SKYBRIDGE_MATERIAL,skybridgePoint,skybridgeNormal} from '@/lib/game/archipelagoBridges';
 import {
   ARCHIPELAGO_ISLANDS_CATALOG,
   ARCHIPELAGO_ISLANDS_ORDERED,
@@ -265,96 +266,93 @@ export class WorldScene extends Phaser.Scene {
     }
   }
 
-  // --- 2. ALTI ADAYI BİRLEŞTİREN MASAL KÖPRÜLERİ ---
+  // --- 2. TEK MİMARİ DİLDE ALTI KESİNTİSİZ MASAL KÖPRÜSÜ ---
   private createProgressionPaths(): void {
-    // Draw actual, legible skybridges rather than making only the first route
-    // bright. All six islands form a continuous, storybook ring; locked worlds
-    // retain their bridges, without suggesting their activities are playable.
-    // Bridge ends sit behind island silhouettes (islands depth=20), so no rails
-    // run across the art or intercept a child's click.
-    const curveDefinitions = [
-      {from: 'word_garden',to:'story_castle',p0:{x:770,y:495},  p1:{x:1110,y:440},ctrl:{x:940,y:359},isActive:true},
-      {from: 'story_castle',to:'listening_forest',p0:{x:1370,y:465},p1:{x:1670,y:550},ctrl:{x:1535,y:419},isActive:true},
-      {from: 'listening_forest',to:'speaking_harbor',p0:{x:1810,y:710},p1:{x:1780,y:880},ctrl:{x:1942,y:795},isActive:false},
-      {from: 'speaking_harbor',to:'sentence_workshop',p0:{x:1620,y:1030},p1:{x:1290,y:1080},ctrl:{x:1450,y:1160},isActive:false},
-      {from: 'sentence_workshop',to:'discovery_academy',p0:{x:1030,y:1060},p1:{x:740,y:960},ctrl:{x:882,y:1115},isActive:false},
-      {from: 'discovery_academy',to:'word_garden',p0:{x:608,y:895},p1:{x:610,y:690},ctrl:{x:468,y:792},isActive:false}
-    ] as const;
+    // All six illustrated islands are joined by the SAME warm sandstone skybridge.
+    // No pale blue placeholder links: unlock/progress affects play, not construction.
+    // Endpoints tuck behind island art at depth=20; bridges sit at depth=10.
+    const palette=ARCHIPELAGO_SKYBRIDGE_MATERIAL;
     const reduced=this.isReducedMotion();
-    curveDefinitions.forEach((curve,routeIndex)=>{
-      const at=(t:number)=>({
-        x:(1-t)*(1-t)*curve.p0.x+2*(1-t)*t*curve.ctrl.x+t*t*curve.p1.x,
-        y:(1-t)*(1-t)*curve.p0.y+2*(1-t)*t*curve.ctrl.y+t*t*curve.p1.y
-      });
-      const normal=(t:number)=>{
-        const dx=2*(1-t)*(curve.ctrl.x-curve.p0.x)+2*t*(curve.p1.x-curve.ctrl.x);
-        const dy=2*(1-t)*(curve.ctrl.y-curve.p0.y)+2*t*(curve.p1.y-curve.ctrl.y);
-        const length=Math.max(1,Math.hypot(dx,dy));
-        return {x:-dy/length,y:dx/length};
-      };
-      const gold=curve.isActive;
-      const boards=gold?0xedd195:0xadd8d9;
-      const rails=gold?0xffe7a2:0xc2eff2;
+    ARCHIPELAGO_SKYBRIDGES.forEach((curve,routeIndex)=>{
       const ribbon=this.add.graphics().setDepth(10);
       this.routeDecorations.push(ribbon);
-      // Each sampled deck is edged by independent rails, fine wooden planks,
-      // and a soft sky-lit underside. The same geometry works for vertical bridges.
-      const steps=62;
-      for(let k=0;k<steps;k++){
-        const t=k/steps,u=(k+1)/steps;
-        const a=at(t),b=at(u),na=normal(t),nb=normal(u);
-        ribbon.lineStyle(43,0x336b86,0.14);
-        ribbon.lineBetween(a.x,a.y+8,b.x,b.y+8);
-        ribbon.lineStyle(32,gold?0xdba954:0x689ca8,0.58);
-        ribbon.lineBetween(a.x,a.y,b.x,b.y);
-        ribbon.lineStyle(25,boards,gold?0.96:0.88);
-        ribbon.lineBetween(a.x,a.y,b.x,b.y);
-        ribbon.lineStyle(4,rails,0.96);
-        for(const side of [-1,1]){
-          ribbon.lineBetween(a.x+na.x*15*side,a.y+na.y*15*side,
-            b.x+nb.x*15*side,b.y+nb.y*15*side);
+
+      // One continuous sampled stroke per material layer. This avoids seams,
+      // discontinuous rails and jagged joins at panoramic/mobile camera zoom.
+      const stroke=(width:number,color:number,alpha:number,side=0,drop=0)=>{
+        ribbon.lineStyle(width,color,alpha);
+        ribbon.beginPath();
+        for(let k=0;k<=72;k++){
+          const t=k/72,p=skybridgePoint(curve,t),n=skybridgeNormal(curve,t);
+          const x=p.x+n.x*side,y=p.y+n.y*side+drop;
+          if(k===0)ribbon.moveTo(x,y);
+          else ribbon.lineTo(x,y);
         }
+        ribbon.strokePath();
+      };
+      // Shadow and sandstone supports, followed by a readable warm stone deck.
+      stroke(50,palette.shadow,0.21,0,9);
+      stroke(43,palette.underside,0.97,0,3);
+      stroke(36,palette.stoneEdge,1);
+      stroke(29,palette.deck,1);
+      stroke(20,palette.highlight,0.98);
+      // Both continuous guardrails use identical material even on side arches.
+      stroke(5.5,palette.underside,0.96,-18);
+      stroke(5.5,palette.underside,0.96,18);
+      stroke(3.2,palette.rails,1,-18);
+      stroke(3.2,palette.rails,1,18);
+      stroke(1.6,0xffffff,0.76,-12);
+      // Individual perspective joints: follow the local curve normal at EVERY
+      // position, so vertical side bridges are as solid as horizontal ones.
+      for(let i=1;i<33;i++){
+        const t=i/33,p=skybridgePoint(curve,t),n=skybridgeNormal(curve,t);
+        ribbon.lineStyle(2.1,palette.plankSeam,0.65);
+        ribbon.lineBetween(p.x-n.x*12,p.y-n.y*12,p.x+n.x*12,p.y+n.y*12);
       }
-      // Rhythmic cross-planks create unmistakable bridge perspective at .5 zoom.
-      for(let i=1;i<28;i++){
-        const t=i/28,p=at(t),n=normal(t);
-        ribbon.lineStyle(2.4,gold?0x946f52:0x638c92,0.72);
-        ribbon.lineBetween(p.x-n.x*11,p.y-n.y*11,p.x+n.x*11,p.y+n.y*11);
-      }
-      // Lamplight and ornamental golden posts are purely decorative.
-      for(const t of [0.13,0.36,0.64,0.87]){
-        const p=at(t),n=normal(t);
+      // Posts rise outwards along each bridge's local normal, rather than all
+      // pointing upwards on screen (the old vertical arches looked fragmented).
+      for(const t of [0.15,0.37,0.63,0.85]){
+        const p=skybridgePoint(curve,t),n=skybridgeNormal(curve,t);
         for(const side of [-1,1]){
-          const x=p.x+n.x*15*side,y=p.y+n.y*15*side;
-          const post=this.add.rectangle(x,y,5,15,gold?0xc48b51:0x81b9b3,0.96).setDepth(11);
-          const light=this.add.circle(x,y-9,5.6,gold?0xffe9a7:0xe1fcf3,0.94).setDepth(12);
-          const halo=this.add.circle(x,y-9,12,gold?0xffd57e:0x91e7fa,0.16).setDepth(11);
-          this.routeDecorations.push(post,light,halo);
+          const x=p.x+n.x*18*side,y=p.y+n.y*18*side;
+          const px=x+n.x*5*side,py=y+n.y*5*side;
+          const lx=x+n.x*13*side,ly=y+n.y*13*side;
+          const rotation=Math.atan2(n.y*side,n.x*side)-Math.PI/2;
+          const post=this.add.rectangle(px,py,6,17,palette.lampPost,1)
+            .setRotation(rotation).setDepth(11);
+          const halo=this.add.circle(lx,ly,12,palette.lampHalo,0.19).setDepth(11);
+          const light=this.add.circle(lx,ly,5.7,palette.lamp,1).setDepth(12);
+          this.routeDecorations.push(post,halo,light);
           if(!reduced&&!this.isMobileDevice()&&side===1)this.tweens.add({
-            targets:halo,alpha:0.06,scale:1.4,duration:1800+routeIndex*115,
+            targets:halo,alpha:0.08,scale:1.35,duration:1950+routeIndex*135,
             yoyo:true,repeat:-1,ease:'Sine.easeInOut'
           });
         }
       }
-      // Tiny traveling fireflies connect the whole ring. Reduced-motion is static.
-      for(let i=0;i<7;i++){
-        const t=(i+0.5)/7,p=at(t),bright=i%3===0;
-        const halo=this.add.circle(p.x,p.y,bright?7:4,0xffefd5,0.21).setDepth(13);
-        const core=this.add.rectangle(p.x,p.y,bright?5:3.5,bright?5:3.5,
-          gold?0xffecb4:0xecffff,0.9).setAngle(45).setDepth(14);
+      // Sparkles share the same material and do not consume animation on
+      // touch devices or when the OS requests reduced motion.
+      for(let i=0;i<6;i++){
+        const p=skybridgePoint(curve,(i+0.5)/6);
+        const halo=this.add.circle(p.x,p.y,6,0xffedc3,0.17).setDepth(13);
+        const core=this.add.rectangle(p.x,p.y,3.8,3.8,palette.lamp,0.89)
+          .setAngle(45).setDepth(14);
         this.progressionBubbles.push({halo,core,x:p.x,y:p.y});
         this.routeDecorations.push(halo,core);
         if(!reduced&&!this.isMobileDevice())this.tweens.add({
-          targets:halo,alpha:0.06,scale:1.5,duration:2200+i*130,
+          targets:halo,alpha:0.06,scale:1.45,duration:2200+i*120,
           yoyo:true,repeat:-1,ease:'Sine.easeInOut'
         });
       }
       if(!reduced&&!this.isMobileDevice()){
-        const glint=this.add.circle(curve.p0.x,curve.p0.y,4.5,0xffffff,0.88).setDepth(14);
+        const first=skybridgePoint(curve,0);
+        const glint=this.add.circle(first.x,first.y,4,0xffffff,0.86).setDepth(14);
         this.routeDecorations.push(glint);
-        this.tweens.addCounter({from:0,to:1,duration:6000+routeIndex*250,
-          delay:routeIndex*180,repeat:-1,
-          onUpdate:(tween)=>{const p=at(tween.getValue()??0);glint.setPosition(p.x,p.y);}
+        this.tweens.addCounter({from:0,to:1,duration:6400+routeIndex*280,
+          delay:routeIndex*200,repeat:-1,
+          onUpdate:tween=>{
+            const p=skybridgePoint(curve,tween.getValue()??0);
+            glint.setPosition(p.x,p.y);
+          }
         });
       }
     });
