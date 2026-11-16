@@ -505,7 +505,7 @@ export class MemoryProgressRepository implements IProgressRepository {
 
   public async getAcademyAnswerHistory(profileId:string):Promise<import('@ventra/shared').AcademyAnswerEvidence[]>{
     return Array.from(this.sessions.values()).filter(s=>s.profileId===profileId&&
-      s.data?.gameId==='island_language_academy_atlas')
+      (s.data?.gameId==='island_language_academy_atlas'||s.data?.gameId==='island_language_academy_review'))
       .flatMap(s=>Array.isArray(s.data?.metrics?.academyAnswers)?
        s.data.metrics.academyAnswers.filter((a:any)=>typeof a.taskId==='string'&&
         typeof a.skill==='string'&&typeof a.firstTryCorrect==='boolean'&&

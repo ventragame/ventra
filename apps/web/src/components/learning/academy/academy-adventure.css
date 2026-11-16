@@ -105,3 +105,86 @@
 }
 @media(max-width:350px){.academy-level{display:none}.academy-hero{grid-template-columns:1fr 85px}.academy-hero-image{width:110px}.academy-zone-card{min-height:138px}}
 @media(prefers-reduced-motion:reduce){.academy-root *, .academy-root *::before,.academy-root *::after{animation:none!important;transition:none!important}}
+
+
+/* L6.2 — visual-first scenes with real existing WebP assets, not SVG mock scenes. */
+.academy-zone-card{min-height:151px;gap:14px;overflow:hidden;box-shadow:0 11px 29px #020a236f,inset 0 1px #ffffff30}
+.academy-zone-art{position:relative;overflow:hidden;isolation:isolate;align-self:stretch;width:115px;height:auto;min-height:109px;border:1px solid #ffffff8c;background:var(--zone-tint);box-shadow:inset 0 0 16px #080f3c30,0 8px 18px #0005}
+.academy-zone-art picture{position:absolute;inset:0;z-index:0}
+.academy-zone-art img{width:100%;height:100%;display:block;object-fit:cover;object-position:center;filter:saturate(1.1) contrast(1.04);opacity:.95}
+.academy-zone-art:after{content:"";position:absolute;inset:0;z-index:1;background:linear-gradient(0deg,#151f4f96,transparent 60%);pointer-events:none}
+.academy-zone-art>span{font-size:29px;position:relative;z-index:2;align-self:end;justify-self:start;margin:8px;text-shadow:0 3px 8px #111730dc}
+.academy-zone-text{flex:1}
+.academy-zone-text strong{font-size:clamp(13px,1.5vw,16px)}
+.academy-zone-card:not(:disabled):active,.academy-choices button:not(:disabled):active{transform:scale(.98)}
+.academy-today{display:flex;align-items:center;gap:14px;margin-top:20px;padding:15px 19px;border:1px solid #ffde9c9e;border-radius:20px;background:linear-gradient(110deg,#53487b99,#273f77bb);box-shadow:0 8px 22px #0917356e}
+.academy-today>span{font-size:31px;flex:none}
+.academy-today>div{flex:1;min-width:0}
+.academy-today strong{font-size:13px;color:#fff2c8}
+.academy-today p{font-size:12px;color:#f1f5ff;line-height:1.45;margin:5px 0 0}
+.academy-today button{background:#f9e5ad;color:#493968;font-size:12px;font-weight:900;padding:12px 16px;border:0;border-radius:12px;min-height:44px;white-space:nowrap}
+.academy-scene{min-height:270px;isolation:isolate;background:#344b9b;overflow:hidden}
+.academy-scene-photo{position:absolute;inset:0;z-index:0;pointer-events:none;background:linear-gradient(140deg,var(--zone-light),var(--zone-tint))}
+.academy-scene-photo picture,.academy-scene-photo img{width:100%;height:100%;display:block}
+.academy-scene-photo img{object-fit:cover;object-position:center 44%;filter:saturate(1.12) contrast(1.05);opacity:.93}
+.academy-scene:after{content:"";position:absolute;inset:0;z-index:0;background:linear-gradient(180deg,#1c2e610d 2%,#101c3770 48%,#090e2ebd 100%);pointer-events:none}
+.academy-scene-glow{z-index:1;inset:-60%;opacity:.5;mix-blend-mode:screen}
+.academy-scene-icon{z-index:2;position:relative;display:grid;place-items:center;align-self:center;border-radius:50%;width:102px;height:102px;margin:6px 0 14px;font-size:64px;line-height:1;background:radial-gradient(circle at 35% 30%,#fffce4c4,#ffe0a633 52%,#fff2ac0a);border:1px solid #ffebba7d;box-shadow:0 0 34px #fff1ae84,0 4px 21px #080c307d;backdrop-filter:blur(4px)}
+.academy-scene-sparks{z-index:2;position:absolute;top:8px;right:14px;color:#ffe3a0;display:flex;gap:7px;font-size:25px;text-shadow:0 0 8px #e9a7ff}
+.academy-scene-dialogue{z-index:3;background:#0c173cdd;max-width:100%;box-shadow:0 8px 24px #040a286b}
+.academy-scene-dialogue p{font-size:13px}
+.academy-task{margin-top:14px;position:relative}
+.academy-listen-note{color:#475f98;background:#eaf2ff;padding:10px 12px;border-radius:12px;font-size:13px;font-weight:800;margin:6px 0}
+.academy-audio{min-height:48px;box-shadow:0 5px 13px #415ca842;transition:filter .15s ease}
+.academy-audio:not(:disabled):hover{filter:brightness(1.1)}
+.academy-audio-support{font-size:12px;background:#7255a8;margin:11px 0 4px}
+.academy-choices{gap:12px}
+.academy-choices button{min-height:67px}
+.academy-choices button:disabled{opacity:.58}
+.academy-choices button span:last-child{overflow-wrap:anywhere}
+.academy-review>div{background:#ffffff25}
+@media(max-width:850px){
+ .academy-zone-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
+}
+@media(max-width:650px){
+ .academy-zone-card{min-height:180px;gap:8px;padding:9px}
+ .academy-zone-art{width:100%;height:81px;min-height:81px;flex:none;border-radius:14px;align-self:auto}
+ .academy-zone-art img{object-position:center 38%}
+ .academy-zone-art>span{font-size:22px;margin:4px 9px}
+ .academy-zone-text{gap:4px}
+ .academy-zone-text strong{font-size:13px}
+ .academy-zone-text>span{font-size:10px}
+ .academy-today{padding:12px;align-items:flex-start;gap:8px;flex-wrap:wrap}
+ .academy-today>span{font-size:23px}
+ .academy-today button{width:100%;margin-top:3px}
+ .academy-scene{min-height:233px}
+ .academy-scene-photo img{object-position:center center}
+ .academy-scene-icon{width:76px;height:76px;font-size:48px;margin:6px 0}
+ .academy-scene-dialogue p{font-size:12px}
+ .academy-scene-sparks{font-size:18px;right:8px}
+ .academy-task{padding:16px 13px}
+ .academy-choices button{min-height:58px;font-size:14px}
+ .academy-audio{width:100%}
+}
+@media(max-width:390px){
+ .academy-hero{grid-template-columns:1fr 80px}
+ .academy-hero h1{font-size:22px}
+ .academy-zone-grid{gap:8px}
+ .academy-zone-card{min-height:190px}
+ .academy-scene{min-height:220px}
+}
+
+/* One pre-existing local Lottie guide; lazy animation, static fallback and
+ * reduced-motion handling live in CharacterGuide. No external asset CDN. */
+.academy-scene-character{position:absolute;left:clamp(12px,4%,28px);bottom:79px;z-index:3;width:clamp(94px,17%,138px);aspect-ratio:1;filter:drop-shadow(0 9px 14px #0d1d5e99);pointer-events:none}
+.academy-scene-character .ventra-character{width:100%;height:100%}
+.academy-scene-icon{margin-left:16%;margin-right:0}
+@media(max-width:650px){
+ .academy-scene-character{left:8px;bottom:77px;width:84px}
+ .academy-scene-icon{margin-left:25%;margin-right:0}
+}
+
+.academy-scene-achievement{position:absolute;left:50%;top:40%;z-index:5;transform:translate(-50%,-50%);max-width:85%;white-space:normal;text-align:center;border:2px solid #fff4b8;border-radius:20px;padding:12px 18px;background:#fff4dff2;color:#393665;box-shadow:0 0 42px #ffd57ac9,0 12px 35px #1017406b;font-weight:950;font-size:clamp(13px,2.5vw,18px);line-height:1.4;animation:academy-achievement .24s ease-out both}
+.academy-scene-achievement span{color:#c88923;margin-right:5px}
+@keyframes academy-achievement{from{opacity:0;transform:translate(-50%,-45%) scale(.88)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
+@media(prefers-reduced-motion:reduce){.academy-scene-achievement{animation:none}}

@@ -3,6 +3,9 @@ import type {AcademyLevel,AcademyAnswer} from './academyEngine.ts';
 export type AcademyCheckpoint={
  version:1;zone:number;level:AcademyLevel;step:number;variant:number;
  answers:AcademyAnswer[];attempts:number;hints:number;sessionId:string;updatedAt:number;
+ // Optional fields keep existing v1 checkpoints backward-compatible.
+ currentMistakes?:number;currentHintLevel?:0|1|2;
+ audioAttempted?:boolean;audioPlayed?:boolean;
 };
 const TTL=30*24*60*60*1000;
 const key=(profile:string,level:AcademyLevel,zone:number)=>
@@ -21,6 +24,11 @@ export function readAcademyCheckpoint(profile:string,level:AcademyLevel,zone:num
     !Number.isSafeInteger(data.variant)||data.variant!<0||
     !Number.isInteger(data.attempts)||data.attempts!<0||
     !Number.isInteger(data.hints)||data.hints!<0||
+    (data.currentMistakes!==undefined&&(!Number.isInteger(data.currentMistakes)||data.currentMistakes<0))||
+    (data.currentHintLevel!==undefined&&(!Number.isInteger(data.currentHintLevel)||data.currentHintLevel<0||data.currentHintLevel>2))||
+    (data.audioAttempted!==undefined&&typeof data.audioAttempted!=='boolean')||
+    (data.audioPlayed!==undefined&&typeof data.audioPlayed!=='boolean')||
+    (data.audioPlayed===true&&data.audioAttempted!==true)||
     !Array.isArray(data.answers)||data.answers.length!==data.step||
     typeof data.sessionId!=='string'||data.sessionId.length<8||data.sessionId.length>100||
     !Number.isSafeInteger(data.updatedAt)||data.updatedAt!>Date.now()||

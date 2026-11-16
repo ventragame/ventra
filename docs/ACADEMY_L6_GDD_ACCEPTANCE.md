@@ -41,8 +41,28 @@ The existing total-star calculation is extended to include Academy, Writing Work
 
 ## UX and release quality gates
 
-The academy UI uses the existing six-island WebP in a new dark-blue/lavender/gold hero, mobile-adaptive cards, accessible large tap areas, atmospheric CSS scene layers, a simple glowing Lumi guide motif and reduced-motion safeguards. **The prototype scenes still use icon/emoji representations**: dedicated professional illustration/character assets, actual child-friendly story animations and production art direction are outstanding.
+The academy UI now uses six region-specific scene treatments with verified, bundled Ventra WebP assets (academy island, harbor scenes, forest treehouse), a shared on-device Lottie owl guide with fallback and reduced-motion support, large mobile choices, and visible in-scene feedback. This reuses existing art and is not six separately commissioned illustrations. Dedicated academy-original scene and mascot art direction, character-authored story action and professional child-observed visual acceptance remain outstanding.
 
 Automated acceptance includes six-region mapping, content/placement diversity, stable replay identities, hint independence, speech distinction, profile isolation and idempotency. Required separate gates: GitHub TypeScript/test/web/Android/iOS CI; real Android/iPhone keyboard and microphone; 320–440 px touch/accessibility; offline transition/restart; English teacher approval, child-observed task comprehension and long-term retention. No automated suite can establish pedagogy or user experience in actual children.
 
 **Release status:** The code may be made locally playable after CI; passing CI does not constitute pedagogical or physical-device acceptance, and production stays undeployed.
+
+
+## L6 Premium 2.0 corrective addendum (2026-11-16)
+
+- **Anti-spoiler:** The active case's Turkish story and case title stay hidden until after the first listening task; names such as "Mavi Zarf" previously leaked the correct English answer. Children must try the English audio before choosing.
+- **Assistance:** Two progressive hints: the first teaches a strategy, only the second reveals the model answer. Spoken models used for writing and sentence construction are assisted answers. Targeted A1/A2 variants accept authored alternative forms, not unrestricted natural-language grading.
+- **Evidence integrity:** Per-step mistakes, hint level and audio-attempt flags survive a refresh using a strictly categorical local checkpoint. No typed response, transcript or raw microphone data is persisted.
+- **Child privacy:** Academy voice recognition is permitted only on native-local, sherpa-local and web-local modes; browser-vendor recognition is not silently enabled for children. Touch controls remain the fallback, without verified speech credit.
+- **Actionable review:** The weaker/due skill triggers a dedicated three-question, same-placement practice session across three authored cases. Its separate game ID is island_language_academy_review with zero stars; it cannot unlock main regions or inflate reward balances.
+- **Visual response:** Verified existing WebP scenes, six illustrated region cards, the self-hosted animated owl guide, reduced-motion mode and immediate in-scene success feedback. These are reused assets, not original commissioned academy scene illustrations.
+- **Release quality gates:** CI tests and web/Android/iOS builds; then physical-device performance, real microphone and no-audio fallbacks, narrow keyboard QA, teacher assessment and child-observed usability tests. School grade still changes voice speed rather than the whole curriculum.
+
+### Manual QA scenarios
+
+1. Enter a region at Pre-A1. Confirm the first Turkish story does not disclose the correct English listening target.
+2. Hear the prompt, answer incorrectly, use a hint and exit before finishing the question. Reopen the same profile and verify hint/error counters remain while typed input is never saved.
+3. Try all five interactions, A1/A2 accepted writing forms and supported vs. independent success.
+4. Replay the same region for four rounds; adjacent story cases must be distinct. Check stars and checkpoints on two profiles.
+5. Complete the three-task targeted review; make sure it neither awards a star nor advances the academy map.
+6. Test a real Android/iPhone with offline speech, missing speech model, background/return, 320–440 px screen, reduced motion and failed save/retry.
