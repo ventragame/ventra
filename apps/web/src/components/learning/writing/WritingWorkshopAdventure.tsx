@@ -6,7 +6,7 @@ import {getProgressRepository} from '@/lib/progress';
 import {soundService} from '@/lib/audio/SoundService';
 import {
  WORKSHOP_CHAPTERS,WRITING_WORKSHOP_GAME_ID,
- getWorkshopTasks,isWorkshopAnswerCorrect,workshopTiles,workshopFeedback,
+ getWorkshopTasks,getLegacyWorkshopTasks,workshopTaskCount,isWorkshopAnswerCorrect,workshopTiles,workshopFeedback,
  type WorkshopLevel,type WorkshopTask
 } from '@/lib/learning/writingWorkshopEngine';
 import {
@@ -59,6 +59,11 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
  const currentResponse=task.mode==='write'?input:
   task.mode==='spell'?built.join(''):built.join(' ');
  const wordCount=task.target.trim().split(/\s+/).length;
+ const act=Math.min(2,Math.floor(step*3/deck.length));
+ const acts=['1 · Keşfet','2 · Deneyerek Yaz','3 · Kendi Başına'];
+ const clue=task.mode==='spell'?`${task.target.replace(/[^a-z]/gi,'').length} harf var. İlk harf: ${task.target[0].toUpperCase()}.`:
+  task.mode==='assemble'?`Cümle ${wordCount} kelimeden oluşuyor. İlk kelime: ${task.target.split(' ')[0]}.`:
+  `İngilizce cevabın ${wordCount} kelime. İlk kelime ${task.target.split(' ')[0]} ile başlıyor.`;
 
  const refresh=useCallback(async()=>{
   const levels=await getProgressRepository().getAllLevelProgress(WRITING_WORKSHOP_GAME_ID,profileId);
@@ -101,7 +106,10 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
   // A resumed lesson keeps EXACTLY its original task IDs. Legacy checkpoints
   // with no replay metadata use the pre-upgrade (playIndex=0) lesson.
   const savedIndex=saved?.playIndex??0;
-  const resumeDeck=getWorkshopTasks(id,englishLevel,gradeLevel,savedIndex);
+  const legacy=Boolean(saved&&(!saved.taskIds||saved.taskIds.length<=5));
+  const resumeDeck=legacy?
+   getLegacyWorkshopTasks(id,englishLevel,gradeLevel,savedIndex):
+   getWorkshopTasks(id,englishLevel,gradeLevel,savedIndex);
   const matches=!saved?.taskIds||
    (saved.taskIds.length===resumeDeck.length&&
     saved.taskIds.every((taskId,i)=>resumeDeck[i].id===taskId));
@@ -240,7 +248,7 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
       <span>✏️ KENDİ KELİMELERİNLE YAZ</span>
       <h2>Harflerin Büyüsü Başlıyor!</h2>
       <p>Kelimeleri kur, cümleleri tamamla, kendi notlarını yaz. Her bölümde yeni bir hikâye seni bekliyor.</p>
-      <div className="writing-level-pill">{englishLevel} · {gradeLevel?gradeLevel+'. sınıf':'Sınıf seçilmedi'} · Dokunarak veya yazarak</div>
+      <div className="writing-level-pill">{englishLevel} · {gradeLevel?gradeLevel+'. sınıf':'Sınıf seçilmedi'} · Her tur {workshopTaskCount(gradeLevel)} farklı yazma görevi</div>
      </div>
     </section>
     {saveError&&<p className="writing-alert" role="alert">{saveError}</p>}
@@ -257,12 +265,16 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
       </span>
      </button>)}
     </section>
-    <p className="writing-replay-note">🔄 Her yeni turda farklı kelimeler, cümleler ve yazı görevleri seçilir.</p>
+    <p className="writing-replay-note">🔄 Her turda {workshopTaskCount(gradeLevel)} görev, üç yazma becerisi ve yeni kelime-cümle eşleşmeleri. İlerlemen bölüm bölüm korunur.</p>
     <p className="writing-privacy">🛡️ Yazdığın serbest metin saklanmaz. Yalnızca öğrenme ilerlemen kaydedilir.</p>
    </div>:phase==='playing'?<div className="writing-play">
     <div className="writing-topline">
      <span>{current.icon} {current.title}</span>
      <span>{englishLevel} · {step+1}/{deck.length} · Tur {playIndex+1}</span>
+    </div>
+    <div className="writing-arc" aria-label="Yazı yolculuğunun aşamaları">
+     {acts.map((label,i)=><span key={label} data-state={i<act?'done':i===act?'now':'later'}>
+      {i<act?'✓ ':''}{label}</span>)}
     </div>
     <div className="writing-progress" role="progressbar" aria-label="Bölüm ilerlemesi"
      aria-valuemin={0} aria-valuemax={deck.length} aria-valuenow={step}>
@@ -320,6 +332,9 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
      <div className="writing-feedback" role="status" aria-live="polite">
       {message||(resolved?'Doğru yazdın!':'Kelimeleri düşün, acele etme.')}
      </div>
+     {wrongOnStep>=2&&!resolved&&<p className="writing-guided-clue">
+      💡 Küçük ipucu: {clue} İstersen üstteki örneği de açabilirsin.
+     </p>
      <div className="writing-actions">
       <button className="writing-reset" type="button" disabled={saving||resolved}
        onClick={clearEntry}>↺ Yeniden Dene</button>
