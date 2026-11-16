@@ -207,16 +207,45 @@ test('Child-facing loading screen and game path no longer show technical copy',(
  assert.match(panel,/ilk dokunuştan sonra çalabilir/);
 });
 
-test('Premium six-island archipelago has a complete, illuminated bridge ring',()=>{
- const block=scene.slice(scene.indexOf('private createProgressionPaths(): void'),
-   scene.indexOf('  // --- 3. ALTI BAĞIMSIZ ADANIN'));
- assert.equal((block.match(/p0:\{x:/g)||[]).length,6,
-   'Six continuous skybridges connect the ring, including the return to Word Garden');
- assert.match(block,/const boards=gold/);
- assert.match(block,/const rails=gold/);
- assert.match(block,/for\(const side of \[-1,1\]\)/);
- assert.match(block,/this\.add\.rectangle\(x,y,5,15/);
- assert.match(block,/if\(!reduced&&!this\.isMobileDevice\(\)\)/);
+test('Premium six-island skybridge ring uses a SINGLE continuous material on every connection',async()=>{
+ const {ARCHIPELAGO_SKYBRIDGES,ARCHIPELAGO_SKYBRIDGE_MATERIAL,
+  skybridgePoint,skybridgeNormal}=await import('../src/lib/game/archipelagoBridges.ts');
+ const {ARCHIPELAGO_ISLANDS_ORDERED,ARCHIPELAGO_ISLANDS_CATALOG}=
+  await import('../../../packages/shared/src/archipelago.ts');
+ const order=ARCHIPELAGO_ISLANDS_ORDERED.map(x=>x.id);
+ assert.equal(ARCHIPELAGO_SKYBRIDGES.length,6);
+ assert.deepEqual(ARCHIPELAGO_SKYBRIDGES.map(x=>x.from),order);
+ assert.deepEqual(ARCHIPELAGO_SKYBRIDGES.map(x=>x.to),[...order.slice(1),order[0]]);
+ assert.equal(new Set(ARCHIPELAGO_SKYBRIDGES.map(x=>x.from)).size,6);
+ assert.equal(Object.keys(ARCHIPELAGO_SKYBRIDGE_MATERIAL).length,10);
+ for(const route of ARCHIPELAGO_SKYBRIDGES){
+  const from=ARCHIPELAGO_ISLANDS_CATALOG[route.from].defaultWorldPos;
+  const to=ARCHIPELAGO_ISLANDS_CATALOG[route.to].defaultWorldPos;
+  const startGap=Math.hypot(route.p0.x-from.x,route.p0.y-from.y);
+  const endGap=Math.hypot(route.p1.x-to.x,route.p1.y-to.y);
+  assert.ok(startGap>=115&&startGap<=215,'Bridge starts inside source artwork: '+route.from);
+  assert.ok(endGap>=115&&endGap<=215,'Bridge terminates inside target artwork: '+route.to);
+  assert.ok(Math.hypot(route.p1.x-route.p0.x,route.p1.y-route.p0.y)>=155,
+   'Bridge must span a visible gap: '+route.from+' -> '+route.to);
+  assert.deepEqual(skybridgePoint(route,0),route.p0);
+  assert.deepEqual(skybridgePoint(route,1),route.p1);
+  for(const t of [0,0.1,0.35,0.5,0.72,0.9,1]){
+   const p=skybridgePoint(route,t),n=skybridgeNormal(route,t);
+   assert.ok(Number.isFinite(p.x)&&Number.isFinite(p.y));
+   assert.ok(Math.abs(Math.hypot(n.x,n.y)-1)<1e-10);
+  }
+ }
+ const bridge=scene.slice(scene.indexOf('private createProgressionPaths(): void'),
+  scene.indexOf('  // --- 3. ALTI BAĞIMSIZ ADANIN'));
+ assert.match(bridge,/ARCHIPELAGO_SKYBRIDGES\.forEach/);
+ assert.match(bridge,/const palette=ARCHIPELAGO_SKYBRIDGE_MATERIAL/);
+ assert.match(bridge,/ribbon\.strokePath\(\)/);
+ assert.match(bridge,/stroke\(3\.2,palette\.rails,1,-18\)/);
+ assert.match(bridge,/stroke\(3\.2,palette\.rails,1,18\)/);
+ assert.match(bridge,/Math\.atan2\(n\.y\*side,n\.x\*side\)/);
+ assert.match(bridge,/this\.add\.rectangle\(px,py,6,17/);
+ assert.match(bridge,/this\.tweens\.addCounter/);
+ assert.doesNotMatch(bridge,/isActive|gold\?|discovery_academy|0xadd8d9/);
  assert.match(scene,/this\.routeDecorations\.forEach\(\(decoration\) => decoration\.setVisible\(!spotlight\)\)/);
 });
 
