@@ -215,6 +215,8 @@ test('L6 Premium: verified existing WebP art covers all six regions and mobile s
  const ui=fs.readFileSync(new URL('../src/components/learning/academy/AcademyAdventure.tsx',import.meta.url),'utf8');
  const css=fs.readFileSync(new URL('../src/components/learning/academy/academy-adventure.css',import.meta.url),'utf8');
  assert.match(ui,/currentZone\.mobileArt/);
+ assert.match(ui,/\['native-local','sherpa-local','web-local'\]/);
+ assert.doesNotMatch(ui,/\['native-local','sherpa-local','web-local','web-browser'\]/);
  assert.match(ui,/CharacterGuide character="meadow-owl"/);
  assert.match(ui,/task\.caseId/);
  assert.match(ui,/setRecorded\(history=>\[\.\.\.history,\.\.\.rows\]\)/);
