@@ -28,10 +28,11 @@ test('P0 English curriculum defines exactly three placements for every stable to
 
 test('All real teaching surfaces point to valid existing island IDs, game IDs and source files',()=>{
  const physicalIds=ARCHIPELAGO_ISLANDS_ORDERED.map(x=>x.id);
- assert.equal(CURRICULUM_SURFACES.length,13);
+ assert.equal(CURRICULUM_SURFACES.length,14);
  assert.deepEqual(JOURNEY_ORDER,physicalIds);
  assert.equal(new Set(CURRICULUM_SURFACES.map(x=>x.gameId)).size,CURRICULUM_SURFACES.length);
  const gameIdSources={
+  'garden.alphabet':'../src/lib/learning/alphabetGroveEngine.ts',
   'garden.animals':'../src/lib/progress/wordGardenProgress.ts',
   'garden.colors':'../src/lib/progress/colorGroveProgress.ts',
   'garden.numbers':'../src/lib/progress/numberValleyProgress.ts',
@@ -59,9 +60,9 @@ test('Every authored outcome has a real playable game route and planned gaps nev
  const ids=new Set(CURRICULUM_SURFACES.map(x=>x.id));
  const coverage=getEnglishCurriculumCoverage();
  for(const p of coverage){
-  assert.equal(p.authored,18);
-  assert.equal(p.gap,8);
-  assert.equal(p.partial,0);
+  assert.equal(p.authored,p.placement==='Pre-A1'?20:19);
+  assert.equal(p.gap,p.placement==='Pre-A1'?6:p.placement==='A1'?6:7);
+  assert.equal(p.partial,p.placement==='A1'?1:0);
  }
  for(const outcome of ENGLISH_CURRICULUM_OUTCOMES){
   assert.ok(outcome.descriptionTr.length>16);
@@ -74,14 +75,16 @@ test('Every authored outcome has a real playable game route and planned gaps nev
  for(const placement of ENGLISH_PLACEMENTS){
   const all=getEnglishCurriculum({placement});
   assert.equal(all.length,26);
-  assert.equal(getEnglishCurriculum({placement,includeGaps:false}).length,18);
+  assert.equal(getEnglishCurriculum({placement,includeGaps:false}).length,placement==='Pre-A1'||placement==='A1'?20:19);
   assert.equal(getEnglishCurriculum({placement,topics:['phonics']}).length,1);
-  assert.equal(getEnglishCurriculum({placement,topics:['phonics'],includeGaps:false}).length,0);
+  assert.equal(getEnglishCurriculum({placement,topics:['phonics'],includeGaps:false}).length,placement==='A2'?0:1);
  }
 });
 
 test('Pedagogical prerequisites form a DAG and never silently change island locks',()=>{
- assert.equal(findEnglishOutcome('en.phonics.pre-a1').coverage,'gap');
+ assert.equal(findEnglishOutcome('en.phonics.pre-a1').coverage,'authored');
+ assert.equal(findEnglishOutcome('en.phonics.a1').coverage,'partial');
+ assert.equal(findEnglishOutcome('en.phonics.a2').coverage,'gap');
  const a1=findEnglishOutcome('en.dialogue.a1');
  assert.ok(a1.prerequisiteIds.includes('en.dialogue.pre-a1'));
  assert.ok(a1.prerequisiteIds.includes('en.greetings.a1'));
