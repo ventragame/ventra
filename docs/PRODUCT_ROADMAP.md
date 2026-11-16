@@ -318,3 +318,13 @@ See [CM1 acceptance and implemented grammatical families](./CM1_UYANAN_MEYDAN_GD
 - Her seviye/bölüme 10 yeni, özgün ve Türkçe yönergeli yazı görevi eklenerek içerik 75'ten **225'e** yükseltildi; harf, kelime ve bağımsız yazı görevlerinin bankaları ayrıldı.
 - Tamamlanmış bölüm denemeleriyle 125 kombinasyonluk deterministik seçim ve yan yana denemelerde soru ID çakışmama ilkesi eklendi. Eski ödül kayıtları, 5 bölüm ID'si ve tamamlanmamış checkpoint'ler korunur.
 - Bu, tam yaratıcı ve adaptif yazma öğretmeni değildir. Serbest yazıların dilsel geri bildirimi ve uzun dönemli aralıklı tekrar hâlâ açık iş kalemidir.
+
+### 2026-11-16 — P0: merkezi İngilizce kazanım haritası
+
+- Yeni tek kaynak: `apps/web/src/lib/learning/englishCurriculum.ts`; 26 tematik konu × Pre-A1/A1/A2 = **78 ayrı kazanım**. Bunların **54'ü** oynanabilir kod içeriğine eşlenmiş, **24'ü** gerçekten sistematik ünite eksikliği olarak `gap` durumunda.
+- **13 gerçek oyun yüzeyi**, altı kalıcı ada kimliği, oyun ilerleme gameId'leri, seviye bazlı hedef cümleleri, ölçülmek istenen dil becerileri ve tavsiye niteliğinde önkoşul yönlü grafiği kayıtlıdır.
+- Geliştirme açığı: Harf adları/A–Z, phonics, okul/sınıf, kıyafetler, vücut, hava durumu, takvim/saat ve hobilerin sistematik üniteleri henüz yoktur. Dağınık örneklerin bulunması bir üniteyi `authored` yapmaz.
+- `getJourneyCurriculum` ve `describeLearnerRoute().curriculumOutcomeIds` yoluyla mevcut altı ada öğrenme manifestine okunabilir bağ kuruldu. **Hiçbir kilit, yıldız, öğrenci verisi, SQL ya da oynama motoru değiştirilmedi**.
+- Yeni otomatik testler: kayıtlı gameId'ler gerçek kaynaklarda var, üç seviyede eşleme tam, tüm önkoşullar geçerli ve döngüsüz, 'gap' dersleri oynanabilir görünmüyor. Sınıf, İngilizce başlangıç düzeyinden ve kazanım kanıtından bağımsızdır.
+- İçerik İngilizce çocuk öğrenimi için yerel *editoryal hedef*tir; resmî MEB veya ölçülmüş CEFR eşlemesi ya da pedagojik yeterlilik iddiası değildir. Eski `packages/shared/src/curriculum.ts` dosyasında geçmiş matematik örnekleri bulunmaktadır, Kids English P0 bunun üzerine kurulmamıştır.
+- Uygulama ve QA ayrıntıları: [P0 müfredat sözleşmesi](./VENTRA_ENGLISH_CURRICULUM_P0.md). Yeni alfabe oyunu ve çocuk kurs ekranı sırasıyla P1/P2 kapsamıdır; burada yapılmadı.

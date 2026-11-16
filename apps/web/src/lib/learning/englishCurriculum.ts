@@ -54,7 +54,7 @@ export interface EnglishCurriculumOutcome {
  /** Recommended teaching order, never a hard access lock or mastery claim. */
  readonly prerequisiteIds:readonly string[];
  /** Non-certifying editorial tag, separate from learner's grade. */
- readonly quality:'author-reviewed-content-pending-pedagogical-acceptance';
+ readonly quality:'curriculum-review-pending';
 }
 type TierTriple<T>=readonly [T,T,T];
 interface TopicSeed {
@@ -168,7 +168,7 @@ export const ENGLISH_CURRICULUM_OUTCOMES:readonly EnglishCurriculumOutcome[]=TOP
     ...(index>0?[`en.${seed.id}.${ENGLISH_PLACEMENTS[index-1].toLowerCase()}`]:[]),
     ...seed.prerequisites.map(topic=>`en.${topic}.${placement.toLowerCase()}`)
    ],
-   quality:'author-reviewed-content-pending-pedagogical-acceptance' as const
+   quality:'curriculum-review-pending' as const
   };
  })
 );

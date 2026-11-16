@@ -110,3 +110,7 @@ TypeScript, automated unit/integration tests, production web build, Android and 
 - Profile-isolated local/cloud categorical evidence, resumable 30-day checkpoint, no written child text or microphone audio stored. Touch-based dialogue is not spoken proficiency, and tile-built writing is not independent writing evidence.
 - Existing academy island WebP and mobile-responsive UI used; dedicated narrative art, teacher-led curricular review, real child usability and physical device acceptance still open.
 - See [L6 academy GDD](./ACADEMY_L6_GDD_ACCEPTANCE.md). This dated addendum supersedes older *planned* statements for L6 only.
+
+### 2026-11-16 — P0 English curriculum registry
+
+The runtime English outcome catalog is now `apps/web/src/lib/learning/englishCurriculum.ts`, with 26 topics and three placement-specific goals each. This is **separate from** the older shared math curriculum skeleton and does not override six-island persistent IDs or gameplay availability. Existing authored/implemented lesson coverage is classified separately from planned gap topics; 13 existing teaching surfaces are mapped by current game IDs. Advisory prerequisite edges never unlock/lock a game or infer mastery from progress/stars. See [P0 English curriculum contract](./VENTRA_ENGLISH_CURRICULUM_P0.md). The earlier v2 date/status entries are historical; inspect latest code for actual availability.
