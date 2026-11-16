@@ -699,7 +699,7 @@ export class IndexedDBProgressRepository implements IProgressRepository {
   public async getAcademyAnswerHistory(profileId:string):Promise<import('@ventra/shared').AcademyAnswerEvidence[]>{
     const db=await this.getDB();
     const sessions=await this.getRecordsByIndex<any>(db,'sessions','profileId',profileId);
-    return sessions.filter(s=>s.data?.gameId==='island_language_academy_atlas')
+    return sessions.filter(s=>(s.data?.gameId==='island_language_academy_atlas'||s.data?.gameId==='island_language_academy_review'))
       .flatMap(s=>Array.isArray(s.data?.metrics?.academyAnswers)?
        s.data.metrics.academyAnswers.filter((a:any)=>typeof a.taskId==='string'&&
         typeof a.skill==='string'&&typeof a.firstTryCorrect==='boolean'&&
