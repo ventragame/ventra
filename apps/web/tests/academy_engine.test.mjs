@@ -3,7 +3,9 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {
  ACADEMY_GAME_ID,ACADEMY_CASES,ACADEMY_ZONES,buildAcademyPlan,nextAcademyVariant,
- academyShuffle,academyWords,matchesAcademyAnswer,academySkillReview
+ academyShuffle,academyWords,matchesAcademyAnswer,academySkillReview,
+ academySafeMission,academyHint,academyRoundOptions,academyReviewPriority,
+ isAcademyTaskAnswerCorrect,buildAcademyFocusPlan,ACADEMY_REVIEW_GAME_ID
 } from '../src/lib/learning/academyEngine.ts';
 import {MemoryProgressRepository} from '../src/lib/progress/MemoryProgressRepository.ts';
 
@@ -129,4 +131,96 @@ test('New academy island has real game routing, responsive UI and privacy-only c
  assert.doesNotMatch(checkpoint,/typed|transcript|audioData|microphoneBlob/);
  assert.match(css,/prefers-reduced-motion:reduce/);
  assert.match(css,/max-width:650px/);
+});
+
+
+test('L6 Premium: listening never gives away the target before hearing the English phrase',()=>{
+ const ui=fs.readFileSync(new URL('../src/components/learning/academy/AcademyAdventure.tsx',import.meta.url),'utf8');
+ assert.match(ui,/step===0\?academySafeMission\(zone\):plan\.mission/);
+ assert.match(ui,/step===0\?currentZone\.name:plan\.caseTitle/);
+ assert.match(ui,/task\.kind==='hear'&&!audioAttempted/);
+ assert.match(ui,/audioPlayed/);
+ for(const scene of ACADEMY_CASES){
+  const safelyAuthored=academySafeMission(scene.zone).toLowerCase();
+  assert.ok(!safelyAuthored.includes(scene.item.toLowerCase()),scene.title);
+  assert.ok(!safelyAuthored.includes(scene.otherA.toLowerCase()),scene.title);
+ }
+});
+test('L6 Premium: staged hints start without answer disclosure',()=>{
+ for(const scene of ACADEMY_CASES)for(const level of ['Pre-A1','A1','A2']){
+  const variant=ACADEMY_CASES.filter(c=>c.zone===scene.zone).indexOf(scene);
+  const plan=buildAcademyPlan(scene.zone,level,variant);
+  for(const task of plan.tasks){
+   const first=academyHint(task,1);
+   const second=academyHint(task,2);
+   assert.ok(first.length>30);
+   assert.ok(!first.includes(task.answer),'hint must not echo full answer: '+task.id);
+   assert.ok(second.includes(task.answer),'second hint is explicitly supported model');
+  }
+ }
+});
+test('L6 Premium: targeted review has three unique situations, respects placement, never advances zone rewards',async()=>{
+ const r1=buildAcademyFocusPlan(3,'Pre-A1','listening',0);
+ const r2=buildAcademyFocusPlan(3,'A2','dialogue',1);
+ assert.equal(r1.tasks.length,3);
+ assert.equal(r2.tasks.length,3);
+ assert.equal(new Set(r1.tasks.map(t=>t.caseId)).size,3);
+ assert.equal(new Set(r2.tasks.map(t=>t.caseId)).size,3);
+ assert.ok(r1.tasks.every(t=>t.skill==='listening'));
+ assert.ok(r2.tasks.every(t=>t.skill==='dialogue'));
+ assert.deepEqual(r1,buildAcademyFocusPlan(3,'Pre-A1','listening',0));
+ assert.throws(()=>buildAcademyFocusPlan(0,'A2','listening',0),RangeError);
+ assert.throws(()=>buildAcademyFocusPlan(1,'A2','nonsense',0),RangeError);
+ const repo=new MemoryProgressRepository();
+ const p=await repo.createProfile({nickname:'Review learner',avatarId:'avatar_explorer'});
+ const payload={sessionId:'academy-review-one',profileId:p.id,gameId:ACADEMY_REVIEW_GAME_ID,
+  levelId:3,outcomeId:'academy-review',success:true,score:67,starsEarned:0,
+  metrics:{durationSeconds:31,attemptsCount:3,accuracyRate:2/3,academyAnswers:r1.tasks.map(t=>({
+   taskId:t.id,caseId:t.caseId,placement:'Pre-A1',skill:t.skill,
+   firstTryCorrect:true,hintUsed:false,mistakes:0,independentlyCompleted:true,
+   speechVerified:false,timestamp:new Date().toISOString()
+  }))},
+  completedAt:new Date().toISOString()};
+ await repo.recordGameCompleted(payload,p.id);
+ assert.equal((await repo.getAcademyAnswerHistory(p.id)).length,3);
+ assert.equal((await repo.getAllLevelProgress(ACADEMY_GAME_ID,p.id))[3].completedCount,0);
+ assert.equal(await repo.getTotalStars(p.id,ACADEMY_GAME_ID),0);
+ assert.equal((await repo.recordGameCompleted(payload,p.id)).isDuplicate,true);
+});
+test('L6 Premium: accepted English variants and placement-isolated review recommendations',()=>{
+ const task=buildAcademyPlan(2,'A2',1).tasks[4];
+ assert.equal(task.kind,'write');
+ assert.ok(task.accepted.length>=2);
+ for(const valid of [task.answer,...task.accepted])
+  assert.ok(isAcademyTaskAnswerCorrect(task,valid));
+ assert.ok(!isAcademyTaskAnswerCorrect(task,'Some unrelated sentence.'));
+ const base={taskId:'academy-1-a1-talk',caseId:'academy-1',skill:'dialogue',
+  firstTryCorrect:true,hintUsed:false,mistakes:0,independentlyCompleted:true,
+  speechVerified:true,timestamp:'2026-11-16T09:00:00Z'};
+ const now=Date.parse('2026-11-16T20:00:00Z');
+ const diff={...base,placement:'Pre-A1',independentlyCompleted:false};
+ const a1=academySkillReview([{...base,placement:'A1'},diff],now,'A1');
+ const pre=academySkillReview([{...base,placement:'A1'},diff],now,'Pre-A1');
+ assert.equal(a1.find(s=>s.skill==='dialogue').independent,1);
+ assert.equal(pre.find(s=>s.skill==='dialogue').independent,0);
+ assert.equal(academyReviewPriority([diff],'Pre-A1',now)?.skill,'dialogue');
+});
+test('L6 Premium: verified existing WebP art covers all six regions and mobile scene is responsive',()=>{
+ for(const zone of ACADEMY_ZONES){
+  for(const key of ['art','mobileArt']){
+   assert.ok(zone[key].endsWith('.webp'));
+   assert.ok(fs.statSync(new URL('../public'+zone[key],import.meta.url)).size>5000);
+  }
+ }
+ const ui=fs.readFileSync(new URL('../src/components/learning/academy/AcademyAdventure.tsx',import.meta.url),'utf8');
+ const css=fs.readFileSync(new URL('../src/components/learning/academy/academy-adventure.css',import.meta.url),'utf8');
+ assert.match(ui,/currentZone\.mobileArt/);
+ assert.match(ui,/CharacterGuide character="meadow-owl"/);
+ assert.match(ui,/task\.caseId/);
+ assert.match(ui,/setRecorded\(history=>\[\.\.\.history,\.\.\.rows\]\)/);
+ assert.match(ui,/cancelAdvance/);
+ assert.match(ui,/reviewSkill\?0:stars/);
+ assert.match(css,/academy-scene-photo/);
+ assert.match(css,/academy-scene-character/);
+ assert.match(css,/prefers-reduced-motion:reduce/);
 });
