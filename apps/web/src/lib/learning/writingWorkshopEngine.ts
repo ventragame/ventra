@@ -4,6 +4,7 @@
  * CEFR names denote internal difficulty tiers, not official certification.
  */
 import {WORKSHOP_BONUS_CHAPTERS} from './writingWorkshopExpansion.ts';
+import {WORKSHOP_EXTENDED_CHAPTERS} from './writingWorkshopExtended.ts';
 export type WorkshopLevel='Pre-A1'|'A1'|'A2';
 export type WorkshopMode='spell'|'assemble'|'write';
 export type WorkshopTask={
@@ -128,29 +129,54 @@ const catalog:readonly RawChapter[]=[
 export const WORKSHOP_CHAPTERS:readonly WorkshopChapter[]=catalog.map((item,index)=>({
  id:index+1,title:item.title,subtitle:item.subtitle,icon:item.icon,color:item.color,
  quests:{
-  'Pre-A1':[...item.pre,...WORKSHOP_BONUS_CHAPTERS[index]['Pre-A1']]
+  'Pre-A1':[...item.pre,...WORKSHOP_BONUS_CHAPTERS[index]['Pre-A1'],...WORKSHOP_EXTENDED_CHAPTERS[index]['Pre-A1']]
    .map((t,i)=>({...t,id:`w${index+1}-pre-${i+1}`})),
-  A1:[...item.a1,...WORKSHOP_BONUS_CHAPTERS[index].A1]
+  A1:[...item.a1,...WORKSHOP_BONUS_CHAPTERS[index].A1,...WORKSHOP_EXTENDED_CHAPTERS[index].A1]
    .map((t,i)=>({...t,id:`w${index+1}-a1-${i+1}`})),
-  A2:[...item.a2,...WORKSHOP_BONUS_CHAPTERS[index].A2]
+  A2:[...item.a2,...WORKSHOP_BONUS_CHAPTERS[index].A2,...WORKSHOP_EXTENDED_CHAPTERS[index].A2]
    .map((t,i)=>({...t,id:`w${index+1}-a2-${i+1}`}))
  }
 }));
 /** Grade alters interaction load; English placement alters linguistic content.
  * Even a grade-8 Pre-A1 learner gets beginner language, not automatic A2.
  */
-export function workshopTaskCount(gradeLevel:number|null|undefined):3|4|5{
- if(!Number.isInteger(gradeLevel)||gradeLevel!<1||gradeLevel!>8)return 4;
- return gradeLevel!<=2?3:gradeLevel!<=4?4:5;
+export function workshopTaskCount(gradeLevel:number|null|undefined):6|7|8{
+ if(!Number.isInteger(gradeLevel)||gradeLevel!<1||gradeLevel!>8)return 7;
+ return gradeLevel!<=2?6:gradeLevel!<=4?7:8;
 }
-/** A meaningful new deck on each replay, not merely shuffled buttons.
- * For each chapter/placement: 5 original + 10 original new tasks, split
- * into five spell, five sentence-order and five typed-writing tasks.
- * Seeded 3-axis rotation guarantees 125 unique decks per chapter + level
- * before repeating, while retaining one of each skill on EVERY visit.
- *
- * playIndex is a completed play count from the profile-scoped repository.
- * Checkpoints pin playIndex so a resumed lesson NEVER changes under a child.
+/** Compatibility path for older in-progress 3/4/5-question checkpoints. */
+export function getLegacyWorkshopTasks(
+ chapter:number,level:WorkshopLevel,gradeLevel:number|null|undefined,playIndex=0
+):readonly WorkshopTask[]{
+ const found=WORKSHOP_CHAPTERS[chapter-1];
+ if(!found||found.id!==chapter)throw new RangeError('Writing workshop chapter not found');
+ if(level!=='Pre-A1'&&level!=='A1'&&level!=='A2')throw new RangeError('Unknown writing placement');
+ if(!Number.isSafeInteger(playIndex)||playIndex<0)throw new RangeError('Invalid writing replay index');
+ const count=!Number.isInteger(gradeLevel)||gradeLevel!<1||gradeLevel!>8?4:
+  gradeLevel!<=2?3:gradeLevel!<=4?4:5;
+ if(playIndex===0)return found.quests[level].slice(0,count);
+ const pattern:readonly WorkshopMode[]=count===3?['spell','assemble','write']:
+  count===4?['spell','assemble','write','assemble']:
+  ['spell','assemble','write','assemble','spell'];
+ const bank=found.quests[level];
+ const grouped:Record<WorkshopMode,WorkshopTask[]>={
+  spell:bank.filter(t=>t.mode==='spell').slice(0,5),
+  assemble:bank.filter(t=>t.mode==='assemble').slice(0,5),
+  write:bank.filter(t=>t.mode==='write').slice(0,5)
+ };
+ const a=playIndex%5,b=Math.floor(playIndex/5)%5,c=Math.floor(playIndex/25)%5;
+ const offsets:Record<WorkshopMode,number>={
+  spell:(2*a)%5,assemble:(2*a+b)%5,write:(2*a+c)%5
+ };
+ const cursor:Record<WorkshopMode,number>={spell:0,assemble:0,write:0};
+ return pattern.map(mode=>grouped[mode][(offsets[mode]+cursor[mode]++)%5]);
+}
+/** Each chapter and placement now has 21 authored missions: seven spelling,
+ * seven sentence-order and seven independent typed responses.
+ * In 6/7/8-task sessions all three skills appear and the last task is typing.
+ * Three independent base-7 offsets yield 343 distinct complete lesson decks.
+ * Moving to the next replay shifts every skill bank by three or four items,
+ * which ensures adjacent sessions NEVER reuse task IDs, even on base-7 carry.
  */
 export function getWorkshopTasks(
  chapter:number,level:WorkshopLevel,gradeLevel:number|null|undefined,
@@ -163,33 +189,27 @@ export function getWorkshopTasks(
  if(!Number.isSafeInteger(playIndex)||playIndex<0)
   throw new RangeError('Invalid writing replay index');
  const count=workshopTaskCount(gradeLevel);
- // The legacy first session must be bit-for-bit the original fixed first
- // 3/4/5 questions. This preserves unfinished v1 checkpoints and ensures
- // upgrades never silently change a child's last question.
- if(playIndex===0)return found.quests[level].slice(0,count);
- const pattern:readonly WorkshopMode[]=count===3?
-  ['spell','assemble','write']:
-  count===4?['spell','assemble','write','assemble']:
-  ['spell','assemble','write','assemble','spell'];
+ const pattern:readonly WorkshopMode[]=count===6?
+  ['spell','assemble','write','spell','assemble','write']:
+  count===7?
+  ['spell','assemble','write','spell','assemble','spell','write']:
+  ['spell','assemble','write','spell','assemble','spell','assemble','write'];
  const bank=found.quests[level];
  const grouped:Record<WorkshopMode,WorkshopTask[]>={
   spell:bank.filter(task=>task.mode==='spell'),
   assemble:bank.filter(task=>task.mode==='assemble'),
   write:bank.filter(task=>task.mode==='write')
  };
- // A three-digit base-5 counter, scrambled with an invertible transform.
- // Because each mode uses a different digit, 125 successive decks are unique.
- const a=playIndex%5,b=Math.floor(playIndex/5)%5,c=Math.floor(playIndex/25)%5;
+ // The transform (3a, 3a+b, 3a+c) is invertible over the three base-7 digits.
+ const a=playIndex%7,b=Math.floor(playIndex/7)%7,c=Math.floor(playIndex/49)%7;
  const offsets:Record<WorkshopMode,number>={
-  spell:(2*a)%5,assemble:(2*a+b)%5,write:(2*a+c)%5
+  spell:(3*a)%7,assemble:(3*a+b)%7,write:(3*a+c)%7
  };
  const cursor:Record<WorkshopMode,number>={spell:0,assemble:0,write:0};
  return pattern.map(mode=>{
   const options=grouped[mode];
-  if(options.length!==5)throw new Error('Incomplete writing curriculum for '+mode);
-  const value=options[(offsets[mode]+cursor[mode])%options.length];
-  cursor[mode]++;
-  return value;
+  if(options.length!==7)throw new Error('Incomplete writing curriculum for '+mode);
+  return options[(offsets[mode]+cursor[mode]++)%options.length];
  });
 }
 export function normalizeWorkshopAnswer(text:string):string{

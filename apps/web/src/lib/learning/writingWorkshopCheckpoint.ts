@@ -19,7 +19,7 @@ const validInt=(x:unknown):x is number=>typeof x==='number'&&
 const validAnswer=(a:unknown):a is WritingAnswerEvidence=>{
  if(!a||typeof a!=='object')return false;
  const v=a as Record<string,unknown>;
- return typeof v.taskId==='string'&&/^w[1-5]-(pre|a1|a2)-(?:[1-9]|1[0-5])$/.test(v.taskId)&&
+ return typeof v.taskId==='string'&&/^w[1-5]-(pre|a1|a2)-(?:[1-9]|1[0-9]|2[01])$/.test(v.taskId)&&
   (v.mode==='spell'||v.mode==='assemble'||v.mode==='write')&&
   typeof v.firstTryCorrect==='boolean'&&typeof v.independentlyTyped==='boolean'&&
   validInt(v.hintsUsed)&&validInt(v.wrongAttempts);
@@ -34,16 +34,16 @@ export function readWorkshopCheckpoint(profileId:string,level:WorkshopLevel,chap
  try{
   const raw=store.getItem(name);if(!raw)return null;
   const item=JSON.parse(raw) as Partial<WorkshopCheckpoint>;
-  if(item.version!==1||!validInt(item.step)||item.step>=5||
+  if(item.version!==1||!validInt(item.step)||item.step>=8||
    !validInt(item.mistakes)||!validInt(item.hints)||
    !validInt(item.independent)||!validInt(item.typedIndependent)||
-   !Array.isArray(item.answers)||item.answers.length>5||!item.answers.every(validAnswer)||
+   !Array.isArray(item.answers)||item.answers.length>8||!item.answers.every(validAnswer)||
    item.answers.length!==item.step||!validInt(item.updatedAt)||
    (item.playIndex!==undefined&&(!Number.isSafeInteger(item.playIndex)||item.playIndex<0))||
    (item.taskIds!==undefined&&(!Array.isArray(item.taskIds)||
-    item.taskIds.length<3||item.taskIds.length>5||
+    item.taskIds.length<3||item.taskIds.length>8||
     !item.taskIds.every(id=>typeof id==='string'&&
-     /^w[1-5]-(pre|a1|a2)-(?:[1-9]|1[0-5])$/.test(id))||
+     /^w[1-5]-(pre|a1|a2)-(?:[1-9]|1[0-9]|2[01])$/.test(id))||
     new Set(item.taskIds).size!==item.taskIds.length))||
    item.updatedAt>Date.now()||Date.now()-item.updatedAt>TTL){
    store.removeItem(name);return null;
@@ -62,17 +62,17 @@ export function readWorkshopCheckpoint(profileId:string,level:WorkshopLevel,chap
 }
 export function saveWorkshopCheckpoint(profileId:string,level:WorkshopLevel,chapter:number,data:Omit<WorkshopCheckpoint,'version'|'updatedAt'>):void{
  const store=storage();
- if(!store||!profileId||data.step>=5||data.step<0||
+ if(!store||!profileId||data.step>=8||data.step<0||
   !validInt(data.mistakes)||!validInt(data.hints)||
   !validInt(data.independent)||!validInt(data.typedIndependent)||
   !Array.isArray(data.answers)||data.answers.length!==data.step||
   !data.answers.every(validAnswer)||
   (data.playIndex!==undefined&&(!Number.isSafeInteger(data.playIndex)||data.playIndex<0))||
   (data.taskIds!==undefined&&(
-   !Array.isArray(data.taskIds)||data.taskIds.length<3||data.taskIds.length>5||
+   !Array.isArray(data.taskIds)||data.taskIds.length<3||data.taskIds.length>8||
    new Set(data.taskIds).size!==data.taskIds.length||
    data.taskIds.some(id=>typeof id!=='string'||
-    !/^w[1-5]-(pre|a1|a2)-(?:[1-9]|1[0-5])$/.test(id))||
+    !/^w[1-5]-(pre|a1|a2)-(?:[1-9]|1[0-9]|2[01])$/.test(id))||
    data.answers.some((a,i)=>data.taskIds![i]!==a.taskId)
   )))return;
  try{
