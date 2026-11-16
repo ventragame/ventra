@@ -30,7 +30,7 @@ export function parseAlphabetCheckpoint(
    x.expiresAt<=now||x.expiresAt>now+ALPHABET_CHECKPOINT_TTL+60000||
    !Array.isArray(x.taskIds)||x.taskIds.length<9||x.taskIds.length>18||
    !x.taskIds.every(v=>typeof v==='string'&&v.length<160&&
-    v.startsWith('ag:'+lesson+':'+placement+':'+x.replay+':'))||
+    v.startsWith('ag:'+lesson+':'+placement+':'+String(x.replay)+':'))||
    !numberIn(x.step,x.taskIds.length)||!Array.isArray(x.answers)||
    x.answers.length!==x.step||!numberIn(x.mistakes,100000)||
    !numberIn(x.hints,100000)||new Set(x.taskIds).size!==x.taskIds.length)return null;
