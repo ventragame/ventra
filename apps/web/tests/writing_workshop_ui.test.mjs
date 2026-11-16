@@ -36,3 +36,13 @@ test('Writing adventure measures independent typing separately from supported ti
  assert.match(css,/sentence_workshop_mobile.webp/);
  assert.equal(WRITING_WORKSHOP_GAME_ID,'island_sentence_workshop_writing');
 });
+
+test('Writing Workshop uses real profile progress and is mounted through the island game router',()=>{
+ const page=read('../src/app/kids/page.tsx');
+ assert.match(page,/WritingWorkshopAdventure/);
+ assert.match(page,/WRITING_WORKSHOP_GAME_ID/);
+ assert.match(page,/setWorkshopCompleted\(workshopCount\)/);
+ assert.match(page,/focusedIsland==='sentence_workshop'/);
+ assert.match(page,/activeRegion==='sentence_workshop'&&activeProfile/);
+ assert.match(page,/onSaved=\{\(\)=>void loadProfileAndProgress\(activeProfile\)\}/);
+});
