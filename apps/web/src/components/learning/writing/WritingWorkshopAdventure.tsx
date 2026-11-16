@@ -334,7 +334,7 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
      </div>
      {wrongOnStep>=2&&!resolved&&<p className="writing-guided-clue">
       💡 Küçük ipucu: {clue} İstersen üstteki örneği de açabilirsin.
-     </p>
+     </p>}
      <div className="writing-actions">
       <button className="writing-reset" type="button" disabled={saving||resolved}
        onClick={clearEntry}>↺ Yeniden Dene</button>
