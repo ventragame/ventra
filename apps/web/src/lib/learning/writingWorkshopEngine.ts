@@ -3,6 +3,7 @@
  * NEVER store children's typed text, handwriting, names or transcripts.
  * CEFR names denote internal difficulty tiers, not official certification.
  */
+import {WORKSHOP_BONUS_CHAPTERS} from './writingWorkshopExpansion.ts';
 export type WorkshopLevel='Pre-A1'|'A1'|'A2';
 export type WorkshopMode='spell'|'assemble'|'write';
 export type WorkshopTask={
@@ -127,9 +128,12 @@ const catalog:readonly RawChapter[]=[
 export const WORKSHOP_CHAPTERS:readonly WorkshopChapter[]=catalog.map((item,index)=>({
  id:index+1,title:item.title,subtitle:item.subtitle,icon:item.icon,color:item.color,
  quests:{
-  'Pre-A1':item.pre.map((t,i)=>({...t,id:`w${index+1}-pre-${i+1}`})),
-  A1:item.a1.map((t,i)=>({...t,id:`w${index+1}-a1-${i+1}`})),
-  A2:item.a2.map((t,i)=>({...t,id:`w${index+1}-a2-${i+1}`}))
+  'Pre-A1':[...item.pre,...WORKSHOP_BONUS_CHAPTERS[index]['Pre-A1']]
+   .map((t,i)=>({...t,id:`w${index+1}-pre-${i+1}`})),
+  A1:[...item.a1,...WORKSHOP_BONUS_CHAPTERS[index].A1]
+   .map((t,i)=>({...t,id:`w${index+1}-a1-${i+1}`})),
+  A2:[...item.a2,...WORKSHOP_BONUS_CHAPTERS[index].A2]
+   .map((t,i)=>({...t,id:`w${index+1}-a2-${i+1}`}))
  }
 }));
 /** Grade alters interaction load; English placement alters linguistic content.
@@ -139,10 +143,50 @@ export function workshopTaskCount(gradeLevel:number|null|undefined):3|4|5{
  if(!Number.isInteger(gradeLevel)||gradeLevel!<1||gradeLevel!>8)return 4;
  return gradeLevel!<=2?3:gradeLevel!<=4?4:5;
 }
-export function getWorkshopTasks(chapter:number,level:WorkshopLevel,gradeLevel:number|null|undefined):readonly WorkshopTask[]{
+/** A meaningful new deck on each replay, not merely shuffled buttons.
+ * For each chapter/placement: 5 original + 10 original new tasks, split
+ * into five spell, five sentence-order and five typed-writing tasks.
+ * Seeded 3-axis rotation guarantees 125 unique decks per chapter + level
+ * before repeating, while retaining one of each skill on EVERY visit.
+ *
+ * playIndex is a completed play count from the profile-scoped repository.
+ * Checkpoints pin playIndex so a resumed lesson NEVER changes under a child.
+ */
+export function getWorkshopTasks(
+ chapter:number,level:WorkshopLevel,gradeLevel:number|null|undefined,
+ playIndex=0
+):readonly WorkshopTask[]{
  const found=WORKSHOP_CHAPTERS[chapter-1];
  if(!found||found.id!==chapter)throw new RangeError('Writing workshop chapter not found');
- return found.quests[level].slice(0,workshopTaskCount(gradeLevel));
+ if(level!=='Pre-A1'&&level!=='A1'&&level!=='A2')
+  throw new RangeError('Unknown writing placement');
+ if(!Number.isSafeInteger(playIndex)||playIndex<0)
+  throw new RangeError('Invalid writing replay index');
+ const count=workshopTaskCount(gradeLevel);
+ const pattern:readonly WorkshopMode[]=count===3?
+  ['spell','assemble','write']:
+  count===4?['spell','assemble','write','assemble']:
+  ['spell','assemble','write','assemble','spell'];
+ const bank=found.quests[level];
+ const grouped:Record<WorkshopMode,WorkshopTask[]>={
+  spell:bank.filter(task=>task.mode==='spell'),
+  assemble:bank.filter(task=>task.mode==='assemble'),
+  write:bank.filter(task=>task.mode==='write')
+ };
+ // A three-digit base-5 counter, scrambled with an invertible transform.
+ // Because each mode uses a different digit, 125 successive decks are unique.
+ const a=playIndex%5,b=Math.floor(playIndex/5)%5,c=Math.floor(playIndex/25)%5;
+ const offsets:Record<WorkshopMode,number>={
+  spell:(2*a)%5,assemble:(2*a+b)%5,write:(2*a+c)%5
+ };
+ const cursor:Record<WorkshopMode,number>={spell:0,assemble:0,write:0};
+ return pattern.map(mode=>{
+  const options=grouped[mode];
+  if(options.length!==5)throw new Error('Incomplete writing curriculum for '+mode);
+  const value=options[(offsets[mode]+cursor[mode])%options.length];
+  cursor[mode]++;
+  return value;
+ });
 }
 export function normalizeWorkshopAnswer(text:string):string{
  return text.toLocaleLowerCase('en-US').normalize('NFKC')
