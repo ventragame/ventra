@@ -328,3 +328,13 @@ See [CM1 acceptance and implemented grammatical families](./CM1_UYANAN_MEYDAN_GD
 - Yeni otomatik testler: kayıtlı gameId'ler gerçek kaynaklarda var, üç seviyede eşleme tam, tüm önkoşullar geçerli ve döngüsüz, 'gap' dersleri oynanabilir görünmüyor. Sınıf, İngilizce başlangıç düzeyinden ve kazanım kanıtından bağımsızdır.
 - İçerik İngilizce çocuk öğrenimi için yerel *editoryal hedef*tir; resmî MEB veya ölçülmüş CEFR eşlemesi ya da pedagojik yeterlilik iddiası değildir. Eski `packages/shared/src/curriculum.ts` dosyasında geçmiş matematik örnekleri bulunmaktadır, Kids English P0 bunun üzerine kurulmamıştır.
 - Uygulama ve QA ayrıntıları: [P0 müfredat sözleşmesi](./VENTRA_ENGLISH_CURRICULUM_P0.md). Yeni alfabe oyunu ve çocuk kurs ekranı sırasıyla P1/P2 kapsamıdır; burada yapılmadı.
+
+### 2026-11-16 — Kids English P1: Harf Korusu
+
+- Yeni mini alan Kelime Bahçesi içinde açılır; altı ana ada ve Kelime Bahçesi'nin altı mevcut dünyası aynen korunur.
+- 26 harf, 9 başlangıç mini dersi, 3 tekrar/okuma dersi ve 40 üç harfli kısa İngilizce kelime havuzu. Harf adı ile kelime içindeki ses birbirinden ayrılır; Q/QU ve kelime sonundaki X örnekleri özel olarak belirtilir.
+- Yeniden oynanabilir görevler: harf tanıma, büyük/küçük eşleme, harf adını dinleme, kelimede ilk/son ses, kısa kelime okuma ve harf bankasında oluşturma. Başka dersleri kilitleyen zorunlu yeni önkoşul yoktur.
+- Ayrı kalıcı oyun kimliği island_word_garden_alphabet ve 12 ders × üç dil bandı = 36 ayrı sayısal levelId; eski oyun kimlikleri, çocuk profilleri, Supabase şeması ve toplam altı dünya paydası değiştirilmedi.
+- P0 müfredat sözleşmesi güncellendi: 78 kazanım = 58 kod destekli / 1 kısmi / 19 açık; 14 oyun yüzeyi. A2 ileri phonics kapsamda değildir.
+- Teknik test ve CI yanında **gerçek çocuk/dil öğretmeni ve fiziksel Android/iOS ses-UX kabulü hâlâ gerekli**. Cihaz TTS'si tekil fonem kaydı değildir. Production deploy ve DB migration yok.
+- Ayrıntılı P1 GDD/QA: docs/VENTRA_ALPHABET_GROVE_P1.md

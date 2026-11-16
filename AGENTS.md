@@ -56,3 +56,7 @@ This instruction file does not itself establish a new delivery/deployment author
 - Implementation: `apps/web/src/components/learning/activities/AnimalMeadowAdventure.tsx` + `MobileMeadowWorld.tsx` + `animal-meadow.css`; teaching contract [docs/HAYVAN_CAYIRI_MOBILE_FIRST_ACCEPTANCE.md](docs/HAYVAN_CAYIRI_MOBILE_FIRST_ACCEPTANCE.md).
 - At <=767px, lightweight accessible HTML animal/habitat selection uses the *same* callback as desktop Phaser; do not create a separate progress/reward system. Preserve existing 40 SVG animals, optimized `word_garden_mobile.webp`, audio/TTS fallback, Pre-A1/A1/A2 placement independent of grade.
 - Real Android APK / iOS WebView acceptance is a separate gate; no production deploy or live DB migrations without user approval.
+
+## Harf Korusu P1 — 16 November 2026
+
+Harf Korusu is an optional mini-area under word_garden and does not create a seventh main island. New ID island_word_garden_alphabet has independently saved levelId for each of 12 lessons and three placements. Keep existing six world IDs, stored progress, stars and access gates unchanged. The P0 English outcome catalog now includes garden.alphabet for letter names and basic real-word phonics. A1 phonics is partial, A2 phonics is still unimplemented; device TTS is NOT a professional isolated phoneme recording. Do not label tile-based word building as independent writing mastery. Review docs/VENTRA_ALPHABET_GROVE_P1.md before extending.
