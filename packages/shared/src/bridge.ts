@@ -142,6 +142,13 @@ export interface WritingAnswerEvidence {
   wrongAttempts:number;
   independentlyTyped:boolean;
 }
+/** Categorical integrated practice; never store child text or audio. */
+export interface AcademyAnswerEvidence {
+  taskId:string;caseId:string;placement:'Pre-A1'|'A1'|'A2';
+  skill:'listening'|'reading'|'dialogue'|'sentence'|'writing';
+  firstTryCorrect:boolean;hintUsed:boolean;mistakes:number;
+  independentlyCompleted:boolean;speechVerified:boolean;timestamp:string;
+}
 export interface GameMetrics {
   durationSeconds: number;
   attemptsCount: number;
@@ -156,6 +163,7 @@ export interface GameMetrics {
   templeAnswers?: TempleAnswerEvidence[];
   sentenceAnswers?: SentenceAnswerEvidence[];
   writingAnswers?: WritingAnswerEvidence[];
+  academyAnswers?: AcademyAnswerEvidence[];
   storyAnswers?: StoryAnswerEvidence[];
   storyJourneys?: StoryJourneyEvidence[];
   sequenceAnswers?: SequenceAnswerEvidence[];
