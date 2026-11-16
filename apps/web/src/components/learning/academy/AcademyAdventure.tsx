@@ -6,10 +6,10 @@ import {getProgressRepository} from '@/lib/progress';
 import {soundService} from '@/lib/audio/SoundService';
 import {listenToChild,speechCapability,stopSpeechCapture,type SpeechCapability} from '@/lib/speech/childSpeech';
 import {
- ACADEMY_GAME_ID,ACADEMY_ZONES,buildAcademyPlan,nextAcademyVariant,
+ ACADEMY_GAME_ID,ACADEMY_REVIEW_GAME_ID,ACADEMY_ZONES,buildAcademyPlan,buildAcademyFocusPlan,nextAcademyVariant,
  academyWords,academyShuffle,matchesAcademyAnswer,isAcademyTaskAnswerCorrect,academySkillReview,
  academySafeMission,academyHint,academyRoundOptions,academyReviewPriority,
- type AcademyLevel,type AcademyTask,type AcademyAnswer
+ type AcademyLevel,type AcademySkill,type AcademyAnswer
 } from '@/lib/learning/academyEngine';
 import {
  readAcademyCheckpoint,saveAcademyCheckpoint,clearAcademyCheckpoint
@@ -41,6 +41,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
  const [stage,setStage]=useState<Stage>('map');
  const [zone,setZone]=useState(1);
  const [variant,setVariant]=useState(0);
+ const [reviewSkill,setReviewSkill]=useState<AcademySkill|null>(null);
  const [step,setStep]=useState(0);
  const [answers,setAnswers]=useState<AcademyAnswer[]>([]);
  const [mistakes,setMistakes]=useState(0);
@@ -66,7 +67,8 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
  const advanceTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
  const audioEpoch=useRef(0);
  const alive=useRef(true);
- const plan=useMemo(()=>buildAcademyPlan(zone,englishLevel,variant),[zone,englishLevel,variant]);
+ const plan=useMemo(()=>reviewSkill?buildAcademyFocusPlan(zone,englishLevel,reviewSkill,variant):
+  buildAcademyPlan(zone,englishLevel,variant),[zone,englishLevel,variant,reviewSkill]);
  const task=plan.tasks[step]??plan.tasks[plan.tasks.length-1];
  const completed=ACADEMY_ZONES.filter(z=>(levels[z.id]?.completedCount??0)>0).length;
  const available=completed+1;
@@ -105,7 +107,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
   const chosen=checkpoint?.variant??nextAcademyVariant(count);
   const p=buildAcademyPlan(id,englishLevel,chosen);
   const restored=checkpoint&&checkpoint.answers.every((a,i)=>p.tasks[i]?.id===a.taskId)?checkpoint:null;
-  setZone(id);setVariant(chosen);
+  setZone(id);setVariant(chosen);setReviewSkill(null);
   setStep(restored?.step??0);
   setAnswers(restored?.answers??[]);
   setMistakes(restored?.attempts??0);
@@ -113,6 +115,17 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
   setSessionId(restored?.sessionId??crypto.randomUUID());
   setStarted(Date.now());
   setStage(restored?.step===5?'pending':'quest');soundService.playSfx('island_portal',.45);
+ }
+ function startSkillReview(skill:AcademySkill){
+  if(busy||loading||completed===0)return;
+  const region=Math.min(6,completed);
+  cancelAdvance();stop();setReviewSkill(skill);setZone(region);
+  setVariant(Math.max(0,recorded.length+(levels[region]?.completedCount??0)));
+  setStep(0);setAnswers([]);setMistakes(0);setHints(0);
+  setHintLevel(0);setErrorOnStep(0);setAudioPlayed(false);setAudioAttempted(false);
+  setTyped('');setPicked([]);setMessage('');setSaveError('');
+  setSessionId(crypto.randomUUID());setStarted(Date.now());
+  setStage('quest');soundService.playSfx('island_portal',.45);
  }
  function readLine(){
   soundService.unlockAudio();
@@ -137,9 +150,10 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
     independentlyDone>=3?2:1;
   const version=runVersion.current;
   const payload:GameCompletedPayload={
-   sessionId,profileId,gameId:ACADEMY_GAME_ID,levelId:zone,
+   sessionId,profileId,gameId:reviewSkill?ACADEMY_REVIEW_GAME_ID:ACADEMY_GAME_ID,levelId:zone,
    outcomeId:'academy-integrated-practice',skillId:'academy-communication',
-   score:Math.round(100*independentlyDone/plan.tasks.length),success:true,starsEarned:stars,
+   score:Math.round(100*independentlyDone/plan.tasks.length),success:true,
+   starsEarned:reviewSkill?0:stars,
    metrics:{durationSeconds:Math.max(1,Math.round((Date.now()-started)/1000)),
     attemptsCount:rows.length+totalErrors,accuracyRate:independentlyDone/plan.tasks.length,
     wrongAttempts:totalErrors,hintsUsed:totalHints,academyAnswers:rows},
@@ -148,7 +162,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
   try{
    await getProgressRepository().recordGameCompleted(payload,profileId);
    if(!alive.current)return;
-   clearAcademyCheckpoint(profileId,englishLevel,zone);
+   if(!reviewSkill)clearAcademyCheckpoint(profileId,englishLevel,zone);
    if(!alive.current||version!==runVersion.current){onSaved();return;}
    const updated=await getProgressRepository().getAllLevelProgress(ACADEMY_GAME_ID,profileId);
    if(!alive.current)return;
@@ -166,13 +180,13 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
   const independent=(independentOverride??(task.kind==='write'||task.kind==='build'))&&
     !hintOnStep&&errorOnStep===0;
   const row:AcademyAnswer={
-   taskId:task.id,caseId:plan.caseId,placement:englishLevel,skill:task.skill,
+   taskId:task.id,caseId:task.caseId,placement:englishLevel,skill:task.skill,
    firstTryCorrect:errorOnStep===0,hintUsed:hintOnStep,mistakes:errorOnStep,
    independentlyCompleted:independent,speechVerified,timestamp:new Date().toISOString()
   };
   const next=[...answers,row];
   setAnswers(next);setBusy(true);setMessage(task.feedback);soundService.playSfx('correct',.6);
-  saveAcademyCheckpoint(profileId,englishLevel,zone,{
+  if(!reviewSkill)saveAcademyCheckpoint(profileId,englishLevel,zone,{
    step:step+1,variant,answers:next,attempts:mistakes,hints,sessionId
   });
   const version=runVersion.current;
@@ -215,14 +229,14 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
     setBusy(false);pending.current=false;
     // Speech is evaluated only when the recognizer produces the expected words.
     const row:AcademyAnswer={
-     taskId:task.id,caseId:plan.caseId,placement:englishLevel,skill:task.skill,
+     taskId:task.id,caseId:task.caseId,placement:englishLevel,skill:task.skill,
      firstTryCorrect:errorOnStep===0,hintUsed:hintOnStep,mistakes:errorOnStep,
      independentlyCompleted:!hintOnStep&&errorOnStep===0,speechVerified:true,
      timestamp:new Date().toISOString()
     };
     const next=[...answers,row];setAnswers(next);setMessage(task.feedback);setBusy(true);
     pending.current=true;
-    saveAcademyCheckpoint(profileId,englishLevel,zone,{step:step+1,variant,answers:next,attempts:mistakes,hints,sessionId});
+    if(!reviewSkill)saveAcademyCheckpoint(profileId,englishLevel,zone,{step:step+1,variant,answers:next,attempts:mistakes,hints,sessionId});
     soundService.playSfx('correct',.65);
     const version=runVersion.current;
     advanceTimer.current=window.setTimeout(()=>{
@@ -283,17 +297,17 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
     {recommended&&<section className="academy-today" aria-label="Öğrenme önerisi">
      <span aria-hidden="true">🪄</span>
      <div><strong>Bugünün keşif önerisi: {recommendationText}</strong>
-      <p>Son oyunlarında bu beceriyi yeniden çalışmak faydalı olabilir. Bir macerayı tekrar oynayabilirsin.</p>
+      <p>Son cevaplarına göre bu beceride üç yeni alıştırma yapabilirsin. Bu tur yeni yıldız kazandırmaz.</p>
      </div>
-     <button type="button" onClick={()=>open(Math.max(1,Math.min(6,completed||1)))}>
-       Tekrar Keşfet</button>
+     <button type="button" onClick={()=>startSkillReview(recommended.skill)}>
+       3 Görevlik Tekrar</button>
     </section>}
     <p className="academy-note">Her bölgede üç farklı hikâye var. Yeniden oynadığında yeni bir durumla karşılaşırsın. Dokunarak verilen diyalog cevapları konuşma başarısı sayılmaz.</p>
    </main>}
    {stage==='quest'&&<main className="academy-quest">
-    <div className="academy-quest-top"><span>{currentZone.icon} {currentZone.name}</span><span>Görev {step+1} / {plan.tasks.length}</span></div>
-    <div className="academy-progress" role="progressbar" aria-valuenow={step} aria-valuemin={0} aria-valuemax={5} aria-label="Macera ilerlemesi">
-     <span style={{width:(step/5*100)+'%'}}/>
+    <div className="academy-quest-top"><span>{currentZone.icon} {reviewSkill?'Kısa Tekrar':currentZone.name}</span><span>Görev {step+1} / {plan.tasks.length}</span></div>
+    <div className="academy-progress" role="progressbar" aria-valuenow={step} aria-valuemin={0} aria-valuemax={plan.tasks.length} aria-label="Macera ilerlemesi">
+     <span style={{width:(step/plan.tasks.length*100)+'%'}}/>
     </div>
     <section className="academy-scene" style={{'--zone-tint':currentZone.tint,'--zone-light':currentZone.light} as React.CSSProperties}>
      <div className="academy-scene-photo" aria-hidden="true">
@@ -384,18 +398,18 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
    </main>}
    {stage==='final'&&<main className="academy-finale">
     <div className="academy-final-icon" aria-hidden="true">🌠</div>
-    <span className="academy-eyebrow">ATLASIN BİR SAYFASI DAHA AYDINLANDI</span>
-    <h1>{currentZone.ending}</h1>
+    <span className="academy-eyebrow">{reviewSkill?'ÖĞRENME TEKRARI TAMAMLANDI':'ATLASIN BİR SAYFASI DAHA AYDINLANDI'}</span>
+    <h1>{reviewSkill?'Üç küçük görevi tamamladın!':currentZone.ending}</h1>
     <p>{plan.result}</p>
     <div className="academy-review">
-     {review.map(r=><div key={r.skill}><strong>{r.skill==='listening'?'Dinleme':r.skill==='reading'?'Okuma':
+     {review.filter(r=>r.attempts>0).map(r=><div key={r.skill}><strong>{r.skill==='listening'?'Dinleme':r.skill==='reading'?'Okuma':
       r.skill==='dialogue'?'İletişim':r.skill==='sentence'?'Cümle':'Yazma'}</strong>
       <span>{r.independent?'Bağımsız cevap':'Destekli çalışma'}</span></div>)}
     </div>
     <p className="academy-note">Bu görevler öğrenme alıştırmasıdır; resmî İngilizce seviye sınavı değildir.</p>
     <div className="academy-final-actions">
      <button type="button" className="academy-submit" onClick={()=>{setStage('map');setMessage('');}}>Bölümleri Gör</button>
-     <button type="button" className="academy-again" onClick={()=>open(zone)}>Yeniden Keşfet ↻</button>
+     <button type="button" className="academy-again" onClick={()=>reviewSkill?startSkillReview(reviewSkill):open(zone)}>{reviewSkill?'Tekrar Çalış ↻':'Yeniden Keşfet ↻'}</button>
     </div>
    </main>}
   </div>
