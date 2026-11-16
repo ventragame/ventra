@@ -78,7 +78,8 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
  const recommended=academyReviewPriority(recorded,englishLevel);
  const recommendationText=recommended?({listening:'Dinleme',reading:'Okuma',dialogue:'Konuşma',sentence:'Cümle kurma',writing:'Yazma'} as const)[recommended.skill]:null;
  const wordTiles=useMemo(()=>academyShuffle(academyWords(task.answer),task.id+'-order'),[task]);
- const hasSpeech=capability&&['native-local','sherpa-local','web-local','web-browser'].includes(capability.mode);
+ // Academy permits only local/native speech recognition for children by default.
+ const hasSpeech=capability&&['native-local','sherpa-local','web-local'].includes(capability.mode);
 
  useEffect(()=>{
   alive.current=true;
@@ -354,7 +355,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
      {task.kind==='talk'&&<div className="academy-voice">
       <button type="button" className="academy-mic" onClick={()=>void speak()} disabled={!hasSpeech||busy}>
        🎙️ {busy?'Dinleniyor…':'Sesinle Cevap Ver'}</button>
-      <small>{hasSpeech?'Mikrofon isteğe bağlıdır; dokunarak da ilerleyebilirsin.':'Bu cihazda konuşma tanıma yok. Dokunarak devam et.'}</small>
+      <small>{hasSpeech?'Mikrofon isteğe bağlıdır; dokunarak da ilerleyebilirsin.':'Cihaz içi konuşma tanıma kullanılamıyor. Dokunarak devam et.'}</small>
      </div>}
      {(task.kind==='build'||task.kind==='write')&&
       <button type="button" className="academy-audio academy-audio-support" onClick={readLine} disabled={busy}>🔊 Sesli Örnek Dinle (yardımlı)</button>}
