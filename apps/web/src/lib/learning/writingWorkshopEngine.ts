@@ -163,6 +163,10 @@ export function getWorkshopTasks(
  if(!Number.isSafeInteger(playIndex)||playIndex<0)
   throw new RangeError('Invalid writing replay index');
  const count=workshopTaskCount(gradeLevel);
+ // The legacy first session must be bit-for-bit the original fixed first
+ // 3/4/5 questions. This preserves unfinished v1 checkpoints and ensures
+ // upgrades never silently change a child's last question.
+ if(playIndex===0)return found.quests[level].slice(0,count);
  const pattern:readonly WorkshopMode[]=count===3?
   ['spell','assemble','write']:
   count===4?['spell','assemble','write','assemble']:
