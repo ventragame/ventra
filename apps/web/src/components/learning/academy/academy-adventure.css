@@ -53,7 +53,8 @@
 .academy-line-hidden{font-size:13px;color:#607299;font-weight:600}
 .academy-audio{margin:6px 0 13px;border:none;background:#506dc4;border-radius:14px;padding:12px 17px;color:white;font-size:14px;font-weight:850}
 .academy-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
-.academy-choices button{border:2px solid #cbd4ed;border-radius:17px;min-height:58px;padding:13px 15px;background:#fff;color:#273764;font-size:clamp(13px,2vw,16px);font-weight:850;line-height:1.3}
+.academy-choices button{display:flex;align-items:center;gap:12px;text-align:left;border:2px solid #cbd4ed;border-radius:17px;min-height:58px;padding:13px 15px;background:#fff;color:#273764;font-size:clamp(13px,2vw,16px);font-weight:850;line-height:1.3}
+.academy-choice-icon{display:grid;place-items:center;flex:none;width:45px;height:45px;border-radius:12px;font-size:24px;box-shadow:inset 0 2px 5px #ffffffb6}
 .academy-choices button:hover:not(:disabled){background:#ebf0ff;border-color:#738ad5}
 .academy-choices button:last-child:nth-child(odd){grid-column:1/-1}
 .academy-voice{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:14px}
