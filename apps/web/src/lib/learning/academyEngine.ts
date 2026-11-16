@@ -13,20 +13,20 @@ export const ACADEMY_STEPS = 5;
 
 export type AcademyZone = {
   id:number;name:string;subtitle:string;icon:string;tint:string;light:string;
-  intro:string;ending:string;
+  intro:string;ending:string;art:string;mobileArt:string;
 };
 export const ACADEMY_ZONES:readonly AcademyZone[] = [
-  {id:1,name:'Atlas Kapısı',subtitle:'İlk ışığı uyandır',icon:'🧭',tint:'#344b9b',light:'#b9caff',
+  {id:1,art:'/assets/kids-islands/language_academy.webp',mobileArt:'/assets/kids-islands/language_academy_mobile.webp',name:'Atlas Kapısı',subtitle:'İlk ışığı uyandır',icon:'🧭',tint:'#344b9b',light:'#b9caff',
    intro:'Atlasın ilk sayfası soluk. Lumi kaybolan işareti bulmak istiyor.',ending:'Atlasın ilk sayfası yeniden parladı!'},
-  {id:2,name:'Bulut Postanesi',subtitle:'Mesajları yerine ulaştır',icon:'💌',tint:'#c66c91',light:'#ffd8df',
+  {id:2,art:'/assets/harbor-scenes/festival.webp',mobileArt:'/assets/harbor-scenes/festival_mobile.webp',name:'Bulut Postanesi',subtitle:'Mesajları yerine ulaştır',icon:'💌',tint:'#c66c91',light:'#ffd8df',
    intro:'Bulutlar arasındaki postanede önemli teslimatlar bekliyor.',ending:'Mektuplar sahiplerine ulaştı!'},
-  {id:3,name:'Kayıp Fener',subtitle:'Denizdeki yolu aydınlat',icon:'🌟',tint:'#22789b',light:'#b3f7e9',
+  {id:3,art:'/assets/harbor-scenes/lighthouse.webp',mobileArt:'/assets/harbor-scenes/lighthouse_mobile.webp',name:'Kayıp Fener',subtitle:'Denizdeki yolu aydınlat',icon:'🌟',tint:'#22789b',light:'#b3f7e9',
    intro:'Sahildeki fenerin ışığı azaldı. İngilizce ipuçlarını bulalım.',ending:'Fener yeniden denizi aydınlatıyor!'},
-  {id:4,name:'Yolcular İstasyonu',subtitle:'Yeni dostlarla konuş',icon:'🚂',tint:'#956342',light:'#ffe0a7',
+  {id:4,art:'/assets/harbor-scenes/dock.webp',mobileArt:'/assets/harbor-scenes/dock_mobile.webp',name:'Yolcular İstasyonu',subtitle:'Yeni dostlarla konuş',icon:'🚂',tint:'#956342',light:'#ffe0a7',
    intro:'Yolculuğa hazırlanan dostların İngilizce yardıma ihtiyacı var.',ending:'Yolcular artık yollarını biliyor!'},
-  {id:5,name:'Zaman Kütüphanesi',subtitle:'Hikâyenin eksik sayfasını bul',icon:'📖',tint:'#7360a8',light:'#e1d2ff',
+  {id:5,art:'/assets/story-forest/premium/scenes/forest_treehouse.webp',mobileArt:'/assets/story-forest/premium/scenes/forest_treehouse.webp',name:'Zaman Kütüphanesi',subtitle:'Hikâyenin eksik sayfasını bul',icon:'📖',tint:'#7360a8',light:'#e1d2ff',
    intro:'Büyülü kitapların sayfaları karışmış. İpuçlarını birleştirelim.',ending:'Hikâyenin kayıp sayfası bulundu!'},
-  {id:6,name:'Büyük Keşif',subtitle:'Yıldız Atlası tamamlanıyor',icon:'✨',tint:'#8c6db8',light:'#fff0b6',
+  {id:6,art:'/assets/kids-islands/language_academy.webp',mobileArt:'/assets/kids-islands/language_academy_mobile.webp',name:'Büyük Keşif',subtitle:'Yıldız Atlası tamamlanıyor',icon:'✨',tint:'#8c6db8',light:'#fff0b6',
    intro:'Atlasın son yıldızı için İngilizce becerilerini kullan.',ending:'Yıldız Atlası yeniden ışıldıyor!'}
 ];
 export type AcademyCase = {
@@ -62,7 +62,7 @@ export const ACADEMY_CASES:readonly AcademyCase[] = CASE_LINES.map((line,index)=
 export type AcademyTask = {
   id:string;caseId:string;zone:number;kind:AcademyKind;skill:AcademySkill;
   prompt:string;line:string;options:readonly string[];answer:string;
-  icon:string;feedback:string;
+  icon:string;feedback:string;accepted?:readonly string[];
 };
 export type AcademyPlan = {
   zone:number;placement:AcademyLevel;caseId:string;caseTitle:string;
@@ -77,6 +77,9 @@ export function matchesAcademyAnswer(answer:string,expected:string):boolean{
   const clean=(v:string)=>v.normalize('NFKC').toLocaleLowerCase('en-US')
     .replace(/[’‘]/g,"'").replace(/[.,!?;:]+/g,'').replace(/\s+/g,' ').trim();
   return clean(answer)===clean(expected);
+}
+export function isAcademyTaskAnswerCorrect(task:AcademyTask,answer:string):boolean{
+  return [task.answer,...(task.accepted??[])].some(expected=>matchesAcademyAnswer(answer,expected));
 }
 export function academyWords(sentence:string):{key:number;word:string}[]{
   return sentence.trim().split(/\s+/).map((word,key)=>({key,word}));
@@ -109,10 +112,14 @@ function makeDeck(scene:AcademyCase,level:AcademyLevel):readonly AcademyTask[]{
     friend+' needs the '+item+' before we visit the '+place+'.';
   const write=pre?item:a1?'I found the '+item+'.':
     'I found the '+item+' near the '+place+'.';
+  const acceptedWrite=pre?[item.replace(/^the /,'')]:
+    a1?['I have found the '+item+'.']:
+    ['Near the '+place+', I found the '+item+'.',
+     'I found the '+item+' by the '+place+'.'];
   const stem=id+'-'+level.replace('-','').toLowerCase();
   return [
     {id:stem+'-hear',caseId:id,zone,kind:'hear',skill:'listening',
-      prompt:'İngilizce sesi dinle ve söylenen nesneyi bul.',line:heard,
+      prompt:'Önce İngilizce sesi dinle. Hangi nesne söyleniyor?',line:heard,
       options:academyShuffle([item,otherA,otherB],stem+'-hear'),answer:item,icon,
       feedback:'Doğru nesneyi buldun.'},
     {id:stem+'-read',caseId:id,zone,kind:'read',skill:'reading',
@@ -128,8 +135,8 @@ function makeDeck(scene:AcademyCase,level:AcademyLevel):readonly AcademyTask[]{
       prompt:'İngilizce kelimeleri doğru sıraya koy.',line:'',options:[],answer:build,icon,
       feedback:'Anlamlı bir cümle oluşturdun.'},
     {id:stem+'-write',caseId:id,zone,kind:'write',skill:'writing',
-      prompt:pre?'Nesnenin İngilizcesini kendin yaz.':'Bir İngilizce mesaj yaz.',
-      line:'',options:[],answer:write,icon,feedback:'Mesajın hazır!'}
+      prompt:pre?'Nesnenin İngilizce adını yaz.':a1?'Bulduğun nesneyi anlatan kısa bir cümle yaz.':'Bulduğun nesneyi ve yerini anlatan bir cümle yaz.',
+      line:'',options:[],answer:write,icon,feedback:'Mesajın hazır!',accepted:acceptedWrite}
   ];
 }
 export function buildAcademyPlan(zone:number,level:AcademyLevel,variant:number):AcademyPlan{
@@ -151,9 +158,9 @@ export type AcademyReview = {
 const SKILLS:readonly AcademySkill[]=['listening','reading','dialogue','sentence','writing'];
 const INTERVAL=[0,12*3600000,86400000,3*86400000,7*86400000,14*86400000] as const;
 /** Transparent scheduling heuristic; not psychometrically validated mastery. */
-export function academySkillReview(rows:readonly AcademyAnswer[],now:number=Date.now()):AcademyReview[]{
+export function academySkillReview(rows:readonly AcademyAnswer[],now:number=Date.now(),level?:AcademyLevel):AcademyReview[]{
   return SKILLS.map(skill=>{
-    const ordered=rows.filter(r=>r.skill===skill&&Number.isFinite(Date.parse(r.timestamp))&&
+    const ordered=rows.filter(r=>r.skill===skill&&(!level||r.placement===level)&&Number.isFinite(Date.parse(r.timestamp))&&
       Date.parse(r.timestamp)<=now).sort((a,b)=>Date.parse(a.timestamp)-Date.parse(b.timestamp));
     if(!ordered.length)return {skill,attempts:0,independent:0,due:false,status:'new' as const};
     let streak=0,independent=0;
@@ -165,4 +172,32 @@ export function academySkillReview(rows:readonly AcademyAnswer[],now:number=Date
     const due=streak===0||now-Date.parse(last.timestamp)>=INTERVAL[Math.min(streak,INTERVAL.length-1)];
     return {skill,attempts:ordered.length,independent,due,status:due?'review':streak>=2?'progressing':'practice'};
   });
+}
+
+
+/** First-line story copy is deliberately neutral: never leaks the correct
+ * listening target (e.g. colour or location) before the child hears it. */
+export function academySafeMission(zone:number):string{
+  const zoneDef=ACADEMY_ZONES.find(z=>z.id===zone);
+  return zoneDef?.intro??'Lumi ile İngilizce ipuçlarını keşfet.';
+}
+/** Two-stage scaffolding; only stage two reveals the exact model answer. */
+export function academyHint(task:AcademyTask,stage:1|2):string{
+ if(stage===2)return 'Örnek cevap: '+task.answer;
+ switch(task.kind){
+ case 'hear':return 'Önce sesi dinle. Seçeneklerdeki nesne adlarını karşılaştır. Gerekirse tekrar dinle.';
+ case 'read':return 'İngilizce cümlede yer belirten kelimeyi bul. Seçenekleri tek tek oku.';
+ case 'talk':return 'Arkadaşının sorusuna bak. Cevabında aynı nesneden söz et.';
+ case 'build':return 'İlk kelime büyük harfle başlar. İngilizce cümlede kim, ne yapıyor, nerede sırasını düşün.';
+ case 'write':return task.answer.includes(' ')?'Bir cümle oluştururken özneyle başla ve noktalama işaretini unutma.':'Nesnenin İngilizce adını hatırlamaya çalış. Sesli örneği dinleyebilirsin.';
+ }
+}
+/** Correct answer choices are shuffled per *round* without changing the
+ * authored answer or the stable identity of a task. */
+export function academyRoundOptions(task:AcademyTask,round:number):readonly string[]{
+ return task.options.length?academyShuffle(task.options,task.id+'-round-'+Math.max(0,Math.floor(round))):[];
+}
+export function academyReviewPriority(rows:readonly AcademyAnswer[],level:AcademyLevel,now:number=Date.now()){
+ const due=academySkillReview(rows,now,level).filter(x=>x.due);
+ return due.sort((a,b)=>a.independent-b.independent||a.attempts-b.attempts)[0]??null;
 }
