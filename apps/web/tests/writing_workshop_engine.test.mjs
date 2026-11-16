@@ -65,3 +65,14 @@ test('Answer checks are strict, case- and punctuation-tolerant, never hallucinat
  assert.equal(isWorkshopAnswerCorrect(sentence,'I wrote something else.'),false);
  assert.match(workshopFeedback(task,'ca'),/Harflerin/);
 });
+
+test('Writing evidence contract stores only task IDs and categorical metrics, not child text',async()=>{
+ const fs=await import('node:fs');
+ const checkpoint=fs.readFileSync(new URL('../src/lib/learning/writingWorkshopCheckpoint.ts',import.meta.url),'utf8');
+ const bridge=fs.readFileSync(new URL('../../../packages/shared/src/bridge.ts',import.meta.url),'utf8');
+ assert.match(checkpoint,/writing:checkpoint:v1/);
+ assert.match(checkpoint,/answers\.length!==item\.step/);
+ assert.match(checkpoint,/readWorkshopCheckpoint/);
+ assert.match(bridge,/writingAnswers\?: WritingAnswerEvidence\[\]/);
+ assert.doesNotMatch(bridge,/writtenText|studentText|rawSentence|transcript:string/);
+});

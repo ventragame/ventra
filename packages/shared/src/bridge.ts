@@ -133,6 +133,15 @@ export interface DetectiveRunEvidence {
   firstTryCorrect:boolean;
  }[];
 }
+/** Writing evidence is categorical only. Never include authored child text. */
+export interface WritingAnswerEvidence {
+  taskId:string;
+  mode:'spell'|'assemble'|'write';
+  firstTryCorrect:boolean;
+  hintsUsed:number;
+  wrongAttempts:number;
+  independentlyTyped:boolean;
+}
 export interface GameMetrics {
   durationSeconds: number;
   attemptsCount: number;
@@ -146,6 +155,7 @@ export interface GameMetrics {
   familyAnswers?: FamilyAnswerEvidence[];
   templeAnswers?: TempleAnswerEvidence[];
   sentenceAnswers?: SentenceAnswerEvidence[];
+  writingAnswers?: WritingAnswerEvidence[];
   storyAnswers?: StoryAnswerEvidence[];
   storyJourneys?: StoryJourneyEvidence[];
   sequenceAnswers?: SequenceAnswerEvidence[];
