@@ -72,11 +72,15 @@ test('Replays use persisted completed play count and the same plan after checkpo
  assert.match(ui,/setPlayCounts\(runs\)/);
  assert.match(ui,/saved\?\.playIndex\?\?0/);
  assert.match(ui,/getWorkshopTasks\(id,englishLevel,gradeLevel,savedIndex\)/);
+ assert.match(ui,/getLegacyWorkshopTasks\(id,englishLevel,gradeLevel,savedIndex\)/);
+ assert.match(ui,/writing-arc/);
+ assert.match(ui,/writing-guided-clue/);
  assert.match(ui,/playCounts\[id\]\?\?0/);
  assert.match(ui,/setDeck\(planned\);setPlayIndex\(index\)/);
  assert.match(ui,/playIndex,taskIds:deck\.map\(item=>item\.id\)/);
  assert.match(ui,/setPlayCounts\(old=>/);
  assert.match(engine,/WORKSHOP_BONUS_CHAPTERS/);
+ assert.match(engine,/WORKSHOP_EXTENDED_CHAPTERS/);
  assert.match(checkpoint,/item\.taskIds\.some\(id=>!id\.startsWith\(prefix\)\)/);
  assert.match(checkpoint,/playIndex\?:number;taskIds\?:string\[\]/);
 });
