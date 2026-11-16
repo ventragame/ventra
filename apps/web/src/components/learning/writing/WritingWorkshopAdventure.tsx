@@ -7,7 +7,7 @@ import {soundService} from '@/lib/audio/SoundService';
 import {
  WORKSHOP_CHAPTERS,WRITING_WORKSHOP_GAME_ID,
  getWorkshopTasks,isWorkshopAnswerCorrect,workshopTiles,workshopFeedback,
- type WorkshopLevel
+ type WorkshopLevel,type WorkshopTask
 } from '@/lib/learning/writingWorkshopEngine';
 import {
  readWorkshopCheckpoint,saveWorkshopCheckpoint,clearWorkshopCheckpoint
@@ -24,6 +24,9 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
  const [phase,setPhase]=useState<Phase>('map');
  const [completed,setCompleted]=useState(0);
  const [starMap,setStarMap]=useState<Record<number,number>>({});
+ const [playCounts,setPlayCounts]=useState<Record<number,number>>({});
+ const [playIndex,setPlayIndex]=useState(0);
+ const [deck,setDeck]=useState<readonly WorkshopTask[]>(()=>getWorkshopTasks(1,englishLevel,gradeLevel,0));
  const [chapter,setChapter]=useState(1);
  const [step,setStep]=useState(0);
  const [seed,setSeed]=useState(1);
@@ -49,7 +52,6 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
  const locked=useRef(false);
  const started=useRef(Date.now());
  const current=WORKSHOP_CHAPTERS[chapter-1];
- const deck=getWorkshopTasks(chapter,englishLevel,gradeLevel);
  const task=deck[Math.min(step,deck.length-1)];
  const tiles=useMemo(()=>workshopTiles(task,seed+step*17),[task,seed,step]);
  const tileById=useMemo(()=>new Map(tiles.map(tile=>[tile.key,tile.value])),[tiles]);
@@ -60,13 +62,15 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
 
  const refresh=useCallback(async()=>{
   const levels=await getProgressRepository().getAllLevelProgress(WRITING_WORKSHOP_GAME_ID,profileId);
-  const stars:Record<number,number>={};let count=0;
+  const stars:Record<number,number>={},runs:Record<number,number>={};
+  let count=0;
   for(let i=1;i<=WORKSHOP_CHAPTERS.length;i++){
    const row=levels[i];
    if(row?.completedCount&&count===i-1)count++;
    stars[i]=Math.max(0,Math.min(3,row?.bestStars??0));
+   runs[i]=Math.max(0,row?.completedCount??0);
   }
-  setCompleted(count);setStarMap(stars);
+  setCompleted(count);setStarMap(stars);setPlayCounts(runs);
  },[profileId]);
 
  useEffect(()=>{
@@ -94,8 +98,17 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
   if(id>completed+1||saving||loading)return;
   stop();locked.current=false;
   const saved=readWorkshopCheckpoint(profileId,englishLevel,id);
-  const max=getWorkshopTasks(id,englishLevel,gradeLevel).length;
-  const valid=saved&&saved.step<max?saved:null;
+  // A resumed lesson keeps EXACTLY its original task IDs. Legacy checkpoints
+  // with no replay metadata use the pre-upgrade (playIndex=0) lesson.
+  const savedIndex=saved?.playIndex??0;
+  const resumeDeck=getWorkshopTasks(id,englishLevel,gradeLevel,savedIndex);
+  const matches=!saved?.taskIds||
+   (saved.taskIds.length===resumeDeck.length&&
+    saved.taskIds.every((taskId,i)=>resumeDeck[i].id===taskId));
+  const valid=saved&&saved.step<resumeDeck.length&&matches?saved:null;
+  const index=valid?savedIndex:(playCounts[id]??0);
+  const planned=valid?resumeDeck:getWorkshopTasks(id,englishLevel,gradeLevel,index);
+  setDeck(planned);setPlayIndex(index);
   setChapter(id);setStep(valid?.step??0);
   setMistakes(valid?.mistakes??0);setHints(valid?.hints??0);
   setIndependent(valid?.independent??0);setTypedIndependent(valid?.typedIndependent??0);
@@ -154,6 +167,7 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
    clearWorkshopCheckpoint(profileId,englishLevel,chapter);
    setCompleted(old=>Math.max(old,chapter));
    setStarMap(old=>({...old,[chapter]:Math.max(stars,old[chapter]??0)}));
+   setPlayCounts(old=>({...old,[chapter]:Math.max(old[chapter]??0,playIndex+1)}));
    setScore({stars,accuracy:Math.round(accuracy*100),independent:correctIndependent,typed});
    setPhase('complete');setMessage('Yazı defterine yeni bir sayfa ekledin!');
    soundService.playSfx('fanfare',.6);
@@ -190,7 +204,8 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
   setMessage('Doğru yazdın! ✨');
   if(step+1<deck.length){
    saveWorkshopCheckpoint(profileId,englishLevel,chapter,{
-    step:step+1,mistakes,hints,independent:indep,typedIndependent:typedCount,answers:rows
+    step:step+1,mistakes,hints,independent:indep,typedIndependent:typedCount,
+    answers:rows,playIndex,taskIds:deck.map(item=>item.id)
    });
   }
   timer.current=setTimeout(()=>{
@@ -237,16 +252,17 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
       <span className="writing-chapter-index">BÖLÜM {String(ch.id).padStart(2,'0')}</span>
       <strong>{ch.title}</strong><small>{ch.subtitle}</small>
       <span className="writing-chapter-status">
-       {ch.id<=completed?'⭐'.repeat(starMap[ch.id]??1):
+       {ch.id<=completed?'↻ Yeniden oyna · '+'⭐'.repeat(starMap[ch.id]??1):
         ch.id===completed+1?'✦ Maceraya Gir':'🔒 Önceki Bölümü Bitir'}
       </span>
      </button>)}
     </section>
+    <p className="writing-replay-note">🔄 Her yeni turda farklı kelimeler, cümleler ve yazı görevleri seçilir.</p>
     <p className="writing-privacy">🛡️ Yazdığın serbest metin saklanmaz. Yalnızca öğrenme ilerlemen kaydedilir.</p>
    </div>:phase==='playing'?<div className="writing-play">
     <div className="writing-topline">
      <span>{current.icon} {current.title}</span>
-     <span>{englishLevel} · {step+1}/{deck.length}</span>
+     <span>{englishLevel} · {step+1}/{deck.length} · Tur {playIndex+1}</span>
     </div>
     <div className="writing-progress" role="progressbar" aria-label="Bölüm ilerlemesi"
      aria-valuemin={0} aria-valuemax={deck.length} aria-valuenow={step}>
