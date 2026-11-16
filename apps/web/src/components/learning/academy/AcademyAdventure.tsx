@@ -100,6 +100,18 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
  const cancelAdvance=()=>{runVersion.current++;
   if(advanceTimer.current)clearTimeout(advanceTimer.current);
   advanceTimer.current=null;pending.current=false;};
+ // Keep only categorical evidence during unfinished tasks; never typed input.
+ function persistDraft(patch:Partial<{
+  attempts:number;hints:number;currentMistakes:number;currentHintLevel:0|1|2;
+  audioAttempted:boolean;audioPlayed:boolean;
+ }>={}){
+  if(reviewSkill||!sessionId)return;
+  saveAcademyCheckpoint(profileId,englishLevel,zone,{
+   step,variant,answers,sessionId,attempts:mistakes,hints,
+   currentMistakes:errorOnStep,currentHintLevel:hintLevel,
+   audioAttempted,audioPlayed,...patch
+  });
+ }
  function open(id:number){
   if(busy||loading||id>available||id<1)return;
   cancelAdvance();stop();setSaveError('');setMessage('');setErrorOnStep(0);setHintLevel(0);setAudioPlayed(false);setAudioAttempted(false);
@@ -114,6 +126,10 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
   setAnswers(restored?.answers??[]);
   setMistakes(restored?.attempts??0);
   setHints(restored?.hints??0);
+  setErrorOnStep(restored?.currentMistakes??0);
+  setHintLevel(restored?.currentHintLevel??0);
+  setAudioAttempted(restored?.audioAttempted??false);
+  setAudioPlayed(restored?.audioPlayed??false);
   setSessionId(restored?.sessionId??crypto.randomUUID());
   setStarted(Date.now());
   setStage(restored?.step===5?'pending':'quest');soundService.playSfx('island_portal',.45);
@@ -133,16 +149,21 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
   soundService.unlockAudio();
   const phrase=task.kind==='talk'?task.line:task.kind==='build'||task.kind==='write'?task.answer:task.line;
   const started=soundService.speakEnglish(phrase,{rate:gradeLevel!==null&&gradeLevel<=2?.78:.88});
-  if(task.kind==='hear'){setAudioAttempted(true);if(started)setAudioPlayed(true);}
+  if(task.kind==='hear'){
+   setAudioAttempted(true);if(started)setAudioPlayed(true);
+   persistDraft({audioAttempted:true,audioPlayed:audioPlayed||started});
+  }
   if((task.kind==='build'||task.kind==='write')&&started&&!hintOnStep){
    setHintLevel(1);setHints(n=>n+1);
    setMessage('Sesli örnek yardım olarak kullanıldı. Macerana devam edebilirsin.');
+   persistDraft({hints:hints+1,currentHintLevel:1});
   }
  }
  function showHint(){
   if(busy||hintLevel>=2)return;
   const next=(hintLevel+1) as 1|2;
   setHintLevel(next);setHints(n=>n+1);
+  persistDraft({hints:hints+1,currentHintLevel:next});
   setMessage(academyHint(task,next));
   soundService.playSfx('tap',.35);
  }
@@ -189,7 +210,8 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
   const next=[...answers,row];
   setAnswers(next);setBusy(true);setMessage(task.feedback);soundService.playSfx('correct',.6);
   if(!reviewSkill)saveAcademyCheckpoint(profileId,englishLevel,zone,{
-   step:step+1,variant,answers:next,attempts:mistakes,hints,sessionId
+   step:step+1,variant,answers:next,attempts:mistakes,hints,sessionId,
+   currentMistakes:0,currentHintLevel:0,audioAttempted:false,audioPlayed:false
   });
   const version=runVersion.current;
   advanceTimer.current=window.setTimeout(()=>{
@@ -205,6 +227,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
  function wrong(){
   if(busy)return;
   setMistakes(n=>n+1);setErrorOnStep(n=>n+1);
+  persistDraft({attempts:mistakes+1,currentMistakes:errorOnStep+1});
   setMessage('Bir daha deneyelim. İstersen soru işaretinden ipucu alabilirsin.');
   soundService.playSfx('gentle_retry',.35);
  }
@@ -238,7 +261,8 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
     };
     const next=[...answers,row];setAnswers(next);setMessage(task.feedback);setBusy(true);
     pending.current=true;
-    if(!reviewSkill)saveAcademyCheckpoint(profileId,englishLevel,zone,{step:step+1,variant,answers:next,attempts:mistakes,hints,sessionId});
+    if(!reviewSkill)saveAcademyCheckpoint(profileId,englishLevel,zone,{step:step+1,variant,answers:next,attempts:mistakes,hints,sessionId,
+      currentMistakes:0,currentHintLevel:0,audioAttempted:false,audioPlayed:false});
     soundService.playSfx('correct',.65);
     const version=runVersion.current;
     advanceTimer.current=window.setTimeout(()=>{
