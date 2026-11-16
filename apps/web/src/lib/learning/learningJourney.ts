@@ -55,7 +55,7 @@ export const ENGLISH_JOURNEY:readonly LearningIslandPlan[]=[
   },
   futureMechanics:['Kelime mıknatısları','Cümle inşa masası','Kısa yaratıcı yazma'],
   evidence:['spelling','sentence-accuracy','communicative-writing']},
- {id:'language_academy',title:'Keşif Akademisi',goal:'integrated-mastery',order:6,playable:false,prerequisites:['vocabulary','sentence-building','story-comprehension','dialogue','writing'],
+ {id:'language_academy',title:'Keşif Akademisi',goal:'integrated-mastery',order:6,playable:true,prerequisites:['vocabulary','sentence-building','story-comprehension','dialogue','writing'],
   atLevel:{
    'Pre-A1':['Gör–dinle–seç görevleri','Kısa İngilizce talimatla ilerle','Bağımsız tekrar'],
    'A1':['Duruma uygun kısa diyalog','Karakter hikâyesini tamamlama','Beceri karması görev'],

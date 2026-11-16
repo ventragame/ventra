@@ -18,7 +18,7 @@
 | 3 | `listening_forest` | **Hikâye Ormanı** | Follow and sequence English stories, explain events, infer meanings in context | Planned |
 | 4 | `speaking_harbor` | **Diyalog Limanı** | Use English in character dialogues and context-appropriate turns | Planned |
 | 5 | `sentence_workshop` | **Yazı Atölyesi** | Write/spell English from guided phrases to short original texts | Planned |
-| 6 | `language_academy` | **Keşif Akademisi** | Show transferable English ability in a multi-skill personalized adventure | Planned |
+| 6 | `language_academy` | **Keşif Akademisi** | Practice vocabulary, comprehension, dialogue and writing in integrated adventures | **Six-zone L6 implementation; device/pedagogy acceptance pending** |
 
 **Important:** `story_castle` and `sentence_workshop` have intentionally retained their legacy **IDs** despite the new curricular order and location. No SQL/profile migration. The existing WebP island art is reused; the new story/sentence/writing art and a wider art coherence review remain separate art sprints. Locked islands must not be presented as playable or as earned achievements.
 
@@ -89,7 +89,7 @@
 ### L5 — Yazı Atölyesi [planned]
 - Age-/placement-responsive constrained phrase construction then guided independent writing; review for meaningful spelling and communication, not keyboard dexterity.
 
-### L6 — Keşif Akademisi [planned]
+### L6 — Keşif Akademisi [playable code, physical QA and pedagogy acceptance pending]
 - Cross-island transfer, independent mastery trials and spaced retrieval. No fake score for mere completion/assisted answers.
 
 ### Release gates (all future phases)
@@ -101,3 +101,12 @@ TypeScript, automated unit/integration tests, production web build, Android and 
 - Full visible on-screen explanation, pronunciation/model support, semantic world effect after English sentence construction; hints, mistakes, and independent recall recorded separately.
 - Same repository offline event/session persistence, 3 stars per unique level, retry-safe session ID, P5 coin compatibility.
 - [CM1 full GDD](./CM1_UYANAN_MEYDAN_GDD_ACCEPTANCE.md).
+
+
+### 2026-11-16 — L6 implementation addendum
+
+- Six academy regions and a sequential integrated-English quest runner, using the stable `language_academy` island ID and `island_language_academy_atlas` game ID.
+- 18 authored contexts × three language placements × five task kinds = 270 stable task IDs, not 270 independent narrative stories.
+- Profile-isolated local/cloud categorical evidence, resumable 30-day checkpoint, no written child text or microphone audio stored. Touch-based dialogue is not spoken proficiency, and tile-built writing is not independent writing evidence.
+- Existing academy island WebP and mobile-responsive UI used; dedicated narrative art, teacher-led curricular review, real child usability and physical device acceptance still open.
+- See [L6 academy GDD](./ACADEMY_L6_GDD_ACCEPTANCE.md). This dated addendum supersedes older *planned* statements for L6 only.

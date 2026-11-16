@@ -164,15 +164,15 @@ export const ARCHIPELAGO_ISLANDS_CATALOG: Record<IslandId, IslandDefinition> = {
     badgeText: 'Pre-A1 · A1 · A2',
     descriptionTr: 'Önceki adaların kelime, cümle, hikâye ve diyaloglarını macerada birleştir.',
     cefrLevel: 'Pre-A1–A2',
-    totalPublishedRequiredLevels: 0,
+    totalPublishedRequiredLevels: 6,
     desktopAsset: '/assets/kids-islands/language_academy.webp',
     mobileAsset: '/assets/kids-islands/language_academy_mobile.webp',
     defaultWorldPos: { x: 620, y: 1030 }, // Sol alt: clear of Word Garden art
     hitRadius: 220,
     order: 6,
-    isUnlockedDefault: false,
-    contentPublished: false,
-    unlockRequirementNotice: 'Bütünleşik ustalık görevleri henüz geliştirme aşamasında.'
+    isUnlockedDefault: true,
+    contentPublished: true,
+    unlockRequirementNotice: 'Altı macera bölgesi İngilizce karma beceri görevleriyle oynanabilir.'
   }
 };
 

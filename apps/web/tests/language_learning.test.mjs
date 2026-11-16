@@ -160,7 +160,7 @@ test('Archipelago V2: State & Publication Separation (unlocked vs contentPublish
   assert.equal(forest.isUnlockedDefault,true,'Hikâyeyi Keşfet ilk oyunu erişilebilir');
   assert.equal(forest.contentPublished,true,'Altı Hikâye Ormanı bölümü yayınlandı');
   assert.equal(forest.totalPublishedRequiredLevels,18);
-  const lockedIslands = ARCHIPELAGO_ISLANDS_ORDERED.slice(5);
+  const newlyOpenedIsland = ARCHIPELAGO_ISLANDS_CATALOG.language_academy;
   const harbor=ARCHIPELAGO_ISLANDS_CATALOG.speaking_harbor;
   assert.equal(harbor.isUnlockedDefault,true);
   assert.equal(harbor.contentPublished,true);
@@ -169,11 +169,10 @@ test('Archipelago V2: State & Publication Separation (unlocked vs contentPublish
   assert.equal(workshop.isUnlockedDefault,true);
   assert.equal(workshop.contentPublished,true);
   assert.equal(workshop.totalPublishedRequiredLevels,5);
-  for (const island of lockedIslands) {
-    assert.equal(island.isUnlockedDefault, false, `${island.id} başlangıçta kilitli olmalıdır`);
-    assert.equal(island.contentPublished, false, `${island.id} henüz içerik yayımlanmamış olmalıdır (sahte oyun açılamaz)`);
-    assert.ok(island.unlockRequirementNotice, `${island.id} kilit açılma şartı bildirimine sahip olmalıdır`);
-  }
+  assert.equal(newlyOpenedIsland.isUnlockedDefault, true);
+  assert.equal(newlyOpenedIsland.contentPublished, true);
+  assert.equal(newlyOpenedIsland.totalPublishedRequiredLevels, 6);
+  assert.ok(newlyOpenedIsland.unlockRequirementNotice);
 });
 
 test('Archipelago V2: Compact Oval World Coordinates & Progression Route Integrity', () => {
@@ -373,16 +372,16 @@ test('Archipelago Progress Bar: Active vs Unpublished Island Level Display Invar
   assert.equal(forest.contentPublished,true);
   const otherIslands = ARCHIPELAGO_ISLANDS_ORDERED.filter(i =>
     i.id !== 'word_garden'&&i.id!=='story_castle'&&i.id!=='listening_forest'&&i.id!=='speaking_harbor'&&i.id!=='sentence_workshop');
-  assert.equal(otherIslands.length, 1, 'Geriye yalnızca Keşif Akademisi kalmalıdır');
+  assert.equal(otherIslands.length, 1, 'Altıncı ada Keşif Akademisi olmalıdır');
   const harbor=ARCHIPELAGO_ISLANDS_CATALOG.speaking_harbor;
   assert.equal(harbor.contentPublished,true);
   assert.equal(harbor.totalPublishedRequiredLevels,5);
 
   for (const island of otherIslands) {
-    assert.equal(island.contentPublished, false, `${island.id} adası henüz yayımlanmamış olmalıdır`);
-    // UI sözleşmesi: contentPublished false ise sayısal "0/5" progress bar çizilmez, "Pek Yakında" / "Kilitli" rozeti çizilir
+    assert.equal(island.contentPublished, true, `${island.id} artık oynanabilir olmalıdır`);
+    assert.equal(island.totalPublishedRequiredLevels, 6);
     const shouldShowNumericLevelBar = island.contentPublished;
-    assert.equal(shouldShowNumericLevelBar, false, `${island.id} için yanıltıcı 0/5 barı kesinlikle gösterilmemelidir`);
+    assert.equal(shouldShowNumericLevelBar, true, `${island.id} ilerleme çubuğu göstermelidir`);
     assert.ok(island.unlockRequirementNotice, `${island.id} adası kilit açılma koşulu açıklaması içermelidir`);
   }
 });
