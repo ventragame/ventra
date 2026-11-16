@@ -38,7 +38,10 @@
 .academy-scene-glow{position:absolute;inset:-40%;border-radius:50%;background:radial-gradient(circle,#ffffff30,transparent 45%);pointer-events:none;animation:academy-drift 9s ease-in-out infinite alternate}
 .academy-scene-icon{font-size:clamp(60px,9vw,95px);align-self:center;text-shadow:0 12px 17px #101b3988;z-index:1;animation:academy-float 4s ease-in-out infinite}
 .academy-scene-dialogue{display:flex;align-items:center;gap:13px;position:relative;background:#0e1f48be;border:1px solid #ffffff38;padding:13px 16px;border-radius:16px;z-index:1;backdrop-filter:blur(10px)}
-.academy-lumi{display:grid;place-items:center;flex:none;width:38px;height:38px;background:#f9eac8;color:#5d4a97;border-radius:50%;box-shadow:0 0 17px #fff5ba6b;font-size:24px}
+.academy-lumi{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;flex:none;width:43px;height:43px;background:radial-gradient(circle at 33% 27%,#fffdf5 0%,#ffecbc 49%,#dfc990 100%);border:2px solid #fff5d4;color:#5d4a97;border-radius:48% 52% 51% 49%;box-shadow:0 0 17px #fff5ba8c,0 3px 9px #1d2d6273;transform:rotate(-4deg)}
+.academy-lumi-eyes{display:flex;gap:11px;align-items:center;justify-content:center}
+.academy-lumi-eyes i{display:block;width:5px;height:7px;border-radius:50%;background:#39446b;box-shadow:1px 1px 0 #fff8}
+.academy-lumi-smile{display:block;width:11px;height:6px;border:solid #94668d;border-width:0 0 2px;border-radius:0 0 12px 12px}
 .academy-scene-dialogue strong{font-size:15px;color:#fff0be}
 .academy-scene-dialogue p{font-size:12px;line-height:1.45;color:#e4eafa;margin:3px 0 0}
 .academy-task{background:#faf9ff;color:#243452;border:1px solid #ffffff7a;border-radius:26px;padding:22px 23px;margin-top:14px;box-shadow:0 14px 40px #040b2970}
