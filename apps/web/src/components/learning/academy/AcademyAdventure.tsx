@@ -66,7 +66,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
  const [started,setStarted]=useState(Date.now());
  const pending=useRef(false);
  const runVersion=useRef(0);
- const advanceTimer=useRef<ReturnType<typeof setTimeout>|null>(null);
+ const advanceTimer=useRef<number|null>(null);
  const audioEpoch=useRef(0);
  const alive=useRef(true);
  const plan=useMemo(()=>reviewSkill?buildAcademyFocusPlan(zone,englishLevel,reviewSkill,variant):
