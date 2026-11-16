@@ -20,6 +20,22 @@ type Props={profileId:string;englishLevel:AcademyLevel;gradeLevel:number|null;
 type Stage='map'|'quest'|'pending'|'final';
 const labels={hear:'Dinle',read:'Oku',talk:'Konuş',build:'Cümle Kur',write:'Yaz'};
 const kinds=['hear','read','talk','build','write'] as const;
+/** Accessible visual labels: illustrations are illustrative, English text remains authoritative. */
+function choiceVisual(option:string){
+ const lower=option.toLowerCase();
+ const objects:Record<string,string>={compass:'🧭',star:'⭐',key:'🗝️',envelope:'✉️',card:'💌',
+  parcel:'📦',lantern:'🏮',shell:'🐚',map:'🗺️',ticket:'🎟️',bag:'🎒',teddy:'🧸',
+  feather:'🪶',moon:'🌙',crystal:'💎',heart:'💛',fountain:'⛲',garden:'🌳',
+  tower:'🏰',bridge:'🌉',library:'📚',gate:'🚪',station:'🚉',beach:'🏖️',
+  platform:'🚉',treehouse:'🏡',observatory:'🔭'};
+ const icon=Object.entries(objects).find(([word])=>lower.includes(word))?.[1]??'✨';
+ const colors:Record<string,string>={blue:'#8dc7ff',red:'#f7a1a1',green:'#98e3af',
+  yellow:'#ffe69a',purple:'#d9b7ff',pink:'#ffc2d6',brown:'#cda986',
+  white:'#f3f2e9',silver:'#d6dce9',golden:'#ffe5a2',bright:'#fff0a8',
+  old:'#d8b488',new:'#a1d6ed',small:'#bcd9ff',large:'#ffdf9e',round:'#e6c6f4'};
+ const tint=Object.entries(colors).find(([word])=>lower.includes(word))?.[1]??'#dbe6fb';
+ return {icon,tint};
+}
 export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSaved}:Props){
  const [stage,setStage]=useState<Stage>('map');
  const [zone,setZone]=useState(1);
@@ -262,7 +278,13 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
      {(task.kind==='hear'||task.kind==='talk')&&
       <button className="academy-audio" type="button" onClick={readLine} disabled={busy}> <span aria-hidden="true">🔊</span> İngilizceyi Dinle</button>}
      {kinds.slice(0,3).includes(task.kind as 'hear'|'read'|'talk')&&<div className="academy-choices">
-      {task.options.map(o=><button type="button" key={o} disabled={busy} onClick={()=>choose(o)}>{o}</button>)}
+      {task.options.map(o=>{
+       const visual=choiceVisual(o);
+       return <button type="button" key={o} disabled={busy} onClick={()=>choose(o)}>
+        <span className="academy-choice-icon" aria-hidden="true" style={{backgroundColor:visual.tint}}>{visual.icon}</span>
+        <span>{o}</span>
+       </button>;
+      })}
      </div>}
      {task.kind==='talk'&&<div className="academy-voice">
       <button type="button" className="academy-mic" onClick={()=>void speak()} disabled={!hasSpeech||busy}>
