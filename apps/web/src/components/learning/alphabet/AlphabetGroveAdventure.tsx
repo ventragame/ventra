@@ -127,7 +127,7 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
   setHintVisible(true);setHints(v=>v+1);
  };
  const advance=()=>{
-  locked.current=false;setStep(v=>v+1);setWrongOnStep(0);
+  locked.current=false;soundService.cancelSpeech();setStep(v=>v+1);setWrongOnStep(0);
   setHintVisible(false);setHeard(false);setAudioFailed(false);
   setSelected([]);setResolved(false);setMessage('');
  };
@@ -189,7 +189,6 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
  };
  const wordTiles=task?.kind==='build-word'?selected.map(index=>task.choices[index]):[];
  const percent=deck.length?Math.round(100*Math.min(step,deck.length)/deck.length):0;
- const counts=ALPHABET_LESSONS.slice(0,9).map(x=>x.letters.length);
  return <div className="ag-root" role="dialog" aria-modal="true" aria-label="Harf Korusu">
   <div className="ag-starscape" aria-hidden="true"/>
   <div className="ag-shell">
@@ -312,7 +311,7 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
      </>}
      <p className={'ag-feedback'+(resolved?' ag-correct':'')} role="status" aria-live="polite">{message||(resolved?'✓ Doğru!':'Düşün, dinle ve seç. Acele etmene gerek yok.')}</p>
     </section>}
-    {pendingRetry&&(!task||step===deck.length)&&<section className="ag-challenge ag-pending">
+    {pendingRetry&&<section className="ag-challenge ag-pending">
      <div aria-hidden="true" className="ag-finish-emblem">🗝️</div>
      <h2>Macera tamamlandı!</h2>
      <p>Yanıtların hazır. Kaydı tamamlamak için aşağıdaki düğmeye dokun.</p>
@@ -328,7 +327,7 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
     <div className="ag-earned" aria-label={(result?.stars??0)+' yıldız kazandın'}>{'⭐'.repeat(result?.stars??1)}</div>
     <p className="ag-evidence">İlk denemede, yardımsız doğru: {result?.firstTry??0}. Tamamlamak tek başına İngilizce ustalığı kanıtı değildir.</p>
     <div className="ag-complete-buttons">
-     <button type="button" className="ag-primary-action" onClick={()=>enter(Math.min(12,lesson+1))}>Sonraki ders →</button>
+     <button type="button" className="ag-primary-action" onClick={()=>enter(Math.min(12,lesson+1))}>{lesson===12?'Başka bir tur →':'Sonraki ders →'}</button>
      <button type="button" className="ag-secondary-action" onClick={()=>enter(lesson)}>↻ Farklı görevlerle tekrar oyna</button>
      <button type="button" className="ag-secondary-action" onClick={leave}>Harf Korusu haritasına dön</button>
     </div>

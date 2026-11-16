@@ -196,7 +196,7 @@ export function planAlphabetLesson(input:{
  return tasks;
 }
 export function alphabetTaskCorrect(task:AlphabetTask,response:string):boolean{
- return task.answer===response.trim().toLowerCase()&&response.trim().length>0;
+ return task.answer.toLowerCase()===response.trim().toLowerCase()&&response.trim().length>0;
 }
 export function alphabetHint(task:AlphabetTask):string{
  if(task.kind==='introduce')return 'Büyük ve küçük harfi birlikte incele. Sonra örnek kelimeyi dinle.';
