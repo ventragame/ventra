@@ -31,7 +31,7 @@ export const WORKSHOP_BONUS_CHAPTERS:readonly BonusChapter[]=[
    x('write','Kırmızı bir kalemin olduğunu İngilizce yaz.','I have a red pen.','🖊️'),
    x('write','Bugün mektup gönderdiğini İngilizce yaz.','I send a letter today.','📮'),
    x('write','Arkadaşında kartpostal olduğunu İngilizce yaz.','My friend has a postcard.','💌'),
-   x('write','Kibarca mektubunu okumasını iste.','Please read my letter.','📨')
+   x('spell','Zarfın İngilizce karşılığını harflerle oluştur.','envelope','✉️')
   ],
   A2:[
    x('spell','Zarfın İngilizce karşılığını harflerle oluştur.','envelope','✉️'),
@@ -43,7 +43,7 @@ export const WORKSHOP_BONUS_CHAPTERS:readonly BonusChapter[]=[
    x('write','Arkadaşından nazik bir mektup aldığını anlat.','I received a kind letter from my friend.','💛'),
    x('write','Tatilde karşılıklı kartpostal gönderdiğinizi yaz.','We exchanged postcards during our holiday.','🏖️'),
    x('write','Müsait olunca cevap göndermesini nazikçe iste.','Please send me a reply when you can.','📩'),
-   x('write','Mektup yazmayı neden sevdiğini açıkla.','I enjoy writing letters because they feel personal.','💌')
+   x('spell','Cevap kelimesinin İngilizcesini harflerle oluştur.','reply','📩')
   ]
  },
  {
@@ -69,7 +69,7 @@ export const WORKSHOP_BONUS_CHAPTERS:readonly BonusChapter[]=[
    x('write','Arkadaşının komik olduğunu İngilizce yaz.','My friend is funny.','😄'),
    x('write','Birlikte kitap okuduğunuzu İngilizce yaz.','We read books together.','📚'),
    x('write','Dersten sonra arkadaşına yardım ettiğini yaz.','I help my friend after class.','✏️'),
-   x('write','Arkadaşının köpeği olduğunu İngilizce yaz.','My friend has a dog.','🐶')
+   x('spell','Yardımsever kelimesini İngilizce harflerle kur.','helpful','🤝')
   ],
   A2:[
    x('spell','Dostluk kelimesini İngilizce oluştur.','friendship','🤝'),
@@ -81,7 +81,7 @@ export const WORKSHOP_BONUS_CHAPTERS:readonly BonusChapter[]=[
    x('write','İyi bir arkadaşın ihtiyacın olduğunda dinlediğini anlat.','A good friend listens when I need help.','💗'),
    x('write','Dün bir sorunu birlikte çözdüğünüzü anlat.','Yesterday we solved a problem together.','🧩'),
    x('write','Arkadaşların cesaret verdiğinde daha mutlu olduğunu yaz.','I feel happier when my friends encourage me.','🌟'),
-   x('write','Üç yıldır birbirinizi tanıdığınızı İngilizce yaz.','We have known each other for three years.','📅')
+   x('spell','Güven kelimesinin İngilizce karşılığını kur.','trust','🤞')
   ]
  },
  {
@@ -107,7 +107,7 @@ export const WORKSHOP_BONUS_CHAPTERS:readonly BonusChapter[]=[
    x('write','Bugün gökyüzünün açık olduğunu İngilizce yaz.','The sky is clear today.','🌤️'),
    x('write','Gölün mavi göründüğünü İngilizce yaz.','The lake looks blue.','🏞️'),
    x('write','Bahçenizde çok çiçek olduğunu İngilizce yaz.','Our garden has many flowers.','🌺'),
-   x('write','Uzun, yeşil bir ağaç gördüğünü İngilizce yaz.','I see a tall green tree.','🌳')
+   x('spell','Dağ kelimesinin İngilizcesini harflerle oluştur.','mountain','⛰️')
   ],
   A2:[
    x('spell','Rengârenk sözcüğünü İngilizce oluştur.','colorful','🌈'),
@@ -119,7 +119,7 @@ export const WORKSHOP_BONUS_CHAPTERS:readonly BonusChapter[]=[
    x('write','Gün batımının bulutları pembe gösterdiğini anlat.','The sunset made the clouds look pink.','🌇'),
    x('write','Yağmur durduktan sonra gökkuşağı fark ettiğini anlat.','I noticed a rainbow after the rain stopped.','🌈'),
    x('write','Akşam yemeğinden önce nehir boyunca yürüdüğünüzü anlat.','We walked along the river before dinner.','🏞️'),
-   x('write','Manzaranın sabah farklı göründüğünü anlat.','The landscape looked different in the morning.','🌤️')
+   x('spell','Manzara sözcüğünün İngilizce karşılığını kur.','scenery','🌄')
   ]
  },
  {
@@ -145,7 +145,7 @@ export const WORKSHOP_BONUS_CHAPTERS:readonly BonusChapter[]=[
    x('write','Teknenin limana yakın olduğunu İngilizce yaz.','The boat is near the harbor.','⛵'),
    x('write','Küçük bir ada görebildiğini İngilizce yaz.','I can see a small island.','🏝️'),
    x('write','Kaptanınızın arkadaş canlısı olduğunu anlat.','Our captain is friendly.','⚓'),
-   x('write','Adaya doğru yelken açtığınızı İngilizce yaz.','We are sailing to the island.','🚢')
+   x('spell','Kaptan sözcüğünün İngilizcesini harflerle kur.','captain','⚓')
   ],
   A2:[
    x('spell','Deniz fenerinin İngilizcesini harflerle kur.','lighthouse','🗼'),
@@ -157,7 +157,7 @@ export const WORKSHOP_BONUS_CHAPTERS:readonly BonusChapter[]=[
    x('write','Deniz fenerinin limanı bulmanıza yardım ettiğini yaz.','The lighthouse helped us find the harbor.','🗼'),
    x('write','Uzun bir yolculuktan sonra güvenle vardığınızı yaz.','We arrived safely after a long voyage.','🚢'),
    x('write','Yolculuk sırasında günlük tuttuğunu İngilizce yaz.','I kept a diary during our journey.','📓'),
-   x('write','Hava değişince mürettebatın birlikte çalıştığını anlat.','The crew worked together when the weather changed.','⚓')
+   x('spell','Yön bulma anlamındaki navigation kelimesini harflerle kur.','navigation','🧭')
   ]
  },
  {
@@ -183,7 +183,7 @@ export const WORKSHOP_BONUS_CHAPTERS:readonly BonusChapter[]=[
    x('write','Ejderhanın mağarada yaşadığını İngilizce yaz.','The dragon lives in a cave.','🐉'),
    x('write','Tavşanın eski kapıyı açtığını İngilizce yaz.','The rabbit opens the old door.','🚪'),
    x('write','Bir kuşun küçük tilkiye yardım ettiğini İngilizce yaz.','A bird helped the little fox.','🐦'),
-   x('write','Kutunun içinde harita bulduklarını İngilizce yaz.','They found a map in the box.','🗺️')
+   x('spell','Kitabın bölümü anlamındaki sözcüğü harflerle kur.','chapter','📖')
   ],
   A2:[
    x('spell','Meraklı kelimesini İngilizce harflerle kur.','curious','🧐'),
@@ -195,7 +195,7 @@ export const WORKSHOP_BONUS_CHAPTERS:readonly BonusChapter[]=[
    x('write','Başta tavşanın tilkiye güvenmediğini İngilizce yaz.','At first the rabbit did not trust the fox.','🐇'),
    x('write','Daha sonra gizli bir yol keşfettiklerini İngilizce yaz.','Later they discovered a hidden path.','🗺️'),
    x('write','Küçük tilkinin yardım edecek kadar cesur olduğunu anlat.','The little fox was brave enough to help.','🦊'),
-   x('write','Sonunda herkesin birlikte çalışmayı öğrendiğini yaz.','In the end everyone learned to work together.','🤝')
+   x('spell','Çözüm sözcüğünün İngilizce karşılığını kur.','solution','🧩')
   ]
  }
 ];
