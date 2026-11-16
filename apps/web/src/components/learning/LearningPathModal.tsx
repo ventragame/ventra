@@ -1,7 +1,13 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
+import dynamic from 'next/dynamic';
 import { WordGardenDistrictMap } from './WordGardenDistrictMap';
+import {getAlphabetProgress,type AlphabetProgress} from '@/lib/learning/alphabetProgress';
+const AlphabetGroveAdventure=dynamic(
+ ()=>import('./alphabet/AlphabetGroveAdventure').then(module=>module.AlphabetGroveAdventure),
+ {ssr:false,loading:()=> <div role="status" className="fixed inset-0 z-50 grid place-items-center bg-emerald-950 text-white">🌿 Harf Korusu açılıyor…</div>}
+);
 import './word-garden-world-art.css';
 import {soundService} from '@/lib/audio/SoundService';
 import {musicSceneForDistrict} from '@/lib/audio/MusicDirector';
@@ -32,6 +38,7 @@ interface LearningPathModalProps {
   onFoodProgressSaved?: () => void;
   onFamilyProgressSaved?: () => void;
   onTempleProgressSaved?: () => void;
+  onAlphabetProgressSaved?: () => void;
   profileId: string;
   playerName?:string;
   coinBalance?:number|null;
@@ -43,7 +50,7 @@ interface LearningPathModalProps {
   onProgressUpdate: (completed: number, total: number, levelOrder: number, starsEarned: number, telemetry?: AnimalMissionTelemetry) => Promise<void>;
 }
 
-type District = 'overview' | 'animals' | 'colors' | 'numbers' | 'food' | 'family' | 'sanctuary';
+type District = 'overview' | 'alphabet' | 'animals' | 'colors' | 'numbers' | 'food' | 'family' | 'sanctuary';
 
 /**
  * One active district at a time; the old static animal activities are no longer
@@ -64,11 +71,24 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
   onFoodProgressSaved,
   onFamilyProgressSaved,
   onTempleProgressSaved,
+  onAlphabetProgressSaved,
   initialCompletedLevels = 0,
   initialStarsByLevel = {},
   onProgressUpdate
 }) => {
   const [district, setDistrict] = useState<District>('overview');
+  const [alphabet,setAlphabet]=useState<AlphabetProgress>({completed:0,total:12,stars:{},replays:{}});
+  const [alphabetLoaded,setAlphabetLoaded]=useState(false);
+  const [alphabetError,setAlphabetError]=useState(false);
+  useEffect(()=>{
+    let active=true;
+    setAlphabetLoaded(false);setAlphabetError(false);
+    void getAlphabetProgress(getProgressRepository(),profileId,englishLevel)
+      .then(result=>{if(active)setAlphabet(result);})
+      .catch(()=>{if(active)setAlphabetError(true);})
+      .finally(()=>{if(active)setAlphabetLoaded(true);});
+    return ()=>{active=false;};
+  },[profileId,englishLevel]);
   useEffect(()=>{
     soundService.setMusicScene(musicSceneForDistrict(district));
     return ()=>soundService.setMusicScene('archipelago');
@@ -148,6 +168,16 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
     {game}<FirstPlayGuide key={profileId+':'+world} world={world} profileId={profileId} ready={ready} hasPlayed={hasPlayed}/>
   </>;
 
+  if(district==='alphabet'){
+    return <AlphabetGroveAdventure key={profileId+':'+englishLevel}
+      profileId={profileId} englishLevel={englishLevel} gradeLevel={gradeLevel}
+      onBack={()=>setDistrict('overview')}
+      onSaved={()=>{
+        void getAlphabetProgress(getProgressRepository(),profileId,englishLevel).then(setAlphabet)
+          .catch(()=>setAlphabetError(true));
+        onAlphabetProgressSaved?.();
+      }}/>;
+  }
   if (district === 'animals') {
     return animalError ? (
       <div role="alert" className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-slate-950 p-6 text-center text-white">
@@ -260,6 +290,10 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
   }
 
   return <WordGardenDistrictMap
+    alphabetCompleted={alphabet.completed}
+    alphabetReady={alphabetLoaded&&!alphabetError}
+    alphabetError={alphabetError}
+    onEnterAlphabet={()=>setDistrict('alphabet')}
     playerName={playerName}
     coinBalance={coinBalance}
     onOpenPassport={onOpenPassport}
