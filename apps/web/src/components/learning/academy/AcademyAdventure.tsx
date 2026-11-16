@@ -4,6 +4,7 @@ import React,{useEffect,useMemo,useRef,useState} from 'react';
 import type {GameCompletedPayload} from '@ventra/shared';
 import {getProgressRepository} from '@/lib/progress';
 import {soundService} from '@/lib/audio/SoundService';
+import {CharacterGuide} from '@/components/learning/motion/CharacterGuide';
 import {listenToChild,speechCapability,stopSpeechCapture,type SpeechCapability} from '@/lib/speech/childSpeech';
 import {
  ACADEMY_GAME_ID,ACADEMY_REVIEW_GAME_ID,ACADEMY_ZONES,buildAcademyPlan,buildAcademyFocusPlan,nextAcademyVariant,
@@ -319,6 +320,11 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
       {Array.from({length:step+1},(_,i)=><span key={i}>✧</span>)}
     </div>
     <div className="academy-scene-icon" aria-hidden="true">{plan.icon}</div>
+    <div className="academy-scene-character" aria-hidden="true">
+      <CharacterGuide character="meadow-owl"
+       mood={busy?(task.kind==='talk'?'listen':'happy'):hintOnStep?'hint':task.kind==='hear'?'listen':'idle'}
+       cueKey={task.id+'-'+String(busy)+'-'+String(hintLevel)}/>
+    </div>
      <div className="academy-scene-dialogue"><span className="academy-lumi" aria-hidden="true"><span className="academy-lumi-eyes"><i/><i/></span><span className="academy-lumi-smile"/></span>
       <div><strong>{step===0?currentZone.name:plan.caseTitle}</strong>
        <p>{step===0?academySafeMission(zone):plan.mission}</p></div>
