@@ -17,7 +17,7 @@ import './academy-adventure.css';
 
 type Props={profileId:string;englishLevel:AcademyLevel;gradeLevel:number|null;
  onBack:()=>void;onSaved:()=>void};
-type Stage='map'|'quest'|'final';
+type Stage='map'|'quest'|'pending'|'final';
 const labels={hear:'Dinle',read:'Oku',talk:'Konuş',build:'Cümle Kur',write:'Yaz'};
 const kinds=['hear','read','talk','build','write'] as const;
 export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSaved}:Props){
@@ -81,7 +81,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
   setHints(restored?.hints??0);
   setSessionId(restored?.sessionId??crypto.randomUUID());
   setStarted(Date.now());
-  setStage('quest');soundService.playSfx('island_portal',.45);
+  setStage(restored?.step===5?'pending':'quest');soundService.playSfx('island_portal',.45);
  }
  function readLine(){
   soundService.unlockAudio();
@@ -290,6 +290,17 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
      <p className="academy-feedback" role="status" aria-live="polite">{message||'Doğru cevabı seçerek macerana devam et.'}</p>
      {saveError&&<div className="academy-alert" role="alert">{saveError}<button type="button" onClick={()=>void save(answers,mistakes,hints)}>Kaydı Yeniden Dene</button></div>}
     </section>
+   </main>}
+   {stage==='pending'&&<main className="academy-finale">
+    <div className="academy-final-icon" aria-hidden="true">💾</div>
+    <span className="academy-eyebrow">ATLAS KAYIT KONTROLÜ</span>
+    <h1>Maceran tamamlandı!</h1>
+    <p>Önceki oturumunda bütün görevleri bitirdin. Yıldızlarını kaydetmek için devam et.</p>
+    {saveError&&<p className="academy-alert" role="alert">{saveError}</p>}
+    <button className="academy-submit" type="button" disabled={busy}
+      onClick={()=>{setBusy(true);void save(answers,mistakes,hints);}}>
+      {busy?'Kaydediliyor…':'Kaydı Tamamla'}
+    </button>
    </main>}
    {stage==='final'&&<main className="academy-finale">
     <div className="academy-final-icon" aria-hidden="true">🌠</div>
