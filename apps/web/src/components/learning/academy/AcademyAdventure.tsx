@@ -156,10 +156,10 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
   if(matchesAcademyAnswer(value,task.answer))accept(false,task.kind==='read'||(task.kind==='hear'&&audioPlayed));
   else wrong();
  }
- function submit(){
+ function submit(useTiles=false){
   if(busy)return;
-  const attempt=task.kind==='build'?picked.map(i=>wordTiles.find(w=>w.key===i)?.word??'').join(' '):typed;
-  if(matchesAcademyAnswer(attempt,task.answer))accept(false,task.kind==='write');
+  const attempt=(task.kind==='build'||useTiles)?picked.map(i=>wordTiles.find(w=>w.key===i)?.word??'').join(' '):typed;
+  if(matchesAcademyAnswer(attempt,task.answer))accept(false,task.kind==='build'||(task.kind==='write'&&!useTiles));
   else wrong();
  }
  async function speak(){
@@ -278,14 +278,25 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
        {wordTiles.filter(w=>!picked.includes(w.key)).map(w=><button type="button" key={w.key}
         disabled={busy} onClick={()=>setPicked(old=>[...old,w.key])}>{w.word}</button>)}
       </div>
-      <button type="button" className="academy-submit" disabled={busy||picked.length===0} onClick={submit}>Cümleyi Kontrol Et</button>
+      <button type="button" className="academy-submit" disabled={busy||picked.length===0} onClick={()=>submit()}>Cümleyi Kontrol Et</button>
      </div>}
      {task.kind==='write'&&<div className="academy-writing">
       <label htmlFor="academy-write">İngilizce cevabını yaz</label>
       <input id="academy-write" value={typed} maxLength={150} autoComplete="off" spellCheck={false}
        onChange={e=>setTyped(e.target.value)} placeholder={englishLevel==='Pre-A1'?'English word…':'English sentence…'}
        disabled={busy} onKeyDown={e=>{if(e.key==='Enter')submit();}}/>
-      <button type="button" className="academy-submit" disabled={busy||!typed.trim()} onClick={submit}>Mesajı Kontrol Et</button>
+      <button type="button" className="academy-submit" disabled={busy||!typed.trim()} onClick={()=>submit()}>Mesajı Kontrol Et</button>
+      {englishLevel==='Pre-A1'&&<div className="academy-touch-write">
+       <p>Klavye zor mu? Kelime kartlarıyla da tamamlayabilirsin. Bu, bağımsız yazma olarak sayılmaz.</p>
+       <div className="academy-built">{picked.length?picked.map(i=><button type="button" key={i}
+        disabled={busy} onClick={()=>setPicked(old=>old.filter(x=>x!==i))}>
+         {wordTiles.find(w=>w.key===i)?.word}</button>):<span>Kelimeleri sıraya koy…</span>}</div>
+       <div className="academy-tiles">{wordTiles.filter(w=>!picked.includes(w.key)).map(w=>
+        <button type="button" key={w.key} disabled={busy} onClick={()=>setPicked(old=>[...old,w.key])}>{w.word}</button>)}</div>
+       <button type="button" className="academy-submit" disabled={busy||picked.length===0} onClick={()=>submit(true)}>
+        Kartlarla Tamamla
+       </button>
+      </div>}
      </div>}
      <p className="academy-feedback" role="status" aria-live="polite">{message||'Doğru cevabı seçerek macerana devam et.'}</p>
      {saveError&&<div className="academy-alert" role="alert">{saveError}<button type="button" onClick={()=>void save(answers,mistakes,hints)}>Kaydı Yeniden Dene</button></div>}
