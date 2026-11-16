@@ -8,6 +8,7 @@ import {DistrictPreviewArt} from './DistrictPreviewArt';
 import {GARDEN_ORDER,GARDEN_THEMES,decorateWorldObjects,districtPercent,districtStatus,
  districtStatusLabel,mapProgress,type GardenDistrictId,type GardenDistrictProgress} from './world/gardenTheme';
 import './word-garden-premium.css';
+import './alphabet/alphabet-entry.css';
 import './word-garden-modular-v4.css';
 import {describeLearnerRoute} from '@/lib/learning/learningJourney';
 import type {EnglishPlacement} from '@/lib/learning/gradeAwareLearningPolicy';
@@ -17,6 +18,7 @@ const ExplorerCanvas=dynamic(()=>import('./world/ExplorerCanvas').then(x=>x.Expl
 });
 
 interface WordGardenDistrictMapProps {
+ alphabetCompleted:number;alphabetReady:boolean;alphabetError:boolean;onEnterAlphabet:()=>void;
  completedLevels:number;totalLevels:number;onEnterAnimals:()=>void;
  onEnterColors:()=>void;colorsUnlocked:boolean;colorsAvailable:boolean;colorCompleted:number;
  numberCompleted:number;numberTotal:number;numbersUnlocked:boolean;numbersAvailable:boolean;onEnterNumbers:()=>void;
@@ -33,6 +35,7 @@ interface WordGardenDistrictMapProps {
  * error handling and persisted activity IDs. Help is opt-in for early readers.
  */
 export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
+ alphabetCompleted,alphabetReady,alphabetError,onEnterAlphabet,
  completedLevels,totalLevels,onEnterAnimals,onEnterColors,
  colorsUnlocked,colorsAvailable,colorCompleted,numberCompleted,numberTotal,numbersUnlocked,numbersAvailable,onEnterNumbers,
  foodCompleted,foodTotal,foodUnlocked,foodAvailable,foodError,onEnterFood,
@@ -138,6 +141,25 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
    </section>
 
    <main>
+    <section className="wg-alphabet-entry" aria-label="Harf Korusu başlangıç macerası">
+     <div className="wg-alpha-miniart" aria-hidden="true">
+      <span className="wg-alpha-tile wg-alpha-a">A<small>a</small></span>
+      <span className="wg-alpha-tile wg-alpha-b">B<small>b</small></span>
+      <span className="wg-alpha-tile wg-alpha-c">C<small>c</small></span>
+      <span className="wg-alpha-leaf">🌱</span>
+     </div>
+     <div className="wg-alpha-copy">
+      <span className="wg-alpha-kicker">✦ BAŞLANGIÇ ÖĞRENME PATİKASI</span>
+      <h2>🌿 Harf Korusu <span>Yeni mini macera</span></h2>
+      <p>İngilizce 26 harfi tanı, kelimelerdeki seslerini dinle ve kısa kelimeleri okumayı öğren.</p>
+      <div className="wg-alpha-meta"><span>🔤 A–Z</span><span>🎧 Ses ve kelime</span><span>✦ {alphabetCompleted}/12 ders</span></div>
+     </div>
+     <button className="wg-alpha-start" type="button" onClick={onEnterAlphabet}
+      disabled={!alphabetReady||alphabetError}
+      aria-label={'Harf Korusu: '+(alphabetError?'ilerleme yüklenemedi':alphabetReady?'öğrenmeye başla':'yükleniyor')}>
+      {alphabetError?'Kayıt okunamadı':!alphabetReady?'Yükleniyor…':alphabetCompleted?'Devam Et →':'Keşfet →'}
+     </button>
+    </section>
     <section className="wg-main-map" aria-label="Gezilebilir İngilizce dünyası">
      <div className="wg-map-heading">
       <h2><span aria-hidden="true">🗺️</span> Keşif Haritası</h2>
