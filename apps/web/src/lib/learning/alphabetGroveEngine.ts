@@ -165,7 +165,7 @@ export function planAlphabetLesson(input:{
  let tasks:AlphabetTask[];
  if(row.group==='letters'){
   const start=sample(target,target.length,seed);
-  const selected=sample(learned,2,seed+43);
+  const selected=sample(learned,lesson===1?0:2,seed+43);
   tasks=[
    ...start.map((id,i)=>letterTask('introduce',id,i)),
    ...sample(target,3,seed+11).map((id,i)=>letterTask('case',id,i)),
