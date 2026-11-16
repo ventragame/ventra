@@ -632,7 +632,7 @@ export class MemoryProgressRepository implements IProgressRepository {
       const levels = await this.getAllLevelProgress(gameId, targetProfileId);
       return calculateTotalStars(levels);
     }
-    const [atolye, kopru, exploration, legacyIsland, wordSteps, colors, numbers, food, family, temple, plaza] = await Promise.all([
+    const [atolye, kopru, exploration, legacyIsland, wordSteps, colors, numbers, food, family, temple, plaza, harbor, workshop, academy] = await Promise.all([
       this.getAllLevelProgress('kesir_atolyesi', targetProfileId),
       this.getAllLevelProgress('kesir_koprusu', targetProfileId),
       this.getAllLevelProgress('phaser_exploration_island', targetProfileId),
@@ -643,7 +643,10 @@ export class MemoryProgressRepository implements IProgressRepository {
       this.getAllLevelProgress('island_word_garden_food', targetProfileId),
       this.getAllLevelProgress('island_word_garden_family', targetProfileId),
       this.getAllLevelProgress('island_word_garden_temple', targetProfileId),
-      this.getAllLevelProgress('island_sentence_square_plaza', targetProfileId)
+      this.getAllLevelProgress('island_sentence_square_plaza', targetProfileId),
+      this.getAllLevelProgress('island_speaking_harbor_dialogue', targetProfileId),
+      this.getAllLevelProgress('island_sentence_workshop_writing', targetProfileId),
+      this.getAllLevelProgress('island_language_academy_atlas', targetProfileId)
     ]);
     // Legacy island completion and the five modern steps represent the same
     // achievement: never count both awards for the same area.
@@ -653,7 +656,8 @@ export class MemoryProgressRepository implements IProgressRepository {
       calculateTotalStars(wordSteps)
     );
     return calculateTotalStars(atolye) + calculateTotalStars(kopru) +
-      animalStars + calculateTotalStars(colors) + calculateTotalStars(numbers) + calculateTotalStars(food) + calculateTotalStars(family) + calculateTotalStars(temple) + calculateTotalStars(plaza);
+      animalStars + calculateTotalStars(colors) + calculateTotalStars(numbers) + calculateTotalStars(food) + calculateTotalStars(family) + calculateTotalStars(temple) + calculateTotalStars(plaza) +
+      calculateTotalStars(harbor) + calculateTotalStars(workshop) + calculateTotalStars(academy);
   }
 
   // --- Bulut Senkronizasyon Metodları ---
