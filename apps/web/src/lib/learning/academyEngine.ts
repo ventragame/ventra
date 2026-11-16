@@ -8,6 +8,7 @@ export type AcademyLevel = 'Pre-A1' | 'A1' | 'A2';
 export type AcademyKind = 'hear' | 'read' | 'talk' | 'build' | 'write';
 export type AcademySkill = 'listening' | 'reading' | 'dialogue' | 'sentence' | 'writing';
 export const ACADEMY_GAME_ID = 'island_language_academy_atlas' as const;
+export const ACADEMY_REVIEW_GAME_ID = 'island_language_academy_review' as const;
 export const ACADEMY_ZONE_COUNT = 6;
 export const ACADEMY_STEPS = 5;
 
@@ -200,4 +201,32 @@ export function academyRoundOptions(task:AcademyTask,round:number):readonly stri
 export function academyReviewPriority(rows:readonly AcademyAnswer[],level:AcademyLevel,now:number=Date.now()){
  const due=academySkillReview(rows,now,level).filter(x=>x.due);
  return due.sort((a,b)=>a.independent-b.independent||a.attempts-b.attempts)[0]??null;
+}
+
+
+/** Targeted three-question practice. It never replaces full-zone completion,
+ * awards no stars and does not advance the six-zone unlocking sequence.
+ * Task identities are shared with their underlying authored cases so that
+ * spaced repetition can be measured without fabricated new content. */
+export function buildAcademyFocusPlan(
+ zone:number,level:AcademyLevel,skill:AcademySkill,rotation:number
+):AcademyPlan {
+ if(!Number.isInteger(zone)||zone<1||zone>6||
+   !['Pre-A1','A1','A2'].includes(level)||!SKILLS.includes(skill)||
+   !Number.isSafeInteger(rotation)||rotation<0)
+  throw new RangeError('Invalid academy practice');
+ const cases=ACADEMY_CASES.filter(s=>s.zone===zone);
+ const selected=academyShuffle(cases,level+'-'+skill+'-'+rotation).map(scene=>{
+  const task=makeDeck(scene,level).find(t=>t.skill===skill);
+  if(!task)throw new Error('Missing authored skill task');
+  return task;
+ });
+ const zoneDef=ACADEMY_ZONES[zone-1];
+ return {
+  zone,placement:level,caseId:'practice-'+zone+'-'+skill,
+  caseTitle:zoneDef.name+' · kısa tekrar',
+  mission:'Üç küçük İngilizce göreviyle bu beceriyi güçlendir.',
+  result:'Yeni bir alıştırma turu tamamladın.',
+  icon:'🪄',tasks:selected
+ };
 }
