@@ -24,8 +24,8 @@ test('Writing adventure measures independent typing separately from supported ti
  assert.match(ui,/onClick=\{submit\}/);
  assert.match(ui,/clearWorkshopCheckpoint/);
  assert.match(ui,/session.current\?\?crypto.randomUUID\(\)/);
- assert.match(ui,/const valid=saved&&saved.step<max\?saved:null/);
- assert.match(ui,/getWorkshopTasks\(chapter,englishLevel,gradeLevel\)/);
+ assert.match(ui,/const valid=saved&&saved.step<resumeDeck.length&&matches\?saved:null/);
+ assert.match(ui,/getWorkshopTasks\(id,englishLevel,gradeLevel,index\)/);
  assert.match(ui,/role="progressbar"/);
  assert.match(ui,/aria-label="Oluşturduğun İngilizce cevap"/);
  assert.match(ui,/spellCheck=\{false\}/);
