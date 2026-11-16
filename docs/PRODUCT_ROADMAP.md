@@ -312,3 +312,9 @@ See [CM1 acceptance and implemented grammatical families](./CM1_UYANAN_MEYDAN_GD
 - Mevcut WebP adanın ana görseli korunup responsive, erişilebilir dokunmatik harf/kâğıt sahneleri üretildi. Üretim deploy edilmedi.
 - **Açık QA:** fiziksel Android/iPhone 320–440px sahne/klavye, öğretmen tarafından cümle kabul listelerinin gözden geçirilmesi, çocuklarla pedagojik kullanılabilirlik, 2 hafta sonra bağımsız hatırlama testi.
 - [L5 GDD ve kabul notları](./WRITING_WORKSHOP_L5_GDD.md).
+
+### 2026-11-16 — L5 tekrar oynanabilirlik kalite düzeltmesi
+- İlk L5 dikey dilim yalnızca 75 görev içeriyor; tek çocuğa aynı bölümde ilk 3/4/5 soruyu sürekli sunduğu için **tekrarlı içerik bakımından yeterli değildi**.
+- Her seviye/bölüme 10 yeni, özgün ve Türkçe yönergeli yazı görevi eklenerek içerik 75'ten **225'e** yükseltildi; harf, kelime ve bağımsız yazı görevlerinin bankaları ayrıldı.
+- Tamamlanmış bölüm denemeleriyle 125 kombinasyonluk deterministik seçim ve yan yana denemelerde soru ID çakışmama ilkesi eklendi. Eski ödül kayıtları, 5 bölüm ID'si ve tamamlanmamış checkpoint'ler korunur.
+- Bu, tam yaratıcı ve adaptif yazma öğretmeni değildir. Serbest yazıların dilsel geri bildirimi ve uzun dönemli aralıklı tekrar hâlâ açık iş kalemidir.

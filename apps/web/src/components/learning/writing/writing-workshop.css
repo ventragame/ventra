@@ -266,3 +266,14 @@
   animation:none!important;transition:none!important;scroll-behavior:auto!important;
  }
 }
+
+/* Replay affordance: tell learners there are different exercises in every visit. */
+.writing-replay-note{
+ max-width:790px;margin:17px auto 7px;padding:12px 17px;
+ text-align:center;font-weight:850;line-height:1.45;font-size:13px;
+ border:1px solid #b7f0dfab;border-radius:16px;color:#edfff8;
+ background:linear-gradient(110deg,#285e769e,#495887b8);
+}
+@media(max-width:640px){
+ .writing-replay-note{font-size:11px;padding:10px;margin:13px auto 8px}
+}

@@ -5,14 +5,16 @@ import {
  isWorkshopAnswerCorrect,workshopTiles,normalizeWorkshopAnswer,workshopFeedback
 } from '../src/lib/learning/writingWorkshopEngine.ts';
 
-test('Five original chapters, 3 placements and 75 distinct evidence-led writing tasks',()=>{
+test('Five chapters, 3 placements and 225 authored evidence-led writing tasks',()=>{
  assert.equal(WRITING_WORKSHOP_GAME_ID,'island_sentence_workshop_writing');
  assert.equal(WORKSHOP_CHAPTERS.length,5);
  const keys=new Set();
  for(const chapter of WORKSHOP_CHAPTERS){
   for(const level of ['Pre-A1','A1','A2']){
    const tasks=chapter.quests[level];
-   assert.equal(tasks.length,5);
+   assert.equal(tasks.length,15);
+   for(const mode of ['spell','assemble','write'])
+    assert.equal(tasks.filter(t=>t.mode===mode).length,5);
    assert.deepEqual(tasks.slice(0,3).map(x=>x.mode),['spell','assemble','write']);
    for(const t of tasks){
     assert.ok(t.target.length>1&&t.promptTr.length>=16&&t.icon.length>0);
@@ -22,7 +24,7 @@ test('Five original chapters, 3 placements and 75 distinct evidence-led writing 
    }
   }
  }
- assert.equal(keys.size,75);
+ assert.equal(keys.size,225);
 });
 test('Grade changes count independently from English placement, including older beginners',()=>{
  assert.equal(workshopTaskCount(null),4);
@@ -75,4 +77,50 @@ test('Writing evidence contract stores only task IDs and categorical metrics, no
  assert.match(checkpoint,/readWorkshopCheckpoint/);
  assert.match(bridge,/writingAnswers\?: WritingAnswerEvidence\[\]/);
  assert.doesNotMatch(bridge,/writtenText|studentText|rawSentence|transcript:string/);
+});
+
+// The three mode banks each have five independently rotated tasks. The
+// base-5 counter guarantees 125 distinct actual question sets per chapter
+// and language level before any complete combination is reused.
+test('Replay draws 125 distinct and educationally balanced writing decks per chapter and placement',()=>{
+ for(const chapter of WORKSHOP_CHAPTERS){
+  for(const level of ['Pre-A1','A1','A2']){
+   for(const grade of [1,4,8]){
+    const seen=new Set();
+    let previous=null;
+    const expected=workshopTaskCount(grade);
+    for(let play=0;play<125;play++){
+     const deck=getWorkshopTasks(chapter.id,level,grade,play);
+     assert.equal(deck.length,expected);
+     assert.equal(new Set(deck.map(t=>t.id)).size,expected);
+     for(const mode of ['spell','assemble','write'])
+      assert.ok(deck.some(t=>t.mode===mode),'Each session includes '+mode);
+     const signature=deck.map(t=>t.id).join('|');
+     assert.ok(!seen.has(signature),'Replay collision before 125 rounds: '+signature);
+     seen.add(signature);
+     if(previous){
+      const before=new Set(previous.map(t=>t.id));
+      assert.ok(deck.every(t=>!before.has(t.id)),
+       'Consecutive lessons must not repeat ANY question');
+     }
+     previous=deck;
+    }
+    assert.equal(seen.size,125);
+   }
+  }
+ }
+});
+test('Legacy first-play task identities and grade counts remain stable after adding variants',()=>{
+ for(const chapter of WORKSHOP_CHAPTERS){
+  for(const level of ['Pre-A1','A1','A2']){
+   const original=chapter.quests[level].slice(0,5);
+   const chosen=getWorkshopTasks(chapter.id,level,8,0);
+   assert.deepEqual(chosen.map(t=>t.id),original.map(t=>t.id));
+   assert.deepEqual(getWorkshopTasks(chapter.id,level,1,0).map(t=>t.id),
+    original.slice(0,3).map(t=>t.id));
+  }
+ }
+ assert.throws(()=>getWorkshopTasks(1,'A1',5,-1),RangeError);
+ assert.throws(()=>getWorkshopTasks(1,'A1',5,1.4),RangeError);
+ assert.throws(()=>getWorkshopTasks(1,'A1',5,NaN),RangeError);
 });

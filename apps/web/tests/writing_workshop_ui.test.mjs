@@ -64,3 +64,19 @@ test('Writing Workshop publication is backed by real chapter runner and economy 
  const replay=reconcileRewards(earned,[{gameId:WRITING_WORKSHOP_GAME_ID,levelId:1,stars:3}],at);
  assert.deepEqual(replay,earned,'Replaying a chapter cannot mint coins twice');
 });
+
+test('Replays use persisted completed play count and the same plan after checkpoint resume',()=>{
+ const ui=read('../src/components/learning/writing/WritingWorkshopAdventure.tsx');
+ const engine=read('../src/lib/learning/writingWorkshopEngine.ts');
+ const checkpoint=read('../src/lib/learning/writingWorkshopCheckpoint.ts');
+ assert.match(ui,/setPlayCounts\(runs\)/);
+ assert.match(ui,/saved\?\.playIndex\?\?0/);
+ assert.match(ui,/getWorkshopTasks\(id,englishLevel,gradeLevel,savedIndex\)/);
+ assert.match(ui,/playCounts\[id\]\?\?0/);
+ assert.match(ui,/setDeck\(planned\);setPlayIndex\(index\)/);
+ assert.match(ui,/playIndex,taskIds:deck\.map\(item=>item\.id\)/);
+ assert.match(ui,/setPlayCounts\(old=>/);
+ assert.match(engine,/WORKSHOP_BONUS_CHAPTERS/);
+ assert.match(checkpoint,/item\.taskIds\.some\(id=>!id\.startsWith\(prefix\)\)/);
+ assert.match(checkpoint,/playIndex\?:number;taskIds\?:string\[\]/);
+});

@@ -5,8 +5,11 @@ Kanonik `docs/PRODUCT_ROADMAP.md` ve `docs/VENTRA_ENGLISH_LEARNING_JOURNEY_V2.md
 
 ## Oyun tasarımı
 - Beş ayrı hikâye bölümü: Harf Postanesi, Dostluk Defteri, Renkli Kartpostallar, Liman Mektupları, Küçük Hikâye Kitabı.
-- Her biri Pre-A1/A1/A2 için ayrı 5 özgün soru içerir: toplam 75 içerik satırı.
+- Her biri Pre-A1/A1/A2 için ayrı 15 özgün soru içerir: toplam **225 içerik satırı**. Eski 75 soru ve kimlikleri korunmuş, 150 yeni görev eklenmiştir.
 - Sınıf 1–2 için 3, sınıf 3–4 için 4, sınıf 5–8 için 5 görev; sınıfı eksik profillerde 4 görev. İngilizce seviyesini sınıftan bağımsız uygular.
+- **Tekrar oynama**: Her bölüm/seviyede 5 harf-yazımı, 5 cümle-sıralama ve 5 bağımsız yazma sorusu içeren üç ayrı bankadan seçim yapılır. Profilin o bölümdeki tamamlanmış deneme sayısı, üç bankanın farklı döndürülmesini yönetir. Böylece aynı bölüm ve yerleştirme düzeyi için **125 ayrı görev kombinasyonu** oluşur; ardışık iki tur hiçbir aynı soru ID'sini içermez. Bunlar 125 tamamen farklı metin değil, 15 ayrı sorudan yapılmış 125 kombinasyondur; içerik sınırlılığı korunur.
+- Yarım kalan oyunda kullanılan `playIndex` ve `taskIds` yalnız kategori/ID biçiminde, profil/yerleştirme/bölüm anahtarına bağlı checkpoint'te korunur. Eski checkpoint'ler ilk sabit görev setiyle devam eder; çocuğun yazdığı metin kaydedilmez.
+- Çeşitlendirme, geçmiş başarıya duyarlı aralıklı tekrar veya açık uçlu yazının öğretmen düzeyinde puanlanması değildir. Bunlar ayrıca geliştirilecek ve dil uzmanıyla doğrulanacaktır.
 - `spell`: resimli harflerle sözcük inşası; `assemble`: anlamlı cümle dizme; `write`: gerçekten metin girişi. Yazma doğruluğu için yalnız açıkça kabul edilen İngilizce hedef kalıplar kullanılır; serbest metne AI veya anlamsal puan verilmez.
 - Yanlış cevaplar cezalandırıcı değildir. İsteğe bağlı model telaffuzu/görünür örnek yardıma sayılır. Dokunmatik harf bankası bağımsız klavyeyle yazılmış cevap olarak sayılmaz.
 - Bölüm sonunda yalnızca kaydedilmiş yıldızlar ve **bağımsız yazım** sayısı gösterilir. Serbest kısa not alanı tamamen isteğe bağlıdır, puanlanmaz, kaydedilmez ve paylaşılmaz.
