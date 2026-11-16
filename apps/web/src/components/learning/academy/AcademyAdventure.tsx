@@ -55,6 +55,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
  const [typed,setTyped]=useState('');
  const [picked,setPicked]=useState<number[]>([]);
  const [message,setMessage]=useState('');
+ const [resolved,setResolved]=useState(false);
  const [busy,setBusy]=useState(false);
  const [loading,setLoading]=useState(true);
  const [saveError,setSaveError]=useState('');
@@ -114,7 +115,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
  }
  function open(id:number){
   if(busy||loading||id>available||id<1)return;
-  cancelAdvance();stop();setSaveError('');setMessage('');setErrorOnStep(0);setHintLevel(0);setAudioPlayed(false);setAudioAttempted(false);
+  cancelAdvance();stop();setResolved(false);setSaveError('');setMessage('');setErrorOnStep(0);setHintLevel(0);setAudioPlayed(false);setAudioAttempted(false);
   setTyped('');setPicked([]);
   const checkpoint=readAcademyCheckpoint(profileId,englishLevel,id);
   const count=Math.max(0,levels[id]?.completedCount??0);
@@ -141,7 +142,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
   setVariant(Math.max(0,recorded.length+(levels[region]?.completedCount??0)));
   setStep(0);setAnswers([]);setMistakes(0);setHints(0);
   setHintLevel(0);setErrorOnStep(0);setAudioPlayed(false);setAudioAttempted(false);
-  setTyped('');setPicked([]);setMessage('');setSaveError('');
+  setTyped('');setPicked([]);setResolved(false);setMessage('');setSaveError('');
   setSessionId(crypto.randomUUID());setStarted(Date.now());
   setStage('quest');soundService.playSfx('island_portal',.45);
  }
@@ -208,7 +209,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
    independentlyCompleted:independent,speechVerified,timestamp:new Date().toISOString()
   };
   const next=[...answers,row];
-  setAnswers(next);setBusy(true);setMessage(task.feedback);soundService.playSfx('correct',.6);
+  setAnswers(next);setBusy(true);setResolved(true);setMessage(task.feedback);soundService.playSfx('correct',.6);
   if(!reviewSkill)saveAcademyCheckpoint(profileId,englishLevel,zone,{
    step:step+1,variant,answers:next,attempts:mistakes,hints,sessionId,
    currentMistakes:0,currentHintLevel:0,audioAttempted:false,audioPlayed:false
@@ -221,7 +222,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
     void save(next,mistakes,hints);return;
    }
    stop();setStep(step+1);setErrorOnStep(0);setHintLevel(0);setAudioPlayed(false);setAudioAttempted(false);
-   setPicked([]);setTyped('');setMessage('');setBusy(false);
+   setPicked([]);setTyped('');setMessage('');setResolved(false);setBusy(false);
   },700);
  }
  function wrong(){
@@ -259,7 +260,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
      independentlyCompleted:!hintOnStep&&errorOnStep===0,speechVerified:true,
      timestamp:new Date().toISOString()
     };
-    const next=[...answers,row];setAnswers(next);setMessage(task.feedback);setBusy(true);
+    const next=[...answers,row];setAnswers(next);setMessage(task.feedback);setResolved(true);setBusy(true);
     pending.current=true;
     if(!reviewSkill)saveAcademyCheckpoint(profileId,englishLevel,zone,{step:step+1,variant,answers:next,attempts:mistakes,hints,sessionId,
       currentMistakes:0,currentHintLevel:0,audioAttempted:false,audioPlayed:false});
@@ -269,7 +270,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
      pending.current=false;if(!alive.current||version!==runVersion.current)return;
      if(step+1>=plan.tasks.length){void save(next,mistakes,hints);return;}
      stop();setStep(step+1);setErrorOnStep(0);setHintLevel(0);setAudioPlayed(false);setAudioAttempted(false);setPicked([]);
-     setTyped('');setMessage('');setBusy(false);
+     setTyped('');setMessage('');setResolved(false);setBusy(false);
     },700);
    }else{
     setBusy(false);
@@ -347,13 +348,16 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
     <div className="academy-scene-icon" aria-hidden="true">{plan.icon}</div>
     <div className="academy-scene-character" aria-hidden="true">
       <CharacterGuide character="meadow-owl"
-       mood={busy?(task.kind==='talk'?'listen':'happy'):hintOnStep?'hint':task.kind==='hear'?'listen':'idle'}
+       mood={resolved?'happy':busy&&task.kind==='talk'?'listen':hintOnStep?'hint':task.kind==='hear'?'listen':'idle'}
        cueKey={task.id+'-'+String(busy)+'-'+String(hintLevel)}/>
     </div>
      <div className="academy-scene-dialogue"><span className="academy-lumi" aria-hidden="true"><span className="academy-lumi-eyes"><i/><i/></span><span className="academy-lumi-smile"/></span>
       <div><strong>{step===0?currentZone.name:plan.caseTitle}</strong>
        <p>{step===0?academySafeMission(zone):plan.mission}</p></div>
      </div>
+    {resolved&&<div className="academy-scene-achievement" role="status" aria-live="polite">
+      <span aria-hidden="true">✦</span> {task.feedback}
+     </div>}
     </section>
     <section className="academy-task">
      <div className="academy-task-head"><span className="academy-kind">{labels[task.kind]}</span>
