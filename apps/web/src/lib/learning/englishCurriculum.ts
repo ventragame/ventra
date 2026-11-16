@@ -18,13 +18,14 @@ export type EnglishTopicId =
 export type EnglishSkill='recognition'|'listening'|'reading'|'comprehension'|'sentence'|'dialogue'|'writing'|'pronunciation';
 export type CurriculumCoverage='authored'|'partial'|'gap';
 export type TeachingSurfaceId=
- 'garden.animals'|'garden.colors'|'garden.numbers'|'garden.food'|'garden.family'|'garden.temple'|
+ 'garden.alphabet'|'garden.animals'|'garden.colors'|'garden.numbers'|'garden.food'|'garden.family'|'garden.temple'|
  'plaza.sentences'|'forest.discovery'|'forest.sequence'|'forest.detective'|
  'harbor.dialogue'|'workshop.writing'|'academy.atlas';
 export type CurriculumSurface={
  id:TeachingSurfaceId; islandId:IslandId; label:string; gameId:string; source:string;
 };
 export const CURRICULUM_SURFACES:readonly CurriculumSurface[]=[
+ {id:'garden.alphabet',islandId:'word_garden',label:'Harf Korusu',gameId:'island_word_garden_alphabet',source:'apps/web/src/lib/learning/alphabetGroveEngine.ts'},
  {id:'garden.animals',islandId:'word_garden',label:'Hayvan Çayırı',gameId:'island_word_garden_steps',source:'apps/web/src/lib/learning/animalMissionEngine.ts'},
  {id:'garden.colors',islandId:'word_garden',label:'Renk Korusu',gameId:'island_word_garden_colors',source:'apps/web/src/lib/learning/colorMissionEngine.ts'},
  {id:'garden.numbers',islandId:'word_garden',label:'Sayı Vadisi',gameId:'island_word_garden_numbers',source:'apps/web/src/lib/learning/numberValleyEngine.ts'},
@@ -76,10 +77,10 @@ const topic=(id:EnglishTopicId,title:string,skills:readonly EnglishSkill[],
  * 'gap' is a *curriculum backlog*, not a claim that a lesson already exists.
  */
 const TOPIC_SEEDS:readonly TopicSeed[]=[
- topic("letters","Alfabe ve harf adları",["recognition","listening"],[],["gap","gap","gap"],
+ topic("letters","Alfabe ve harf adları",["recognition","listening"],["garden.alphabet"],["authored","authored","authored"],
   ["Büyük/küçük İngilizce harf adlarını tanır.","Alfabe harflerini kelime bağlamında ayırt eder.","Harf adlarını bağımsız tanıyıp yazımla eşler."],
   ["A, B, C","upper-case A / lower-case a","letter names"],[]),
- topic("phonics","Harf–ses ilişkisi",["listening","reading","pronunciation"],[],["gap","gap","gap"],
+ topic("phonics","Harf–ses ilişkisi",["listening","reading","pronunciation"],["garden.alphabet"],["authored","partial","gap"],
   ["Temel harf seslerini kelimelerde ayırt eder.","Düzenli ses eşlemeleriyle kısa kelimeleri okur.","Farklı yazımların seslerini bağlamda ayırt eder."],
   ["/k/ in cat","c-a-t → cat","ship / sheep"],["letters"]),
  topic("animals","Hayvanlar",["recognition","listening"],["garden.animals","garden.temple"],["authored","authored","authored"],
