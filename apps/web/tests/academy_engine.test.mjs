@@ -8,6 +8,7 @@ import {
  isAcademyTaskAnswerCorrect,buildAcademyFocusPlan,ACADEMY_REVIEW_GAME_ID
 } from '../src/lib/learning/academyEngine.ts';
 import {MemoryProgressRepository} from '../src/lib/progress/MemoryProgressRepository.ts';
+import {readAcademyCheckpoint,saveAcademyCheckpoint,clearAcademyCheckpoint} from '../src/lib/learning/academyCheckpoint.ts';
 
 test('Six regions, 18 authored situations, three placements and 270 unique task IDs',()=>{
  assert.equal(ACADEMY_GAME_ID,'island_language_academy_atlas');
@@ -225,4 +226,43 @@ test('L6 Premium: verified existing WebP art covers all six regions and mobile s
  assert.match(css,/academy-scene-photo/);
  assert.match(css,/academy-scene-character/);
  assert.match(css,/prefers-reduced-motion:reduce/);
+});
+
+
+test('L6 Premium: unfinished hint/error state survives refresh without persisting child text',()=>{
+ const previousWindow=globalThis.window;
+ const cache=new Map();
+ const storage={getItem:k=>cache.get(k)??null,setItem:(k,v)=>cache.set(k,v),removeItem:k=>cache.delete(k)};
+ globalThis.window={localStorage:storage};
+ try{
+  const p='review-checkpoint-profile',lev='Pre-A1',zone=2;
+  const data={step:1,variant:0,answers:[{
+    taskId:buildAcademyPlan(2,lev,0).tasks[0].id,
+    caseId:buildAcademyPlan(2,lev,0).caseId,placement:lev,skill:'listening',
+    firstTryCorrect:true,hintUsed:false,mistakes:0,independentlyCompleted:true,
+    speechVerified:false,timestamp:new Date().toISOString()
+  }],attempts:2,hints:1,sessionId:'uuid-preserved-1234',
+  currentMistakes:2,currentHintLevel:1,audioAttempted:true,audioPlayed:true};
+  saveAcademyCheckpoint(p,lev,zone,data);
+  const restored=readAcademyCheckpoint(p,lev,zone);
+  assert.equal(restored.currentMistakes,2);
+  assert.equal(restored.currentHintLevel,1);
+  assert.equal(restored.audioPlayed,true);
+  assert.equal(restored.sessionId,data.sessionId);
+  assert.ok(!JSON.stringify([...cache.values()]).includes('child-entered'));
+  // Invalid inflated audio evidence is not accepted from stored checkpoints.
+  saveAcademyCheckpoint(p,lev,zone,{...data,audioAttempted:false,audioPlayed:true});
+  assert.equal(readAcademyCheckpoint(p,lev,zone),null);
+  // Legacy v1 checkpoints without optional fields are still readable.
+  saveAcademyCheckpoint(p,lev,zone,{
+   step:data.step,variant:data.variant,answers:data.answers,attempts:data.attempts,
+   hints:data.hints,sessionId:data.sessionId
+  });
+  assert.equal(readAcademyCheckpoint(p,lev,zone).step,1);
+  clearAcademyCheckpoint(p,lev,zone);
+  assert.equal(readAcademyCheckpoint(p,lev,zone),null);
+ }finally{
+  if(previousWindow===undefined)delete globalThis.window;
+  else globalThis.window=previousWindow;
+ }
 });
