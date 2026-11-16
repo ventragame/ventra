@@ -124,7 +124,7 @@ test('Per-profile category-only checkpoint has TTL, preserves task sequence and 
  assert.equal(parseAlphabetCheckpoint(JSON.stringify(raw),'Pre-A1',2,now+ALPHABET_CHECKPOINT_TTL+1),null);
  assert.equal(parseAlphabetCheckpoint(JSON.stringify({...raw,step:2}),'Pre-A1',2,now),null);
  assert.equal(parseAlphabetCheckpoint(JSON.stringify({...raw,taskIds:[...raw.taskIds,'bogus']}),'Pre-A1',2,now),null);
- assert.equal(parseAlphabetCheckpoint(JSON.stringify({...raw,answers:[{...raw.answers[0],typedResponse:'secret'}]}),'Pre-A1',2,now)?.step,1);
+ assert.equal(parseAlphabetCheckpoint(JSON.stringify({...raw,answers:[{...raw.answers[0],typedResponse:'secret'}]}),'Pre-A1',2,now),null);
  // The actual app never passes free-form text to this checkpoint or completion event.
  const cp=fs.readFileSync(new URL('../src/lib/learning/alphabetCheckpoint.ts',import.meta.url),'utf8');
  assert.doesNotMatch(cp,/transcript\s*:/);
@@ -181,7 +181,7 @@ test('UI is linked from Word Garden without modifying original six district IDs 
  assert.match(ui,/saveAlphabetCheckpoint/);
  assert.match(ui,/onStart:/);
  assert.match(ui,/setAudioFailed/);
- assert.match(ui,/prefers-reduced-motion/===false?/.*/:/.*/); // styling checked below
+
  assert.match(read('../src/components/learning/alphabet/alphabet-grove.css'),/prefers-reduced-motion:reduce/);
  assert.match(garden,/GARDEN_ORDER:readonly GardenDistrictId\[\]=\['animals','colors','numbers','food','family','sanctuary'\]/);
 });
