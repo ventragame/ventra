@@ -49,7 +49,7 @@ test('All three English placements produce usable, deterministic varied lessons 
      const deck=planAlphabetLesson({lesson,placement:level,gradeLevel,replay});
      assert.deepEqual(deck,planAlphabetLesson({lesson,placement:level,gradeLevel,replay}));
      assert.ok(deck.length>=9&&deck.length<=18);
-     assert.ok(deck.some(x=>x.kind==='case'));
+     assert.ok(deck.some(x=>x.kind==='word-link'));
      assert.ok(deck.some(x=>x.kind==='letter-name'));
      assert.ok(deck.some(x=>x.kind==='sound-in-word'));
      assert.equal(deck.every(t=>t.choices.every(c=>typeof c==='string')),true);
@@ -72,7 +72,7 @@ test('All three English placements produce usable, deterministic varied lessons 
  }
 });
 
-test('Upper/lower choices and short decoded words grade case-insensitively, no guessed pronunciation credit',()=>{
+test('English picture-word links and short words grade case-insensitively without guessed pronunciation credit',()=>{
  const quiz=planAlphabetLesson({lesson:2,placement:'Pre-A1',gradeLevel:2,replay:1});
  for(const task of quiz){
   assert.ok(alphabetTaskCorrect(task,task.answer));
@@ -89,6 +89,39 @@ test('Upper/lower choices and short decoded words grade case-insensitively, no g
  const q=planAlphabetLesson({lesson:9,placement:'A1',gradeLevel:4,replay:0});
  assert.ok(q.some(t=>t.kind==='sound-in-word'&&t.letterId==='x'&&t.audioText==='fox'));
  assert.ok(q.some(t=>t.kind==='sound-in-word'&&t.letterId==='q'&&t.audioText==='queen'));
+});
+
+test('Every English alphabet unit replaces trivial case matching with age-suitable word meaning',()=>{
+ const examples=new Map(ALPHABET_LETTERS.map(x=>[x.id,x]));
+ for(const placement of levels)for(let lesson=1;lesson<=12;lesson++)for(const gradeLevel of [1,3,6,null])for(const replay of [0,1,7,11]){
+  const deck=planAlphabetLesson({lesson,placement,gradeLevel,replay});
+  const names=deck.filter(t=>t.kind==='letter-name');
+  const links=deck.filter(t=>t.kind==='word-link');
+  assert.ok(names.length>=2, 'Listening task required');
+  assert.ok(links.length>=2, 'English vocabulary task required');
+  assert.equal(deck.some(t=>t.kind==='case'),false);
+  assert.equal(deck.some(t=>t.promptTr.includes('küçük hâlini bul')),false);
+  for(const task of names){
+   const letter=examples.get(task.letterId);
+   assert.equal(task.audioText,letter.upper, 'Speak only actual letter');
+   assert.match(task.audioText,/^[A-Z]$/);
+   assert.ok(task.choices.includes(letter.upper));
+  }
+  for(const task of links){
+   const letter=examples.get(task.letterId);
+   assert.equal(task.answer,letter.anchor);
+   assert.ok(task.choices.includes(letter.anchor));
+   assert.ok(task.choices.length>=2);
+   assert.ok(task.choices.every(w=>ALPHABET_LETTERS.some(l=>l.anchor===w)));
+   assert.equal(alphabetTaskCorrect(task,letter.anchor),true);
+   assert.equal(alphabetTaskCorrect(task,'not an English anchor'),false);
+   assert.ok(task.promptTr.includes(letter.tr));
+  }
+ }
+ const x=planAlphabetLesson({lesson:9,placement:'A2',gradeLevel:3,replay:1});
+ const fox=x.find(t=>t.kind==='word-link'&&t.letterId==='x');
+ assert.equal(fox.answer,'fox');
+ assert.match(fox.promptTr,/ile biten/);
 });
 
 test('Progress IDs isolate Pre-A1/A1/A2 without renaming the 6 main islands',()=>{
@@ -151,7 +184,7 @@ test('Replay-safe completed sessions use a distinct game ID and retain old progr
  assert.equal(first.completed,0);
  const deck=planAlphabetLesson({lesson:3,placement:'A1',gradeLevel:3,replay:0});
  const answers=deck.map(task=>({taskId:task.id,kind:task.kind,firstTryCorrect:true,
-  mistakes:0,hintUsed:false,audioPlayed:false,independent:task.kind==='case'}));
+  mistakes:0,hintUsed:false,audioPlayed:false,independent:task.kind==='word-link'}));
  const next=await recordAlphabetLesson({repo,profileId:'child-a',placement:'A1',lesson:3,
   answers,sessionId:'11111111-1111-4111-8111-111111111111',durationSeconds:61});
  assert.equal(next.completed,1);
@@ -182,6 +215,9 @@ test('UI is linked from Word Garden without modifying original six district IDs 
  assert.match(ui,/aria-live="polite"/);
  assert.match(ui,/saveAlphabetCheckpoint/);
  assert.match(ui,/onStart:/);
+ assert.match(ui,/speak\(focus\.upper,'name'\)/);
+ assert.match(ui,/ag-word-link-scene/);
+ assert.doesNotMatch(ui,/speak\(['"]Letter /);
  assert.match(ui,/setAudioFailed/);
 
  assert.match(read('../src/components/learning/alphabet/alphabet-grove.css'),/prefers-reduced-motion:reduce/);
