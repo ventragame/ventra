@@ -5,6 +5,11 @@ import dynamic from 'next/dynamic';
 import { WordGardenDistrictMap } from './WordGardenDistrictMap';
 import type {TeachingSurfaceId} from '@/lib/learning/englishCurriculum';
 import {getAlphabetProgress,type AlphabetProgress} from '@/lib/learning/alphabetProgress';
+import {getThemeTownProgress,type ThemeTownProgress} from '@/lib/learning/themeQuestProgress';
+const ThemeTownAdventure=dynamic(
+ ()=>import('./themes/ThemeTownAdventure').then(m=>m.ThemeTownAdventure),
+ {ssr:false,loading:()=> <div role="status" className="fixed inset-0 z-50 grid place-items-center bg-teal-950 text-white">🏘️ Tema Kasabası açılıyor…</div>}
+);
 const AlphabetGroveAdventure=dynamic(
  ()=>import('./alphabet/AlphabetGroveAdventure').then(module=>module.AlphabetGroveAdventure),
  {ssr:false,loading:()=> <div role="status" className="fixed inset-0 z-50 grid place-items-center bg-emerald-950 text-white">🌿 Harf Korusu açılıyor…</div>}
@@ -41,6 +46,7 @@ interface LearningPathModalProps {
   onFamilyProgressSaved?: () => void;
   onTempleProgressSaved?: () => void;
   onAlphabetProgressSaved?: () => void;
+  onThemeProgressSaved?: () => void;
   profileId: string;
   playerName?:string;
   coinBalance?:number|null;
@@ -52,9 +58,9 @@ interface LearningPathModalProps {
   onProgressUpdate: (completed: number, total: number, levelOrder: number, starsEarned: number, telemetry?: AnimalMissionTelemetry) => Promise<void>;
 }
 
-type District = 'overview' | 'alphabet' | 'animals' | 'colors' | 'numbers' | 'food' | 'family' | 'sanctuary';
+type District = 'overview' | 'alphabet' | 'themes' | 'animals' | 'colors' | 'numbers' | 'food' | 'family' | 'sanctuary';
 const INITIAL_GARDEN_DESTINATIONS:Partial<Record<TeachingSurfaceId,District>>={
- 'garden.alphabet':'alphabet','garden.animals':'animals','garden.colors':'colors',
+ 'garden.alphabet':'alphabet','garden.themes':'themes','garden.animals':'animals','garden.colors':'colors',
  'garden.numbers':'numbers','garden.food':'food','garden.family':'family','garden.temple':'sanctuary'
 };
 
@@ -79,6 +85,7 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
   onFamilyProgressSaved,
   onTempleProgressSaved,
   onAlphabetProgressSaved,
+  onThemeProgressSaved,
   initialCompletedLevels = 0,
   initialStarsByLevel = {},
   onProgressUpdate
@@ -87,6 +94,18 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
   const [alphabet,setAlphabet]=useState<AlphabetProgress>({completed:0,total:12,stars:{},replays:{}});
   const [alphabetLoaded,setAlphabetLoaded]=useState(false);
   const [alphabetError,setAlphabetError]=useState(false);
+  const [themeProgress,setThemeProgress]=useState<ThemeTownProgress|null>(null);
+  const [themesLoaded,setThemesLoaded]=useState(false);
+  const [themesError,setThemesError]=useState(false);
+  useEffect(()=>{
+    let live=true;
+    setThemesLoaded(false);setThemesError(false);setThemeProgress(null);
+    void getThemeTownProgress(getProgressRepository(),profileId,englishLevel,gradeLevel)
+      .then(data=>{if(live)setThemeProgress(data);})
+      .catch(()=>{if(live)setThemesError(true);})
+      .finally(()=>{if(live)setThemesLoaded(true);});
+    return ()=>{live=false;};
+  },[profileId,englishLevel,gradeLevel]);
   useEffect(()=>{
     let active=true;
     setAlphabetLoaded(false);setAlphabetError(false);
@@ -190,6 +209,16 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
   }
 
 
+  if(district==='themes'){
+    return <ThemeTownAdventure key={profileId+':'+englishLevel+':'+gradeLevel}
+      profileId={profileId} englishLevel={englishLevel} gradeLevel={gradeLevel}
+      onBack={()=>setDistrict('overview')}
+      onSaved={()=>{
+        void getThemeTownProgress(getProgressRepository(),profileId,englishLevel,gradeLevel)
+          .then(setThemeProgress).catch(()=>setThemesError(true));
+        onThemeProgressSaved?.();
+      }}/>;
+  }
   if(district==='alphabet'){
     return <AlphabetGroveAdventure key={profileId+':'+englishLevel}
       profileId={profileId} englishLevel={englishLevel} gradeLevel={gradeLevel}
@@ -316,6 +345,10 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
   }
 
   return <WordGardenDistrictMap
+    themeCompleted={themeProgress?.completed??0}
+    themesReady={themesLoaded&&!themesError}
+    themesError={themesError}
+    onEnterThemes={()=>setDistrict('themes')}
     alphabetCompleted={alphabet.completed}
     alphabetReady={alphabetLoaded&&!alphabetError}
     alphabetError={alphabetError}

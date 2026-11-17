@@ -767,6 +767,7 @@ export default function VentraKidsWorldPage() {
           onFamilyProgressSaved={() => { if (activeProfile) void loadProfileAndProgress(activeProfile); }}
           onTempleProgressSaved={() => { if (activeProfile) void loadProfileAndProgress(activeProfile); }}
           onAlphabetProgressSaved={() => { if (activeProfile) void loadProfileAndProgress(activeProfile); }}
+          onThemeProgressSaved={() => { if (activeProfile) void loadProfileAndProgress(activeProfile); }}
           initialCompletedLevels={wordGardenCompletedLevels}
           initialStarsByLevel={wordGardenStarsByLevel}
           onProgressUpdate={async (_completed, _total, levelOrder, starsEarned, telemetry) => {
