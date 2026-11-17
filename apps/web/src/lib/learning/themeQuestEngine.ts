@@ -123,7 +123,11 @@ export function planThemeLesson(input:{
  return {theme,placement,tier,replay,tasks};
 }
 export function isThemeAnswerCorrect(task:ThemeTask,answer:string):boolean{
- return Boolean(quote(answer)&&quote(task.answer)===quote(answer));
+ // Turkish dotted/dotless I and English I have different case-fold rules.
+ const locale=task.kind==='meaning'?'tr-TR':'en-US';
+ const normalize=(value:string)=>value.trim().toLocaleLowerCase(locale)
+  .replace(/[.!?]/g,'').replace(/\s+/g,' ');
+ return Boolean(normalize(answer)&&normalize(task.answer)===normalize(answer));
 }
 export function themeTaskHint(task:ThemeTask):string{
  if(task.kind==='discover')return 'Resme bak ve kelimeyi dinle.';

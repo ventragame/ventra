@@ -67,7 +67,8 @@ test('Lesson bank is reproducible, multi-modal, age-aware and replayable across 
       assert.ok(task.promptTr&&task.answer);
       assert.equal(isThemeAnswerCorrect(task,task.answer),true);
       assert.equal(isThemeAnswerCorrect(task,'COMPLETELY WRONG'),false);
-      assert.equal(isThemeAnswerCorrect(task,task.answer.toUpperCase()),true);
+      assert.equal(isThemeAnswerCorrect(task,
+       task.kind==='meaning'?task.answer.toLocaleUpperCase('tr-TR'):task.answer.toUpperCase()),true);
       assert.ok(themeTaskHint(task).length>10);
       if(task.kind==='discover')assert.equal(task.choices.length,0);
       else if(task.kind!=='assemble'){
