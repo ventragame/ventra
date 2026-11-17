@@ -1,13 +1,13 @@
 # Ventra Kids — P0 Merkezi İngilizce Müfredat Haritası
 
-**Sürüm:** `kids-english-p0-2026-11-16`  
+**Sürüm:** `kids-english-p3-2026-11-17`  
 **Kapsam:** 7–12 yaş çocuklarda Pre-A1 / A1 / A2 *içerik bantları* (resmî CEFR yeterlilik belgesi değildir).  
 **Kodun kanonik kaynağı:** `apps/web/src/lib/learning/englishCurriculum.ts`.
 
 ## Ne değişti, ne değişmedi?
 
-- **26 konu × 3 İngilizce içerik düzeyi = 78 öğrenme kazanımı**. 58 kazanımın kod destekli oyunu var (`authored`), 1 kazanım yalnızca kısmi (`partial`), 19 kazanımda sistematik öğretim ünitesi henüz yok (`gap`). `authored`, dil öğretmeni ya da çocuk üzerinde doğrulanmış *mastery* anlamına gelmez.
-- **14 oyun yüzeyi** altı kalıcı ada kimliğine bağlandı; her yüzeyin gerçek `gameId`, mevcut oyun motoru dosyası, kapsadığı kazanımlar ve beceri hedefi bulunuyor.
+- **28 konu × 3 İngilizce içerik düzeyi = 84 öğrenme kazanımı**. 82 kazanımın kod destekli oyunu var (`authored`), 1 kazanım kısmi (`partial`), 1 kazanım ileri fonik öğretim açısından açık (`gap`). `authored`, dil öğretmeni ya da çocuk üzerinde doğrulanmış *mastery* anlamına gelmez.
+- **15 oyun yüzeyi** altı kalıcı ada kimliğine bağlandı; her yüzeyin gerçek `gameId`, mevcut oyun motoru dosyası, kapsadığı kazanımlar ve beceri hedefi bulunuyor.
 - Her kazanımın **kalıcı ID'si, Türkçe kazanım cümlesi, İngilizce model örneği, konu/tema, seviye, öğrenme becerileri, ders durumu, oyun bağlantıları ve önerilen önkoşulları** mevcut.
 - Grade 1–8 **sunum ve soru miktarını** yönetir. Pre-A1/A1/A2 **İngilizce içeriğini** yönetir. İkisi birbirinden ve resmî seviyelendirmeden bağımsızdır.
 - Yalnız metadata ve bağımsız sorgu araçları eklendi. Yeni harf oyunu, ek ada, kurs ekranı, SQL migration, yeni kullanıcı kaydı, mevcut oyun açma koşulunda değişiklik, yıldız/coin işlemi ve production deploy **yoktur**.
@@ -28,9 +28,10 @@
 | Kelime harflerini sıralama, yazılı üretim | Kod destekli | Yazı Atölyesi |
 | Karma beceri tekrarı | Kod destekli | Keşif Akademisi + Keşif Tapınağı |
 | **A–Z harf adları ve büyük/küçük harf** | **Kod destekli** | Harf Korusu: 26 harf, 9 tanıtım + 3 tekrar mini dersi |
+| Ulaşım ve duygular | P3 kod destekli | Araçlar, günlük yolculuk ve duyguları ifade etme |
 | **Phonics: İngilizce harf–ses ve okuma** | **Pre-A1 kod destekli / A1 kısmi / A2 açık** | Harf Korusu: kelime içindeki başlangıç/bitiş sesi ve kısa sözcük okuma; ileri ses çiftleri ve yazım kuralları yok |
-| **Okul/sınıf, kıyafet, vücut, hava durumu** | **Eksik** | Bazı oyunlarda örnek sözcük geçmesi tam ünite demek değildir |
-| **Takvim/günler/aylar/saat ve hobiler** | **Eksik** | Düzenli keşif–dinleme–uygulama–tekrar akışı yok |
+| **Okul/sınıf, kıyafet, vücut, hava durumu** | **P3 kod destekli** | Tema Kasabası'nda görsel, dinleme, eşleştirme ve günlük kullanım cümleleri |
+| **Takvim/günler/aylar/saat ve hobiler** | **P3 kod destekli** | Tematik dersler ve analog saati okuyarak İngilizce seçme oyunu |
 
 ## Öğrenme önkoşulları — *engelleyici değil, öneri*
 
@@ -60,8 +61,8 @@ Bu bağlantılar **öğretim sıralama tavsiyesidir**. Çocuk örneğin doğruda
 | Arayüz | Amaç |
 |---|---|
 | `ENGLISH_CURRICULUM_OUTCOMES` | Bütün stabil ve seviye bazlı kazanımlar |
-| `ENGLISH_CURRICULUM_TOPICS` | 26 sıralı konu kimliği ve etiketi |
-| `CURRICULUM_SURFACES` | 14 oyun ve altı ada eşleşmesi |
+| `ENGLISH_CURRICULUM_TOPICS` | 28 sıralı konu kimliği ve etiketi |
+| `CURRICULUM_SURFACES` | 15 oyun ve altı ada eşleşmesi |
 | `getEnglishCurriculum({placement, topics?, islandId?, includeGaps?})` | Okuma amaçlı filtreleme |
 | `getEnglishCurriculumByIsland(islandId, placement)` | Bir adanın mevcut seviye hedefleri |
 | `getJourneyCurriculum(islandId, placement)` | Var olan `learningJourney.ts` üzerinden aynı hedefler |
@@ -82,10 +83,15 @@ Bu bağlantılar **öğretim sıralama tavsiyesidir**. Çocuk örneğin doğruda
 
 - **P1 Harf Korusu:** Kelime Bahçesi içinde oynanabilir mini alan eklendi; 26 harf/12 ders/40 kısa kelime. Sesin cihazın TTS çıktısına bağlı olması nedeniyle gerçek fonem kayıtları, A2 ileri phonics ve fiziksel cihaz/dil öğretmeni kabulü açık. [P1 kabul belgesi](./VENTRA_ALPHABET_GROVE_P1.md).
 - **P2 İngilizce Yolculuğum:** Bu statik haritayı gerçek öğrenme kanıtlarıyla desteklenmiş, yanlışa hedefli geri dönüş yapan **öneri katmanına** bağlamak. Eski ilerleme korunur; erişim otomatik kilitlenmez.
-- **P3 Tematik genişleme:** `school`, `clothes`, `body`, `weather`, `calendar`, `hobbies` için gerçekten öğretici oyunlar ve uzman içerik incelemesi.
+- **P3 Tematik genişleme:** `school`, `body`, `clothes`, `weather`, `calendar`, `hobbies`, `transport`, `feelings` temaları artık Tema Kasabası'nda oynanabiliyor. Gerçek cihaz, İngilizce öğretmeni ve çocuk kabulü hâlâ gereklidir. [P3 GDD](./VENTRA_THEME_TOWN_P3.md).
 - Resmî MEB/CEFR kazanım eşlemesi, güncel müfredat referansları, doğru İngilizce telaffuz incelemesi ve çocuklarla ölçülen hatırlama kazanımları **ayrı QA kapısıdır**. P0 bunları yapılmış saymaz.
 
 **Tarihsel teknik not:** `packages/shared/src/curriculum.ts`, `packages/shared/src/outcomes.ts` ve `packages/shared/src/catalog/skills.json` içinde eski matematik örnekleri vardır; mevcut Kids English müfredatı bunlara bağlı değildir. Geriye dönük kullanım riskinden dolayı onları bu P0 işi kapsamında silmedik veya yeniden anlamlandırmadık.
 
 ### P2 — İngilizce Yolculuğum (2026-11-17)
-P0 kazanım kataloğu artık 7-duraklı P2 öğrenme rehberinde 14 gerçek oyun yüzeyine yönlendirme için kullanılır. Eksik konu/gap dersleri oynanabilir diye gösterilmez. Yeni oyun kilidi oluşturulmaz; oyunun tamamlanması resmî CEFR seviyesi veya bağımsız dil becerisi olarak sayılmaz. Ayrıntılar: docs/VENTRA_ENGLISH_JOURNEY_P2.md
+P0 kazanım kataloğu artık 7-duraklı P2 öğrenme rehberinde 15 gerçek oyun yüzeyine yönlendirme için kullanılır. Eksik konu/gap dersleri oynanabilir diye gösterilmez. Yeni oyun kilidi oluşturulmaz; oyunun tamamlanması resmî CEFR seviyesi veya bağımsız dil becerisi olarak sayılmaz. Ayrıntılar: docs/VENTRA_ENGLISH_JOURNEY_P2.md
+
+
+### 2026-11-17 — P3 güncellemesi
+
+Kelime Bahçesi içinde Tema Kasabası mini alanı eklendi; P0 28 konu, 84 seviye hedefi, 15 gerçek oyun yüzeyi ve 82 authored / 1 partial / 1 gap olarak güncellendi. Buradaki authored etiketi **oynanabilir kod içeriği** anlamına gelir; gerçek dil ustalığı veya resmî CEFR kazanımı değildir. [P3 kabul belgesi](./VENTRA_THEME_TOWN_P3.md).

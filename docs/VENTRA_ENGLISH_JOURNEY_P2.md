@@ -7,11 +7,11 @@
 **Veritabanı migration / production deploy:** Yok.
 
 ## Ürün kapsamı
-P2 yeni bir yedinci ada veya yeniden yazılmış oyun değildir. P0'daki 14 gerçek öğretim yüzeyinin çocukların seviyesine ve oyun kayıtlarına göre gösterildiği ana eğitim rehberidir. Gap olarak işaretli sistematik dersler oyun gibi sunulmaz. Mevcut altı ada kimliği korunur.
+P2 yeni bir yedinci ada veya yeniden yazılmış oyun değildir. P0'daki 15 gerçek öğretim yüzeyinin çocukların seviyesine ve oyun kayıtlarına göre gösterildiği ana eğitim rehberidir. Gap olarak işaretli sistematik dersler oyun gibi sunulmaz. Mevcut altı ada kimliği korunur.
 
 **Yedi öğrenme durağı:**
 1. İlk İngilizcem: Harf Korusu + Hayvan Çayırı.
-2. Rengârenk Dünyam: Renk Korusu, Sayı Vadisi, Lezzet Pazarı, Aile Köyü.
+2. Rengârenk Dünyam: Renk Korusu, Sayı Vadisi, Lezzet Pazarı, Aile Köyü, Tema Kasabası.
 3. Cümle Kuruyorum: Keşif Tapınağı + Cümle Meydanı.
 4. Hikâye Zamanı: Hikâyeyi Keşfet, Sonra Ne Oldu?, Hikâye Dedektifi.
 5. Birlikte Konuşalım: Diyalog Limanı.
@@ -30,14 +30,14 @@ P2 yeni bir yedinci ada veya yeniden yazılmış oyun değildir. P0'daki 14 ger�
 ## Navigasyon sözleşmesi
 - kids/page.tsx: İngilizce Yolculuğum girişi, mobil araç menüsü ve harita üzerindeki rehber düğmesi.
 - EnglishJourneyDashboard.onOpenSurface → P0 CURRICULUM_SURFACES içindeki doğrulanmış ada/oyun kimliği.
-- LearningPathModal.initialSurface: Harf Korusu, Hayvan Çayırı, Renk Korusu, Sayı Vadisi, Lezzet Pazarı, Aile Köyü ve Keşif Tapınağı doğrudan açılır.
+- LearningPathModal.initialSurface: Harf Korusu, Tema Kasabası, Hayvan Çayırı, Renk Korusu, Sayı Vadisi, Lezzet Pazarı, Aile Köyü ve Keşif Tapınağı doğrudan açılır.
 - StoryForestHome.initialGame: Hikâyeyi Keşfet, Sonra Ne Oldu?, Hikâye Dedektifi doğrudan açılır.
 - Cümle Meydanı, Diyalog Limanı, Yazı Atölyesi ve Keşif Akademisi zaten mevcut bağımsız oyun bileşenlerine yönlenir.
 - Var olan /kids?open=island deep-link davranışı, Phaser ada seçimi, altı ada ve eski çocuk profili ID/coin/yıldız kayıtları değişmez.
 - Oyun Yolum (oynama modu) ile İngilizce Yolculuğum (öğrenme rehberi) farklı işlevlerdir.
 
 ## QA kapısı
-1. P0'daki 14 gerçek yüzey ve altı ana ada kimliği korunur. Yeni dersler sahte linklerle işaretlenmez.
+1. P0'daki 15 gerçek yüzey ve altı ana ada kimliği korunur. Yeni dersler sahte linklerle işaretlenmez.
 2. Sıfır Pre-A1 profilde Harf Korusu, A1/A2 profilde hayvan kelimeleri önerilir. Diğer oyunlar serbestçe seçilebilir.
 3. Hayvan→renk→sayı kilidi ve eski bütün-ada kayıtları doğru yansıtılır.
 4. Farklı çocuk profilleri ve üç İngilizce başlangıç düzeyi arasında yanlış kayıt karışımı olmaz.
@@ -47,3 +47,7 @@ P2 yeni bir yedinci ada veya yeniden yazılmış oyun değildir. P0'daki 14 ger�
 8. Eğitim kalitesi ve kalıcı İngilizce öğrenimi çocuk ve dil öğretmeni testleriyle ayrıca doğrulanmalıdır.
 
 **Sınır:** Bu sürüm resmi, bağımsız değerlendirmeyle doğrulanmış adaptif İngilizce seviye motoru değildir. Yalnız mevcut oyuna güvenilir rehberlik ve oynanmış görev kayıtlarına dayalı öneri sağlar.
+
+### P3 Tematik bağlama eki
+
+Rengârenk Dünyam durağına Tema Kasabası eklendi. P2'nin yedi durağı ve altı ana ada aynı kalır; oynanabilir oyun yüzeyi sayısı 15'tir. Yeni temanın kayıtları ayrı gameId ve 72 seviyelik profil/düzey/tier sözleşmesi ile tutulur. [P3 GDD](./VENTRA_THEME_TOWN_P3.md).

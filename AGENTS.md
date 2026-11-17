@@ -63,3 +63,8 @@ Harf Korusu is an optional mini-area under word_garden and does not create a sev
 
 ## P2 Guided Journey — 2026-11-17
 Canonical read-only course model: apps/web/src/lib/learning/englishCourseJourney.ts; user interface: apps/web/src/components/learning/journey/EnglishJourneyDashboard.tsx. P0 CURRICULUM_SURFACES stays the one authority for playable game IDs. Never suggest unavailable games, never treat missing/failed progress reads as zero, never infer mastery from stars. Respect old whole-island completions and the existing animals→colors→numbers locks. Keep 'Oyun Yolum' mode selection separate from 'İngilizce Yolculuğum'. See docs/VENTRA_ENGLISH_JOURNEY_P2.md.
+
+
+## Kids P3 Tema Kasabası — 2026-11-17
+
+Source content: apps/web/src/lib/learning/themeQuestCatalog.ts (8 themes × 3 English bands, 254 lexemes and 120 example phrases). Deterministic age-/English-aware lesson generation: themeQuestEngine.ts; profile-isolated 72 levelIds, existing game repo: themeQuestProgress.ts; 30-day local privacy-safe resume: themeQuestCheckpoint.ts. UI: components/learning/themes/ThemeTownAdventure.tsx. Entry: LearningPathModal/WordGardenDistrictMap and P2 garden.themes. Do NOT invent a seventh main island or overwrite existing six Garden world IDs. P0 now 28 topics/84 outcomes/15 surfaces (82 authored, 1 partial, 1 gap). Word and sentence taps do not prove CEFR mastery or spoken fluency. See docs/VENTRA_THEME_TOWN_P3.md for manual QA gates.

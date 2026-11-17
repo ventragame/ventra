@@ -346,3 +346,8 @@ See [CM1 acceptance and implemented grammatical families](./CM1_UYANAN_MEYDAN_GD
 - Mevcut hayvan→renk→sayı oyun kilitleri ve eski whole-island kayıtları korunur; başarısız progress okuma sıfır sayılmaz.
 - Oyun tamamlanması, İngilizce seviye ustalığı/CEFR kanıtı olarak gösterilmez. Yeni DB migration veya production deploy yapılmadı.
 - QA ve kullanıcı kabulü: docs/VENTRA_ENGLISH_JOURNEY_P2.md
+
+
+### 2026-11-17 — P3: Tema Kasabası Tematik İngilizce
+
+Kelime Bahçesi'ne sekiz temalı Tema Kasabası eklendi: okul, vücut, kıyafet, hava durumu, günler/aylar/saatler, hobiler, ulaşım, duygular. Üç yerleştirme düzeyinde 254 kelime/kısa kelime grubu ve 120 örnek cümle bulunur. 8/10/12 görevlik sınıf duyarlı oturumlar; dinleme, resim, anlam, cümle seçme/sıralama ve analog saat. Ayrı gameId ve 72 farklı progress levelId var. P0 artık 28 konu/84 kazanım/15 oyun yüzeyi; P2 yedi öğrenme durağı olarak kaldı. Altı ada ve eski dünya kayıtları değişmedi, migration gerekmez. Otomatik testler ve fiziksel çocuk/öğretmen kabulü ayrıdır. Teknik ayrıntılar: docs/VENTRA_THEME_TOWN_P3.md.
