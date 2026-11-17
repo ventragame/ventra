@@ -118,6 +118,18 @@ test('A legacy whole-island completion stays recognized and never relocks colors
  assert.equal(vm.cards.find(x=>x.surfaceId==='garden.colors').accessible,false);
 });
 
+test('Modern complete animal records remain authoritative even when legacy lookups fail',async()=>{
+ const db=store();
+ db.set('island_word_garden_steps',all(0,5));
+ let vm=buildJourneyViewModel(await loadJourneySnapshot(repoFor(db,new Set(['island_word_garden'])),'child-1','Pre-A1',1));
+ assert.equal(vm.cards.find(x=>x.surfaceId==='garden.animals').status,'ready');
+ assert.equal(vm.cards.find(x=>x.surfaceId==='garden.colors').accessible,true);
+ db.set('island_word_garden_steps',all(0,3));
+ vm=buildJourneyViewModel(await loadJourneySnapshot(repoFor(db,new Set(['island_word_garden'])),'child-1','Pre-A1',1));
+ assert.equal(vm.cards.find(x=>x.surfaceId==='garden.animals').status,'error');
+ assert.equal(vm.cards.find(x=>x.surfaceId==='garden.colors').accessible,false);
+});
+
 test('Honest review hints never upgrade raw game stars to verified language mastery',async()=>{
  const data=store();
  data.set('island_word_garden_alphabet',{1:{completedCount:1,bestStars:2,bestAccuracy:0.5,attemptsCount:3}});

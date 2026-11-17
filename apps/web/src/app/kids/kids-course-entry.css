@@ -9,3 +9,5 @@
 @media(prefers-reduced-motion:reduce){.kids-course-floating{transition:none}}
 
 @media(min-width:1280px){.kids-hud-course{display:inline-flex}}
+
+@media(min-width:1280px){.kids-course-floating{display:none}}

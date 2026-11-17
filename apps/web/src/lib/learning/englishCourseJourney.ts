@@ -109,12 +109,17 @@ export async function loadJourneySnapshot(
  const games:JourneyGameProgress[]=CURRICULUM_SURFACES.map((surface,index)=>{
   const result=raw[index];
   const ids=journeyGameLevelIds(surface.id,gradeLevel,placement);
-  if(result.status==='rejected'||(surface.id==='garden.animals'&&legacyUnknown))return {
+  if(result.status==='rejected')return {
    surfaceId:surface.id,gameId:surface.gameId,status:'error',
    completed:0,total:ids.length,played:0,reviewSuggested:false,accessible:false,nextLevel:null
   };
   const rows=result.value as Record<number,SavedLevel>;
   const complete=ids.filter(id=>saved(rows[id]));
+  // Fully saved modern levels do not become unknown if a legacy lookup fails.
+  if(surface.id==='garden.animals'&&legacyUnknown&&complete.length<ids.length)return {
+   surfaceId:surface.id,gameId:surface.gameId,status:'error',
+   completed:0,total:ids.length,played:0,reviewSuggested:false,accessible:false,nextLevel:null
+  };
   const observed=ids.filter(id=>rows[id]&&(rows[id].completedCount??0)>0);
   // Legacy whole-island completion is acknowledged by the existing Word Garden
   // loader. Do not re-lock Renk Korusu for an upgraded child profile.
