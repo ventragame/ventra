@@ -233,7 +233,7 @@ export function alphabetTaskCorrect(task:AlphabetTask,response:string):boolean{
 }
 export function alphabetHint(task:AlphabetTask):string{
  if(task.kind==='introduce')return 'Harf adını ve örnek kelimeyi ayrı ayrı dinle; aynı ses değillerdir.';
- if(task.kind==='word-link')return task.letterId==='x'?'Tilkiyi düşün. İngilizcede fox kelimesinin sonunda X vardır.':'Resimdeki nesnenin İngilizce adını düşün ve ilk harfine dikkat et.';
+ if(task.kind==='word-link')return 'Seçenekler aynı harfle başlar (X için aynı harfle biter). Resimdeki nesnenin İngilizce adını hatırla; istersen kelimeyi yeniden dinle.';
  if(task.kind==='letter-name')return 'Harf adını tekrar dinle; kelimedeki sesi her zaman aynı olmaz.';
  if(task.kind==='sound-in-word')return task.letterId==='x'?'FOX kelimesinin sonunu dinle.':
   task.letterId==='q'?'QUEEN kelimesinde Q ve U birlikte çalışır.':
