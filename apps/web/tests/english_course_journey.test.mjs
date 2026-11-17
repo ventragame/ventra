@@ -18,6 +18,11 @@ const repoFor=(db,fail=new Set())=>({
   if(fail.has(id))throw new Error('Simulated storage error');
   if(!db.has(id))throw new Error('Unknown game ID '+id);
   return db.get(id);
+ },
+ async getLevelProgress(gameId,levelId,profileId){
+  assert.equal(profileId,'child-1');assert.equal(levelId,1);
+  if(fail.has(gameId))throw new Error('Legacy storage failure');
+  return db.get(gameId)?.[1]??null;
  }
 });
 test('Seven-course stage map exactly covers 14 REAL curriculum surfaces without mutating 6 island IDs',()=>{
@@ -96,6 +101,23 @@ test('Corrupt/denied progress fails closed instead of pretending the learner has
  assert.equal(allFail.savedGames,0);
  assert.equal(allFail.totalGames,0);
 });
+test('A legacy whole-island completion stays recognized and never relocks colors for an upgraded child',async()=>{
+ const db=store();
+ db.set('island_word_garden',{1:{completedCount:1,bestStars:3}});
+ let vm=buildJourneyViewModel(await loadJourneySnapshot(repoFor(db),'child-1','Pre-A1',2));
+ assert.equal(vm.cards.find(x=>x.surfaceId==='garden.animals').completed,5);
+ assert.equal(vm.cards.find(x=>x.surfaceId==='garden.colors').accessible,true);
+ db.delete('island_word_garden');
+ db.set('phaser_exploration_island',{1:{completedCount:1,bestStars:3}});
+ vm=buildJourneyViewModel(await loadJourneySnapshot(repoFor(db),'child-1','Pre-A1',2));
+ assert.equal(vm.cards.find(x=>x.surfaceId==='garden.colors').accessible,true);
+ const partial=store();
+ partial.set('island_word_garden_steps',{1:{completedCount:1,bestStars:2},3:{completedCount:1,bestStars:2}});
+ vm=buildJourneyViewModel(await loadJourneySnapshot(repoFor(partial),'child-1','Pre-A1',2));
+ assert.equal(vm.cards.find(x=>x.surfaceId==='garden.animals').completed,1);
+ assert.equal(vm.cards.find(x=>x.surfaceId==='garden.colors').accessible,false);
+});
+
 test('Honest review hints never upgrade raw game stars to verified language mastery',async()=>{
  const data=store();
  data.set('island_word_garden_alphabet',{1:{completedCount:1,bestStars:2,bestAccuracy:0.5,attemptsCount:3}});
