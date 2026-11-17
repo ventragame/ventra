@@ -43,6 +43,7 @@ import { AvatarPortrait } from '../../components/profile/AvatarPortrait';
 const AudioSettingsPanel = dynamic(() => import('../../components/audio/AudioSettingsPanel').then((module) => module.AudioSettingsPanel), { loading: () => <div role="status" className="text-center text-sm text-sky-100 p-6">Ventra bölümü yükleniyor…</div> });
 import { EventBus } from '../../lib/game/EventBus';
 import './kids-world-premium.css';
+import './kids-course-entry.css';
 
 // PhaserGame dinamik olarak yüklenir (SSR hydration hatalarını önler)
 const DynamicPhaserGame = dynamic(
