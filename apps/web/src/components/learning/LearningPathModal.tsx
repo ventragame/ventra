@@ -174,6 +174,21 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
   const withFirstPlay=(world:TutorialWorld,ready:boolean,hasPlayed:boolean,game:React.ReactNode)=><>
     {game}<FirstPlayGuide key={profileId+':'+world} world={world} profileId={profileId} ready={ready} hasPlayed={hasPlayed}/>
   </>;
+  // A course deep link may enter a district before repository reads settle.
+  // Never mount a game with synthetic zero-progress data while it is loading.
+  const districtLoading:Partial<Record<District,boolean>>={
+    animals:!animalLoaded,colors:!colorLoaded,numbers:!numberLoaded,
+    food:!foodLoaded,family:!familyLoaded,sanctuary:!templeLoaded
+  };
+  if(districtLoading[district]){
+    return <div role="status" className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-5 bg-emerald-950 p-6 text-center text-white">
+      <span aria-hidden="true" className="text-5xl">🌿</span>
+      <strong className="text-xl">Oyunun ilerlemesi yükleniyor…</strong>
+      <p className="max-w-sm text-sm text-emerald-100">Mevcut kayıtların korunuyor. Oyun hazır olunca açılacak.</p>
+      <button type="button" className="rounded-xl bg-amber-100 px-5 py-3 font-black text-emerald-950" onClick={()=>setDistrict('overview')}>Bölgelere Dön</button>
+    </div>;
+  }
+
 
   if(district==='alphabet'){
     return <AlphabetGroveAdventure key={profileId+':'+englishLevel}
@@ -281,6 +296,10 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
   }
 
   if (district === 'colors') {
+    if(colorError)return <div role="alert" className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-slate-950 p-6 text-center text-white">
+      <p>Renk Korusu ilerlemesi okunamadı. Mevcut oyun kayıtlarını silmeden geri dön.</p>
+      <button type="button" onClick={()=>setDistrict('overview')} className="rounded-xl bg-lime-300 px-5 py-3 font-black text-emerald-950">Bölgelere Dön</button>
+    </div>;
     return withFirstPlay('colors',colorLoaded&&!colorError,colors.completedLevels>0,<ColorGroveAdventure
       key={profileId}
       profileId={profileId}
