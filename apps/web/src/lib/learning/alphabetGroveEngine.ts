@@ -53,7 +53,7 @@ export const ALPHABET_LESSONS:readonly AlphabetLesson[]=[
  unit(7,'Mavi Dere','L · J · V','💦',['l','j','v']),
  unit(8,'Rüzgâr Tepesi','W · Y · Z','🌈',['w','y','z']),
  unit(9,'Harf Anahtarı','Q · X','🗝️',['q','x']),
- unit(10,'Harf Şenliği','Büyük ve küçük harfler','🎪',SEQUENCE,'review'),
+ unit(10,'Harf Şenliği','Kelimelerde harf avı','🎪',SEQUENCE,'review'),
  unit(11,'Kelime Ormanı','Kısa sesleri birleştir','📖',SEQUENCE,'reading'),
  unit(12,'Okuma Feneri','İlk kelimelerini oku','🏮',SEQUENCE,'reading')
 ];
@@ -84,7 +84,7 @@ const words:readonly [string,string,string][]=[
  ['six','6️⃣','altı']
 ];
 export const ALPHABET_WORDS:readonly AlphabetWord[]=words.map(([word,icon,tr])=>({word,icon,tr}));
-export type AlphabetTaskKind='introduce'|'case'|'letter-name'|'sound-in-word'|'read-word'|'build-word';
+export type AlphabetTaskKind='introduce'|'word-link'|'letter-name'|'sound-in-word'|'read-word'|'build-word';
 export interface AlphabetTask{
  id:string;kind:AlphabetTaskKind;answer:string;letterId?:string;word?:AlphabetWord;
  choices:readonly string[];promptTr:string;audioText?:string;
@@ -137,18 +137,18 @@ export function planAlphabetLesson(input:{
  const seed=lesson*137+replay*947+level*53;
  const width=input.gradeLevel!=null&&input.gradeLevel<=2?2:3;
  const letterTask=(kind:AlphabetTaskKind,id:string,i:number):AlphabetTask=>{
-  const letter=getLetter(id),isCase=kind==='case';
-  const answer=isCase?letter.lower:letter.upper;
-  const variants=isCase?available.map(x=>getLetter(x).lower):available.map(x=>getLetter(x).upper);
+  const letter=getLetter(id),linksWord=kind==='word-link';
+  const answer=linksWord?letter.anchor:letter.upper;
+  const variants=linksWord?available.map(x=>getLetter(x).anchor):available.map(x=>getLetter(x).upper);
   return {
    id:'ag:'+lesson+':'+placement+':'+replay+':'+kind+':'+i+':'+id,
    kind,answer,letterId:id,choices:kind==='introduce'?[]:choices(answer,variants,seed+i*11,width),
-   promptTr:kind==='introduce'?'Yeni harf: '+letter.upper+' / '+letter.lower:
-    isCase?letter.upper+' harfinin küçük hâlini bul.':
+   promptTr:kind==='introduce'?letter.upper+' harfiyle tanış: İngilizce '+letter.anchor+' kelimesini keşfet.':
+    linksWord?'Resimdeki '+letter.tr+' için '+letter.upper+(letter.focus==='end'?' ile biten':' ile başlayan')+' İngilizce kelimeyi seç.':
     kind==='letter-name'?'Duyduğun İngilizce harf adını seç.':
     letter.focus==='end'?'FOX kelimesinin SONUNDA hangi harf var?':
     'Dinlediğin kelimenin BAŞINDA hangi harf var?',
-   audioText:kind==='letter-name'?'Letter '+letter.upper:
+   audioText:kind==='letter-name'?letter.upper:
     kind==='sound-in-word'?letter.anchor:undefined
   };
  };
@@ -168,7 +168,7 @@ export function planAlphabetLesson(input:{
   const selected=sample(learned,lesson===1?0:2,seed+43);
   tasks=[
    ...start.map((id,i)=>letterTask('introduce',id,i)),
-   ...sample(target,3,seed+11).map((id,i)=>letterTask('case',id,i)),
+   ...sample(target,3,seed+11).map((id,i)=>letterTask('word-link',id,i)),
    ...sample(target,2,seed+17).map((id,i)=>letterTask('letter-name',id,i)),
    ...sample(target,2,seed+31).map((id,i)=>letterTask('sound-in-word',id,i)),
    ...selected.slice(0,1).map((w,i)=>wordTask('read-word',w,i)),
@@ -177,7 +177,7 @@ export function planAlphabetLesson(input:{
   if(lesson===1)tasks.push(...sample(target,2,seed+75).map((id,i)=>letterTask('sound-in-word',id,i+2)));
  }else{
   tasks=[
-   ...sample(available,2,seed+44).map((id,i)=>letterTask('case',id,i)),
+   ...sample(available,2,seed+44).map((id,i)=>letterTask('word-link',id,i)),
    ...sample(available,2,seed+12).map((id,i)=>letterTask('letter-name',id,i)),
    ...sample(available,3,seed+17).map((id,i)=>letterTask('sound-in-word',id,i)),
    ...sample(learned,3,seed+53).map((w,i)=>wordTask('read-word',w,i)),
@@ -199,8 +199,8 @@ export function alphabetTaskCorrect(task:AlphabetTask,response:string):boolean{
  return task.answer.toLowerCase()===response.trim().toLowerCase()&&response.trim().length>0;
 }
 export function alphabetHint(task:AlphabetTask):string{
- if(task.kind==='introduce')return 'Büyük ve küçük harfi birlikte incele. Sonra örnek kelimeyi dinle.';
- if(task.kind==='case')return 'Büyük ve küçük harf aynı harfin iki yazım şeklidir.';
+ if(task.kind==='introduce')return 'Harf adını ve örnek kelimeyi ayrı ayrı dinle; aynı ses değillerdir.';
+ if(task.kind==='word-link')return task.letterId==='x'?'Tilkiyi düşün. İngilizcede fox kelimesinin sonunda X vardır.':'Resimdeki nesnenin İngilizce adını düşün ve ilk harfine dikkat et.';
  if(task.kind==='letter-name')return 'Harf adını tekrar dinle; kelimedeki sesi her zaman aynı olmaz.';
  if(task.kind==='sound-in-word')return task.letterId==='x'?'FOX kelimesinin sonunu dinle.':
   task.letterId==='q'?'QUEEN kelimesinde Q ve U birlikte çalışır.':
@@ -229,6 +229,15 @@ export function validateAlphabetCatalog():string[]{
    for(const task of deck){
     if(seen.has(task.id))errors.push('Repeated task id '+task.id);
     seen.add(task.id);
+    if(task.kind==='word-link'){
+     const focus=getLetter(task.letterId!);
+     if(task.answer!==focus.anchor)errors.push('Word-link answer unrelated to pictured English word '+task.id);
+     if(task.choices.length<2||!task.choices.includes(task.answer))errors.push('Invalid English word-link choices '+task.id);
+    }
+    if(task.kind==='letter-name'&&task.audioText!==getLetter(task.letterId!).upper)
+     errors.push('Letter name contains a spoken prefix '+task.id);
+    if(task.promptTr.includes('küçük hâlini bul')||task.audioText?.startsWith('Letter '))
+     errors.push('Non-English case drill or prefixed letter audio '+task.id);
    }
   }
  }
