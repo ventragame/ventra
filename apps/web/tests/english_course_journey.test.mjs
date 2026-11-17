@@ -25,12 +25,12 @@ const repoFor=(db,fail=new Set())=>({
   return db.get(gameId)?.[1]??null;
  }
 });
-test('Seven-course stage map exactly covers 14 REAL curriculum surfaces without mutating 6 island IDs',()=>{
- assert.match(ENGLISH_COURSE_VERSION,/^kids-english-journey-p2-/);
+test('Seven-course stage map exactly covers 15 REAL curriculum surfaces without mutating 6 island IDs',()=>{
+ assert.match(ENGLISH_COURSE_VERSION,/^kids-english-journey-p3-/);
  assert.deepEqual(validateJourneyMap(),[]);
  assert.equal(JOURNEY_CHAPTERS.length,7);
- assert.equal(CURRICULUM_SURFACES.length,14);
- assert.equal(new Set(JOURNEY_CHAPTERS.flatMap(s=>s.surfaces)).size,14);
+ assert.equal(CURRICULUM_SURFACES.length,15);
+ assert.equal(new Set(JOURNEY_CHAPTERS.flatMap(s=>s.surfaces)).size,15);
  assert.deepEqual(ARCHIPELAGO_ISLANDS_ORDERED.map(s=>s.id),[
   'word_garden','story_castle','listening_forest','speaking_harbor',
   'sentence_workshop','language_academy']);
@@ -50,14 +50,14 @@ test('Progress levels are counted only for actual English placement and age ceil
  assert.equal(journeyGameLevelIds('garden.numbers',6,'A2').length,15);
  assert.equal(journeyGameLevelIds('garden.numbers',null,'A2').length,5);
  const unique=new Set(CURRICULUM_SURFACES.map(x=>x.gameId));
- assert.equal(unique.size,14);
+ assert.equal(unique.size,15);
 });
 test('A new Pre-A1 child starts with alphabet; higher placement starts with contextual words',async()=>{
  const repo=repoFor(store());
  for(const placement of ['Pre-A1','A1','A2']){
   const snapshot=await loadJourneySnapshot(repo,'child-1',placement,1);
   const model=buildJourneyViewModel(snapshot);
-  assert.equal(snapshot.games.length,14);
+  assert.equal(snapshot.games.length,15);
   assert.equal(model.savedGames,0);
   assert.ok(model.totalGames>70);
   assert.equal(model.failedGames,0);
@@ -96,7 +96,7 @@ test('Corrupt/denied progress fails closed instead of pretending the learner has
  assert.equal(card.nextLevel,null);
  assert.equal(vm.primary.surfaceId,'garden.animals');
  const allFail=buildJourneyViewModel(await loadJourneySnapshot(repoFor(data,new Set([...data.keys()])),'child-1','Pre-A1',1));
- assert.equal(allFail.failedGames,14);
+ assert.equal(allFail.failedGames,15);
  assert.equal(allFail.primary,null);
  assert.equal(allFail.savedGames,0);
  assert.equal(allFail.totalGames,0);
@@ -158,7 +158,7 @@ test('Course can actually route to ALL Word Garden subgames, Story Forest three 
  assert.match(kids,/initialGame=\{journeySurface==='forest.discovery'/);
  assert.match(kids,/kids-course-floating/);
  assert.match(kids,/isJourneyOpen \|\|/);
- for(const section of ['alphabet','animals','colors','numbers','food','family','sanctuary']){
+ for(const section of ['alphabet','themes','animals','colors','numbers','food','family','sanctuary']){
   assert.match(garden,new RegExp("'"+section+"'"));
  }
  assert.match(garden,/INITIAL_GARDEN_DESTINATIONS/);
