@@ -93,31 +93,43 @@ const saved=(row:SavedLevel|undefined)=>Boolean(row&&
  ((row.completedCount??0)>0||(row.bestStars??0)>0));
 /** Avoid assigning 0% to inaccessible cloud/IndexedDB data. */
 export async function loadJourneySnapshot(
- repo:Pick<IProgressRepository,'getAllLevelProgress'>,
+ repo:Pick<IProgressRepository,'getAllLevelProgress'|'getLevelProgress'>,
  profileId:string,placement:EnglishPlacement,gradeLevel:number|null
 ):Promise<JourneySnapshot>{
  if(!profileId)throw new Error('Missing child profile for the course journey');
- const raw=await Promise.allSettled(CURRICULUM_SURFACES.map(surface=>
-  repo.getAllLevelProgress(surface.gameId,profileId)
- ));
+ const [raw,legacyRecords]=await Promise.all([
+  Promise.allSettled(CURRICULUM_SURFACES.map(surface=>repo.getAllLevelProgress(surface.gameId,profileId))),
+  Promise.allSettled([
+   repo.getLevelProgress('island_word_garden',1,profileId),
+   repo.getLevelProgress('phaser_exploration_island',1,profileId)
+  ])
+ ]);
+ const legacyComplete=legacyRecords.some(record=>record.status==='fulfilled'&&saved(record.value??undefined));
+ const legacyUnknown=!legacyComplete&&legacyRecords.some(record=>record.status==='rejected');
  const games:JourneyGameProgress[]=CURRICULUM_SURFACES.map((surface,index)=>{
   const result=raw[index];
   const ids=journeyGameLevelIds(surface.id,gradeLevel,placement);
-  if(result.status==='rejected')return {
+  if(result.status==='rejected'||(surface.id==='garden.animals'&&legacyUnknown))return {
    surfaceId:surface.id,gameId:surface.gameId,status:'error',
    completed:0,total:ids.length,played:0,reviewSuggested:false,accessible:false,nextLevel:null
   };
   const rows=result.value as Record<number,SavedLevel>;
   const complete=ids.filter(id=>saved(rows[id]));
   const observed=ids.filter(id=>rows[id]&&(rows[id].completedCount??0)>0);
+  // Legacy whole-island completion is acknowledged by the existing Word Garden
+  // loader. Do not re-lock Renk Korusu for an upgraded child profile.
+  const grandfathered=surface.id==='garden.animals'&&legacyComplete;
+  const contiguous=ids.reduce((count,id)=>id===count+1&&saved(rows[id])?count+1:count,0);
   const reviewSuggested=observed.some(id=>
    Number.isFinite(rows[id].bestAccuracy)&&
    (rows[id].bestAccuracy??1)<0.65&&(rows[id].attemptsCount??0)>=2);
   return {
    surfaceId:surface.id,gameId:surface.gameId,status:'ready',
-   completed:complete.length,total:ids.length,played:observed.length,
+   completed:grandfathered?ids.length:
+    (surface.id==='garden.animals'?contiguous:complete.length),
+   total:ids.length,played:observed.length,
    reviewSuggested,accessible:true,
-   nextLevel:ids.find(id=>!saved(rows[id]))??null
+   nextLevel:grandfathered?null:ids.find(id=>!saved(rows[id]))??null
   };
  });
  const animals=games.find(x=>x.surfaceId==='garden.animals');
