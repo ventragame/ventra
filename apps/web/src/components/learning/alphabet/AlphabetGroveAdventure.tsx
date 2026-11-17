@@ -21,7 +21,7 @@ interface Props{
 }
 const EMPTY:AlphabetProgress={completed:0,total:12,stars:{},replays:{}};
 const labelFor=(kind:AlphabetTask['kind']):string=>({
- introduce:'YENİ HARF','case':'HARF EŞLEŞTİR','letter-name':'HARF ADINI DİNLE',
+ introduce:'YENİ HARF','word-link':'İNGİLİZCE KELİME AVI','letter-name':'HARF ADINI DİNLE',
  'sound-in-word':'KELİMEDEKİ SES','read-word':'KELİMEYİ OKU','build-word':'HARFLERLE KUR'
 })[kind];
 const questionNeedsAudio=(kind:AlphabetTask['kind'])=>
@@ -249,7 +249,7 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
     </section>
     <section className="ag-letter-library" aria-label="İngilizce alfabe harfleri">
      <h2>🔤 İngilizce harf koleksiyonun</h2>
-     <p>Büyük ve küçük harfleri, resimli örneklerini derste öğrenirsin. Harflerin adları ve sesleri aynı şey değildir.</p>
+     <p>Harfleri İngilizce kelimelerle keşfet, resimlerle eşleştir ve kelimelerdeki seslerini dinle. Büyük ve küçük yazılışlar yalnızca yardımcı gösterimdir.</p>
      <div className="ag-mini-letters">{ALPHABET_LETTERS.map(l=>
       <span key={l.id} title={l.anchor+' · '+l.tr}>{l.upper}<small>{l.lower}</small></span>)}</div>
     </section>
@@ -268,12 +268,18 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
        <p>Kelimenin {focus.focus==='end'?'sonundaki':'başındaki'} ses: <b>{focus.ipa}</b></p>
        {focus.noteTr&&<p>{focus.noteTr}</p>}</div>
       <div className="ag-voice-row">
-       <button type="button" disabled={saving||resolved} onClick={()=>speak('Letter '+focus.upper,'name')}>🔊 Harf adını dinle</button>
+       <button type="button" disabled={saving||resolved} onClick={()=>speak(focus.upper,'name')}>🔊 Harf adını dinle</button>
        <button type="button" disabled={saving||resolved} onClick={()=>speak(focus.anchor)}>🎧 Kelimeyi dinle</button>
       </div>
       <button type="button" className="ag-primary-action" disabled={saving||resolved} onClick={()=>finishTask(task.answer)}>Anladım, devam et →</button>
      </div>}
      {task.kind!=='introduce'&&<>
+      {task.kind==='word-link'&&focus&&<div className="ag-word-link-scene" aria-label={focus.upper+' harfi ve '+focus.tr+' için İngilizce kelime seç'}>
+       <div className="ag-word-link-letter" aria-label={focus.upper+' harfi'}>{focus.upper}</div>
+       <span className="ag-word-link-arrow" aria-hidden="true">✦</span>
+       <div className="ag-word-link-picture"><span aria-hidden="true">{focus.icon}</span>
+        <small>{focus.tr}</small></div>
+      </div>}
       {task.word&&<div className="ag-target-art"><span aria-hidden="true">{task.word.icon}</span><small>{task.word.tr}</small></div>}
       {task.kind==='sound-in-word'&&focus&&<div className="ag-target-art"><span aria-hidden="true">{focus.icon}</span><small>{focus.tr}</small></div>}
       {task.kind==='letter-name'&&<div className="ag-hearing-icon" aria-hidden="true">🎧</div>}

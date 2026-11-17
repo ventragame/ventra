@@ -14,7 +14,7 @@ export const ALPHABET_CHECKPOINT_TTL=30*24*60*60*1000;
 export function alphabetCheckpointKey(profileId:string,placement:EnglishPlacement,lesson:number):string{
  return PREFIX+encodeURIComponent(profileId)+':'+placement+':'+lesson;
 }
-const kinds=new Set(['introduce','case','letter-name','sound-in-word','read-word','build-word']);
+const kinds=new Set(['introduce','word-link','letter-name','sound-in-word','read-word','build-word']);
 const numberIn=(value:unknown,max:number)=>typeof value==='number'&&Number.isSafeInteger(value)&&value>=0&&value<=max;
 export function parseAlphabetCheckpoint(
  raw:string|null,placement:EnglishPlacement,lesson:number,now:number=Date.now()
