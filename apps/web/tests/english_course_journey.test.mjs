@@ -33,7 +33,7 @@ test('Seven-course stage map exactly covers 14 REAL curriculum surfaces without 
  assert.equal(new Set(JOURNEY_CHAPTERS.flatMap(s=>s.surfaces)).size,14);
  assert.deepEqual(ARCHIPELAGO_ISLANDS_ORDERED.map(s=>s.id),[
   'word_garden','story_castle','listening_forest','speaking_harbor',
-  'sentence_workshop','language_academ']);
+  'sentence_workshop','language_academy']);
  for(const step of COURSE_MILESTONES){
   assert.ok(CURRICULUM_SURFACES.some(x=>x.id===step.surface));
   assert.ok(step.atLeast>0);
