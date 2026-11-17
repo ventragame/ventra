@@ -272,7 +272,10 @@ export function ThemeTownAdventure({profileId,englishLevel,gradeLevel,onBack,onS
      <div className="tt-challenge-head"><span className="tt-task-label">✧ {taskLabel(task.kind)}</span>
       <span className="tt-task-stage">{step<2?'1 · Keşfet':step<count-2?'2 · Dene':'3 · Kullan'}</span></div>
      <h2>{task.promptTr}</h2>
-     {task.kind==='clock'&&task.clockMinutes!==undefined&&<ClockFace minutes={task.clockMinutes}/>}
+     {task.kind==='clock'&&task.clockMinutes!==undefined&&<>
+      <p className="tt-clock-instruction">🕰️ Kısa ibre saati, uzun ibre dakikayı gösterir. Resme dikkatlice bak.</p>
+      <ClockFace minutes={task.clockMinutes}/>
+     </>}
      {(task.kind==='discover'||task.kind==='picture')&&task.word&&<div className="tt-picture">
       <span aria-hidden="true">{task.word.icon}</span>
       <small>{task.word.tr}</small>

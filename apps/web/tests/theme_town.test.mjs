@@ -57,6 +57,10 @@ test('Lesson bank is reproducible, multi-modal, age-aware and replayable across 
      assert.equal(deck.tier,themeEffectiveTier(gradeLevel,level));
      assert.equal(deck.tasks[0].kind,'discover');
      assert.equal(deck.tasks[1].kind,'discover');
+     // Child-friendly P3: first recognition tasks retrieve introduced words.
+     assert.equal(deck.tasks[2].word?.en,deck.tasks[0].word?.en);
+     assert.equal(deck.tasks[3].word?.en,deck.tasks[1].word?.en);
+     if(theme!=='calendar')assert.equal(deck.tasks[5].word?.en,deck.tasks[0].word?.en);
      assert.ok(deck.tasks.some(t=>t.kind==='picture'));
      assert.ok(deck.tasks.some(t=>t.kind==='listen'));
      assert.ok(deck.tasks.some(t=>t.kind==='phrase'));

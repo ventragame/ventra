@@ -113,13 +113,14 @@ export function planThemeLesson(input:{
  // hear a real spoken English word, use a scenario, then construct/review.
  const tasks:ThemeTask[]=[
   intro(sequence[0]),intro(sequence[1]),
-  pictured(sequence[2]),pictured(sequence[3]),
-  heard(sequence[4]),
-  theme==='calendar'&&clock?clocked(clock):meant(sequence[5]),
+  // Early retrieval is based on JUST-INTRODUCED words, not unfamiliar labels.
+  pictured(sequence[0]),pictured(sequence[1]),
+  heard(sequence[2]),
+  theme==='calendar'&&clock?clocked(clock):meant(sequence[0]),
   expressed(speaking[0]),expressed(speaking[1])
  ];
- if(depth>=10)tasks.push(pictured(sequence[6]),assembled(speaking[2]));
- if(depth>=12)tasks.push(heard(sequence[7]),expressed(speaking[3]));
+ if(depth>=10)tasks.push(pictured(sequence[3]),assembled(speaking[2]));
+ if(depth>=12)tasks.push(heard(sequence[4]),expressed(speaking[3]));
  return {theme,placement,tier,replay,tasks};
 }
 export function isThemeAnswerCorrect(task:ThemeTask,answer:string):boolean{
