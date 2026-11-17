@@ -10,9 +10,11 @@ import type {IProgressRepository} from '../progress/types.ts';
 import {CURRICULUM_SURFACES,ENGLISH_CURRICULUM_OUTCOMES,
  type TeachingSurfaceId,type EnglishCurriculumOutcome} from './englishCurriculum.ts';
 import {alphabetLessonLevelId} from './alphabetGroveEngine.ts';
+import {THEME_ORDER,themeLevelId} from './themeQuestCatalog.ts';
+import {themeEffectiveTier} from './themeQuestEngine.ts';
 import {accessibleNumberLevels} from '../progress/gardenOverallProgress.ts';
 
-export const ENGLISH_COURSE_VERSION='kids-english-journey-p2-2026-11-17' as const;
+export const ENGLISH_COURSE_VERSION='kids-english-journey-p3-2026-11-17' as const;
 export interface JourneyChapter{
  id:string;title:string;eyebrow:string;icon:string;description:string;
  surfaces:readonly TeachingSurfaceId[];
@@ -23,7 +25,7 @@ export const JOURNEY_CHAPTERS:readonly JourneyChapter[]=[
   surfaces:['garden.alphabet','garden.animals']},
  {id:'words',title:'Rengârenk Dünyam',eyebrow:'KELİMELER',icon:'🌈',
   description:'Renkleri, sayıları ve günlük yaşamın sözcüklerini keşfet.',
-  surfaces:['garden.colors','garden.numbers','garden.food','garden.family']},
+  surfaces:['garden.colors','garden.numbers','garden.food','garden.family','garden.themes']},
  {id:'express',title:'Cümle Kuruyorum',eyebrow:'İFADELER',icon:'✨',
   description:'Bildik kelimeleri kullan ve kısa cümleler oluştur.',
   surfaces:['garden.temple','plaza.sentences']},
@@ -82,10 +84,11 @@ export function journeyGameLevelIds(surfaceId:TeachingSurfaceId,grade:number|nul
  const count:{[K in TeachingSurfaceId]:number}={
   'garden.alphabet':12,'garden.animals':5,'garden.colors':3,
   'garden.numbers':accessibleNumberLevels(grade,placement),
-  'garden.food':15,'garden.family':20,'garden.temple':25,
+  'garden.food':15,'garden.family':20,'garden.temple':25,'garden.themes':THEME_ORDER.length,
   'plaza.sentences':6,'forest.discovery':6,'forest.sequence':6,
   'forest.detective':6,'harbor.dialogue':5,'workshop.writing':5,'academy.atlas':6
  };
+ if(surfaceId==='garden.themes')return THEME_ORDER.map(theme=>themeLevelId(theme,placement,themeEffectiveTier(grade,placement)));
  return Array.from({length:count[surfaceId]},(_,i)=>
   surfaceId==='garden.alphabet'?alphabetLessonLevelId(i+1,placement):i+1);
 }
@@ -162,6 +165,7 @@ export const COURSE_MILESTONES:readonly Milestone[]=[
  {surface:'garden.numbers',atLeast:5,reason:'İngilizce sayıları dinleyelim.',level:'any'},
  {surface:'garden.food',atLeast:3,reason:'Yiyecek adlarını öğrenelim.',level:'any'},
  {surface:'garden.family',atLeast:4,reason:'Ailemizi ve evimizi anlatalım.',level:'any'},
+ {surface:'garden.themes',atLeast:2,reason:'Okul, kıyafet ve günlük İngilizce konularını keşfedelim.',level:'any'},
  {surface:'garden.alphabet',atLeast:9,reason:'Bütün İngilizce harfleri keşfedelim.',level:'beginner'},
  {surface:'garden.temple',atLeast:5,reason:'Öğrendiklerimizi farklı bir oyunda kullanalım.',level:'any'},
  {surface:'plaza.sentences',atLeast:2,reason:'Artık kısa cümleler kurabiliriz.',level:'any'},
@@ -171,6 +175,7 @@ export const COURSE_MILESTONES:readonly Milestone[]=[
  {surface:'garden.alphabet',atLeast:12,reason:'İlk okumalarını tekrar edelim.',level:'beginner'},
  {surface:'garden.food',atLeast:15,reason:'Günlük kelimelerini genişletelim.',level:'any'},
  {surface:'garden.family',atLeast:20,reason:'Aile ve ev kelimelerini pekiştirelim.',level:'any'},
+ {surface:'garden.themes',atLeast:8,reason:'Bütün temaları farklı görevlerde tekrar kullanalım.',level:'any'},
  {surface:'garden.temple',atLeast:25,reason:'Kelime maceralarımızı tamamlayalım.',level:'any'},
  {surface:'plaza.sentences',atLeast:6,reason:'Daha çok cümle oluşturalım.',level:'any'},
  {surface:'forest.discovery',atLeast:6,reason:'Hikâyeleri yeniden keşfedelim.',level:'any'},

@@ -9,16 +9,16 @@
 import type {IslandId} from '@ventra/shared';
 import type {EnglishPlacement} from './gradeAwareLearningPolicy.ts';
 
-export const ENGLISH_CURRICULUM_VERSION='kids-english-p0-2026-11-16' as const;
+export const ENGLISH_CURRICULUM_VERSION='kids-english-p3-2026-11-17' as const;
 export const ENGLISH_PLACEMENTS=['Pre-A1','A1','A2'] as const satisfies readonly EnglishPlacement[];
 export type EnglishTopicId =
  'letters'|'phonics'|'animals'|'colors'|'numbers'|'food'|'family'|'home'|'routines'|
  'greetings'|'requests'|'descriptions'|'locations'|'actions'|'preferences'|'story'|
- 'dialogue'|'spelling'|'writing'|'integrated'|'school'|'clothes'|'body'|'weather'|'calendar'|'hobbies';
+ 'dialogue'|'spelling'|'writing'|'integrated'|'school'|'clothes'|'body'|'weather'|'calendar'|'hobbies'|'transport'|'feelings';
 export type EnglishSkill='recognition'|'listening'|'reading'|'comprehension'|'sentence'|'dialogue'|'writing'|'pronunciation';
 export type CurriculumCoverage='authored'|'partial'|'gap';
 export type TeachingSurfaceId=
- 'garden.alphabet'|'garden.animals'|'garden.colors'|'garden.numbers'|'garden.food'|'garden.family'|'garden.temple'|
+ 'garden.alphabet'|'garden.themes'|'garden.animals'|'garden.colors'|'garden.numbers'|'garden.food'|'garden.family'|'garden.temple'|
  'plaza.sentences'|'forest.discovery'|'forest.sequence'|'forest.detective'|
  'harbor.dialogue'|'workshop.writing'|'academy.atlas';
 export type CurriculumSurface={
@@ -26,6 +26,7 @@ export type CurriculumSurface={
 };
 export const CURRICULUM_SURFACES:readonly CurriculumSurface[]=[
  {id:'garden.alphabet',islandId:'word_garden',label:'Harf Korusu',gameId:'island_word_garden_alphabet',source:'apps/web/src/lib/learning/alphabetGroveEngine.ts'},
+ {id:'garden.themes',islandId:'word_garden',label:'Tema Kasabası',gameId:'island_word_garden_theme_town',source:'apps/web/src/lib/learning/themeQuestCatalog.ts'},
  {id:'garden.animals',islandId:'word_garden',label:'Hayvan Çayırı',gameId:'island_word_garden_steps',source:'apps/web/src/lib/learning/animalMissionEngine.ts'},
  {id:'garden.colors',islandId:'word_garden',label:'Renk Korusu',gameId:'island_word_garden_colors',source:'apps/web/src/lib/learning/colorMissionEngine.ts'},
  {id:'garden.numbers',islandId:'word_garden',label:'Sayı Vadisi',gameId:'island_word_garden_numbers',source:'apps/web/src/lib/learning/numberValleyEngine.ts'},
@@ -137,24 +138,30 @@ const TOPIC_SEEDS:readonly TopicSeed[]=[
  topic("integrated","Beceri birleştirme ve tekrar",["listening","reading","comprehension","dialogue","writing"],["academy.atlas","garden.temple"],["authored","authored","authored"],
   ["Tanıdık kelime ve yönergeleri yeni sahnede uygular.","Kısa diyalog, dinleme ve yazma görevlerini bağlar.","Bir hikâye bağlamında karma beceri görevleri çözer."],
   ["Find the blue star.","Please read my note.","I wrote a postcard while we crossed the sea."],["story","dialogue","writing"]),
- topic("school","Okul ve sınıf dili",["recognition","listening"],[],["gap","gap","gap"],
+ topic("school","Okul ve sınıf dili",["recognition","listening"],["garden.themes"],["authored","authored","authored"],
   ["Sınıf eşyaları ve temel sınıf komutlarını öğrenir.","Okuldaki etkinlikleri kısa ifadelerde anlatır.","Okul yaşamıyla ilgili karşılıklı açıklama yapar."],
   ["book, pencil","Open your book.","What did you do at school?"],[]),
- topic("clothes","Kıyafetler",["recognition","listening"],[],["gap","gap","gap"],
+ topic("clothes","Kıyafetler",["recognition","listening"],["garden.themes"],["authored","authored","authored"],
   ["Temel kıyafet adlarını tanır.","Renk ve kıyafetleri kısa cümlelerde kullanır.","Kıyafet tercihlerini bağlamda açıklar."],
   ["shirt, shoes","a red jacket","I wear a coat when it is cold."],["colors"]),
- topic("body","Vücut bölümleri",["recognition","listening"],[],["gap","gap","gap"],
+ topic("body","Vücut bölümleri",["recognition","listening"],["garden.themes"],["authored","authored","authored"],
   ["Temel vücut bölümlerini tanır.","Basit hareket komutlarıyla vücut adlarını eşler.","Vücut ve hareket ifadelerini bağlam içinde anlar."],
   ["head, hands","Touch your nose.","I hurt my knee."],[]),
- topic("weather","Hava durumu",["recognition","listening"],[],["gap","gap","gap"],
+ topic("weather","Hava durumu",["recognition","listening"],["garden.themes"],["authored","authored","authored"],
   ["Temel hava durumu kelimelerini tanır.","Hava durumunu kısa cümleyle belirtir.","Hava koşullarına göre planları açıklar."],
   ["sunny, rainy","It is cloudy today.","Although it was cloudy, we went out."],["colors"]),
- topic("calendar","Günler, aylar ve zaman",["recognition","listening","reading"],[],["gap","gap","gap"],
+ topic("calendar","Günler, aylar ve zaman",["recognition","listening","reading"],["garden.themes"],["authored","authored","authored"],
   ["Haftanın günlerini tanır.","Gün/saat ve günlük program ifadelerini anlar.","Zaman çizelgesini geçmiş/gelecek bağlamında anlatır."],
   ["Monday, Tuesday","at seven o'clock","next Friday afternoon"],["numbers"]),
- topic("hobbies","Hobiler ve serbest zaman",["recognition","listening","dialogue"],[],["gap","gap","gap"],
+ topic("hobbies","Hobiler ve serbest zaman",["recognition","listening","dialogue"],["garden.themes"],["authored","authored","authored"],
   ["Basit hobi kelimelerini tanır.","Sevdiği aktiviteleri kısa ifadelerle belirtir.","Hobi tercihlerini sebepleriyle açıklar."],
   ["draw, play","I like swimming.","I enjoy reading because it is relaxing."],["actions"]),
+ topic("transport","Ulaşım ve yolculuk",["recognition","listening","dialogue"],["garden.themes"],["authored","authored","authored"],
+  ["Günlük ulaşım araçlarını İngilizce tanır.","Durak, bilet ve yolculuk ifadelerini kullanır.","Ulaşım aksaması ve yol tarifi hakkında cümleler kurar."],
+  ["bus, train","Where can I buy a ticket?","We missed our connection because of a delay."],["numbers"]),
+ topic("feelings","Duygular ve ihtiyaçlar",["recognition","listening","dialogue"],["garden.themes"],["authored","authored","authored"],
+  ["Temel duygularını İngilizce ifade eder.","Kendi ve başkasının duygularını tanımlar.","Duygu, neden ve desteği bağlayan ifadeleri tanır."],
+  ["I feel happy.","I feel nervous before a test.","I felt relieved when the task was finished."],["greetings"]),
 ];
 export const ENGLISH_CURRICULUM_OUTCOMES:readonly EnglishCurriculumOutcome[]=TOPIC_SEEDS.flatMap(seed=>
  ENGLISH_PLACEMENTS.map((placement,index)=>{
