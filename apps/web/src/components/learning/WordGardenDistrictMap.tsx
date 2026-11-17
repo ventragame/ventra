@@ -9,6 +9,7 @@ import {GARDEN_ORDER,GARDEN_THEMES,decorateWorldObjects,districtPercent,district
  districtStatusLabel,mapProgress,type GardenDistrictId,type GardenDistrictProgress} from './world/gardenTheme';
 import './word-garden-premium.css';
 import './alphabet/alphabet-entry.css';
+import './themes/theme-entry.css';
 import './word-garden-modular-v4.css';
 import {describeLearnerRoute} from '@/lib/learning/learningJourney';
 import type {EnglishPlacement} from '@/lib/learning/gradeAwareLearningPolicy';
@@ -19,6 +20,7 @@ const ExplorerCanvas=dynamic(()=>import('./world/ExplorerCanvas').then(x=>x.Expl
 
 interface WordGardenDistrictMapProps {
  alphabetCompleted:number;alphabetReady:boolean;alphabetError:boolean;onEnterAlphabet:()=>void;
+  themeCompleted:number;themesReady:boolean;themesError:boolean;onEnterThemes:()=>void;
  completedLevels:number;totalLevels:number;onEnterAnimals:()=>void;
  onEnterColors:()=>void;colorsUnlocked:boolean;colorsAvailable:boolean;colorCompleted:number;
  numberCompleted:number;numberTotal:number;numbersUnlocked:boolean;numbersAvailable:boolean;onEnterNumbers:()=>void;
@@ -36,6 +38,7 @@ interface WordGardenDistrictMapProps {
  */
 export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
  alphabetCompleted,alphabetReady,alphabetError,onEnterAlphabet,
+ themeCompleted,themesReady,themesError,onEnterThemes,
  completedLevels,totalLevels,onEnterAnimals,onEnterColors,
  colorsUnlocked,colorsAvailable,colorCompleted,numberCompleted,numberTotal,numbersUnlocked,numbersAvailable,onEnterNumbers,
  foodCompleted,foodTotal,foodUnlocked,foodAvailable,foodError,onEnterFood,
@@ -158,6 +161,25 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
       disabled={!alphabetReady||alphabetError}
       aria-label={'Harf Korusu: '+(alphabetError?'ilerleme yüklenemedi':alphabetReady?'öğrenmeye başla':'yükleniyor')}>
       {alphabetError?'Kayıt okunamadı':!alphabetReady?'Yükleniyor…':alphabetCompleted?'Devam Et →':'Keşfet →'}
+     </button>
+    </section>
+    <section className="wg-theme-entry" aria-label="Tema Kasabası günlük İngilizce üniteleri">
+     <div className="wg-theme-art" aria-hidden="true">
+      <img src="/assets/word-garden/premium-v2/cover.webp" alt=""/>
+      <span className="wg-theme-icon wg-theme-icon-one">🎒</span>
+      <span className="wg-theme-icon wg-theme-icon-two">🌦️</span>
+      <span className="wg-theme-icon wg-theme-icon-three">🕰️</span>
+     </div>
+     <div className="wg-theme-content">
+      <span className="wg-theme-label">✦ GÜNLÜK HAYATTA İNGİLİZCE</span>
+      <h2>🏘️ Tema Kasabası <small>8 öğrenme sokağı</small></h2>
+      <p>Okul, vücut, kıyafetler, hava durumu, günler ve saatler, hobiler, ulaşım ve duygular: dinle, öğren ve İngilizce kullan.</p>
+      <div className="wg-theme-tags"><span>🎧 Sesli</span><span>🕰️ Saat oyunu</span><span>✦ {themeCompleted}/8 tema</span></div>
+     </div>
+     <button type="button" className="wg-theme-enter" onClick={onEnterThemes}
+      disabled={!themesReady||themesError}
+      aria-label={'Tema Kasabası: '+(themesError?'ilerleme okunamadı':themesReady?'oyunlara gir':'yükleniyor')}>
+      {themesError?'Kayıt okunamadı':!themesReady?'Yükleniyor…':themeCompleted?'Devam Et →':'Keşfet →'}
      </button>
     </section>
     <section className="wg-main-map" aria-label="Gezilebilir İngilizce dünyası">
