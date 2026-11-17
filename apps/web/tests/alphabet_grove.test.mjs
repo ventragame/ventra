@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {
  ALPHABET_LETTERS,ALPHABET_LESSONS,ALPHABET_TOTAL_LESSONS,
- ALPHABET_WORDS,ALPHABET_GROVE_GAME_ID,
+ ALPHABET_WORDS,ALPHABET_GROVE_GAME_ID,ALPHABET_WORD_LINK_DISTRACTORS,
  introducedAlphabetLetters,eligibleAlphabetWords,
  alphabetLessonLevelId,planAlphabetLesson,alphabetTaskCorrect,alphabetHint,validateAlphabetCatalog
 } from '../src/lib/learning/alphabetGroveEngine.ts';
@@ -112,12 +112,16 @@ test('Every English alphabet unit replaces trivial case matching with age-suitab
    assert.equal(task.answer,letter.anchor);
    assert.ok(task.choices.includes(letter.anchor));
    assert.ok(task.choices.length>=2);
-   assert.ok(task.choices.every(w=>ALPHABET_LETTERS.some(l=>l.anchor===w)));
+   assert.ok(task.choices.every(w=>w===letter.anchor||ALPHABET_WORD_LINK_DISTRACTORS[letter.id].includes(w)));
+   assert.ok(task.choices.every(w=>letter.focus==='end'?w.endsWith(letter.id):w.startsWith(letter.id)),
+     'Child must recognize the actual English word, not just guess the first letter');
+   assert.equal(task.audioText,letter.anchor,'Optional word playback should pronounce a real English word');
    assert.equal(alphabetTaskCorrect(task,letter.anchor),true);
    assert.equal(alphabetTaskCorrect(task,'not an English anchor'),false);
    assert.ok(task.promptTr.includes(letter.tr));
   }
  }
+ assert.deepEqual(ALPHABET_WORD_LINK_DISTRACTORS.p,['pig','pizza']);
  const x=planAlphabetLesson({lesson:9,placement:'A2',gradeLevel:3,replay:1});
  const fox=x.find(t=>t.kind==='word-link'&&t.letterId==='x');
  assert.equal(fox.answer,'fox');

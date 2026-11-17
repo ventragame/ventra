@@ -117,7 +117,8 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
   setAudioFailed(false);
   const done=soundService.speakEnglish(value,{
    rate:gradeLevel!=null&&gradeLevel<=2?0.79:0.9,
-   onStart:()=>{if(kind==='word'&&task?.kind==='sound-in-word'||kind==='name'&&task?.kind==='letter-name')setHeard(true);},
+   onStart:()=>{if(kind==='word'&&(task?.kind==='sound-in-word'||task?.kind==='word-link')||
+     kind==='name'&&task?.kind==='letter-name')setHeard(true);},
    onError:()=>setAudioFailed(true)
   });
   if(!done)setAudioFailed(true);
@@ -167,7 +168,7 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
    taskId:task.id,kind:task.kind,firstTryCorrect:firstTry,
    mistakes:wrongOnStep,hintUsed:hintVisible,audioPlayed:heard,
    independent:task.kind!=='introduce'&&task.kind!=='build-word'&&firstTry&&
-    (!questionNeedsAudio(task.kind)||heard)
+    (task.kind!=='word-link'||!heard)&&(!questionNeedsAudio(task.kind)||heard)
   };
   const rows=[...answers,evidence];
   const errors=mistakes,hintsUsed=hints;
@@ -285,7 +286,7 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
       {task.kind==='letter-name'&&<div className="ag-hearing-icon" aria-hidden="true">🎧</div>}
       {task.audioText&&<button type="button" className="ag-listen" disabled={saving||resolved}
        onClick={()=>speak(task.audioText!,task.kind==='letter-name'?'name':'word')}>
-       🔊 {task.kind==='letter-name'?'Harf adını dinle':'İngilizce kelimeyi dinle'}
+       🔊 {task.kind==='letter-name'?'Harf adını dinle':task.kind==='word-link'?'Kelimeyi tekrar dinle':'İngilizce kelimeyi dinle'}
       </button>}
       {audioFailed&&<p role="status" className="ag-audio-warning">Ses bu cihazda başlamadı. İpucunu kullanarak görselden devam edebilirsin; bu dinleme başarısı sayılmaz.</p>}
       {task.kind!=='build-word'&&<div className="ag-choices">

@@ -84,6 +84,39 @@ const words:readonly [string,string,string][]=[
  ['six','6️⃣','altı']
 ];
 export const ALPHABET_WORDS:readonly AlphabetWord[]=words.map(([word,icon,tr])=>({word,icon,tr}));
+/**
+ * Picture-to-word distractors deliberately share the target's FIRST letter
+ * (or FINAL X): guessing by initial alone must not solve the vocabulary task.
+ * The correct English anchor is always introduced earlier in the same lesson.
+ */
+export const ALPHABET_WORD_LINK_DISTRACTORS:Readonly<Record<string,readonly [string,string]>>={
+ s:['sock','star'],
+ a:['ant','arm'],
+ t:['tree','train'],
+ p:['pig','pizza'],
+ i:['igloo','ink'],
+ n:['nose','net'],
+ m:['milk','mouse'],
+ d:['duck','door'],
+ g:['gift','girl'],
+ o:['orange','owl'],
+ c:['car','cup'],
+ k:['key','king'],
+ e:['elephant','ear'],
+ u:['unicorn','uniform'],
+ r:['rain','robot'],
+ h:['house','horse'],
+ b:['bed','bird'],
+ f:['frog','flower'],
+ l:['lemon','leaf'],
+ j:['juice','jacket'],
+ v:['vase','violin'],
+ w:['whale','window'],
+ y:['yogurt','yo-yo'],
+ z:['zoo','zero'],
+ q:['quilt','quiz'],
+ x:['box','six']
+};
 export type AlphabetTaskKind='introduce'|'word-link'|'letter-name'|'sound-in-word'|'read-word'|'build-word';
 export interface AlphabetTask{
  id:string;kind:AlphabetTaskKind;answer:string;letterId?:string;word?:AlphabetWord;
@@ -139,7 +172,7 @@ export function planAlphabetLesson(input:{
  const letterTask=(kind:AlphabetTaskKind,id:string,i:number):AlphabetTask=>{
   const letter=getLetter(id),linksWord=kind==='word-link';
   const answer=linksWord?letter.anchor:letter.upper;
-  const variants=linksWord?available.map(x=>getLetter(x).anchor):available.map(x=>getLetter(x).upper);
+  const variants=linksWord?[letter.anchor,...ALPHABET_WORD_LINK_DISTRACTORS[id]]:available.map(x=>getLetter(x).upper);
   return {
    id:'ag:'+lesson+':'+placement+':'+replay+':'+kind+':'+i+':'+id,
    kind,answer,letterId:id,choices:kind==='introduce'?[]:choices(answer,variants,seed+i*11,width),
@@ -149,7 +182,7 @@ export function planAlphabetLesson(input:{
     letter.focus==='end'?'FOX kelimesinin SONUNDA hangi harf var?':
     'Dinlediğin kelimenin BAŞINDA hangi harf var?',
    audioText:kind==='letter-name'?letter.upper:
-    kind==='sound-in-word'?letter.anchor:undefined
+    kind==='sound-in-word'||linksWord?letter.anchor:undefined
   };
  };
  const learned=eligibleAlphabetWords(lesson);
@@ -218,6 +251,11 @@ export function validateAlphabetCatalog():string[]{
   if(letter.focus==='start'&&!letter.anchor.startsWith(letter.id))errors.push('Wrong onset '+letter.id);
   if(letter.focus==='end'&&!letter.anchor.endsWith(letter.id))errors.push('Wrong ending '+letter.id);
   if(!letter.icon||!letter.ipa||!letter.tr)errors.push('Missing anchor '+letter.id);
+  const distractors=ALPHABET_WORD_LINK_DISTRACTORS[letter.id];
+  if(!distractors||new Set([letter.anchor,...distractors]).size!==3)
+   errors.push('Missing or duplicate word-link distractors '+letter.id);
+  else if(distractors.some(word=>letter.focus==='end'?!word.endsWith(letter.id):!word.startsWith(letter.id)))
+   errors.push('Word-link answer can be guessed from first letter '+letter.id);
  }
  if(new Set(ALPHABET_WORDS.map(w=>w.word)).size!==ALPHABET_WORDS.length)errors.push('Duplicate reading word');
  if(ALPHABET_WORDS.some(w=>!/^[a-z]{3}$/.test(w.word)))errors.push('Non-three-letter word');
