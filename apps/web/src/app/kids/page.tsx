@@ -11,6 +11,7 @@ import {
   type IslandId
 } from '@ventra/shared';
 import { getProgressRepository, type CreateProfileInput } from '../../lib/progress';
+import {CURRICULUM_SURFACES,type TeachingSurfaceId} from '../../lib/learning/englishCurriculum';
 import { KidsWelcomeGate } from '../../components/onboarding/KidsWelcomeGate';
 import { saveWordGardenLevelCompletion } from '../../lib/progress/wordGardenProgress';
 import {getGardenOverallProgress,type GardenOverallProgress} from '../../lib/progress/gardenOverallProgress';
@@ -22,6 +23,8 @@ const ParentalGateModal = dynamic(() => import('../../components/profile/Parenta
 const AdultAccountModal = dynamic(() => import('../../components/profile/AdultAccountModal').then((module) => module.AdultAccountModal), { loading: () => <div role="status" className="text-center text-sm text-sky-100 p-6">Ventra bölümü yükleniyor…</div> });
 import { CloudTransition } from '../../components/learning/CloudTransition';
 const LearningPathModal = dynamic(() => import('../../components/learning/LearningPathModal').then((module) => module.LearningPathModal), { loading: () => <div role="status" className="text-center text-sm text-sky-100 p-6">Ventra bölümü yükleniyor…</div> });
+const EnglishJourneyDashboard=dynamic(() => import('../../components/learning/journey/EnglishJourneyDashboard').then(module=>module.EnglishJourneyDashboard),
+ {ssr:false,loading:()=> <div className="fixed inset-0 z-50 grid place-items-center bg-slate-950 text-white" role="status">📚 İngilizce Yolculuğum açılıyor…</div>});
 const HarborSpeechAdventure = dynamic(() => import('../../components/learning/harbor/HarborSpeechAdventure').then(m => m.HarborSpeechAdventure), {ssr:false});
 const WritingWorkshopAdventure = dynamic(() => import('../../components/learning/writing/WritingWorkshopAdventure').then(m => m.WritingWorkshopAdventure), {ssr:false});
 const AcademyAdventure = dynamic(() => import('../../components/learning/academy/AcademyAdventure').then(m => m.AcademyAdventure), {ssr:false});
@@ -98,12 +101,15 @@ export default function VentraKidsWorldPage() {
 
   // Öğrenme Yolu ve Bulut Geçişi
   const [activeRegion, setActiveRegion] = useState<string | null>(null);
+  const [isJourneyOpen,setIsJourneyOpen]=useState(false);
+  const [journeySurface,setJourneySurface]=useState<TeachingSurfaceId|null>(null);
   const [isTransitionActive, setIsTransitionActive] = useState<boolean>(false);
   const pendingRegionRef = useRef<string | null>(null);
 
   // Ortak Oyun Durumu & Etkileşim Kilidi: Herhangi bir modal veya aktivite açıkken arka plan kilitlenir
   const isWorldLocked = Boolean(
     activeRegion ||
+    isJourneyOpen ||
     isModeGateOpen ||
     isProfileModalOpen ||
     isParentGateOpen ||
@@ -319,14 +325,22 @@ export default function VentraKidsWorldPage() {
   );
 
   // 2. Bölgeye Geçiş (Bulut Geçiş Efekti)
-  const handleOpenLearningPath = useCallback((regionId: string) => {
+  const handleOpenLearningPath = useCallback((regionId: string,surfaceId?:TeachingSurfaceId) => {
     // Guard rapid double taps until the current transition fully finishes.
     if (pendingRegionRef.current) return;
     pendingRegionRef.current = regionId;
+    setJourneySurface(surfaceId??null);
     soundService.unlockAudio();
     soundService.playSfx('island_portal',0.85);
     setIsTransitionActive(true);
   }, []);
+
+  const handleOpenCourseSurface=useCallback((surfaceId:TeachingSurfaceId)=>{
+    const surface=CURRICULUM_SURFACES.find(item=>item.id===surfaceId);
+    if(!surface||!activeProfile)return;
+    setIsJourneyOpen(false);
+    handleOpenLearningPath(surface.islandId,surfaceId);
+  },[activeProfile,handleOpenLearningPath]);
 
   const handleTransitionCovered = useCallback(() => {
     // Never issue a state update from inside another state updater.
@@ -340,6 +354,7 @@ export default function VentraKidsWorldPage() {
   }, []);
 
   const handleCloseLearningPath = useCallback(() => {
+    setJourneySurface(null);
     soundService.playSfx('whoosh');
     setActiveRegion(null);
     setIsTransitionActive(false);
@@ -554,6 +569,10 @@ export default function VentraKidsWorldPage() {
             {isMuted?'🔇':'🎚️'}
           </button>
 
+          <button type="button" onClick={()=>{setMobileMenuOpen(false);setIsJourneyOpen(true);soundService.playSfx('tap',0.5);}}
+            className="kids-hud-glass kids-hud-course hidden xl:flex" aria-label="İngilizce Yolculuğum öğrenme rehberini aç">
+            <span aria-hidden="true">📚</span><span>İngilizce Yolculuğum</span>
+          </button>
           <button
             onClick={() => { soundService.unlockAudio(); setIsModeGateOpen(true); }}
             className="kids-hud-glass kids-hud-simple"
@@ -590,6 +609,7 @@ export default function VentraKidsWorldPage() {
           <div id="kids-mobile-tools" role="group" aria-label="Adalar Evreni araçları"
             className="kids-mobile-menu">
             <strong>Keşif araçları</strong>
+            <button type="button" onClick={()=>{setMobileMenuOpen(false);setIsJourneyOpen(true);soundService.playSfx('tap',0.5);}}>📚 <span>İngilizce Yolculuğum</span></button>
             <button type="button" onClick={handleShowWorldOverview}>🗺️ <span>Genel harita</span></button>
             <button type="button" onClick={() => { setMobileMenuOpen(false); setIsPassportOpen(true); }}>🪙 <span>Pasaport ve ödüller</span></button>
             <button type="button" onClick={() => { setMobileMenuOpen(false); soundService.unlockAudio(); setIsAudioSettingsOpen(true); }}>🎚️ <span>Ses ve müzik</span></button>
@@ -604,6 +624,12 @@ export default function VentraKidsWorldPage() {
       )}
 
       <div className="kids-world-caption" aria-hidden="true">Altı ada, sonsuz İngilizce macerası</div>
+      {!isWorldLocked&&<button type="button" className="kids-course-floating" aria-label="Şimdi ne öğrenmeliyim? İngilizce Yolculuğum'u aç"
+        onClick={()=>{setIsJourneyOpen(true);soundService.playSfx('tap',0.55);}}>
+        <span aria-hidden="true">📚</span>
+        <span><strong>Şimdi ne öğrenmeliyim?</strong><small>İngilizce Yolculuğum</small></span>
+        <span aria-hidden="true">→</span>
+      </button>}
 
       {/* 2. ANA OYUN ALANI (PHASER ADALAR EVRENİ CANVAS) */}
       <main
@@ -715,9 +741,17 @@ export default function VentraKidsWorldPage() {
       />
 
       {/* 6. ÖĞRENME PATİKASI VE DERS MODALI */}
+      {isJourneyOpen&&activeProfile&&<EnglishJourneyDashboard
+        key={activeProfile.id+':'+(activeProfile.englishLevel??'Pre-A1')}
+        profileId={activeProfile.id} playerName={activeProfile.nickname}
+        placement={activeProfile.englishLevel??'Pre-A1'} gradeLevel={activeProfile.gradeLevel??null}
+        onClose={()=>setIsJourneyOpen(false)} onOpenSurface={handleOpenCourseSurface}
+      />}
       {activeRegion==='word_garden'&&(
         <LearningPathModal
+          key={activeProfile?.id+':'+(journeySurface??'garden-overview')}
           regionId={activeRegion}
+          initialSurface={journeySurface}
           profileId={activeProfile?.id || ''}
           playerName={activeProfile?.nickname}
           coinBalance={coinBalance}
@@ -772,7 +806,9 @@ export default function VentraKidsWorldPage() {
           onBack={handleCloseLearningPath}
           onSaved={()=>void loadProfileAndProgress(activeProfile)}/>}
       {activeRegion==='listening_forest'&&activeProfile&&
-        <StoryForestHome key={activeProfile.id} profileId={activeProfile.id}
+        <StoryForestHome key={activeProfile.id+':'+(journeySurface??'forest-home')}
+          initialGame={journeySurface==='forest.discovery'?'discover':journeySurface==='forest.sequence'?'sequence':journeySurface==='forest.detective'?'detective':'home'}
+          profileId={activeProfile.id}
           gradeLevel={activeProfile.gradeLevel??null}
           englishLevel={activeProfile.englishLevel??'Pre-A1'}
           onBack={handleCloseLearningPath}

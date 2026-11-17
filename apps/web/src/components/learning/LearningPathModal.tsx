@@ -3,6 +3,7 @@
 import React, { useEffect, useState } from 'react';
 import dynamic from 'next/dynamic';
 import { WordGardenDistrictMap } from './WordGardenDistrictMap';
+import type {TeachingSurfaceId} from '@/lib/learning/englishCurriculum';
 import {getAlphabetProgress,type AlphabetProgress} from '@/lib/learning/alphabetProgress';
 const AlphabetGroveAdventure=dynamic(
  ()=>import('./alphabet/AlphabetGroveAdventure').then(module=>module.AlphabetGroveAdventure),
@@ -31,6 +32,7 @@ import {getFoodMarketProgress,saveFoodMarketMission,type FoodMarketProgress} fro
 
 interface LearningPathModalProps {
   regionId: string;
+  initialSurface?:TeachingSurfaceId|null;
   onClose: () => void;
   onRegionCompleted: () => void;
   onColorProgressSaved?: () => void;
@@ -51,6 +53,10 @@ interface LearningPathModalProps {
 }
 
 type District = 'overview' | 'alphabet' | 'animals' | 'colors' | 'numbers' | 'food' | 'family' | 'sanctuary';
+const INITIAL_GARDEN_DESTINATIONS:Partial<Record<TeachingSurfaceId,District>>={
+ 'garden.alphabet':'alphabet','garden.animals':'animals','garden.colors':'colors',
+ 'garden.numbers':'numbers','garden.food':'food','garden.family':'family','garden.temple':'sanctuary'
+};
 
 /**
  * One active district at a time; the old static animal activities are no longer
@@ -58,6 +64,7 @@ type District = 'overview' | 'alphabet' | 'animals' | 'colors' | 'numbers' | 'fo
  * profile and level keys, so upgrades do not reset previously earned stars.
  */
 export const LearningPathModal: React.FC<LearningPathModalProps> = ({
+  initialSurface=null,
   profileId,
   playerName,
   coinBalance,
@@ -76,7 +83,7 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
   initialStarsByLevel = {},
   onProgressUpdate
 }) => {
-  const [district, setDistrict] = useState<District>('overview');
+  const [district, setDistrict] = useState<District>(()=>initialSurface?INITIAL_GARDEN_DESTINATIONS[initialSurface]??'overview':'overview');
   const [alphabet,setAlphabet]=useState<AlphabetProgress>({completed:0,total:12,stars:{},replays:{}});
   const [alphabetLoaded,setAlphabetLoaded]=useState(false);
   const [alphabetError,setAlphabetError]=useState(false);

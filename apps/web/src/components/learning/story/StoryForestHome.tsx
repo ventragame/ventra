@@ -19,6 +19,7 @@ import './premium-story-art.css';
 
 type Game='home'|'discover'|'sequence'|'detective';
 interface Props{
+ initialGame?:Game;
  profileId:string;
  gradeLevel:number|null;
  englishLevel:ForestPlacement;
@@ -27,8 +28,8 @@ interface Props{
 }
 const EMPTY:ForestProgress={completedLevels:0,totalLevels:6,starsByLevel:{}};
 const DETECTIVE_EMPTY:DetectiveProgress={completedLevels:0,totalLevels:6,starsByLevel:{},playCountByLevel:{}};
-export function StoryForestHome({profileId,gradeLevel,englishLevel,onBack,onSaved}:Props){
- const [game,setGame]=useState<Game>('home');
+export function StoryForestHome({profileId,gradeLevel,englishLevel,onBack,onSaved,initialGame='home'}:Props){
+ const [game,setGame]=useState<Game>(initialGame);
  const [discover,setDiscover]=useState<ForestProgress>(EMPTY);
  const [sequence,setSequence]=useState<SequenceProgress>(EMPTY);
  const [detective,setDetective]=useState<DetectiveProgress>(DETECTIVE_EMPTY);
