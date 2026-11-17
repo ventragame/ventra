@@ -221,7 +221,7 @@ test('UI is linked from Word Garden without modifying original six district IDs 
  assert.match(ui,/onStart:/);
  assert.match(ui,/speak\(focus\.upper,'name'\)/);
  assert.match(ui,/ag-word-link-scene/);
- assert.match(ui,/task\.kind==='word-link'\|\|task\?\.kind==='word-link'/);
+ assert.match(ui,/task\?\.kind==='word-link'/);
  assert.match(ui,/task\.kind!=='word-link'\|\|!heard/);
  assert.doesNotMatch(ui,/speak\(['"]Letter /);
  assert.match(ui,/setAudioFailed/);
