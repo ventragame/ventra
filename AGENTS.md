@@ -60,3 +60,6 @@ This instruction file does not itself establish a new delivery/deployment author
 ## Harf Korusu P1 — 16 November 2026
 
 Harf Korusu is an optional mini-area under word_garden and does not create a seventh main island. New ID island_word_garden_alphabet has independently saved levelId for each of 12 lessons and three placements. Keep existing six world IDs, stored progress, stars and access gates unchanged. The P0 English outcome catalog now includes garden.alphabet for letter names and basic real-word phonics. A1 phonics is partial, A2 phonics is still unimplemented; device TTS is NOT a professional isolated phoneme recording. Do not label tile-based word building as independent writing mastery. Review docs/VENTRA_ALPHABET_GROVE_P1.md before extending.
+
+## P2 Guided Journey — 2026-11-17
+Canonical read-only course model: apps/web/src/lib/learning/englishCourseJourney.ts; user interface: apps/web/src/components/learning/journey/EnglishJourneyDashboard.tsx. P0 CURRICULUM_SURFACES stays the one authority for playable game IDs. Never suggest unavailable games, never treat missing/failed progress reads as zero, never infer mastery from stars. Respect old whole-island completions and the existing animals→colors→numbers locks. Keep 'Oyun Yolum' mode selection separate from 'İngilizce Yolculuğum'. See docs/VENTRA_ENGLISH_JOURNEY_P2.md.

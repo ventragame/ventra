@@ -86,3 +86,6 @@ Bu bağlantılar **öğretim sıralama tavsiyesidir**. Çocuk örneğin doğruda
 - Resmî MEB/CEFR kazanım eşlemesi, güncel müfredat referansları, doğru İngilizce telaffuz incelemesi ve çocuklarla ölçülen hatırlama kazanımları **ayrı QA kapısıdır**. P0 bunları yapılmış saymaz.
 
 **Tarihsel teknik not:** `packages/shared/src/curriculum.ts`, `packages/shared/src/outcomes.ts` ve `packages/shared/src/catalog/skills.json` içinde eski matematik örnekleri vardır; mevcut Kids English müfredatı bunlara bağlı değildir. Geriye dönük kullanım riskinden dolayı onları bu P0 işi kapsamında silmedik veya yeniden anlamlandırmadık.
+
+### P2 — İngilizce Yolculuğum (2026-11-17)
+P0 kazanım kataloğu artık 7-duraklı P2 öğrenme rehberinde 14 gerçek oyun yüzeyine yönlendirme için kullanılır. Eksik konu/gap dersleri oynanabilir diye gösterilmez. Yeni oyun kilidi oluşturulmaz; oyunun tamamlanması resmî CEFR seviyesi veya bağımsız dil becerisi olarak sayılmaz. Ayrıntılar: docs/VENTRA_ENGLISH_JOURNEY_P2.md

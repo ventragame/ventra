@@ -118,3 +118,6 @@ The runtime English outcome catalog is now `apps/web/src/lib/learning/englishCur
 ### 2026-11-16 — P1 Harf Korusu mini-area
 
 Word Garden now includes an optional alphabet/initial-reading mini-area, not a seventh main island. A separate game ID island_word_garden_alphabet preserves all original six-island and subworld keys. Twelve short lessons introduce 26 letter names/forms, spoken whole-word onset/ending examples and curated three-letter words. Three grade/placement bands use the same foundational content (with different task load); this is not formal CEFR mastery. The P0 registry now maps fourteen game surfaces: letter names authored at all placements; Pre-A1 basic phonics authored, A1 partial and A2 advanced phonics an explicit gap. See docs/VENTRA_ALPHABET_GROVE_P1.md. Device TTS cannot be presented as a verified isolated-phoneme recording.
+
+### 2026-11-17 — P2 guided course navigation
+The English Journey dashboard exposes seven learning chapters linked to all fourteen real P0 teaching surfaces across six existing islands, without copying any games. Suggestions use saved playable level status, not mastery claims. Real Garden locks, grade-aware number ceilings and legacy whole-island completion remain intact. See docs/VENTRA_ENGLISH_JOURNEY_P2.md.

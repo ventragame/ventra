@@ -338,3 +338,11 @@ See [CM1 acceptance and implemented grammatical families](./CM1_UYANAN_MEYDAN_GD
 - P0 müfredat sözleşmesi güncellendi: 78 kazanım = 58 kod destekli / 1 kısmi / 19 açık; 14 oyun yüzeyi. A2 ileri phonics kapsamda değildir.
 - Teknik test ve CI yanında **gerçek çocuk/dil öğretmeni ve fiziksel Android/iOS ses-UX kabulü hâlâ gerekli**. Cihaz TTS'si tekil fonem kaydı değildir. Production deploy ve DB migration yok.
 - Ayrıntılı P1 GDD/QA: docs/VENTRA_ALPHABET_GROVE_P1.md
+
+### 2026-11-17 — P2: İngilizce Yolculuğum
+- Yedi öğrenme durağı, 14 mevcut oyun yüzeyi ve 'Şimdi ne öğrenmeliyim?' ana eğitim rehberi eklendi.
+- P0 gerçek gameId kayıtlarından gelişim okunur. Pre-A1 ilk harf ve kelime aşamaları arasında dengeli ilerler; A1/A2 zorunlu alfabe tekrarına yönlendirilmez.
+- Kelime Bahçesi alt oyunlarına, Hikâye Ormanı'nın üç oyununa ve diğer dört adaya doğrudan yönlendirme yapılır. Altı ana ada ve kayıtları değiştirilmedi.
+- Mevcut hayvan→renk→sayı oyun kilitleri ve eski whole-island kayıtları korunur; başarısız progress okuma sıfır sayılmaz.
+- Oyun tamamlanması, İngilizce seviye ustalığı/CEFR kanıtı olarak gösterilmez. Yeni DB migration veya production deploy yapılmadı.
+- QA ve kullanıcı kabulü: docs/VENTRA_ENGLISH_JOURNEY_P2.md
