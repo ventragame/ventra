@@ -1,6 +1,7 @@
 'use client';
 import React,{useEffect,useRef,useState} from 'react';
 import {soundService} from '@/lib/audio/SoundService';
+import {themeScene,visualForEnglishWord} from '@/lib/learning/learningArt';
 import {getProgressRepository} from '@/lib/progress';
 import type {EnglishPlacement} from '@/lib/learning/gradeAwareLearningPolicy';
 import {THEME_DEFINITIONS,THEME_TIERS,THEME_ORDER,
@@ -12,6 +13,7 @@ import {getThemeTownProgress,recordThemeQuest,
  type ThemeTownProgress} from '@/lib/learning/themeQuestProgress';
 import {loadThemeCheckpoint,saveThemeCheckpoint,clearThemeCheckpoint} from '@/lib/learning/themeQuestCheckpoint';
 import './theme-town.css';
+import './theme-art-v2.css';
 
 type Props={profileId:string;englishLevel:EnglishPlacement;gradeLevel:number|null;
  onBack:()=>void;onSaved?:()=>void;};
@@ -72,6 +74,7 @@ export function ThemeTownAdventure({profileId,englishLevel,gradeLevel,onBack,onS
  const runRef=useRef(0),isMounted=useRef(true),lockRef=useRef(false);
  const timerRef=useRef<ReturnType<typeof setTimeout>|null>(null);
  const task=deck?.tasks[step],currentTheme=THEME_DEFINITIONS.find(t=>t.id===active)!;
+ const wordArt=task?.word?visualForEnglishWord(task.word.en):null;
  const gradeMode=gradeLevel!==null&&gradeLevel<=2?'Küçük kaşif':gradeLevel!==null&&gradeLevel>=5?'İleri kaşif':'Kaşif';
  const tierLabel=THEME_TIERS[tier];
  const recommended=THEME_ORDER.find(t=>!progress.replays[t])??'school';
@@ -123,11 +126,11 @@ export function ThemeTownAdventure({profileId,englishLevel,gradeLevel,onBack,onS
   setSaveError('');setFeedback('');setResult(null);setPhase('playing');
   soundService.playSfx('island_portal',0.35);
  };
- const speak=(text:string)=>{
+ const speak=(text:string,slow=false)=>{
   if(saving||locked||!task)return;
   soundService.unlockAudio();setSpeechFailed(false);
   const worked=soundService.speakEnglish(text,{
-   rate:gradeLevel!==null&&gradeLevel<=2?0.8:0.92,
+   rate:slow?0.67:gradeLevel!==null&&gradeLevel<=2?0.8:0.92,
    onStart:()=>setSpeechStarted(true),
    onError:()=>setSpeechFailed(true)
   });
@@ -187,7 +190,7 @@ export function ThemeTownAdventure({profileId,englishLevel,gradeLevel,onBack,onS
    taskId:task.id,kind:task.kind,firstTryCorrect:firstTry,
    mistakes:wrongThisStep,hintUsed:hintVisible,speechStarted,
    independent:firstTry&&task.kind!=='discover'&&task.kind!=='assemble'&&
-    (!isSpeechQuestion(task)||speechStarted)
+    (task.kind!=='picture'||!speechStarted)&&(!isSpeechQuestion(task)||speechStarted)
   };
   const nextAnswers=[...answers,evidence];
   setAnswers(nextAnswers);
@@ -226,9 +229,11 @@ export function ThemeTownAdventure({profileId,englishLevel,gradeLevel,onBack,onS
        {progress.completed===0?'İlk Sokağı Keşfet':'Yolculuğa Devam Et'} <span aria-hidden="true">→</span>
       </button>
      </div>
-     <div className="tt-hero-illustration" aria-hidden="true">
-      <img src="/assets/word-garden/premium-v2/cover.webp" alt="" loading="lazy"/>
-      <span className="tt-art-a">🏫</span><span className="tt-art-b">🌈</span><span className="tt-art-c">🕰️</span>
+     <div className="tt-hero-illustration tt-hero-illustration-v2" aria-hidden="true">
+      <div className="tt-scene-mosaic">
+       {(['school','weather','clothes','hobbies'] as const).map(id=><img key={id}
+        src={themeScene(id)} alt="" loading="lazy" decoding="async"/>)}
+      </div>
      </div>
     </section>
     <div className="tt-progress-overview" aria-label="Tema Kasabası tamamlanan oyun sayısı">
@@ -252,7 +257,8 @@ export function ThemeTownAdventure({profileId,englishLevel,gradeLevel,onBack,onS
         aria-label={theme.title+', '+(count?'tekrar oyna':'keşfet')}>
         <div className="tt-world-top"><span>{String(i+1).padStart(2,'0')} / 08</span>
          <span>{count?'⭐ '+lastStars:theme.id===recommended?'✦ Önerilen':'↗'}</span></div>
-        <span className="tt-world-emoji" aria-hidden="true">{theme.icon}</span>
+        <span className="tt-world-emoji tt-world-scene" aria-hidden="true"><img
+          src={themeScene(theme.id)} alt="" loading="lazy" decoding="async"/></span>
         <strong>{theme.title}</strong><small>{theme.subtitle}</small>
         <span className="tt-world-action">{count?'↻ Yeniden Oyna':'Keşfet →'}</span>
        </button>;
@@ -263,7 +269,7 @@ export function ThemeTownAdventure({profileId,englishLevel,gradeLevel,onBack,onS
      <p><strong>Her seviyeye uygun yol:</strong> Sınıfın ve seçtiğin İngilizce düzeyi görevlerin kelimelerini ve uzunluğunu etkiler. Bir dersi bitirmek, tüm kelimeleri kalıcı öğrendiğin anlamına gelmez.</p></aside>
    </main>}
    {phase==='playing'&&<main className="tt-play">
-    <div className="tt-play-heading"><div><span aria-hidden="true">{currentTheme.icon}</span>
+    <div className="tt-play-heading"><div><img className="tt-play-scene" src={themeScene(active)} alt="" decoding="async"/>
      <strong>{currentTheme.title}</strong><small>{tierLabel} · {gradeMode}</small></div>
      <span>{Math.min(step+1,count)} / {count}</span></div>
     <div className="tt-lesson-progress" role="progressbar" aria-label="Dersin ilerlemesi" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}>
@@ -276,19 +282,25 @@ export function ThemeTownAdventure({profileId,englishLevel,gradeLevel,onBack,onS
       <p className="tt-clock-instruction">🕰️ Kısa ibre saati, uzun ibre dakikayı gösterir. Resme dikkatlice bak.</p>
       <ClockFace minutes={task.clockMinutes}/>
      </>}
-     {(task.kind==='discover'||task.kind==='picture')&&task.word&&<div className="tt-picture">
-      <span aria-hidden="true">{task.word.icon}</span>
+     {(task.kind==='discover'||task.kind==='picture')&&task.word&&<div className="tt-picture tt-picture-v2">
+      {wordArt?<img className="tt-word-illustration" src={wordArt} alt="" decoding="async"/>:
+       <span aria-hidden="true">{task.word.icon}</span>}
       <small>{task.word.tr}</small>
       {task.kind==='discover'&&<strong>{task.word.en}</strong>}
-     </div>}
+     </div>
      {task.kind==='meaning'&&task.word&&<div className="tt-word-spotlight">{task.word.en}</div>}
-     {(task.kind==='phrase'||task.kind==='assemble')&&task.phrase&&<div className="tt-scenario">
+     {(task.kind==='phrase'||task.kind==='assemble')&&task.phrase&&<div className="tt-scenario tt-scenario-v2">
+      <img className="tt-scenario-theme" src={themeScene(active)} alt="" aria-hidden="true" decoding="async"/>
       <span aria-hidden="true">{task.phrase.icon}</span><strong>{task.phrase.tr}</strong>
-     </div>}
+     </div>
      {task.kind==='listen'&&<div className="tt-headphones" aria-hidden="true">🎧</div>}
-     {task.audioText&&<button className="tt-speak" type="button" disabled={saving||locked}
-      onClick={()=>speak(task.audioText!)}>🔊 {task.kind==='discover'?'İngilizcesini dinle':
-      task.kind==='listen'?'Kelimeyi dinle':'İngilizceyi dinle'}</button>}
+     {task.audioText&&<div className="tt-sound-options">
+       <button className="tt-speak" type="button" disabled={saving||locked}
+        onClick={()=>speak(task.audioText!)}>🔊 {task.kind==='discover'?'İngilizcesini dinle':
+        task.kind==='listen'?'Kelimeyi dinle':'İngilizceyi dinle'}</button>
+       <button className="tt-speak tt-speak-slow" type="button" disabled={saving||locked}
+        onClick={()=>speak(task.audioText!,true)}>🐢 Yavaş dinle</button>
+      </div>
      {speechFailed&&<p className="tt-audio-warning" role="status">
       Ses başlatılamadı. Görselle ve ipucuyla devam edebilirsin. Bu görev dinleme yeterliliği sayılmaz.
      </p>}
