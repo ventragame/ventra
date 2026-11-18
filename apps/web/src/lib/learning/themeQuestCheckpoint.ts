@@ -12,7 +12,7 @@ export interface ThemeCheckpoint{
  answers:readonly ThemeAnswerEvidence[];mistakes:number;hints:number;
  expiresAt:number;
 }
-const TYPES=new Set(['discover','picture','listen','meaning','phrase','assemble','clock']);
+const TYPES=new Set(['discover','picture','translate','listen','meaning','phrase','assemble','clock']);
 const integer=(x:unknown,max:number)=>typeof x==='number'&&Number.isSafeInteger(x)&&x>=0&&x<=max;
 export function themeCheckpointKey(profileId:string,placement:EnglishPlacement,tier:ThemeTier,theme:ThemeId):string{
  return 'ventra-theme-p3:'+encodeURIComponent(profileId)+':'+placement+':'+tier+':'+theme;

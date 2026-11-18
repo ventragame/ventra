@@ -4,10 +4,11 @@
  */
 import type {EnglishPlacement} from './gradeAwareLearningPolicy.ts';
 import {resolveVocabularyTier} from './gradeAwareLearningPolicy.ts';
+import {visualForEnglishWord} from './learningArt.ts';
 import {THEME_DEFINITIONS,THEME_TIERS,themeById,
  type ThemeId,type ThemeTier,type ThemeLexeme,type ThemePhrase} from './themeQuestCatalog.ts';
 
-export type ThemeTaskKind='discover'|'picture'|'listen'|'meaning'|'phrase'|'assemble'|'clock';
+export type ThemeTaskKind='discover'|'picture'|'translate'|'listen'|'meaning'|'phrase'|'assemble'|'clock';
 export interface ThemeTask{
  id:string;kind:ThemeTaskKind;theme:ThemeId;answer:string;choices:readonly string[];
  promptTr:string;word?:ThemeLexeme;phrase?:ThemePhrase;audioText?:string;
@@ -81,10 +82,15 @@ export function planThemeLesson(input:{
  const intro=(w:ThemeLexeme)=>make('discover',w.en,{
   choices:[],word:w,promptTr:'Yeni kelimemiz: '+w.tr,audioText:w.en
  });
- const pictured=(w:ThemeLexeme)=>make('picture',w.en,{
-  choices:options(w.en,bank.words.map(x=>x.en),salt+serial*19+replay*37,width),
-  word:w,promptTr:'Resimdeki '+w.tr+' İngilizcede nasıl söylenir?',audioText:w.en
- });
+ const pictured=(w:ThemeLexeme)=>{
+  // Do not test arbitrary category symbols as if they were literal word pictures.
+  const exact=Boolean(visualForEnglishWord(w.en,w.tr));
+  return make(exact?'picture':'translate',w.en,{
+   choices:options(w.en,bank.words.map(x=>x.en),salt+serial*19+replay*37,width),
+   word:w,promptTr:exact?'Resimdeki '+w.tr+' İngilizcede nasıl söylenir?':
+    '“'+w.tr+'” İngilizcede nasıl söylenir?',audioText:w.en
+  });
+ };
  const heard=(w:ThemeLexeme)=>make('listen',w.en,{
   choices:options(w.en,bank.words.map(x=>x.en),salt+serial*23+replay*41,width),
   promptTr:'Kelimeyi dinle ve İngilizce yazılışını seç.',audioText:w.en
@@ -134,6 +140,7 @@ export function themeTaskHint(task:ThemeTask):string{
  if(task.kind==='discover')return 'Resme bak ve kelimeyi dinle.';
  if(task.kind==='clock')return 'Kısa ibre saati, uzun ibre dakikayı gösterir. Uzun ibre 12’deyse tam saat, 3’teyse çeyrek geçer.';
  if(task.kind==='listen')return 'Kulaklık düğmesinden İngilizce kelimeyi tekrar dinle.';
+ if(task.kind==='translate')return 'Türkçe anlamı düşün ve doğru İngilizce sözcüğü seç. Konu simgesi birebir nesne resmi değildir.';
  if(task.kind==='assemble')return 'Önce özneyi bul. Sonra eylemi ve kalan kelimeleri sırayla yerleştir.';
  if(task.kind==='phrase')return 'Resimdeki durumu ve Türkçe açıklamayı düşün.';
  return 'İngilizce kelimenin ilk harfi: '+task.word?.en.trim().charAt(0).toUpperCase()+'.';
@@ -155,7 +162,9 @@ export function validateThemeDecks():string[]{
        task.kind!=='assemble')errors.push('Missing correct choice '+task.id);
       if(task.kind!=='discover'&&task.kind!=='assemble'&&task.choices.length<2)
        errors.push('Only one choice '+task.id);
-      if(task.kind==='clock'&&task.clockMinutes===undefined)
+      if(task.kind==='picture'&&(!task.word||!visualForEnglishWord(task.word.en,task.word.tr)))errors.push('Missing exact artwork '+task.id);
+       if(task.kind==='translate'&&task.word&&visualForEnglishWord(task.word.en,task.word.tr))errors.push('Artwork incorrectly skipped '+task.id);
+       if(task.kind==='clock'&&task.clockMinutes===undefined)
        errors.push('Missing clock '+task.id);
      }
      const signature=deck.tasks.map(t=>t.kind+':'+t.answer).join('|');

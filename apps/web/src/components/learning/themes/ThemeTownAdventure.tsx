@@ -2,6 +2,7 @@
 import React,{useEffect,useRef,useState} from 'react';
 import {soundService} from '@/lib/audio/SoundService';
 import {themeScene,visualForEnglishWord} from '@/lib/learning/learningArt';
+import {ThemeWordCue,ThemeWordArtwork} from './ThemeWordCue';
 import {getProgressRepository} from '@/lib/progress';
 import type {EnglishPlacement} from '@/lib/learning/gradeAwareLearningPolicy';
 import {THEME_DEFINITIONS,THEME_TIERS,THEME_ORDER,
@@ -25,7 +26,7 @@ const empty=(tier:ThemeTier):ThemeTownProgress=>({
  calendar:0,hobbies:0,transport:0,feelings:0},tier
 });
 const taskLabel=(kind:ThemeTask['kind']):string=>({
- discover:'KEŞFET',picture:'RESMİ TANIMLA',listen:'DİNLE VE BUL',
+ discover:'KEŞFET',picture:'RESMİ TANIMLA',translate:'KELİMEYİ BUL',listen:'DİNLE VE BUL',
  meaning:'ANLAMINI BUL',phrase:'GÜNLÜK İNGİLİZCE',assemble:'CÜMLEYİ KUR',clock:'SAATİ OKU'
 })[kind];
 const wordTiles=(task:ThemeTask,selected:readonly number[])=>selected.map(i=>task.choices[i]);
@@ -282,16 +283,15 @@ export function ThemeTownAdventure({profileId,englishLevel,gradeLevel,onBack,onS
       <p className="tt-clock-instruction">🕰️ Kısa ibre saati, uzun ibre dakikayı gösterir. Resme dikkatlice bak.</p>
       <ClockFace minutes={task.clockMinutes}/>
      </>}
-     {(task.kind==='discover'||task.kind==='picture')&&task.word&&<div className="tt-picture tt-picture-v2">
-      {wordArt?<img className="tt-word-illustration" src={wordArt} alt="" decoding="async"/>:
-       <span aria-hidden="true">{task.word.icon}</span>}
+     {(task.kind==='discover'||task.kind==='picture'||task.kind==='translate')&&task.word&&<div className="tt-picture tt-picture-v2">
+      <ThemeWordArtwork key={task.word.en} theme={active} english={task.word.en} translation={task.word.tr} src={wordArt}/>
       <small>{task.word.tr}</small>
       {task.kind==='discover'&&<strong>{task.word.en}</strong>}
      </div>}
      {task.kind==='meaning'&&task.word&&<div className="tt-word-spotlight">{task.word.en}</div>}
      {(task.kind==='phrase'||task.kind==='assemble')&&task.phrase&&<div className="tt-scenario tt-scenario-v2">
       <img className="tt-scenario-theme" src={themeScene(active)} alt="" aria-hidden="true" decoding="async"/>
-      <span aria-hidden="true">{task.phrase.icon}</span><strong>{task.phrase.tr}</strong>
+      <ThemeWordCue theme={active}/><strong>{task.phrase.tr}</strong>
      </div>}
      {task.kind==='listen'&&<div className="tt-headphones" aria-hidden="true">🎧</div>}
      {task.audioText&&<div className="tt-sound-options">

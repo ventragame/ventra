@@ -10,6 +10,7 @@ import {
  validateThemeDecks,isThemeAnswerCorrect,themeTaskHint
 } from '../src/lib/learning/themeQuestEngine.ts';
 import {recordThemeQuest,getThemeTownProgress} from '../src/lib/learning/themeQuestProgress.ts';
+import {visualForEnglishWord} from '../src/lib/learning/learningArt.ts';
 import {
  themeCheckpointKey,parseThemeCheckpoint,THEME_CHECKPOINT_TTL_MS
 } from '../src/lib/learning/themeQuestCheckpoint.ts';
@@ -61,7 +62,7 @@ test('Lesson bank is reproducible, multi-modal, age-aware and replayable across 
      assert.equal(deck.tasks[2].word?.en,deck.tasks[0].word?.en);
      assert.equal(deck.tasks[3].word?.en,deck.tasks[1].word?.en);
      if(theme!=='calendar')assert.equal(deck.tasks[5].word?.en,deck.tasks[0].word?.en);
-     assert.ok(deck.tasks.some(t=>t.kind==='picture'));
+     assert.ok(deck.tasks.some(t=>t.kind==='picture'||t.kind==='translate'));
      assert.ok(deck.tasks.some(t=>t.kind==='listen'));
      assert.ok(deck.tasks.some(t=>t.kind==='phrase'));
      if(expected>=10)assert.ok(deck.tasks.some(t=>t.kind==='assemble'));
@@ -80,7 +81,9 @@ test('Lesson bank is reproducible, multi-modal, age-aware and replayable across 
        assert.ok(task.choices.some(x=>isThemeAnswerCorrect(task,x)));
        assert.equal(new Set(task.choices.map(x=>x.toLowerCase())).size,task.choices.length);
       }
-      if(task.kind==='listen')assert.ok(task.audioText&&task.audioText.length>0);
+      if(task.kind==='picture')assert.ok(task.word&&visualForEnglishWord(task.word.en,task.word.tr));
+       if(task.kind==='translate')assert.equal(visualForEnglishWord(task.word?.en??'',task.word?.tr),null);
+       if(task.kind==='listen')assert.ok(task.audioText&&task.audioText.length>0);
       if(task.kind==='clock')assert.ok(Number.isInteger(task.clockMinutes));
      }
      const sig=deck.tasks.map(t=>t.kind+':'+t.answer).join('|');
@@ -218,4 +221,14 @@ test('Theme Town is actually navigable from Garden and P2, with mobile clock and
  assert.match(kids,/onThemeProgressSaved/);
  assert.match(css,/max-width:640px/);
  assert.match(css,/prefers-reduced-motion:reduce/);
+});
+
+
+test('Picture task only uses approved exact artwork; semantic card never falls back to emoji',()=>{
+ const ui=read('../src/components/learning/themes/ThemeTownAdventure.tsx');
+ const cue=read('../src/components/learning/themes/ThemeWordCue.tsx');
+ assert.match(ui,/task.kind==='translate'/);
+ assert.doesNotMatch(ui,/task\.word\.icon|task\.phrase\.icon/);
+ assert.match(cue,/data-visual-kind="topic-cue"/);
+ assert.match(cue,/onError=\{\(\)=>setFailed\(true\)\}/);
 });

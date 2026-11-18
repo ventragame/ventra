@@ -229,3 +229,10 @@ test('UI is linked from Word Garden without modifying original six district IDs 
  assert.match(read('../src/components/learning/alphabet/alphabet-grove.css'),/prefers-reduced-motion:reduce/);
  assert.match(garden,/GARDEN_ORDER:readonly GardenDistrictId\[\]=\['animals','colors','numbers','food','family','sanctuary'\]/);
 });
+
+
+test('Alphabet unknown short words never show unrelated emoji pictures',()=>{
+ const ui=fs.readFileSync(new URL('../src/components/learning/alphabet/AlphabetGroveAdventure.tsx',import.meta.url),'utf8');
+ assert.match(ui,/ag-unillustrated-word/);
+ assert.doesNotMatch(ui,/task\.word\.icon/);
+});
