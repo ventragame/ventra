@@ -203,7 +203,7 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
 
     <section className="wg-district-section" aria-labelledby="wg-district-title">
      <div className="wg-section-heading">
-      <h2 id="wg-district-title"><span aria-hidden="true">🎮</span> Altı Büyülü Dünya</h2>
+      <h2 id="wg-district-title"><span aria-hidden="true">🎮</span> Altı büyülü dünya</h2>
       <span className="wg-count-pill" aria-label={`${summary.finished} dünya tamamlandı`}>⭐ {summary.finished}/6</span>
      </div>
      <div className="wg-world-grid">
