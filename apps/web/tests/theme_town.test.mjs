@@ -11,6 +11,7 @@ import {
 } from '../src/lib/learning/themeQuestEngine.ts';
 import {recordThemeQuest,getThemeTownProgress} from '../src/lib/learning/themeQuestProgress.ts';
 import {visualForEnglishWord} from '../src/lib/learning/learningArt.ts';
+import {THEME_CUE_KEYS,themeCueForWord} from '../src/lib/learning/themeVisualSemantics.ts';
 import {
  themeCheckpointKey,parseThemeCheckpoint,THEME_CHECKPOINT_TTL_MS
 } from '../src/lib/learning/themeQuestCheckpoint.ts';
@@ -231,4 +232,21 @@ test('Picture task only uses approved exact artwork; semantic card never falls b
  assert.doesNotMatch(ui,/task\.word\.icon|task\.phrase\.icon/);
  assert.match(cue,/data-visual-kind="topic-cue"/);
  assert.match(cue,/onError=\{\(\)=>setFailed\(true\)\}/);
+});
+
+
+test('All 254 Theme Town vocabulary entries have manually reviewed semantic icons',()=>{
+ let reviewed=0;
+ for(const theme of THEME_DEFINITIONS){
+  const vocabulary=new Set();
+  for(const tier of theme.tiers)for(const word of tier.words){
+   reviewed++;
+   const key=word.en.toLocaleLowerCase('en-US');
+   assert.ok(Object.hasOwn(THEME_CUE_KEYS[theme.id],key),'Missing semantic cue '+theme.id+'/'+key);
+   assert.equal(typeof themeCueForWord(theme.id,word.en),'string');
+   vocabulary.add(key);
+  }
+  assert.deepEqual(Object.keys(THEME_CUE_KEYS[theme.id]).sort(),[...vocabulary].sort(),'Orphan/missing words '+theme.id);
+ }
+ assert.equal(reviewed,254);
 });
