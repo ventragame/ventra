@@ -91,6 +91,7 @@ export const WORD_VISUALS:Readonly<Record<string,string>>={
  'happy':'/assets/learning-art/concepts/happy.svg',
  'sad':'/assets/learning-art/concepts/sad.svg',
  'angry':'/assets/learning-art/concepts/angry.svg',
+ 'sunny':'/assets/learning-art/alphabet/s.svg',
  'shirt':'/assets/learning-art/concepts/shirt.svg',
  'coat':'/assets/learning-art/concepts/coat.svg',
  'shoes':'/assets/learning-art/concepts/shoes.svg',
@@ -106,8 +107,12 @@ export const WORD_VISUALS:Readonly<Record<string,string>>={
  'leg':'/assets/learning-art/concepts/leg.svg'
 };
 /** Exact-match only. An unknown or abstract term has no pictorial claim. */
-export function visualForEnglishWord(english:string):string|null{
- return WORD_VISUALS[english.trim().toLocaleLowerCase('en-US')]??null;
+export function visualForEnglishWord(english:string,translation?:string):string|null{
+ const key=english.trim().toLocaleLowerCase('en-US');
+ // In alphabet reading "top" means "uppermost", NOT the pictured spinning toy.
+ // Never substitute a homograph drawing just because the spelling matches.
+ if(key==='top'&&translation?.trim().toLocaleLowerCase('tr-TR')!=='topaç')return null;
+ return WORD_VISUALS[key]??null;
 }
 export function alphabetVisual(letterId:string):string|null{
  return ALPHABET_ANCHOR_ART[letterId.trim().toLowerCase()]??null;
