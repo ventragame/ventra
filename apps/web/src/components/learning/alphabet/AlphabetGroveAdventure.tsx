@@ -291,8 +291,8 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
        <div className="ag-word-link-picture"><img className="ag-illustrated-word" src={alphabetVisual(focus.id)!} alt="" decoding="async"/>
         <small>{focus.tr}</small></div>
       </div>}
-      {task.word&&<div className="ag-target-art">{visualForEnglishWord(task.word.word)?
-        <img className="ag-illustrated-word" src={visualForEnglishWord(task.word.word)!} alt="" decoding="async"/>:
+      {task.word&&<div className="ag-target-art">{visualForEnglishWord(task.word.word,task.word.tr)?
+        <img className="ag-illustrated-word" src={visualForEnglishWord(task.word.word,task.word.tr)!} alt="" decoding="async"/>:
         <span aria-hidden="true">{task.word.icon}</span>}<small>{task.word.tr}</small></div>}
       {task.kind==='sound-in-word'&&focus&&<div className="ag-target-art"><img className="ag-illustrated-word" src={alphabetVisual(focus.id)!} alt="" decoding="async"/><small>{focus.tr}</small></div>}
       {task.kind==='letter-name'&&<div className="ag-hearing-icon" aria-hidden="true">🎧</div>}

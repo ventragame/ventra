@@ -74,7 +74,7 @@ export function ThemeTownAdventure({profileId,englishLevel,gradeLevel,onBack,onS
  const runRef=useRef(0),isMounted=useRef(true),lockRef=useRef(false);
  const timerRef=useRef<ReturnType<typeof setTimeout>|null>(null);
  const task=deck?.tasks[step],currentTheme=THEME_DEFINITIONS.find(t=>t.id===active)!;
- const wordArt=task?.word?visualForEnglishWord(task.word.en):null;
+ const wordArt=task?.word?visualForEnglishWord(task.word.en,task.word.tr):null;
  const gradeMode=gradeLevel!==null&&gradeLevel<=2?'Küçük kaşif':gradeLevel!==null&&gradeLevel>=5?'İleri kaşif':'Kaşif';
  const tierLabel=THEME_TIERS[tier];
  const recommended=THEME_ORDER.find(t=>!progress.replays[t])??'school';
