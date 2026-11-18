@@ -287,12 +287,12 @@ export function ThemeTownAdventure({profileId,englishLevel,gradeLevel,onBack,onS
        <span aria-hidden="true">{task.word.icon}</span>}
       <small>{task.word.tr}</small>
       {task.kind==='discover'&&<strong>{task.word.en}</strong>}
-     </div}
+     </div>}
      {task.kind==='meaning'&&task.word&&<div className="tt-word-spotlight">{task.word.en}</div>}
      {(task.kind==='phrase'||task.kind==='assemble')&&task.phrase&&<div className="tt-scenario tt-scenario-v2">
       <img className="tt-scenario-theme" src={themeScene(active)} alt="" aria-hidden="true" decoding="async"/>
       <span aria-hidden="true">{task.phrase.icon}</span><strong>{task.phrase.tr}</strong>
-     </div}
+     </div>}
      {task.kind==='listen'&&<div className="tt-headphones" aria-hidden="true">🎧</div>}
      {task.audioText&&<div className="tt-sound-options">
        <button className="tt-speak" type="button" disabled={saving||locked}
@@ -300,7 +300,7 @@ export function ThemeTownAdventure({profileId,englishLevel,gradeLevel,onBack,onS
         task.kind==='listen'?'Kelimeyi dinle':'İngilizceyi dinle'}</button>
        <button className="tt-speak tt-speak-slow" type="button" disabled={saving||locked}
         onClick={()=>speak(task.audioText!,true)}>🐢 Yavaş dinle</button>
-      </div}
+      </div>}
      {speechFailed&&<p className="tt-audio-warning" role="status">
       Ses başlatılamadı. Görselle ve ipucuyla devam edebilirsin. Bu görev dinleme yeterliliği sayılmaz.
      </p>}
