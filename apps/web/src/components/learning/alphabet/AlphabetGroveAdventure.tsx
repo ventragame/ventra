@@ -1,6 +1,7 @@
 'use client';
 import React,{useEffect,useRef,useState} from 'react';
 import {soundService} from '@/lib/audio/SoundService';
+import {alphabetVisual,visualForEnglishWord} from '@/lib/learning/learningArt';
 import {getProgressRepository} from '@/lib/progress';
 import type {EnglishPlacement} from '@/lib/learning/gradeAwareLearningPolicy';
 import {
@@ -13,6 +14,7 @@ import {
  loadAlphabetCheckpoint,saveAlphabetCheckpoint,clearAlphabetCheckpoint
 } from '@/lib/learning/alphabetCheckpoint';
 import './alphabet-grove.css';
+import './alphabet-art-v2.css';
 
 type Phase='home'|'playing'|'complete';
 interface Props{
@@ -123,6 +125,16 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
   });
   if(!done)setAudioFailed(true);
  };
+ const speakSlow=(value:string)=>{
+  if(saving||resolved)return;
+  soundService.unlockAudio();setAudioFailed(false);
+  const worked=soundService.speakEnglish(value,{
+   rate:0.67,
+   onStart:()=>{if(task?.kind==='word-link'||task?.kind==='sound-in-word')setHeard(true);},
+   onError:()=>setAudioFailed(true)
+  });
+  if(!worked)setAudioFailed(true);
+ };
  const showHint=()=>{
   if(saving||resolved||!task||hintVisible)return;
   setHintVisible(true);setHints(v=>v+1);
@@ -212,14 +224,11 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
        {progress.completed?'Kaldığın yerden keşfet':'Keşfe Başla'} <span aria-hidden="true">→</span>
       </button>
      </div>
-     <div className="ag-hero-art" aria-hidden="true">
-      <div className="ag-art-sun">✧</div>
-      <div className="ag-tree ag-tree-left">🌳</div>
-      <div className="ag-tree ag-tree-right">🌲</div>
+     <div className="ag-hero-art ag-hero-art-v2" aria-hidden="true">
+      <img className="ag-forest-scene" src="/assets/learning-art/alphabet/grove.svg" alt=""/>
       <div className="ag-art-card ag-art-a">A<span>a</span></div>
       <div className="ag-art-card ag-art-b">B<span>b</span></div>
       <div className="ag-art-card ag-art-c">C<span>c</span></div>
-      <div className="ag-art-ground">🌼 🌱 🍄 🌷 🌿</div>
      </div>
     </section>
     <div className="ag-metrics">
@@ -241,7 +250,7 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
         aria-label={unit.title+', '+unit.subtitle+', '+(done?'tekrar oyna':'başla')}>
         <span className="ag-unit-top"><span className="ag-unit-index">{String(index+1).padStart(2,'0')}</span>
          <span className="ag-unit-star">{done?'⭐ '+(progress.stars[unit.id]??0):suggested?'✦ Önerilen':'↗'}</span></span>
-        <span className="ag-unit-symbol" aria-hidden="true">{unit.icon}</span>
+        <span className="ag-unit-symbol ag-unit-art" aria-hidden="true"><img src={unit.group==='letters'?alphabetVisual(unit.letters[0])??'/assets/learning-art/alphabet/grove.svg':'/assets/learning-art/alphabet/grove.svg'} alt="" loading="lazy" decoding="async"/></span>
         <strong>{unit.title}</strong><small>{unit.subtitle}</small>
         <span className="ag-unit-action">{done?'↻ Tekrar oyna':'→ Keşfet'}</span>
        </button>;
@@ -264,13 +273,14 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
      <h2>{task.promptTr}</h2>
      {task.kind==='introduce'&&focus&&<div className="ag-introduce">
       <div className="ag-letter-monument"><span>{focus.upper}</span><small>{focus.lower}</small></div>
-      <div className="ag-intro-example"><span className="ag-emoji" aria-hidden="true">{focus.icon}</span>
+      <div className="ag-intro-example"><img className="ag-illustrated-word" src={alphabetVisual(focus.id)!} alt="" decoding="async"/>
        <strong>{focus.anchor}</strong><small>{focus.tr}</small>
        <p>Kelimenin {focus.focus==='end'?'sonundaki':'başındaki'} ses: <b>{focus.ipa}</b></p>
        {focus.noteTr&&<p>{focus.noteTr}</p>}</div>
       <div className="ag-voice-row">
        <button type="button" disabled={saving||resolved} onClick={()=>speak(focus.upper,'name')}>🔊 Harf adını dinle</button>
        <button type="button" disabled={saving||resolved} onClick={()=>speak(focus.anchor)}>🎧 Kelimeyi dinle</button>
+       <button type="button" disabled={saving||resolved} onClick={()=>speakSlow(focus.anchor)}>🐢 Yavaş dinle</button>
       </div>
       <button type="button" className="ag-primary-action" disabled={saving||resolved} onClick={()=>finishTask(task.answer)}>Anladım, devam et →</button>
      </div>}
@@ -278,16 +288,20 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
       {task.kind==='word-link'&&focus&&<div className="ag-word-link-scene" aria-label={focus.upper+' harfi ve '+focus.tr+' için İngilizce kelime seç'}>
        <div className="ag-word-link-letter" aria-label={focus.upper+' harfi'}>{focus.upper}</div>
        <span className="ag-word-link-arrow" aria-hidden="true">✦</span>
-       <div className="ag-word-link-picture"><span aria-hidden="true">{focus.icon}</span>
+       <div className="ag-word-link-picture"><img className="ag-illustrated-word" src={alphabetVisual(focus.id)!} alt="" decoding="async"/>
         <small>{focus.tr}</small></div>
       </div>}
-      {task.word&&<div className="ag-target-art"><span aria-hidden="true">{task.word.icon}</span><small>{task.word.tr}</small></div>}
-      {task.kind==='sound-in-word'&&focus&&<div className="ag-target-art"><span aria-hidden="true">{focus.icon}</span><small>{focus.tr}</small></div>}
+      {task.word&&<div className="ag-target-art">{visualForEnglishWord(task.word.word)?
+        <img className="ag-illustrated-word" src={visualForEnglishWord(task.word.word)!} alt="" decoding="async"/>:
+        <span aria-hidden="true">{task.word.icon}</span>}<small>{task.word.tr}</small></div>}
+      {task.kind==='sound-in-word'&&focus&&<div className="ag-target-art"><img className="ag-illustrated-word" src={alphabetVisual(focus.id)!} alt="" decoding="async"/><small>{focus.tr}</small></div>}
       {task.kind==='letter-name'&&<div className="ag-hearing-icon" aria-hidden="true">🎧</div>}
       {task.audioText&&<button type="button" className="ag-listen" disabled={saving||resolved}
        onClick={()=>speak(task.audioText!,task.kind==='letter-name'?'name':'word')}>
        🔊 {task.kind==='letter-name'?'Harf adını dinle':task.kind==='word-link'?'Kelimeyi tekrar dinle':'İngilizce kelimeyi dinle'}
       </button>}
+      {task.audioText&&task.kind!=='letter-name'&&<button type="button" className="ag-listen ag-listen-slow"
+       disabled={saving||resolved} onClick={()=>speakSlow(task.audioText!)}>🐢 Yavaş dinle</button>}
       {audioFailed&&<p role="status" className="ag-audio-warning">Ses bu cihazda başlamadı. İpucunu kullanarak görselden devam edebilirsin; bu dinleme başarısı sayılmaz.</p>}
       {task.kind!=='build-word'&&<div className="ag-choices">
        {task.choices.map((choice,i)=><button type="button" key={i} disabled={resolved||saving}
