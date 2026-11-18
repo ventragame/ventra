@@ -120,19 +120,16 @@ test('Harbor tells the parent when the browser recognizer generates no words',()
  assert.match(engine,/interim-result/);
 });
 
-test('Harbor offers real speech without a custom guardian modal',()=>{
- const ui=read('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
- const capability=read('../src/lib/speech/childSpeech.ts');
- const web=read('../src/lib/speech/webLocalRecognition.ts');
- assert.match(ui,/Ses tanıma çalışmıyor mu/);
- assert.match(ui,/Seçilen sağlayıcı sesi işleyebilir/);
- assert.match(ui,/speechAvailable/);
- assert.match(ui,/onClick=\{\(\)=>void mic\(\)\}/);
- assert.doesNotMatch(ui,/ParentalGateModal|parentConsentOpen|parentGateOpen|setBrowserServiceApproved/);
- assert.doesNotMatch(capability,/parentApprovedBrowserService/);
- assert.match(capability,/beginWebBrowserRecognition\(ctor,ms,onStatus\)/);
- assert.match(web,/recognition\.processLocally=false/);
- assert.doesNotMatch(web,/recognition\.phrases=/);
+test('Children can speak directly while adult settings are behind a separate gate',()=>{
+ const game=read('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
+ const panel=read('../src/components/learning/harbor/HarborSpeechAdultPanel.tsx');
+ assert.ok(game.includes('onClick={()=>void mic()}'));
+ assert.ok(game.includes('<ParentalGateModal isOpen={parentGateOpen}'));
+ assert.ok(game.includes('parentToolsOpen&&<HarborSpeechAdultPanel'));
+ assert.ok(game.includes('Bir yetişkinden yardım iste'));
+ assert.ok(!game.includes('<details className="harbor-parent-tools">'));
+ assert.ok(panel.includes('role="dialog" aria-modal="true"'));
+ assert.ok(panel.includes('harbor-adult-technical'));
 });
 
 test('A microphone that cannot transcribe is never presented as a speech answer',()=>{
@@ -141,29 +138,24 @@ test('A microphone that cannot transcribe is never presented as a speech answer'
  const style=read('../src/components/learning/harbor/harbor-speech.css');
  assert.match(ui,/speechAvailable/);
  assert.match(ui,/disabled=\{busy\|\|listening\|\|locked\.current\|\|!canAnswer\|\|!speechAvailable\}/);
- assert.match(ui,/Ses tanıma çalışmıyor mu/);
+ assert.match(ui,/Bir yetişkinden yardım iste/);
  assert.match(ui,/İngilizce yanıt çözümleniyor/);
  assert.match(ui,/mode='\+result\.mode/);
  assert.match(ui,/network-error/);
  assert.match(capability,/mode:'web-browser'/);
- assert.match(style,/harbor-parent-tools/);
+ assert.match(style,/harbor-adult-overlay/);
  assert.doesNotMatch(ui,/Bakalım ne söyledin|parentAcknowledged/);
 });
 
-test('Real browser speech is the default even if an installed local pack falsely reports available',()=>{
- const capability=read('../src/lib/speech/childSpeech.ts');
+test('Speech errors never auto-switch the provider or show raw child transcripts',()=>{
  const ui=read('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
- assert.match(capability,/speechCapability\(preferLocal=false,preferBrowser=false\)/);
- assert.match(capability,/if\(preferLocal&&localAvailable\)/);
- assert.match(capability,/return \{mode:'web-browser',installable,localAvailable/);
- assert.match(ui,/result\.kind==='unrecognized'/);
- assert.match(ui,/if\(result\.mode==='web-local'\)/);
- assert.match(ui,/setCapability\(\{mode:'web-browser',installable:false,localAvailable:true/);
- assert.match(ui,/Chrome cihaz içi tanımayı dene/);
- assert.match(ui,/Ücretsiz cihaz içi motoru dene/);
- assert.match(ui,/speechCapability\(true\)/);
- assert.match(ui,/Sonraki deneme farklı motorla yapılacak/);
- assert.doesNotMatch(ui,/ParentalGateModal|parentConsentOpen|parentGateOpen/);
+ const speech=read('../src/lib/speech/childSpeech.ts');
+ assert.ok(ui.includes("result.kind==='unrecognized'"));
+ assert.ok(ui.includes('Never silently switch'));
+ assert.ok(!ui.includes("setCapability({mode:'web-browser',installable:false,localAvailable:true"));
+ assert.ok(!ui.includes('result.alternatives[0]'));
+ assert.ok(ui.includes('speechCapability(true)'));
+ assert.match(speech,/return \{mode:'web-browser',installable,localAvailable/);
 });
 
 test('Independent STT is an explicit authenticated fallback, never implicit child audio upload',()=>{
@@ -172,7 +164,8 @@ test('Independent STT is an explicit authenticated fallback, never implicit chil
  const edge=read('../../../supabase/functions/harbor-transcribe/index.ts');
  const sql=read('../../../supabase/migrations/20261114000000_harbor_speech_quotas.sql');
  assert.match(ui,/independentSttConfigured\(\)/);
- assert.match(ui,/Bağımsız konuşma tanımayı etkinleştir/);
+ const adult=read('../src/components/learning/harbor/HarborSpeechAdultPanel.tsx');
+ assert.match(adult,/Bağımsız konuşma tanımayı etkinleştir/);
  assert.match(ui,/hasAdultSession\(\)/);
  assert.match(ui,/independentEnabled\s*\?await listenToIndependentSpeech/);
  assert.match(client,/NEXT_PUBLIC_HARBOR_STT_ENABLED==='true'/);
@@ -194,4 +187,17 @@ test('Independent STT is an explicit authenticated fallback, never implicit chil
  assert.match(sql,/p\.user_id = caller/);
  assert.match(sql,/pg_advisory_xact_lock/);
  assert.match(sql,/REVOKE ALL ON public\.harbor_speech_quotas FROM PUBLIC, anon, authenticated/);
+});
+
+
+test('Technical codes, third-party controls and keyboard handling live only in adult panel',()=>{
+ const game=read('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
+ const adult=read('../src/components/learning/harbor/HarborSpeechAdultPanel.tsx');
+ assert.ok(game.includes('onSuccess={()=>{setParentGateOpen(false);setParentToolsOpen(true);}}'));
+ assert.ok(!game.includes('<code>{speechDiagnosticCode}</code>'));
+ assert.ok(adult.includes('<code>{diagnosticCode}</code>'));
+ assert.ok(adult.includes('onToggleIndependent'));
+ assert.ok(adult.includes("document.addEventListener('keydown'"));
+ assert.ok(adult.includes("event.key==='Escape'"));
+ assert.ok(game.includes('stopSpeechCapture()'));
 });

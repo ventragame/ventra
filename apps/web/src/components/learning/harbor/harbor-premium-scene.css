@@ -183,11 +183,6 @@
   flex:0 0 auto!important;width:100%;min-height:0;margin:0;
   font-size:12px!important;line-height:1.4;text-align:center;
  }
- .harbor-parent-tools{margin:12px auto 0;padding:5px 9px}
- .harbor-parent-tools summary{
-  min-height:44px;display:flex;align-items:center;justify-content:center;
-  font-size:12px;
- }
  .harbor-feedback{min-height:0;margin:10px 0 6px;line-height:1.45}
  .harbor-hint{
   display:flex;align-items:center;justify-content:center;
