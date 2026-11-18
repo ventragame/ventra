@@ -36,6 +36,31 @@ test('Reading-light web hub keeps six visual destinations and real progression l
  ])assert.equal(districtStatus(progress),progress.unlocked?'ready':'locked');
 });
 
+test('UX V5 presents immediate continuation, eight learning entries and the original Phaser map on demand',()=>{
+ const view=component('WordGardenDistrictMap.tsx');
+ const css=component('word-garden-hub-v5.css');
+ const a=view.indexOf('className="wg-play-strip"');
+ const b=view.indexOf('className="wg-learning-paths"');
+ const c=view.indexOf('className="wg-district-section"');
+ const d=view.indexOf('className="wg-map-explore"');
+ assert.ok(a>0&&a<b&&b<c&&c<d,'children should see continuation before explorative scenery');
+ assert.match(view,/const \[mapExpanded,setMapExpanded\]=useState\(false\)/);
+ assert.match(view,/aria-controls="wg-optional-map"/);
+ assert.match(view,/aria-expanded=\{mapExpanded\}/);
+ assert.match(view,/hidden=\{!mapExpanded\}/);
+ assert.match(view,/\{mapExpanded&&\(/);
+ assert.match(view,/height=\{620\}/);
+ assert.match(view,/onInteract=\{enter\}/);
+ assert.match(view,/onInspect=\{obj=>enter\(obj\)\}/);
+ assert.match(view,/featuredState==='continue'/);
+ assert.match(view,/districtStatus\(p\)==='ready'/);
+ assert.match(view,/districtStatus\(p\)==='complete'/);
+ assert.match(view,/alphabetError|themesError/);
+ assert.match(css,/grid-template-columns:repeat\(2,minmax\(0,1fr\)\)/);
+ assert.match(css,/@media\(max-width:520px\)/);
+ assert.match(css,/#wg-optional-map\[hidden\]/);
+ assert.match(css,/:focus-visible/);
+});
 test('Parents can expand game instructions but children can play immediately',()=>{
  const map=component('WordGardenDistrictMap.tsx');
  const help=component('GardenHelp.tsx');

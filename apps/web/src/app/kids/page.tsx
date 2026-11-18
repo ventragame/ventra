@@ -721,14 +721,15 @@ export default function VentraKidsWorldPage() {
           return <button key={island.id} type="button"
             onClick={()=>handleFocusIsland(island.id)}
             aria-pressed={selected}
-            title={`${island.nameTr}: ${playable?'oynanabilir':'kilitli, yakında'}`}
+            aria-label={`${island.nameTr} adasını seç`}
+            title={`${island.nameTr}: adayı seç, maceraya bilgi kartından gir`}
             data-selected={selected}
             data-available={playable}
             className="kids-dock-island">
             <span className="kids-dock-icon" aria-hidden="true">{island.emoji}</span>
             <span className="kids-dock-copy">
               <span className="kids-dock-title">{island.nameTr}</span>
-              <span className="kids-dock-status">{completed?'✓ Tamamlandı':playable?'✦ Maceraya Gir':'🔒 Yakında'}</span>
+              <span className="kids-dock-status">{selected?'✓ Seçili':completed?'✓ Tamamlandı':playable?'✦ Ada Seç':'🔒 Yakında'}</span>
             </span>
           </button>;
         })}

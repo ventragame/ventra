@@ -34,6 +34,13 @@ test('Islands have readable labels with clickable nameplates, distinct pending s
  assert.match(scene,/this\.fitCameraToViewport/);
  assert.doesNotMatch(scene,/updateIslandProgress\('word_garden', 5, 5\)/);
 });
+test('UX V5 island dock labels selection honestly instead of suggesting it opens a game',()=>{
+ assert.match(page,/aria-label=\{`\$\{island.nameTr\} adasını seç`\}/);
+ assert.match(page,/selected\?'✓ Seçili'/);
+ assert.match(page,/playable\?'✦ Ada Seç'/);
+ assert.match(page,/handleFocusIsland\(island.id\)/);
+ assert.match(page,/handleOpenLearningPath\(focusedIsland\)/);
+});
 test('Touch-screen dock and island panel retain accessible semantics with no fabricated progression',()=>{
  assert.match(page,/aria-pressed=\{selected\}/);
  assert.match(page,/role="progressbar"/);
