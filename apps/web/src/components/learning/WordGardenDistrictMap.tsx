@@ -11,6 +11,7 @@ import './word-garden-premium.css';
 import './alphabet/alphabet-entry.css';
 import './themes/theme-entry.css';
 import './word-garden-modular-v4.css';
+import './word-garden-hub-v5.css';
 import {describeLearnerRoute} from '@/lib/learning/learningJourney';
 import type {EnglishPlacement} from '@/lib/learning/gradeAwareLearningPolicy';
 
@@ -49,6 +50,7 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
  const [notice,setNotice]=useState('');
  const [selected,setSelected]=useState<GardenDistrictId|null>(null);
  const [mapTips,setMapTips]=useState(false);
+ const [mapExpanded,setMapExpanded]=useState(false);
  const route=useMemo(()=>describeLearnerRoute(gradeLevel,englishLevel),[gradeLevel,englishLevel]);
  const all=useMemo<GardenDistrictProgress[]>(()=>[
   {id:'animals',completed:completedLevels,total:totalLevels,stars:starsByDistrict.animals??0,unlocked:true,available:true},
@@ -66,7 +68,11 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
    familyUnlocked,familyAvailable,templeUnlocked,templeAvailable]);
  const objects=useMemo(()=>decorateWorldObjects(base,all),[base,all]);
  const summary=useMemo(()=>mapProgress(all),[all]);
- const featured=all.find(p=>districtStatus(p)==='continue')??all.find(p=>districtStatus(p)==='ready')??all[0];
+ // Always recommend an accessible destination. The existing lock policy stays intact.
+ const featured=all.find(p=>districtStatus(p)==='continue')??
+  all.find(p=>districtStatus(p)==='ready')??
+  all.find(p=>districtStatus(p)==='complete')??all[0];
+ const featuredState=districtStatus(featured);
  const focus=selected??featured.id;
  const enter=(obj:WorldObject)=>{
   const p=all.find(x=>x.id===obj.id);
@@ -130,20 +136,28 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
    <section className="wg-play-strip" aria-label="Macera ve ilerleme">
     <div className="wg-strip-heading">
      <span className="wg-strip-flower" aria-hidden="true">🌷</span>
-     <div><small>HAYDİ KEŞFEDELİM!</small><h2>Altı büyülü dünya</h2></div>
+     <div><small>{featuredState==='continue'?'KALDIĞIN YERDEN DEVAM ET':featuredState==='complete'?'YENİDEN KEŞFET':'SANA ÖNERİLEN MACERA'}</small>
+      <h2>{GARDEN_THEMES[featured.id].name}</h2>
+      <p className="wg-featured-subtitle">{GARDEN_THEMES[featured.id].words} · {featured.completed}/{featured.total} görev</p></div>
     </div>
-    <div className="wg-strip-progress" role="progressbar" aria-label="Kelime Bahçesi toplam ilerlemesi"
+    <div className="wg-strip-progress" role="progressbar" aria-label="Kelime Bahçesi altı ana dünya toplam ilerlemesi"
        aria-valuenow={summary.percent} aria-valuemin={0} aria-valuemax={100}>
      <div className="wg-strip-track"><span style={{width:`${summary.percent}%`}}/></div>
      <strong>%{summary.percent}</strong>
     </div>
     <button type="button" className="wg-hero-primary" onClick={playFeatured}
-      aria-label={`${GARDEN_THEMES[featured.id].name}: ${featured.completed>0?'Devam et':'Oyna'}`}>
-       <span aria-hidden="true">▶</span> {featured.completed>0?'Devam Et':'Oyna'}
+      aria-label={`${GARDEN_THEMES[featured.id].name}: ${featuredState==='complete'?'yeniden oyna':featuredState==='continue'?'devam et':'oyna'}`}>
+       <span aria-hidden="true">▶</span> {featuredState==='complete'?'Yeniden Oyna':featuredState==='continue'?'Devam Et':'Oyna'}
     </button>
    </section>
 
    <main>
+    <section className="wg-learning-paths" aria-labelledby="wg-learning-paths-title">
+     <div className="wg-section-heading wg-learning-paths-heading">
+      <div><span className="wg-path-eyebrow">KENDİ YOLUNU SEÇ</span><h2 id="wg-learning-paths-title">🌱 İngilizceyi Keşfet</h2></div>
+      <span className="wg-path-count">2 öğrenme yolu</span>
+     </div>
+     <div className="wg-learning-path-grid">
     <section className="wg-alphabet-entry" aria-label="Harf Korusu başlangıç macerası">
      <div className="wg-alpha-miniart" aria-hidden="true">
       <span className="wg-alpha-tile wg-alpha-a">A<small>a</small></span>
@@ -154,7 +168,7 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
      <div className="wg-alpha-copy">
       <span className="wg-alpha-kicker">✦ BAŞLANGIÇ ÖĞRENME PATİKASI</span>
       <h2>🌿 Harf Korusu <span>Yeni mini macera</span></h2>
-      <p>İngilizce 26 harfi tanı, kelimelerdeki seslerini dinle ve kısa kelimeleri okumayı öğren.</p>
+      <p>Harfleri dinle, resimlerle kelimeleri keşfet.</p>
       <div className="wg-alpha-meta"><span>🔤 A–Z</span><span>🎧 Ses ve kelime</span><span>✦ {alphabetCompleted}/12 ders</span></div>
      </div>
      <button className="wg-alpha-start" type="button" onClick={onEnterAlphabet}
@@ -173,7 +187,7 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
      <div className="wg-theme-content">
       <span className="wg-theme-label">✦ GÜNLÜK HAYATTA İNGİLİZCE</span>
       <h2>🏘️ Tema Kasabası <small>8 öğrenme sokağı</small></h2>
-      <p>Okul, vücut, kıyafetler, hava durumu, günler ve saatler, hobiler, ulaşım ve duygular: dinle, öğren ve İngilizce kullan.</p>
+      <p>Okul, kıyafetler, hava durumu ve günlük İngilizce.</p>
       <div className="wg-theme-tags"><span>🎧 Sesli</span><span>🕰️ Saat oyunu</span><span>✦ {themeCompleted}/8 tema</span></div>
      </div>
      <button type="button" className="wg-theme-enter" onClick={onEnterThemes}
@@ -182,15 +196,6 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
       {themesError?'Kayıt okunamadı':!themesReady?'Yükleniyor…':themeCompleted?'Devam Et →':'Keşfet →'}
      </button>
     </section>
-    <section className="wg-main-map" aria-label="Gezilebilir İngilizce dünyası">
-     <div className="wg-map-heading">
-      <h2><span aria-hidden="true">🗺️</span> Keşif Haritası</h2>
-      <span className="wg-map-counter" aria-label={`${summary.finished} dünya tamamlandı, toplam altı dünya`}>✦ {summary.finished}/6</span>
-     </div>
-     <div className="wg-map-stage">
-      <ExplorerCanvas key="premium-garden" area="garden" objects={objects}
-       progress={Math.round(summary.percent/100*12)}
-       caption="Altı Dünya · Canlı Patika" height={620} onInteract={enter} onInspect={obj=>enter(obj)}/>
      </div>
     </section>
     {notice&&<div className="wg-notice" role="status"><span aria-hidden="true">🧭</span>{notice}
@@ -198,7 +203,7 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
 
     <section className="wg-district-section" aria-labelledby="wg-district-title">
      <div className="wg-section-heading">
-      <h2 id="wg-district-title"><span aria-hidden="true">🎮</span> Oyunlar</h2>
+      <h2 id="wg-district-title"><span aria-hidden="true">🎮</span> Altı Büyülü Dünya</h2>
       <span className="wg-count-pill" aria-label={`${summary.finished} dünya tamamlandı`}>⭐ {summary.finished}/6</span>
      </div>
      <div className="wg-world-grid">
@@ -233,6 +238,34 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
         </div>
        </button>;
       })}
+     </div>
+    </section>
+    <section className="wg-map-explore" aria-labelledby="wg-map-explore-title">
+     <div className="wg-map-access">
+      <span className="wg-map-access-icon" aria-hidden="true">🗺️</span>
+      <div className="wg-map-access-copy">
+       <h2 id="wg-map-explore-title">Keşif Haritası</h2>
+       <p>Altı dünyayı gezebilirsin. İstersen yukarıdan doğrudan oyun da seçebilirsin.</p>
+      </div>
+      <button type="button" className="wg-map-toggle" aria-expanded={mapExpanded}
+       aria-controls="wg-optional-map" onClick={()=>setMapExpanded(v=>!v)}>
+       {mapExpanded?'Haritayı Kapat ↑':'Haritayı Keşfet ↓'}
+      </button>
+     </div>
+     <div id="wg-optional-map" hidden={!mapExpanded}>
+      {mapExpanded&&(
+       <section className="wg-main-map" aria-label="Gezilebilir İngilizce dünyası">
+       <div className="wg-map-heading">
+       <h2><span aria-hidden="true">🗺️</span> Keşif Haritası</h2>
+       <span className="wg-map-counter" aria-label={`${summary.finished} dünya tamamlandı, toplam altı dünya`}>✦ {summary.finished}/6</span>
+       </div>
+       <div className="wg-map-stage">
+       <ExplorerCanvas key="premium-garden" area="garden" objects={objects}
+       progress={Math.round(summary.percent/100*12)}
+       caption="Altı Dünya · Canlı Patika" height={620} onInteract={enter} onInspect={obj=>enter(obj)}/>
+       </div>
+       </section>
+      )}
      </div>
     </section>
    </main>
