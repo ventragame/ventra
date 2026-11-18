@@ -15,6 +15,8 @@ import {readHarborCheckpoint,saveHarborCheckpoint,clearHarborCheckpoint} from '@
 import {speechCapability,installLocalEnglish,listenToChild,listenToIndependentSpeech,stopSpeechCapture,type SpeechCapability,type SpeechCaptureStatus} from '@/lib/speech/childSpeech';
 import {independentSttConfigured,hasAdultSession} from '@/lib/speech/independentTranscription';
 import {localSherpaAvailable} from '@/lib/speech/localSherpa';
+import {ParentalGateModal} from '@/components/profile/ParentalGateModal';
+import {HarborSpeechAdultPanel} from './HarborSpeechAdultPanel';
 import './harbor-speech.css';
 import './harbor-premium-scene.css';
 import './harbor-captain-avatar.css';
@@ -50,6 +52,9 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  const [voiceRecognized,setVoiceRecognized]=useState(0);
  const [saveError,setSaveError]=useState('');
  const [parentDiagnostic,setParentDiagnostic]=useState('');
+ const [parentGateOpen,setParentGateOpen]=useState(false);
+ const [parentToolsOpen,setParentToolsOpen]=useState(false);
+ const [speechNeedsHelp,setSpeechNeedsHelp]=useState(false);
  // Store only recognition mode/outcome, never a child's words or audio.
  const [speechDiagnosticCode,setSpeechDiagnosticCode]=useState('');
  const timer=useRef<ReturnType<typeof setTimeout>|null>(null);
@@ -71,10 +76,16 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
     message:'Yetişkin hesabıyla etkinleştirilmiş bağımsız İngilizce konuşma tanıma.'}
   :capability;
  const speechAvailable=['web-local','web-browser','native-local','sherpa-local','server-stt'].includes(activeCapability.mode);
+ const openAdultSettings=()=>{
+  generation.current++;narrationRun.current++;setNarrating(false);
+  stopSpeechCapture();soundService.setCaptureActive(false);soundService.cancelSpeech();
+  setListening(false);setMicStatus('idle');setParentGateOpen(true);
+ };
+ const closeAdultSettings=()=>{setParentGateOpen(false);setParentToolsOpen(false);};
  const close=useCallback(()=>{
   generation.current++;narrationRun.current++;setNarrating(false);stopSpeechCapture();soundService.setCaptureActive(false);soundService.cancelSpeech();
   if(timer.current)clearTimeout(timer.current);
-  onBack();
+  setParentGateOpen(false);setParentToolsOpen(false);onBack();
  },[onBack]);
  useEffect(()=>{
   let live=true;
@@ -119,7 +130,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   setMistakes(checkpoint?.mistakes??0);setHints(checkpoint?.hints??0);
   setHintStage(0);setWrongChoices([]);setWrongSceneObjects([]);setModeledAnswer(false);setSummary(null);
   setVoiceRecognized(checkpoint?.voiceRecognized??0);setReplayIndex(levelPlays[id]??0);
-  setFeedback('');setSaveError('');setParentDiagnostic('');setSpeechDiagnosticCode('');setMicStatus('idle');setPhase('playing');locked.current=false;startedAt.current=Date.now();
+  setFeedback('');setSaveError('');setParentDiagnostic('');setSpeechDiagnosticCode('');setMicStatus('idle');closeAdultSettings();setSpeechNeedsHelp(false);setPhase('playing');locked.current=false;startedAt.current=Date.now();
   soundService.playSfx('tap',.5);
  };
  const speakLine=(line:string)=>{
@@ -151,14 +162,14 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   soundService.playSfx('correct',.55);
  };
  useEffect(()=>{
-  if(phase!=='playing'||!canAnswer)return;
+  if(phase!=='playing'||!canAnswer||parentGateOpen||parentToolsOpen)return;
   const handle=window.setTimeout(()=>{
    if(!document.hidden&&!locked.current){
     speak(); // Real narration callbacks drive the captain mouth.
    }
   },400);
   return()=>window.clearTimeout(handle);
- },[phase,episode,question,canAnswer,englishLevel,gradeLevel,prompt.line]);
+ },[phase,episode,question,canAnswer,englishLevel,gradeLevel,prompt.line,parentGateOpen,parentToolsOpen]);
  const save=async(errors:number,assisted:number,recognized:number)=>{
   narrationRun.current++;setNarrating(false);
   setBusy(true);setFeedback('Bölüm tamamlandı! Yıldızların kaydediliyor…');
@@ -241,7 +252,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  const mic=async()=>{
   if(locked.current||busy||listening||!canAnswer)return;
   const run=++generation.current;
-  setListening(true);setMicStatus('starting');setFeedback('');
+  setListening(true);setMicStatus('starting');setFeedback('');setSpeechNeedsHelp(false);
   narrationRun.current++;setNarrating(false);soundService.cancelSpeech();
   soundService.setCaptureActive(true);
   let result;
@@ -445,6 +456,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   setPhase('map');setSceneSelected(false);setSceneResolved(false);
   setHintStage(0);setModeledAnswer(false);setWrongChoices([]);setWrongSceneObjects([]);setSummary(null);
   setFeedback('');setSaveError('');setMicStatus('idle');setParentDiagnostic('');setSpeechDiagnosticCode('');
+  closeAdultSettings();setSpeechNeedsHelp(false);
  };
  const options=harborChoiceOrder(prompt,englishLevel,question,replayIndex);
  // Real TTS events control talk; microphone capture controls listen. The
@@ -488,6 +500,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
        <span className="harbor-episode-state">{checkpointed[item.id]?'▶ Kaldığın Yerden':item.id<=completed?'✓ Tekrar Oyna':item.id===completed+1?'Maceraya Gir →':'🔒 Önceki Bölüm'}</span>
       </button>)}
     </div>
+    <div className="harbor-adult-entry"><button type="button" className="harbor-adult-open" onClick={openAdultSettings} disabled={busy}>⚙ Yetişkinler için ses ayarları</button></div>
    </>:phase==='playing'?<>
     <div className="harbor-level-title"><span>{mission.icon} {mission.title}</span>
       <span>{englishLevel} · {question+1}/{script.length}</span>
@@ -542,46 +555,8 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
       micStatus==='processing'?'⏳ İngilizce yanıt çözümleniyor…':
       '🎚️ Seni dinliyorum…'
      }</p>}
-     <details className="harbor-parent-tools">
-      <summary>Ses tanıma çalışmıyor mu?</summary>
-      <div className="harbor-parent-content">
-       <p>Varsayılan motor: cihaz içi sherpa-onnx (ücretsiz, API anahtarı yok).
-        İlk kullanımda yaklaşık 73 MB İngilizce model indirilebilir; ses ve kelimeler cihazda kalır.
-        Web Speech API ve yetişkin hesabıyla isteğe bağlı sunucu motoru alternatif olarak korunur.</p>
-       <p className="harbor-parent-diagnostic"><strong>Tanıma motoru:</strong> {activeCapability.mode}. {activeCapability.message}</p>
-       {parentDiagnostic&&<p className="harbor-parent-diagnostic" role="status">{parentDiagnostic}</p>}
-       {speechDiagnosticCode&&<p className="harbor-parent-diagnostic" role="status">
-        <strong>Son deneme:</strong> <code>{speechDiagnosticCode}</code>
-       </p>}
-       <div className="harbor-parent-actions">
-        <button type="button" onClick={()=>void recheckSpeech()} disabled={busy||listening||locked.current}
-         className="harbor-recheck">↻ Tekrar kontrol et</button>
-        {capability.mode==='sherpa-local'&&<button type="button"
-         onClick={()=>void selectBrowserEngine()} disabled={busy||listening||locked.current}
-         className="harbor-recheck">Tarayıcı motorunu dene</button>}
-        {capability.mode!=='sherpa-local'&&<button type="button"
-         onClick={()=>void selectSherpaEngine()} disabled={busy||listening||locked.current}
-         className="harbor-recheck">Ücretsiz cihaz içi motoru dene</button>}
-        {capability.installable&&<button type="button" onClick={()=>void install()}
-         disabled={busy||listening||locked.current} className="harbor-download">
-         ⬇ Çevrimdışı İngilizce paketini kur
-        </button>}
-        {capability.localAvailable&&capability.mode==='web-browser'&&
-         <button type="button" onClick={()=>void chooseOffline()}
-          disabled={busy||listening||locked.current} className="harbor-recheck">
-          Chrome cihaz içi tanımayı dene
-         </button>}
-        {independentSttConfigured()&&<div className="harbor-stt-option">
-         <p>Bağımsız tanıma: Kısa ses kaydı Groq sağlayıcısına işlenmek üzere gönderilebilir.
-          Ventra ses kaydını ve konuşma metnini saklamaz. Yalnızca yetişkin hesabıyla kullanılabilir.</p>
-         <button type="button" onClick={()=>void toggleIndependent()}
-          disabled={busy||listening||locked.current} className="harbor-recheck">
-          {independentEnabled?'Tarayıcı motorunu kullan':'Bağımsız konuşma tanımayı etkinleştir'}
-         </button>
-        </div>}
-       </div>
-      </div>
-     </details>
+     {(speechNeedsHelp||!speechAvailable)&&!listening&&<button type="button" className="harbor-adult-help"
+      onClick={openAdultSettings} disabled={busy||locked.current}>Bir yetişkinden yardım iste</button>}
      <p role="status" aria-live="polite" className="harbor-feedback">{feedback}</p>
      {canAnswer&&<div className="harbor-coach-actions">
       <button type="button" className="harbor-model-answer"
@@ -617,6 +592,17 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
     </div>
    </>}
   </main>
-  <footer className="harbor-footer">🎤 Mikrofon isteğe bağlı. Seçilen sağlayıcı sesi işleyebilir; Ventra ses veya transkript saklamaz.</footer>
+  <footer className="harbor-footer">🎤 Konuşmak isteğe bağlı. Her görevi dokunarak da tamamlayabilirsin.</footer>
+  <ParentalGateModal isOpen={parentGateOpen} zIndex={120}
+   description="Konuşma motorları ve teknik hata bilgileri yetişkinlere özeldir. Devam etmek için lütfen işlemi çözün."
+   onClose={()=>setParentGateOpen(false)}
+   onSuccess={()=>{setParentGateOpen(false);setParentToolsOpen(true);}}/>
+  {parentToolsOpen&&<HarborSpeechAdultPanel capability={capability} activeCapability={activeCapability}
+   diagnostic={parentDiagnostic} diagnosticCode={speechDiagnosticCode}
+   independentEnabled={independentEnabled} independentConfigured={independentSttConfigured()}
+   busy={busy} listening={listening} onClose={closeAdultSettings}
+   onRecheck={()=>void recheckSpeech()} onSelectBrowser={()=>void selectBrowserEngine()}
+   onSelectLocal={()=>void selectSherpaEngine()} onChooseOffline={()=>void chooseOffline()}
+   onInstall={()=>void install()} onToggleIndependent={()=>void toggleIndependent()}/>} 
   </div>;
 }

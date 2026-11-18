@@ -109,3 +109,31 @@
 @media(max-width:560px){.harbor-speech-help{flex-direction:column}
  .harbor-speech-help p{text-align:center;flex:initial}
  .harbor-speech-help button{width:100%}}
+
+/* Parent-only speech settings live in an accessible, mobile-safe overlay. */
+.harbor-adult-entry{display:flex;justify-content:center;margin:16px auto 6px}
+.harbor-adult-open,.harbor-adult-help{min-height:44px;padding:10px 16px;border:1px solid #a8e7df8a;border-radius:14px;background:#0d4563;color:#ecfffb;font-size:12px;font-weight:850}
+.harbor-adult-help{display:block;margin:12px auto 0}
+.harbor-adult-open:focus-visible,.harbor-adult-help:focus-visible{outline:3px solid #fff0b5;outline-offset:3px}
+.harbor-adult-overlay{position:fixed;inset:0;z-index:110;display:grid;place-items:center;padding:16px;background:#04182def;backdrop-filter:blur(9px);overscroll-behavior:contain}
+.harbor-adult-dialog{width:min(100%,720px);max-height:calc(100dvh - 24px);overflow-y:auto;overscroll-behavior:contain;padding:clamp(18px,4vw,28px);display:flex;flex-direction:column;gap:16px;border:1px solid #9ddbd280;border-radius:26px;background:linear-gradient(155deg,#104461,#061e36);box-shadow:0 22px 80px #00101db8;color:#f1fdf9}
+.harbor-adult-header{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.harbor-adult-header small{font-size:11px;color:#9defd0;font-weight:950;letter-spacing:.12em}
+.harbor-adult-header h2{font-size:clamp(20px,3vw,27px);font-weight:950;margin:5px 0}
+.harbor-adult-header p,.harbor-adult-card p{font-size:13px;line-height:1.65;color:#d5edee}
+.harbor-adult-close{flex:none;min-width:44px;min-height:44px;border-radius:14px;background:#ffffff1a;border:1px solid #bbf5ea76;font-size:23px;color:#fff}
+.harbor-adult-card{display:flex;flex-direction:column;gap:11px;border:1px solid #b0e4da50;border-radius:19px;background:#ffffff0d;padding:16px}
+.harbor-adult-card h3{font-size:16px;font-weight:950;color:#effff2}
+.harbor-adult-actions{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
+.harbor-adult-actions button,.harbor-adult-server button{min-height:48px;padding:10px 14px;background:linear-gradient(125deg,#d3ffe5,#a9e5f2);border:1px solid #c4ecec;border-radius:14px;font-size:13px;font-weight:900;color:#073c4d}
+.harbor-adult-server{background:#eed89b18;border-color:#ffe4a07b}
+.harbor-adult-server button{width:100%;background:#fff1c7}
+.harbor-adult-dialog button:disabled{opacity:.55;cursor:not-allowed}
+.harbor-adult-status{border-left:3px solid #b6f6d7;padding:9px 12px;background:#ffffff12}
+.harbor-adult-technical{padding:12px;border-radius:14px;border:1px solid #bbddec6b;background:#041b2a}
+.harbor-adult-technical summary{display:flex;align-items:center;min-height:42px;cursor:pointer;font-size:13px;font-weight:850}
+.harbor-adult-technical p,.harbor-adult-note{font-size:12px;color:#d3e8e8;line-height:1.55}
+.harbor-adult-technical code{display:block;margin-top:10px;overflow-wrap:anywhere;white-space:pre-wrap;background:#001122;padding:12px;border-radius:10px;font-size:11px;color:#c9f7e8}
+.harbor-adult-dialog button:focus-visible,.harbor-adult-technical summary:focus-visible{outline:3px solid #fff4b5;outline-offset:3px}
+@media(max-width:560px){.harbor-adult-overlay{align-items:end;padding:0}.harbor-adult-dialog{width:100%;max-height:calc(100dvh - 8px);border-radius:22px 22px 0 0;padding:18px 15px max(18px,env(safe-area-inset-bottom))}.harbor-adult-actions{grid-template-columns:1fr}}
+@media(prefers-reduced-motion:reduce){.harbor-adult-overlay{backdrop-filter:none}}
