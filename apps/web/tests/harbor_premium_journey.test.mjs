@@ -141,7 +141,8 @@ test('Speech button only starts actual word recognition and profile level stays 
  assert.match(ui,/speechAvailable=\['web-local','web-browser','native-local','sherpa-local','server-stt'\]/);
  assert.match(ui,/!speechAvailable/);
  assert.match(ui,/Konuşarak Cevapla/);
- assert.doesNotMatch(ui,/Sesli Pratik Yap|ParentalGateModal/);
+ assert.doesNotMatch(ui,/Sesli Pratik Yap/);
+ assert.match(ui,/ParentalGateModal isOpen=\{parentGateOpen\}/);
  assert.match(ui,/\},\[profileId,englishLevel\]\);/);
 });
 

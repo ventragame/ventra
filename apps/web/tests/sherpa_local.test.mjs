@@ -53,8 +53,10 @@ test('Only a deliberate microphone click starts Sherpa; no audio leaves the devi
  assert.doesNotMatch(worker,/XMLHttpRequest|\.upload\(|Authorization:|fetch\([^)]*audio/);
  assert.match(speech,/mode:'sherpa-local'/);
  assert.match(speech,/beginLocalSherpaRecognition/);
- assert.match(harbor,/Ücretsiz cihaz içi motoru dene/);
- assert.match(harbor,/Tarayıcı motorunu dene/);
+ const adult=read('../src/components/learning/harbor/HarborSpeechAdultPanel.tsx');
+ assert.match(harbor,/HarborSpeechAdultPanel/);
+ assert.match(adult,/Ventra cihaz içi motoru/);
+ assert.match(adult,/Tarayıcı motorunu seç/);
 });
 
 test('Pinned stronger English model and WASM are lazy, integrity checked and excluded from git',()=>{

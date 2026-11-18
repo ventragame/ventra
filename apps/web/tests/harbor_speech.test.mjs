@@ -58,7 +58,7 @@ test('Voice is child-initiated, local-first with touch fallback and no Ventra au
  assert.match(speech,/stream\?\.getTracks\(\)\.forEach\(track=>track\.stop\(\)\)/);
  assert.doesNotMatch(speech,/fetch\(|XMLHttpRequest|localStorage|MediaRecorder/);
  assert.match(ui,/matchesExpectedSpeech/);
- assert.match(ui,/Yerel konuşma motoru sesi algıladı ancak metin üretmedi/);
+ assert.match(ui,/setSpeechNeedsHelp\(true\)/);
  assert.match(ui,/Doğru ifadeyi söyle veya seç!/);
  assert.match(ui,/onClick=\{\(\)=>tap\(option\)\}/);
  assert.match(android,/createOnDeviceSpeechRecognizer/);

@@ -23,14 +23,14 @@ export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
   const [userAnswer, setUserAnswer] = useState<string>('');
   const [hasError, setHasError] = useState<boolean>(false);
 
-  const generateChallenge = () => {
+  const generateChallenge = (clearError=true) => {
     // 6 - 9 arası iki sayının çarpımı (Ebeveyn doğrulaması)
     const a = Math.floor(Math.random() * 4) + 6;
     const b = Math.floor(Math.random() * 4) + 6;
     setNumA(a);
     setNumB(b);
     setUserAnswer('');
-    setHasError(false);
+    if(clearError)setHasError(false);
   };
 
   useEffect(() => {
@@ -47,13 +47,13 @@ export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
     if (parsed === numA * numB) {
       onSuccess();
     } else {
+      generateChallenge(false);
       setHasError(true);
-      generateChallenge();
     }
   };
 
   return (
-    <div style={{
+    <div role="dialog" aria-modal="true" aria-labelledby="ventra-parent-gate-title" style={{
       position: 'fixed',
       inset: 0,
       backgroundColor: 'rgba(5, 9, 20, 0.88)',
@@ -80,7 +80,7 @@ export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
         <div style={{ fontSize: '36px' }}>🔒</div>
 
         <div>
-          <h3 style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc', margin: '0 0 6px 0' }}>
+          <h3 id="ventra-parent-gate-title" style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc', margin: '0 0 6px 0' }}>
             Ebeveyn Doğrulaması
           </h3>
           <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>

@@ -58,7 +58,9 @@ test('Guided 2.2 uses spoken examples, honest hints, stateful wrong options and 
  assert.match(game,/role="progressbar"/);
  assert.match(game,/harbor-finale-stars/);
  assert.match(game,/Sonraki Bölüm/);
- assert.match(game,/yaklaşık 73 MB/);
+ const adult=read('../src/components/learning/harbor/HarborSpeechAdultPanel.tsx');
+ assert.match(game,/HarborSpeechAdultPanel/);
+ assert.match(adult,/Cihaz içi tanıma önceliklidir/);
  assert.match(css,/\.harbor-coach-actions/);
  assert.match(css,/harbor-answer\[data-answer="try-again"\]/);
  assert.match(css,/height:100dvh/);
