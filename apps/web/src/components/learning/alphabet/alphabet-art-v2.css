@@ -1,0 +1,16 @@
+/* Ventra illustrated phonics: exact vocabulary artwork and optional slow audio. */
+.ag-root .ag-hero-art-v2{isolation:isolate;overflow:hidden;border-radius:0 24px 24px 0}
+.ag-root .ag-forest-scene{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.ag-root .ag-hero-art-v2 .ag-art-card{z-index:2}
+.ag-root .ag-unit-art{display:flex;align-items:center;justify-content:center;margin:5px 0;width:76px;height:76px;border:2px solid #fff;border-radius:18px;overflow:hidden;background:#e3f9ef;box-shadow:0 5px 12px #3f88662d}
+.ag-root .ag-unit-art img{display:block;width:100%;height:100%;object-fit:cover}
+.ag-root .ag-illustrated-word{display:block;width:clamp(122px,24vw,174px);height:clamp(122px,24vw,174px);border:2px solid #fff6da;border-radius:23px;object-fit:cover;box-shadow:0 7px 21px #326b6631}
+.ag-root .ag-intro-example .ag-illustrated-word{margin-bottom:6px}
+.ag-root .ag-word-link-picture .ag-illustrated-word{width:clamp(92px,15vw,144px);height:clamp(92px,15vw,144px);border-radius:18px}
+.ag-root .ag-word-link-picture{min-width:156px}
+.ag-root .ag-target-art{min-width:min(220px,100%)}
+.ag-root .ag-voice-row button,.ag-root .ag-listen-slow{min-height:49px}
+.ag-root .ag-listen-slow{margin:0;align-self:center;background:#fff4d9;border-color:#e9d49c}
+@media(max-width:620px){.ag-root .ag-hero-art-v2 .ag-art-card{transform:scale(.82)}.ag-root .ag-illustrated-word{width:136px;height:136px}.ag-root .ag-word-link-picture{min-width:114px}.ag-root .ag-word-link-picture .ag-illustrated-word{width:103px;height:103px}.ag-root .ag-unit-art{width:66px;height:66px}.ag-root .ag-voice-row button{width:100%}}
+@media(max-width:360px){.ag-root .ag-word-link-picture .ag-illustrated-word{width:91px;height:91px}.ag-root .ag-illustrated-word{width:116px;height:116px}}
+@media(prefers-reduced-motion:reduce){.ag-root .ag-illustrated-word{transition:none}}
