@@ -83,7 +83,7 @@ export function planThemeLesson(input:{
  });
  const pictured=(w:ThemeLexeme)=>make('picture',w.en,{
   choices:options(w.en,bank.words.map(x=>x.en),salt+serial*19+replay*37,width),
-  word:w,promptTr:'Resimdeki '+w.tr+' İngilizcede nasıl söylenir?'
+  word:w,promptTr:'Resimdeki '+w.tr+' İngilizcede nasıl söylenir?',audioText:w.en
  });
  const heard=(w:ThemeLexeme)=>make('listen',w.en,{
   choices:options(w.en,bank.words.map(x=>x.en),salt+serial*23+replay*41,width),
