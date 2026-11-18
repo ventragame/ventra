@@ -137,7 +137,9 @@ export function isThemeAnswerCorrect(task:ThemeTask,answer:string):boolean{
  return Boolean(normalize(answer)&&normalize(task.answer)===normalize(answer));
 }
 export function themeTaskHint(task:ThemeTask):string{
- if(task.kind==='discover')return 'Resme bak ve kelimeyi dinle.';
+ if(task.kind==='discover')return task.word&&visualForEnglishWord(task.word.en,task.word.tr)?
+  'Resme bak ve kelimeyi dinle.':
+  'Türkçe anlamı oku, konu ipucunu incele ve kelimenin İngilizcesini dinle.';
  if(task.kind==='clock')return 'Kısa ibre saati, uzun ibre dakikayı gösterir. Uzun ibre 12’deyse tam saat, 3’teyse çeyrek geçer.';
  if(task.kind==='listen')return 'Kulaklık düğmesinden İngilizce kelimeyi tekrar dinle.';
  if(task.kind==='translate')return 'Türkçe anlamı düşün ve doğru İngilizce sözcüğü seç. Konu simgesi birebir nesne resmi değildir.';

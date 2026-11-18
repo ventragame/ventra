@@ -27,3 +27,5 @@
 .tt-root .tt-scenario-v2 .tt-semantic-cue{width:clamp(110px,20vw,146px);height:clamp(110px,20vw,146px);border-radius:22px}
 @media(max-width:640px){.tt-root .tt-semantic-cue{width:140px;height:140px}.tt-root .tt-scenario-v2 .tt-semantic-cue{width:108px;height:108px}.tt-root .tt-semantic-caption{font-size:8px}}
 @media(max-width:355px){.tt-root .tt-semantic-cue{width:122px;height:122px}}
+
+.tt-root .tt-art-load-warning{display:block;max-width:220px;font-size:12px;line-height:1.45;text-align:center;color:#805a39;font-weight:750}

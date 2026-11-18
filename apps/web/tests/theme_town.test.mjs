@@ -250,3 +250,11 @@ test('All 254 Theme Town vocabulary entries have manually reviewed semantic icon
  }
  assert.equal(reviewed,254);
 });
+
+
+test('Discover hints distinguish exact pictures from context-only learning cues',()=>{
+ const engine=read('../src/lib/learning/themeQuestEngine.ts');
+ assert.match(engine,/Türkçe anlamı oku, konu ipucunu incele/);
+ const cue=read('../src/components/learning/themes/ThemeWordCue.tsx');
+ assert.match(cue,/Görsel açılamadı/);
+});

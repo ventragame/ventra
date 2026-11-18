@@ -17,6 +17,9 @@ export function ThemeWordCue({theme,english}:{theme:ThemeId;english?:string}){
 /** A broken exact image must never remain a broken-image glyph on the lesson page. */
 export function ThemeWordArtwork({theme,english,translation,src}:{theme:ThemeId;english:string;translation:string;src:string|null}){
  const [failed,setFailed]=React.useState(false);
- if(!src||failed)return <ThemeWordCue theme={theme} english={english}/>;
+ if(!src||failed)return <>
+  <ThemeWordCue theme={theme} english={english}/>
+  {failed&&<span className="tt-art-load-warning" role="status">Görsel açılamadı. Türkçe anlamdan devam edebilirsin.</span>}
+ </>;
  return <img className="tt-word-illustration" src={src} alt={translation} decoding="async" onError={()=>setFailed(true)}/>;
 }
