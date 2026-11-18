@@ -1,0 +1,19 @@
+/* Illustrated thematic English: eight unique scenes, exact concept art and slow replay. */
+.tt-root .tt-hero-illustration-v2{display:grid;place-items:center;overflow:hidden}
+.tt-root .tt-scene-mosaic{display:grid;grid-template-columns:1fr 1fr;gap:9px;transform:rotate(-5deg) scale(1.12);width:94%;height:89%;margin-left:16px}
+.tt-root .tt-scene-mosaic img{display:block;width:100%;height:100%;min-height:0;min-width:0;object-fit:cover;border-radius:18px;border:4px solid #fffdf4;box-shadow:0 9px 17px #22445e34}
+.tt-root .tt-world-emoji.tt-world-scene{display:block;overflow:hidden;width:100%;height:108px;border-radius:18px;margin:2px 0 7px;padding:0;background:#f0fff3}
+.tt-root .tt-world-scene img{display:block;width:100%;height:100%;object-fit:cover}
+.tt-root .tt-world-card{min-height:241px}
+.tt-root .tt-play-scene{display:block;width:72px;height:58px;object-fit:cover;border:2px solid white;border-radius:14px;box-shadow:0 4px 13px #3c7e6653}
+.tt-root .tt-picture-v2{min-width:185px;padding:14px 18px}
+.tt-root .tt-word-illustration{display:block;width:clamp(140px,24vw,192px);height:clamp(140px,24vw,192px);object-fit:cover;border:2px solid white;border-radius:22px;box-shadow:0 8px 20px #3a7d6638}
+.tt-root .tt-scenario-v2{position:relative;overflow:hidden;isolation:isolate}
+.tt-root .tt-scenario-theme{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.2;z-index:-1;pointer-events:none}
+.tt-root .tt-sound-options{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:9px}
+.tt-root .tt-sound-options .tt-speak{margin:0;min-height:49px}
+.tt-root .tt-sound-options .tt-speak-slow{background:#fff1d2;border-color:#e9d5a9;color:#745b42}
+.tt-root .tt-world-card:focus-visible,.tt-root .tt-sound-options button:focus-visible{outline:3px solid #3b9c84;outline-offset:4px}
+@media(max-width:640px){.tt-root .tt-hero-illustration-v2{inset:9% -10% 0 35%;opacity:.36}.tt-root .tt-world-card{min-height:213px}.tt-root .tt-world-emoji.tt-world-scene{height:89px}.tt-root .tt-play-scene{width:54px;height:48px}.tt-root .tt-word-illustration{width:146px;height:146px}.tt-root .tt-sound-options{width:100%}}
+@media(max-width:355px){.tt-root .tt-world-emoji.tt-world-scene{height:72px}.tt-root .tt-world-card{min-height:200px}.tt-root .tt-sound-options .tt-speak{flex:1;min-width:0;padding:9px 10px;font-size:12px}}
+@media(prefers-reduced-motion:reduce){.tt-root .tt-scene-mosaic img,.tt-root .tt-word-illustration{transition:none}}
