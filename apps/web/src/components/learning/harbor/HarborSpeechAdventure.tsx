@@ -110,6 +110,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   const stopOnBackground=()=>{if(document.hidden){
    generation.current++;narrationRun.current++;setNarrating(false);soundService.cancelSpeech();
    stopSpeechCapture();soundService.setCaptureActive(false);setListening(false);
+   setParentGateOpen(false);setParentToolsOpen(false);
   }};
   document.addEventListener('visibilitychange',stopOnBackground);
   return()=>{narrationRun.current++;document.removeEventListener('visibilitychange',stopOnBackground);
@@ -266,7 +267,8 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   }catch{
    // Browser/OS failures are not evidence that the child spoke incorrectly.
    if(run===generation.current){
-    setFeedback('Konuşma tanıma başlatılamadı. Cevabı seçerek devam edebilirsin.');
+    setSpeechNeedsHelp(true);setParentDiagnostic('Konuşma tanıma başlatılırken beklenmeyen hata oluştu.');
+     setFeedback('🎤 Mikrofon bu kez çalışmadı. Cevaba dokunarak devam edebilirsin.');
     setListening(false);setMicStatus('idle');
    }
    return;
@@ -292,31 +294,17 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
     setVoiceRecognized(recognizedCount);
     correct(recognizedCount);
    }else{
-    const heard=result.alternatives[0]?.trim().slice(0,70);
-    // A lone letter (e.g. "Y") is an uncertain ASR fragment, not a
-    // trustworthy representation of what a child actually pronounced.
-    setFeedback(heard&&heard.length>=3?'💬 “'+heard+'” olarak algılandı. Bir daha deneyelim!':
-     '🎤 Sesini duydum ama kelimeleri net anlayamadım. Tekrar söyle veya cevabı seç!');
+    // Never show uncertain transcripts of a child's speech in play.
+    setFeedback('🎤 Sesini duydum! Bir daha söyle veya doğru cevaba dokun.');
    }
   }else if(result.kind==='unrecognized'){
-   if(result.mode==='web-local'){
-    // Local recognizer reported a real voice but produced no words.
-    // Repeating the same local provider indefinitely cannot fix this.
-    setCapability({mode:'web-browser',installable:false,localAvailable:true,
-     message:'Yerel motor kelime üretemedi. Sonraki denemede tarayıcı konuşma hizmeti kullanılacak.'});
-    setParentDiagnostic('Yerel konuşma motoru sesi algıladı ancak metin üretmedi. Sonraki deneme farklı motorla yapılacak.');
-    setFeedback('🎤 Tekrar söyle! Bu kez farklı bir konuşma motoruyla deneyeceğiz.');
-   }else{
-    setFeedback(result.mode==='server-stt'
-     ?'🎤 Ses algılandı ancak sunucu motoru kelime üretemedi. Yeniden söyle veya cevabı seç.'
-     :result.mode==='sherpa-local'
-     ?'🎤 Cihaz içi model kelimeyi anlayamadı. Bir kez daha söyle veya cevaba dokun.'
-     :'🎤 Ses algılandı ama tarayıcı kelime üretemedi. Tekrar söyle veya cevabı seç.');
-   }
+   // Never silently switch from local speech to a different provider.
+   setSpeechNeedsHelp(true);
+   setFeedback('🎤 Sesini duydum ama kelimeleri seçemedim. Yeniden dene veya cevaba dokun.');
   }else if(result.kind==='heard'){
-   setFeedback('Mikrofon sesi algıladı ancak konuşma tanıma yok. Cevabı seçerek devam et.');
+   setSpeechNeedsHelp(true);setFeedback('🎤 Sesini duydum! İstersen cevaba dokunarak devam et.');
   }else if(result.kind==='denied'){
-   setFeedback('Mikrofon kapalı. Cevaplardan birini seçerek devam edebilirsin.');
+   setSpeechNeedsHelp(true);setFeedback('🎤 Mikrofon izni kapalı. Cevaba dokunarak devam edebilirsin.');
   }else if(result.kind==='no-speech'){
    setFeedback('Seni henüz duyamadım. İstersen yeniden dene!');
   }else if(result.kind==='unavailable'){
@@ -367,26 +355,20 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
     'stream-create':'Yerel konuşma akışı oluşturulamadı.'
    };
    const diagnostic=errorMessage[result.reason??'']??'Konuşma tanıma bu cihazda kullanılamıyor.';
-   setParentDiagnostic(diagnostic);
-   setFeedback('Konuşma tanıma bu denemede çalışmadı. Yeniden söyle ya da cevabı seç.');
+   setParentDiagnostic(diagnostic);setSpeechNeedsHelp(true);
+   setFeedback('🎤 Bu kez seni duyamadım. Yeniden dene veya cevaba dokun.');
    if(activeCapability.mode==='sherpa-local'){
     // Keep the selected independent on-device engine. Automatically falling
     // back to Chrome concealed the real WASM error, then retried the already
     // broken Web Speech API. The adult can explicitly choose a fallback.
     setParentDiagnostic('Ventra cihaz içi motoru: '+diagnostic+' (hata: '+(result.reason??'bilinmiyor')+'). Tarayıcı motoruna geçiş yalnızca yetişkin tarafından seçilebilir.');
-   }else if(activeCapability.mode==='web-local'&&result.reason!=='microphone-error'&&
-      result.reason!=='permission-denied'){
-    // Next user click may try the browser provider; don't fake recognition.
-    setCapability({mode:'web-browser',installable:false,localAvailable:true,
-     message:'Yerel tanıma başarısız oldu; bir sonraki denemede tarayıcı hizmeti kullanılacak.'});
-    setFeedback('Cihaz içi tanıma yanıt vermedi. Yeniden konuşmayı deneyebilirsin.');
    }
   }
  };
  const toggleIndependent=async()=>{
   if(independentEnabled){
    setIndependentEnabled(false);
-   setParentDiagnostic('Tarayıcı konuşma tanımasına geri dönüldü.');
+   setParentDiagnostic('Önceki yerel/tarayıcı motoruna dönüldü.');
    return;
   }
   if(!independentSttConfigured()){
@@ -408,7 +390,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   if(busy||listening)return;
   setBusy(true);
   try{
-   setCapability(await speechCapability(false,true));
+   setIndependentEnabled(false);setCapability(await speechCapability(false,true));
    setParentDiagnostic('Tarayıcının konuşma motoru seçildi. Sesi tarayıcı sağlayıcısı işleyebilir.');
   }finally{setBusy(false);}
  };
@@ -417,6 +399,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   setBusy(true);
   try{
    if(await localSherpaAvailable()){
+    setIndependentEnabled(false);
     setCapability({mode:'sherpa-local',installable:false,
      message:'Ventra İngilizce konuşmayı cihaz üzerinde, ücretsiz sherpa-onnx modeliyle tanır.'});
     setParentDiagnostic('Cihaz içi model seçildi. İlk konuşma denemesinde modelin yüklenmesi biraz sürebilir.');
@@ -428,7 +411,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   setBusy(true);
   try{
    const state=await speechCapability();
-   setCapability(state);
+   setIndependentEnabled(false);setCapability(state);
    setParentDiagnostic(state.mode==='web-local'?'Cihaz içi tanıma kullanılabilir görünüyor; başarı garanti değil.':state.message);
    setFeedback('Konuşmayı yeniden deneyebilirsin!');
   }finally{setBusy(false);}
@@ -438,17 +421,21 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   setBusy(true);
   try{
    const offline=await speechCapability(true);
-   setCapability(offline);
+   setIndependentEnabled(false);setCapability(offline);
    setParentDiagnostic(offline.mode==='web-local'
     ?'Cihaz içi tanıma seçildi. Bu motor kelime üretmezse tarayıcı motoruna dönülecek.'
     :'Cihaz içi tanıma hazır değil. Tarayıcı motoru kullanılacak.');
   }finally{setBusy(false);}
  };
  const install=async()=>{
-  setBusy(true);const ok=await installLocalEnglish();
-  setCapability(await speechCapability());setBusy(false);
-  setParentDiagnostic(ok?'Ses tanıma desteği hazır görünüyor. Gerçek performansı cihazda test edin.':'Ses desteği indirilemedi; dokunmatik cevaplar çalışmaya devam eder.');
-  setFeedback(ok?'Artık konuşmayı yeniden deneyebilirsin!':'Cevabı seçerek de devam edebilirsin.');
+  if(busy||listening)return;
+  setBusy(true);
+  try{
+   const ok=await installLocalEnglish();
+   setIndependentEnabled(false);setCapability(await speechCapability());
+   setParentDiagnostic(ok?'Yerel ses paketi hazır görünüyor; cihazda kontrol edin.':'Ses paketi kurulamadı; dokunarak devam edilebilir.');
+  }catch{setParentDiagnostic('İngilizce ses paketi kurulurken beklenmeyen hata oluştu.');}
+  finally{setBusy(false);}
  };
  const backToMap=()=>{
   generation.current++;narrationRun.current++;setNarrating(false);stopSpeechCapture();soundService.setCaptureActive(false);soundService.cancelSpeech();
@@ -545,7 +532,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
         :'Bu cihazda sesli cevap desteklenmiyor; cevabı seç.'}</small>
      </div>
      {!speechAvailable&&<p className="harbor-speech-help harbor-speech-help-static">
-       Bu tarayıcı konuşmayı metne çeviremiyor. Cevabı seçerek devam edebilirsin.
+       Sesli cevap burada çalışmıyor. Seçeneklerden birine dokunarak devam et.
       </p>}
      {listening&&<p className="harbor-mic-live" role="status" aria-live="polite">{
       micStatus==='model-loading'?'⏳ İngilizce tanıma modeli hazırlanıyor…':
