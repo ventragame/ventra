@@ -139,7 +139,7 @@ test('A microphone that cannot transcribe is never presented as a speech answer'
  assert.match(ui,/speechAvailable/);
  assert.match(ui,/disabled=\{busy\|\|listening\|\|locked\.current\|\|!canAnswer\|\|!speechAvailable\}/);
  assert.match(ui,/Bir yetişkinden yardım iste/);
- assert.match(ui,/İngilizce yanıt çözümleniyor/);
+ assert.match(ui,/Cevabına bakıyorum/);
  assert.match(ui,/mode='\+result\.mode/);
  assert.match(ui,/network-error/);
  assert.match(capability,/mode:'web-browser'/);
@@ -200,4 +200,14 @@ test('Technical codes, third-party controls and keyboard handling live only in a
  assert.ok(adult.includes("document.addEventListener('keydown'"));
  assert.ok(adult.includes("event.key==='Escape'"));
  assert.ok(game.includes('stopSpeechCapture()'));
+});
+
+
+test('Child microphone status text is friendly; browser processing is disclosed without engine codes',()=>{
+ const game=read('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
+ assert.ok(game.includes('Mikrofon hazırlanıyor'));
+ assert.ok(game.includes('Cevabına bakıyorum'));
+ assert.ok(game.includes('Sesin cihaz veya tarayıcı tarafından işlenebilir'));
+ assert.ok(!game.includes('İngilizce tanıma modeli hazırlanıyor'));
+ assert.ok(!game.includes('Ses algılandı, kelimeler bekleniyor'));
 });

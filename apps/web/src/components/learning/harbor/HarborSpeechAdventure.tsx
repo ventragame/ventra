@@ -535,12 +535,12 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
        Sesli cevap burada çalışmıyor. Seçeneklerden birine dokunarak devam et.
       </p>}
      {listening&&<p className="harbor-mic-live" role="status" aria-live="polite">{
-      micStatus==='model-loading'?'⏳ İngilizce tanıma modeli hazırlanıyor…':
+      micStatus==='model-loading'?'⏳ Mikrofon hazırlanıyor…':
       micStatus==='starting'?'🎤 Hazırlanıyorum…':
       micStatus==='microphone-ready'?'🟢 Seni dinliyorum! Şimdi söyle.':
-      micStatus==='speech-detected'?'🎤 Ses algılandı, kelimeler bekleniyor…':
-      micStatus==='processing'?'⏳ İngilizce yanıt çözümleniyor…':
-      '🎚️ Seni dinliyorum…'
+      micStatus==='speech-detected'?'🎤 Sesini duydum, devam edebilirsin!':
+      micStatus==='processing'?'⏳ Cevabına bakıyorum…':
+      '🎤 Seni dinliyorum…'
      }</p>}
      {(speechNeedsHelp||!speechAvailable)&&!listening&&<button type="button" className="harbor-adult-help"
       onClick={openAdultSettings} disabled={busy||locked.current}>Bir yetişkinden yardım iste</button>}
@@ -579,7 +579,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
     </div>
    </>}
   </main>
-  <footer className="harbor-footer">🎤 Konuşmak isteğe bağlı. Her görevi dokunarak da tamamlayabilirsin.</footer>
+  <footer className="harbor-footer">🎤 Konuşmak isteğe bağlı. Sesin cihaz veya tarayıcı tarafından işlenebilir; dokunarak da oynayabilirsin.</footer>
   <ParentalGateModal isOpen={parentGateOpen} zIndex={120}
    description="Konuşma motorları ve teknik hata bilgileri yetişkinlere özeldir. Devam etmek için lütfen işlemi çözün."
    onClose={()=>setParentGateOpen(false)}
