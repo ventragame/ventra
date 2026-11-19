@@ -122,3 +122,18 @@ test('P0 visual desk, progressive help and mobile keyboard are separate and chil
  }
  assert.doesNotMatch(ui,/setItem\(.*input|setItem\(.*creative|fetch\(/);
 });
+
+
+test('Hint stage two never reveals a complete one-word typed answer',async()=>{
+ const {workshopHint}=await import('../src/lib/learning/writingWorkshopGuidance.ts');
+ for(const chapter of WORKSHOP_CHAPTERS){
+  for(const level of ['Pre-A1','A1','A2']){
+   for(const task of chapter.quests[level]){
+    if(task.mode!=='write'||task.target.trim().split(/\s+/).length!==1)continue;
+    const hint=workshopHint(task,2);
+    assert.equal(hint.showAnswer,false);
+    assert.ok(!hint.description.toLocaleLowerCase('en-US').includes(task.target.toLocaleLowerCase('en-US')),'Full answer exposed: '+task.id);
+   }
+  }
+ }
+});

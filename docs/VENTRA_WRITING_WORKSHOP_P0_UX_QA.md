@@ -25,3 +25,5 @@ Dinle butonu model sesi çalar; hem sesli yardım hem aşamalı ipuçları bir k
 `npm run type-check -w @ventra/web` ve `npm run test -w @ventra/web` ile otomatik kontroller. 320/360/390/430px, Android Chrome ve iOS Safari ile fiziksel klavye, emoji klavyesi, uzun A2 metni, ekran yönü değişimi, zoom ve checkpoint ayrıca elle doğrulanmalıdır.
 
 CI başarısı cihaz QA'sı veya dil uzmanı onayı değildir; production deploy yapılmaz.
+
+Ek güvenlik kontrolü: Tek kelimelik bağımsız yazma görevlerinde ikinci kademe kelimenin tamamını değil yalnızca ilk harfi gösterir.

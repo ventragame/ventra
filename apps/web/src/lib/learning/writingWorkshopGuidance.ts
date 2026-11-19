@@ -12,10 +12,10 @@ export function workshopHint(task:WorkshopTask,stage:WorkshopHintStage):{title:s
  if(stage===1){
   return {title:'1 · Yapıyı keşfet',description:task.mode==='spell'?
    'Kelime '+letters+' harften oluşuyor. Sesini dinleyip harfleri sıraya koy.':
-   'Cümlede '+words.length+' kelime var. Önce anlamlı başlangıcı düşün.',showAnswer:false};
+   (words.length===1?'Yanıtın tek kelimeden oluşuyor.':'Cümlede '+words.length+' kelime var. Önce anlamlı başlangıcı düşün.'),showAnswer:false};
  }
  if(stage===2){
-  return {title:'2 · Başlangıcı bul',description:task.mode==='spell'?
+  return {title:'2 · Başlangıcı bul',description:task.mode==='spell'||words.length===1?
    'İlk harf: '+(task.target.match(/[a-z]/i)?.[0].toUpperCase()??'').trim():
    'İlk kelime: '+words[0],showAnswer:false};
  }
