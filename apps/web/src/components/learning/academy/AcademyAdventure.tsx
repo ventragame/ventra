@@ -370,6 +370,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
       <div><strong>{step===0?currentZone.name:plan.caseTitle}</strong>
        <p>{step===0?academySafeMission(zone):plan.mission}</p></div>
      </div>
+    </section>
     <section className="academy-task" ref={taskTarget}>
      <div className="academy-task-head"><AcademyTaskIdentity kind={task.kind} current={step+1} total={plan.tasks.length}/>
       <button type="button" className="academy-hint" disabled={busy||hintLevel===2} onClick={showHint}

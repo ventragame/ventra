@@ -183,8 +183,3 @@
  .academy-scene-character{left:8px;bottom:77px;width:84px}
  .academy-scene-icon{margin-left:25%;margin-right:0}
 }
-
-.academy-scene-achievement{position:absolute;left:50%;top:40%;z-index:5;transform:translate(-50%,-50%);max-width:85%;white-space:normal;text-align:center;border:2px solid #fff4b8;border-radius:20px;padding:12px 18px;background:#fff4dff2;color:#393665;box-shadow:0 0 42px #ffd57ac9,0 12px 35px #1017406b;font-weight:950;font-size:clamp(13px,2.5vw,18px);line-height:1.4;animation:academy-achievement .24s ease-out both}
-.academy-scene-achievement span{color:#c88923;margin-right:5px}
-@keyframes academy-achievement{from{opacity:0;transform:translate(-50%,-45%) scale(.88)}to{opacity:1;transform:translate(-50%,-50%) scale(1)}}
-@media(prefers-reduced-motion:reduce){.academy-scene-achievement{animation:none}}
