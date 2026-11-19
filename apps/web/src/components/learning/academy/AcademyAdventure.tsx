@@ -5,6 +5,8 @@ import type {GameCompletedPayload} from '@ventra/shared';
 import {getProgressRepository} from '@/lib/progress';
 import {soundService} from '@/lib/audio/SoundService';
 import {CharacterGuide} from '@/components/learning/motion/CharacterGuide';
+import {Lightbulb} from 'lucide-react';
+import {AcademySkillJourney,AcademyTaskIdentity,AcademyTaskStatus} from './AcademySkillSystem';
 import {listenToChild,speechCapability,stopSpeechCapture,type SpeechCapability} from '@/lib/speech/childSpeech';
 import {
  ACADEMY_GAME_ID,ACADEMY_REVIEW_GAME_ID,ACADEMY_ZONES,buildAcademyPlan,buildAcademyFocusPlan,nextAcademyVariant,
@@ -16,11 +18,12 @@ import {
  readAcademyCheckpoint,saveAcademyCheckpoint,clearAcademyCheckpoint
 } from '@/lib/learning/academyCheckpoint';
 import './academy-adventure.css';
+import './academy-skill-system.css';
 
 type Props={profileId:string;englishLevel:AcademyLevel;gradeLevel:number|null;
  onBack:()=>void;onSaved:()=>void};
 type Stage='map'|'quest'|'pending'|'final';
-const labels={hear:'Dinle',read:'Oku',talk:'Konuş',build:'Cümle Kur',write:'Yaz'};
+const ACADEMY_ADVANCE_DELAY_MS=1400;
 const kinds=['hear','read','talk','build','write'] as const;
 /** Accessible visual labels: illustrations are illustrative, English text remains authoritative. */
 function choiceVisual(option:string){
@@ -69,6 +72,9 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
  const advanceTimer=useRef<number|null>(null);
  const audioEpoch=useRef(0);
  const alive=useRef(true);
+ const questScroller=useRef<HTMLElement|null>(null);
+ const taskTarget=useRef<HTMLElement|null>(null);
+ const previousTaskId=useRef('');
  const plan=useMemo(()=>reviewSkill?buildAcademyFocusPlan(zone,englishLevel,reviewSkill,variant):
   buildAcademyPlan(zone,englishLevel,variant),[zone,englishLevel,variant,reviewSkill]);
  const task=plan.tasks[step]??plan.tasks[plan.tasks.length-1];
@@ -81,6 +87,18 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
  const wordTiles=useMemo(()=>academyShuffle(academyWords(task.answer),task.id+'-order'),[task]);
  // Academy permits only local/native speech recognition for children by default.
  const hasSpeech=capability&&['native-local','sherpa-local','web-local'].includes(capability.mode);
+
+ // Move only the nested quest scroll container when automatic advancement
+ // changes the task, without stealing keyboard focus or scrolling the document.
+ useEffect(()=>{
+  if(stage!=='quest'){previousTaskId.current='';return;}
+  const previous=previousTaskId.current;previousTaskId.current=task.id;
+  if(!previous||previous===task.id)return;
+  const scroller=questScroller.current,target=taskTarget.current;
+  if(!scroller||!target)return;
+  const outer=scroller.getBoundingClientRect(),inner=target.getBoundingClientRect();
+  scroller.scrollTo({top:Math.max(0,inner.top-outer.top+scroller.scrollTop-12),behavior:'auto'});
+ },[stage,task.id]);
 
  useEffect(()=>{
   alive.current=true;
@@ -223,7 +241,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
    }
    stop();setStep(step+1);setErrorOnStep(0);setHintLevel(0);setAudioPlayed(false);setAudioAttempted(false);
    setPicked([]);setTyped('');setMessage('');setResolved(false);setBusy(false);
-  },700);
+  },ACADEMY_ADVANCE_DELAY_MS);
  }
  function wrong(){
   if(busy)return;
@@ -271,7 +289,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
      if(step+1>=plan.tasks.length){void save(next,mistakes,hints);return;}
      stop();setStep(step+1);setErrorOnStep(0);setHintLevel(0);setAudioPlayed(false);setAudioAttempted(false);setPicked([]);
      setTyped('');setMessage('');setResolved(false);setBusy(false);
-    },700);
+    },ACADEMY_ADVANCE_DELAY_MS);
    }else{
     setBusy(false);
     if(result.kind==='recognized'){wrong();setMessage('Söylediğini duydum fakat cevap farklı. Yeniden deneyebilirsin.');}
@@ -331,11 +349,8 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
     </section>}
     <p className="academy-note">Her bölgede üç farklı hikâye var. Yeniden oynadığında yeni bir durumla karşılaşırsın. Dokunarak verilen diyalog cevapları konuşma başarısı sayılmaz.</p>
    </main>}
-   {stage==='quest'&&<main className="academy-quest">
-    <div className="academy-quest-top"><span>{currentZone.icon} {reviewSkill?'Kısa Tekrar':currentZone.name}</span><span>Görev {step+1} / {plan.tasks.length}</span></div>
-    <div className="academy-progress" role="progressbar" aria-valuenow={step} aria-valuemin={0} aria-valuemax={plan.tasks.length} aria-label="Macera ilerlemesi">
-     <span style={{width:(step/plan.tasks.length*100)+'%'}}/>
-    </div>
+   {stage==='quest'&&<main className="academy-quest" ref={questScroller}>
+    <AcademySkillJourney tasks={plan.tasks} activeStep={step} review={reviewSkill!==null}/>
     <section className="academy-scene" style={{'--zone-tint':currentZone.tint,'--zone-light':currentZone.light} as React.CSSProperties}>
      <div className="academy-scene-photo" aria-hidden="true">
       <picture><source media="(max-width: 650px)" srcSet={currentZone.mobileArt}/>
@@ -355,17 +370,14 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
       <div><strong>{step===0?currentZone.name:plan.caseTitle}</strong>
        <p>{step===0?academySafeMission(zone):plan.mission}</p></div>
      </div>
-    {resolved&&<div className="academy-scene-achievement" role="status" aria-live="polite">
-      <span aria-hidden="true">✦</span> {task.feedback}
-     </div>}
-    </section>
-    <section className="academy-task">
-     <div className="academy-task-head"><span className="academy-kind">{labels[task.kind]}</span>
+    <section className="academy-task" ref={taskTarget}>
+     <div className="academy-task-head"><AcademyTaskIdentity kind={task.kind} current={step+1} total={plan.tasks.length}/>
       <button type="button" className="academy-hint" disabled={busy||hintLevel===2} onClick={showHint}
-       aria-label={hintLevel===0?'İpucu göster':hintLevel===1?'Bir ipucu daha göster':'Tüm ipuçları gösterildi'}>?
+       aria-label={hintLevel===0?'İpucu göster':hintLevel===1?'Bir ipucu daha göster':'Tüm ipuçları gösterildi'}><Lightbulb size={18} aria-hidden="true"/>
        <span>{hintLevel===0?'İpucu':hintLevel===1?'Bir İpucu Daha':'İpucu Kullanıldı'}</span></button>
      </div>
      <h2>{task.prompt}</h2>
+     <div className={'academy-task-body academy-task-body--'+task.kind}>
      {task.line&&<p className={'academy-line '+(task.kind==='hear'?'academy-line-hidden':'')}>
       {task.kind==='hear'&&!hintOnStep?'Önce sesi dinle.':'“'+task.line+'”'}</p>}
      {(task.kind==='hear'||task.kind==='talk')&&
@@ -400,9 +412,9 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
      </div>}
      {task.kind==='write'&&<div className="academy-writing">
       <label htmlFor="academy-write">İngilizce cevabını yaz</label>
-      <input id="academy-write" value={typed} maxLength={150} autoComplete="off" spellCheck={false}
+      <input id="academy-write" value={typed} maxLength={150} autoComplete="off" autoCapitalize="none" autoCorrect="off" spellCheck={false} inputMode="text" enterKeyHint="done"
        onChange={e=>setTyped(e.target.value)} placeholder={englishLevel==='Pre-A1'?'English word…':'English sentence…'}
-       disabled={busy} onKeyDown={e=>{if(e.key==='Enter')submit();}}/>
+       disabled={busy} onKeyDown={e=>{if(e.key==='Enter'&&typed.trim()){e.preventDefault();submit();}}}/>
       <button type="button" className="academy-submit" disabled={busy||!typed.trim()} onClick={()=>submit()}>Mesajı Kontrol Et</button>
       {englishLevel==='Pre-A1'&&<div className="academy-touch-write">
        <p>Klavye zor mu? Kelime kartlarıyla da tamamlayabilirsin. Bu, bağımsız yazma olarak sayılmaz.</p>
@@ -416,7 +428,9 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
        </button>
       </div>}
      </div>}
-     <p className="academy-feedback" role="status" aria-live="polite">{message||(task.kind==='write'?'Cevabını yaz veya kartlarla oluştur.':task.kind==='build'?'Kelimeleri sıraya koy.':'Görevi tamamlamak için uygun cevabı seç.')}</p>
+     </div>
+     {(message||resolved)&&<AcademyTaskStatus message={message} resolved={resolved}
+      index={step} total={plan.tasks.length} kind={task.kind}/>} 
      {saveError&&<div className="academy-alert" role="alert">{saveError}<button type="button" onClick={()=>void save(answers,mistakes,hints)}>Kaydı Yeniden Dene</button></div>}
     </section>
    </main>}
