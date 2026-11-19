@@ -7,6 +7,7 @@ import type { ColorAnswerEvidence } from '@ventra/shared';
 import { soundService } from '@/lib/audio/SoundService';
 import {useAutoQuestionAdvance} from '@/lib/learning/useAutoQuestionAdvance';
 import { EventBus } from '@/lib/game/EventBus';
+import './garden-game-foundation.css';
 import { ColorGroveScene } from './ColorGroveScene';
 import {GardenHelp} from '../GardenHelp';
 import { MobileColorGroveWorld } from './MobileColorGroveWorld';
@@ -268,7 +269,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
       onPointerMove={(event) => event.stopPropagation()}
       onPointerUp={(event) => event.stopPropagation()}
       onWheel={(event) => event.stopPropagation()}
-      className="cg-shell cg4-shell fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-gradient-to-b from-[#10294a] via-[#234b65] to-[#123b37] text-white">
+      className="cg-shell cg4-shell gg-game-shell fixed inset-0 z-50 overflow-y-auto overscroll-contain bg-gradient-to-b from-[#10294a] via-[#234b65] to-[#123b37] text-white">
       <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden="true">
         <div className="absolute -left-40 top-0 h-96 w-96 rounded-full bg-cyan-300/10 blur-3xl" />
         <div className="absolute -right-28 bottom-0 h-96 w-96 rounded-full bg-lime-300/10 blur-3xl" />
@@ -277,7 +278,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
         style={{ paddingTop: 'max(16px, env(safe-area-inset-top))', paddingBottom: 'max(28px, env(safe-area-inset-bottom))' }}>
         <header className="cg-hud flex flex-wrap items-center justify-between gap-2">
           <button onClick={onBack} disabled={saving} aria-label="Kelime Bahçesine dön"
-            className="cg-hud-back vg-answer-card min-h-11 rounded-2xl border border-white/25 bg-white/10 px-3 py-2.5 text-sm font-bold hover:bg-white/20 disabled:opacity-50 sm:px-4">
+            className="cg-hud-back gg-game-control vg-answer-card min-h-11 rounded-2xl border border-white/25 bg-white/10 px-3 py-2.5 text-sm font-bold hover:bg-white/20 disabled:opacity-50 sm:px-4">
             ← <span className="cg-hud-back-label">Bahçeye Dön</span>
           </button>
           <div className="cg-hud-title cg-mobile-view" aria-label="Renk Korusu">
@@ -287,7 +288,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
             <span className="cg-hud-points rounded-xl border border-lime-300/40 bg-lime-950/60 px-3 py-2.5 text-xs font-black text-lime-100">
               ⭐ {Object.values(progress.starsByLevel).reduce((sum, value) => sum + value, 0)} / 9
             </span>
-            <button onClick={toggleSound} className="cg-hud-sound vg-answer-card min-h-11 rounded-xl border border-white/25 bg-white/10 px-3 text-sm font-bold hover:bg-white/20"
+            <button onClick={toggleSound} className="cg-hud-sound gg-game-control vg-answer-card min-h-11 rounded-xl border border-white/25 bg-white/10 px-3 text-sm font-bold hover:bg-white/20"
               aria-label={muted ? 'Sesi aç' : 'Sesi kapat'} aria-pressed={muted}>
               {muted ? '🔇' : '🔊'}
             </button>
@@ -309,7 +310,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
               onClick={() => { if (i + 1 <= progress.completedLevels + 1) reset((i + 1) as Step); }}
               disabled={i + 1 > progress.completedLevels + 1 || saving}
               aria-current={step === i + 1 ? 'step' : undefined}
-              className={`vg-answer-card min-h-14 rounded-xl border px-2 py-3 text-[11px] font-bold sm:text-sm ${step === i + 1 ? 'border-lime-200 bg-emerald-600/55' : 'border-white/20 bg-white/10'} disabled:opacity-40`}>
+              className={`gg-game-control vg-answer-card min-h-14 rounded-xl border px-2 py-3 text-[11px] font-bold sm:text-sm ${step === i + 1 ? 'border-lime-200 bg-emerald-600/55' : 'border-white/20 bg-white/10'} disabled:opacity-40`}>
               {i + 1 <= progress.completedLevels ? '✓ ' : ''}{i + 1}. <span className="cg-tab-long">{name}</span><span className="cg-tab-short">{['Keşif','Eşleştir','Boya'][i]}</span>
             </button>
           ))}
@@ -382,7 +383,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
                 <button key={word.id} onClick={() => explore(word.id)} disabled={saving}
                   aria-label={`${word.tr}, İngilizce ${word.id}, telaffuzu dinlemek için dokun`}
                   aria-pressed={discovered.includes(word.id)}
-                  className={`cg4-desktop-discover vg-answer-card group min-h-40 rounded-3xl border bg-slate-950/35 p-3 text-center shadow-lg transition-transform hover:-translate-y-0.5 disabled:opacity-60 sm:p-4 ${discovered.includes(word.id) ? 'border-lime-300/80 bg-emerald-500/20' : 'border-white/25 hover:border-sky-200'}`}>
+                  className={`cg4-desktop-discover gg-game-control vg-answer-card group min-h-40 rounded-3xl border bg-slate-950/35 p-3 text-center shadow-lg transition-transform hover:-translate-y-0.5 disabled:opacity-60 sm:p-4 ${discovered.includes(word.id) ? 'border-lime-300/80 bg-emerald-500/20' : 'border-white/25 hover:border-sky-200'}`}>
                   <div className="cg4-desktop-crystal" style={{ '--cg4-color': word.hex } as React.CSSProperties} aria-hidden="true">
                      <span className="cg4-desktop-crystal-glint"/>
                      {discovered.includes(word.id) && <span className="cg4-desktop-crystal-check">✓</span>}

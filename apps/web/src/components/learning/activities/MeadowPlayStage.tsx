@@ -56,7 +56,7 @@ export function MeadowPlayStage({
   correctId?'happy':speaking?'listen':noAudioMode?'hint':
   isDiscovery&&seen.size?'point':isRescue?'hint':'idle';
  const guideCue=mode+':'+(correctId??'')+':'+(wrongId??'')+':'+seen.size;
- return <section className={'am3-stage am3-stage--'+mode} data-mode={mode}
+ return <section className={'am3-stage gg-game-scene am3-stage--'+mode} data-mode={mode}
   aria-label={labels[mode]}>
   <div className="am3-atmosphere" aria-hidden="true"/>
   <LearningMotion variant={isComplete?'victory':'success'}
@@ -91,7 +91,7 @@ export function MeadowPlayStage({
      </div>
     </div>}
    {isListening&&<div className="am3-listen-zone">
-     <button type="button" className="am3-listen-button" onClick={onListen}
+     <button type="button" className="am3-listen-button gg-game-control" onClick={onListen}
       aria-label="İngilizce kelimeyi tekrar dinle" disabled={disabled||!canSpeak}>
       <span aria-hidden="true">🔊</span><strong>Dinle</strong>
      </button>
@@ -111,7 +111,7 @@ export function MeadowPlayStage({
      const known=seen.has(animal.id),right=correctId===animal.id,wrong=wrongId===animal.id;
      const showName=isDiscovery?known:right;
      return <button type="button" key={animal.id} disabled={disabled}
-      className="am3-choice"
+      className="am3-choice gg-game-control"
       data-known={known} data-correct={right} data-wrong={wrong}
       data-rescued={isRescue&&right}
       style={{'--am3-order':i} as React.CSSProperties}

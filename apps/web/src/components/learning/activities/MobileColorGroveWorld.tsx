@@ -50,7 +50,7 @@ export function MobileColorGroveWorld({
     return word?.hex ?? FINISH_COLORS[index];
   });
 
-  return <section className={'cg-world cg4-stage cg4-stage--' + mode} data-scene={scene} aria-label={caption}>
+  return <section className={'cg-world gg-game-scene cg4-stage cg4-stage--' + mode} data-scene={scene} aria-label={caption}>
     <div className="cg4-atmosphere" aria-hidden="true">
       <span className="cg4-sunbeam"/><span className="cg4-firefly cg4-firefly--one"/>
       <span className="cg4-firefly cg4-firefly--two"/><span className="cg4-firefly cg4-firefly--three"/>
@@ -74,7 +74,7 @@ export function MobileColorGroveWorld({
         {words.map((word,index) => {
           const discovered = discoveredIds.includes(word.id);
           return <button type="button" key={word.id} disabled={disabled}
-            className="cg4-discover-card vg-answer-card" data-found={discovered}
+            className="cg4-discover-card gg-game-control vg-answer-card" data-found={discovered}
             style={{ '--cg4-delay': index * 55 + 'ms' } as React.CSSProperties}
             aria-pressed={discovered} aria-label={word.tr + ', İngilizce ' + word.id + '. Dinlemek için dokun'}
             onClick={()=>onChoose?.(word.id)}>
@@ -103,7 +103,7 @@ export function MobileColorGroveWorld({
           </div>
           <span className="cg4-focus-label">{isPainting ? 'BOYAYI BUL' : 'RENK HANGİSİ?'}</span>
         </div>
-        <div className="cg4-choice-grid" role="group" aria-label={isPainting ? 'Boya paleti' : 'İngilizce renk seçenekleri'}>
+        <div className="cg4-choice gg-game-control-grid" role="group" aria-label={isPainting ? 'Boya paleti' : 'İngilizce renk seçenekleri'}>
           {words.map(word => <button key={word.id} type="button" disabled={disabled}
             onClick={()=>onChoose?.(word.id)}
             data-correct={correctId===word.id} data-wrong={wrongId===word.id}

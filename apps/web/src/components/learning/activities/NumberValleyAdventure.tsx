@@ -10,6 +10,7 @@ import {numberWordParts,numberWordTiles,portalSentence} from '@/lib/learning/num
 import type {NumberValleyProgress} from '@/lib/progress/numberValleyProgress';
 import {resolveGradeAwarePolicy} from '@/lib/learning/gradeAwareLearningPolicy';
 import {NumberValleyScenery,ValleyMilestone} from './NumberValleyScenery';
+import './garden-game-foundation.css';
 import './number-valley.css';
 import './number-valley-v5.css';
 import {useAutoQuestionAdvance} from '@/lib/learning/useAutoQuestionAdvance';
@@ -254,13 +255,13 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
   return <div ref={dialog} role="dialog" aria-modal="true" aria-label="Sayı Vadisi macerası"
       onPointerDown={e=>e.stopPropagation()} onPointerMove={e=>e.stopPropagation()}
       onPointerUp={e=>e.stopPropagation()} onWheel={e=>e.stopPropagation()}
-      className="nv-root nv5-root fixed inset-0 z-50 overflow-y-auto overscroll-contain text-white">
+      className="nv-root nv5-root gg-game-shell fixed inset-0 z-50 overflow-y-auto overscroll-contain text-white">
     <div className="nv-sky" aria-hidden="true"><span className="nv-orb nv-orb-one"/><span className="nv-orb nv-orb-two"/>
       <span className="nv-orb nv-orb-three"/><span className="nv-sky-stars">✦ · ✧ · ✦ · ✧ · ✦</span></div>
     <main className="nv5-main relative mx-auto max-w-6xl px-3 pb-12 pt-4 sm:px-7 sm:pt-6"
       style={{paddingTop:'max(16px,env(safe-area-inset-top))',paddingBottom:'max(28px,env(safe-area-inset-bottom))'}}>
       <header className="nv5-header">
-        <button onClick={onBack} disabled={saving} aria-label="Kelime Bahçesi’ne dön" className="nv-control nv5-back rounded-2xl px-4 py-3 text-sm font-bold disabled:opacity-50">
+        <button onClick={onBack} disabled={saving} aria-label="Kelime Bahçesi’ne dön" className="nv-control nv5-back gg-game-control rounded-2xl px-4 py-3 text-sm font-bold disabled:opacity-50">
           <span className="nv5-back-arrow" aria-hidden="true">‹</span><span className="nv5-back-label">Kelime Bahçesi</span>
         </button>
         <div className="nv5-header-status">
@@ -274,7 +275,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
           <button onClick={()=>{const value=soundService.toggleMute();setMuted(value);
             if(value){audioRequest.current++;setHeardAudio(false);setSpeaking(false);soundService.cancelSpeech();}}}
             aria-label={muted?'Sesi aç':'Sesi kapat'} aria-pressed={muted}
-            className="nv-control nv5-sound min-h-12 rounded-xl px-3">{muted?'🔇':'🔊'}</button>
+            className="nv-control nv5-sound gg-game-control min-h-12 rounded-xl px-3">{muted?'🔇':'🔊'}</button>
         </div>
       </header>
       <div className="nv-stage-intro nv5-intro py-6 text-center sm:py-9">
@@ -292,7 +293,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
             aria-label={`${path.title}: ${path.range} ${open?'oynanabilir':'henüz kilitli'}`}
             onClick={()=>restart(1,path.id)}
             data-current={band===path.id}
-             className={`nv-band-card nv5-band rounded-2xl px-2 py-3 text-center text-xs font-black sm:px-4 sm:py-4 sm:text-sm
+             className={`nv-band-card nv5-band gg-game-control rounded-2xl px-2 py-3 text-center text-xs font-black sm:px-4 sm:py-4 sm:text-sm
               ${band===path.id?'nv-band-selected':''} disabled:cursor-not-allowed disabled:opacity-55`}>
             <span className="nv5-band-icon" aria-hidden="true">{['💎','✨','🏔️'][i]}</span>
             <span className="nv5-band-title">{path.title}</span>
@@ -308,7 +309,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
             aria-current={stage===i+1?'step':undefined}
             aria-label={`${i+1}. ${part.title}${unlocked?'':' (kilitli)'}`}
             data-current={stage===i+1}
-             className={`nv-chapter nv5-chapter rounded-xl px-1.5 py-3 text-center text-[10px] font-bold sm:px-3 sm:text-sm
+             className={`nv-chapter nv5-chapter gg-game-control rounded-xl px-1.5 py-3 text-center text-[10px] font-bold sm:px-3 sm:text-sm
               ${stage===i+1?'nv-chapter-current':''} disabled:opacity-35`}>
             <span className="nv5-chapter-icon" aria-hidden="true">{unlocked?part.icon:'🔒'}</span>
             <span className="nv5-chapter-index">{i+1}/5</span>
@@ -331,7 +332,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
             <div className="nv-progress h-full rounded-full" style={{width:`${total?100*done/total:0}%`}}/>
           </div>
           <section aria-label="Sayı Vadisi oyun sahnesi"
-            className={`nv-landscape nv5-landscape nv-world-${stage} relative min-h-[270px] overflow-hidden rounded-[22px] px-3 py-7 sm:min-h-[355px] sm:p-8`}>
+            className={`nv-landscape nv5-landscape gg-game-scene nv-world-${stage} relative min-h-[270px] overflow-hidden rounded-[22px] px-3 py-7 sm:min-h-[355px] sm:p-8`}>
             <NumberValleyScenery stage={stage}/>
             <LearningMotion variant="success"
              trigger={awaitingNext?'valley-'+band+'-'+stage+'-'+question:null}/>
@@ -346,7 +347,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
                   onClick={()=>discover(value)} aria-pressed={visited.includes(value)}
                   aria-label={`${value} · ${englishNumber(value)} · ${visited.includes(value)?'Keşfedildi':'Keşfet'}`}
                   data-found={visited.includes(value)}
-                   className={`nv-crystal-tile nv5-crystal-tile group rounded-2xl p-2 text-center ${visited.includes(value)?'nv-discovered':''}`}
+                   className={`nv-crystal-tile nv5-crystal-tile gg-game-control group rounded-2xl p-2 text-center ${visited.includes(value)?'nv-discovered':''}`}
                   style={{animationDelay:`${i*80}ms`}}>
                     <Gem number={value} discovered={visited.includes(value)}/>
                     <span className="nv5-crystal-word">{visited.includes(value)?englishNumber(value).toUpperCase():'✦'}</span>
@@ -376,7 +377,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
                   <span className="nv-forge-number rounded-2xl px-8 py-2 text-5xl font-black tabular-nums text-white">{current.target}</span>
                   <button type="button" onClick={()=>speak(current.target)}
                     disabled={muted||!speechAvailable||buttonsDisabled}
-                    className="nv-control nv5-listen min-h-12 rounded-full px-6 py-2 text-sm font-black disabled:opacity-45">
+                    className="nv-control nv5-listen gg-game-control min-h-12 rounded-full px-6 py-2 text-sm font-black disabled:opacity-45">
                     {muted||!speechAvailable?'🔇 Yazılı ipucu kullan':'🔊 İngilizceyi Dinle'}
                   </button>
                   {(muted||!speechAvailable||hintUsed)&&<p className="text-sm font-black text-lime-100">
@@ -402,7 +403,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
                     disabled={buttonsDisabled||selectedWordTiles.includes(i)}
                     aria-label={`${tile.part} İngilizce kelime parçasını seç`}
                     onClick={()=>chooseWordTile(i)}
-                    className="nv-forge-tile nv5-forge-tile min-h-16 min-w-16 rounded-2xl px-4 py-3 text-xl font-black uppercase disabled:opacity-30"
+                    className="nv-forge-tile nv5-forge-tile gg-game-control min-h-16 min-w-16 rounded-2xl px-4 py-3 text-xl font-black uppercase disabled:opacity-30"
                     style={{animationDelay:`${i*95}ms`}}>
                     <span aria-hidden="true" className="block text-2xl text-amber-200">✦</span>
                     {tile.part}
@@ -412,10 +413,10 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
               {stage===5&&portalPhase==='collect'&&<div className="nv-portal-language nv5-portal mx-auto mt-5 max-w-xl rounded-2xl p-4">
                 <p className="mb-3 font-extrabold text-amber-100">🔮 {current.target} · İngilizce anahtar kelime hangisi?</p>
                 <button type="button" onClick={()=>speak(current.target,true)} disabled={muted||!speechAvailable||buttonsDisabled}
-                  className="nv-control nv5-listen mb-4 min-h-11 rounded-xl px-4 text-sm font-bold disabled:opacity-45">🔊 İngilizce Cümleyi Dinle</button>
+                  className="nv-control nv5-listen gg-game-control mb-4 min-h-11 rounded-xl px-4 text-sm font-bold disabled:opacity-45">🔊 İngilizce Cümleyi Dinle</button>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   {current.choices.map(value=><button key={value} type="button" onClick={()=>choose(value)}
-                    disabled={buttonsDisabled} className="nv-choice min-h-20 rounded-2xl p-3 text-base font-black uppercase disabled:opacity-50">
+                    disabled={buttonsDisabled} className="nv-choice gg-game-control min-h-20 rounded-2xl p-3 text-base font-black uppercase disabled:opacity-50">
                     {englishNumber(value)}
                   </button>)}
                 </div>
@@ -430,7 +431,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
                 <div role="group" aria-label="Cümle kelimeleri" className="mt-4 grid grid-cols-2 gap-3">
                   {portalOrder.map((order,i)=><button type="button" key={order}
                     disabled={buttonsDisabled||selectedPortalTokens.includes(order)}
-                    className="nv-forge-tile min-h-16 rounded-xl p-3 text-lg font-black disabled:opacity-25"
+                    className="nv-forge-tile gg-game-control min-h-16 rounded-xl p-3 text-lg font-black disabled:opacity-25"
                     onClick={()=>choosePortalToken(i)}>{portalWords[order]}</button>)}
                 </div>
               </div>}
@@ -440,14 +441,14 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
                   {[current.target,current.choices.find(n=>n!==current.target)??current.target+1].map((value,i)=>
                     <button type="button" key={i} disabled={buttonsDisabled}
                       onClick={()=>choosePortalSentence(value)}
-                      className="nv-choice min-h-24 rounded-2xl p-4 text-base font-black disabled:opacity-50">
+                      className="nv-choice gg-game-control min-h-24 rounded-2xl p-4 text-base font-black disabled:opacity-50">
                       {portalSentence(value)}
                     </button>)}
                 </div>
               </div>}
                             {stage===4&&<div className="mt-4 flex flex-col items-center gap-2">
                 <button onClick={()=>speak(current.target)} disabled={muted||!speechAvailable||buttonsDisabled}
-                  className="nv-control nv5-listen min-h-12 rounded-full px-6 text-sm font-bold disabled:opacity-45">
+                  className="nv-control nv5-listen gg-game-control min-h-12 rounded-full px-6 text-sm font-bold disabled:opacity-45">
                   {muted?'🔇 Ses Kapalı':speechAvailable?'🔊 Sayıyı Dinle':'🔇 Ses Kullanılamıyor'}
                 </button>
                 <button onClick={()=>{setHintUsed(true);setFeedback({good:true,text:`Yazılı destek: ${englishNumber(current.target).toUpperCase()}`});}}
@@ -463,7 +464,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
                   {current.choices.map((value,i)=><button key={value} onClick={()=>choose(value)} disabled={buttonsDisabled}
                     aria-label={stage===2?`${englishNumber(value)} kelimesini seç`:`${value} sayısını seç`}
                     data-result={awaitingNext&&value===current.target?'correct':lastChoice===value&&value!==current.target?'wrong':undefined}
-                     className="nv-choice nv5-answer group min-h-24 rounded-2xl px-3 py-5 text-center disabled:opacity-60 sm:min-h-32">
+                     className="nv-choice nv5-answer gg-game-control group min-h-24 rounded-2xl px-3 py-5 text-center disabled:opacity-60 sm:min-h-32">
                     <span className="nv5-answer-icon" aria-hidden="true">{stage===4?'◈':'✦'}</span>
                     <span className="nv5-answer-main">{stage===4?value:englishNumber(value).toUpperCase()}</span>
                     <span className="nv5-answer-sub">{stage===4?'Sayı kristali':'Işık taşı'} {i+1}</span>

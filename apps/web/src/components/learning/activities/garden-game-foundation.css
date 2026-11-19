@@ -1,0 +1,8 @@
+/* Garden P1: shared mechanical invariants. Illustrations and game rules stay local. */
+.gg-game-shell{--gg-touch-target:44px;--gg-focus-ring:#fff6ac;min-width:0;overscroll-behavior-y:contain;-webkit-overflow-scrolling:touch}
+.gg-game-shell .gg-game-control{min-height:var(--gg-touch-target);min-width:var(--gg-touch-target);touch-action:manipulation;-webkit-tap-highlight-color:transparent;user-select:none}
+.gg-game-shell .gg-game-control:focus-visible{outline:3px solid var(--gg-focus-ring);outline-offset:3px}
+.gg-game-shell .gg-game-control:disabled{cursor:not-allowed}
+.gg-game-shell .gg-game-scene{position:relative;isolation:isolate;min-width:0;max-width:100%}
+.gg-game-shell .gg-game-scene img,.gg-game-shell .gg-game-scene svg{max-width:100%}
+@media(prefers-reduced-motion:reduce){.gg-game-shell .gg-game-control{transition:none!important}.gg-game-shell .gg-game-control:not(:active){transform:none!important}}

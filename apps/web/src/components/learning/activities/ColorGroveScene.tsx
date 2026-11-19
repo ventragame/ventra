@@ -24,7 +24,7 @@ export function ColorGroveScene({
   const colors = getGroveTreeColors(mode, paintedIds);
 
   return (
-    <div className="vg-scene cg4-desktop-scene relative isolate mx-auto w-full overflow-hidden rounded-[1.75rem] border border-white/30 shadow-[0_22px_70px_rgba(5,28,33,0.35)]">
+    <div className="vg-scene gg-game-scene cg4-desktop-scene relative isolate mx-auto w-full overflow-hidden rounded-[1.75rem] border border-white/30 shadow-[0_22px_70px_rgba(5,28,33,0.35)]">
       <svg viewBox="0 0 820 340" width="100%" role="img"
         aria-label={mode === 'discovery' ? 'Rengârenk çiçeklerle dolu, ağaçlı bir koru' :
           mode === 'matching' ? 'Ortadaki çiçeğin rengini İngilizce eşleştir' :

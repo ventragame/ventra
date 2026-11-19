@@ -12,6 +12,7 @@ import {
   type AnimalMission, type AnimalWord, type AnimalId, type PlannedAnimalMission
 } from '@/lib/learning/animalMissionEngine';
 import {MeadowPlayStage} from './MeadowPlayStage';
+import './garden-game-foundation.css';
 import './animal-meadow.css';
 
 const STAGES = [
@@ -240,23 +241,23 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
   return (
     <div ref={panelRef} role="dialog" aria-modal="true" aria-label="Hayvan Çayırı macerası"
       onPointerDown={e=>e.stopPropagation()} onPointerMove={e=>e.stopPropagation()} onPointerUp={e=>e.stopPropagation()}
-      onWheel={e=>e.stopPropagation()} className="am-shell fixed inset-0 z-50 overflow-y-auto overscroll-contain text-white">
+      onWheel={e=>e.stopPropagation()} className="am-shell gg-game-shell fixed inset-0 z-50 overflow-y-auto overscroll-contain text-white">
       <div className="pointer-events-none fixed inset-0 overflow-hidden" aria-hidden="true">
         <div className="absolute -left-20 top-0 h-80 w-80 rounded-full bg-sky-400/20 blur-3xl"/>
         <div className="absolute -right-20 bottom-0 h-96 w-96 rounded-full bg-lime-400/15 blur-3xl"/>
       </div>
       <main className="am-main relative mx-auto max-w-5xl px-3 py-4 sm:px-6" style={{paddingTop:'max(16px, env(safe-area-inset-top))',paddingBottom:'max(30px, env(safe-area-inset-bottom))'}}>
         <header className="am-hud">
-          <button type="button" className="am-hud-btn" disabled={saving} onClick={onBack}
+          <button type="button" className="am-hud-btn gg-game-control" disabled={saving} onClick={onBack}
             aria-label="Kelime Bahçesi bölgelerine geri dön">← <span className="hidden sm:inline">Bölgeler</span></button>
           <div className="am-hud-title"><span className="am-hud-icon" aria-hidden="true">🐾</span>
             <span><strong>Hayvan Çayırı</strong><small>{gradeLevel??'—'}. sınıf · {englishLevel}</small></span>
           </div>
           <div className="am-hud-actions">
             <span className="am-hud-btn" aria-label={'Toplam '+stars+' yıldız'}>⭐ {stars}</span>
-            <button type="button" className="am-hud-btn" onClick={()=>setShowAlbum(v=>!v)}
+            <button type="button" className="am-hud-btn gg-game-control" onClick={()=>setShowAlbum(v=>!v)}
               aria-expanded={showAlbum} aria-label="Keşif albümünü aç veya kapat">📖</button>
-            <button type="button" className="am-hud-btn" onClick={toggleMute}
+            <button type="button" className="am-hud-btn gg-game-control" onClick={toggleMute}
               aria-label={muted?'Sesi aç':'Sesi kapat'} aria-pressed={muted}>{muted?'🔇':'🔊'}</button>
           </div>
         </header>
@@ -302,7 +303,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
             return <button key={order} type="button" disabled={locked||saving}
               onClick={()=>reset(order)} aria-current={stage===order?'step':undefined}
               aria-label={order+'. '+item.name+(locked?', kilitli':'')}
-              className="am-mission am-tap" data-active={stage===order} data-locked={locked}>
+              className="am-mission am-tap gg-game-control" data-active={stage===order} data-locked={locked}>
               <span aria-hidden="true">{locked?'🔒':order<=localProgress.completedLevels?'✅':item.icon}</span>
               <span className="am-mission-text">{item.name}</span>
             </button>;
