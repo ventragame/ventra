@@ -137,3 +137,10 @@ test('Hint stage two never reveals a complete one-word typed answer',async()=>{
   }
  }
 });
+
+
+test('Mobile keyboard-close button acts on pointer down before textarea blur unmounts it',()=>{
+ const ui=read('../src/components/learning/writing/WritingWorkshopAdventure.tsx');
+ assert.match(ui,/onPointerDown=\{\(\)=>inputRef\.current\?\.blur\(\)\}/);
+ assert.match(ui,/onBlur=\{\(\)=>setTypingFocused\(false\)\}/);
+});

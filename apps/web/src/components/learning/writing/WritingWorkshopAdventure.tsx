@@ -345,7 +345,8 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
        disabled={saving||resolved}/>
       <div className="writing-keyboard-guidance" id="workshop-keyboard-guidance">
        <span>İngilizce klavyeyle yaz · Otomatik düzeltme kapalı</span>
-       {typingFocused&&<button type="button" onClick={()=>inputRef.current?.blur()}>Klavyeyi kapat</button>}
+       {typingFocused&&<button type="button" onPointerDown={()=>inputRef.current?.blur()}
+        onClick={()=>inputRef.current?.blur()}>Klavyeyi kapat</button>}
       </div>
      </div>:<>
       <div className="writing-paper" aria-label="Oluşturduğun İngilizce cevap" lang="en">
