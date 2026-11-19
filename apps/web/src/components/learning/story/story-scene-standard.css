@@ -62,3 +62,8 @@
 @media(max-height:550px){
  .sj-root .sj-play:has(.story-standard-guide) .sj-scene{height:65dvh;min-height:210px}
 }
+
+/* Forest uses a span for the waveform; do not inherit the eyebrow font size. */
+.sj-root .sj-spoken>.story-standard-waves{
+ display:block;font-size:20px;line-height:1.2;letter-spacing:5px;color:#65ba9f
+}

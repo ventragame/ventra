@@ -75,3 +75,9 @@ test('Caption preference persists through story beats; sequence narration distin
  assert.match(css,/overflow-y:auto/);
  assert.match(css,/@media\(max-height:550px\)/);
 });
+
+test('Forest narration wave remains legible after reusing the shared span control',()=>{
+ const css=read('story-scene-standard.css');
+ assert.match(css,/\.sj-root \.sj-spoken>\.story-standard-waves\{/);
+ assert.match(css,/font-size:20px/);
+});
