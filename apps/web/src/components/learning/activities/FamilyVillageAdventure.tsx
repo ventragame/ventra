@@ -20,6 +20,8 @@ import {GardenHelp} from '../GardenHelp';
 import {LearningMotion} from '@/components/learning/motion/LearningMotion';
 import {CharacterGuide,type CharacterMood} from '@/components/learning/motion/CharacterGuide';
 import './family-village-guides.css';
+import {GardenQuestNavigator} from './GardenQuestNavigator';
+import './garden-quest-navigation.css';
 
 type Props={
  profileId:string;gradeLevel:number|null;englishLevel:EnglishPlacement;progress:FamilyVillageProgress;
@@ -208,7 +210,7 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
  const access=(index:number)=>index===0||(index===1?progress.completedByDistrict.family===5:
    index===2?progress.completedByDistrict.rooms===5:progress.completedByDistrict.objects===5);
  return <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Aile Köyü İngilizce öğrenme dünyası"
-   className="fv-screen fv3-screen fv4-screen fv5-screen">
+   className="fv-screen fv3-screen fv4-screen fv5-screen gg-quest-screen">
   <div className="fv-shell fv3-shell fv4-shell">
     <header className="fv-top fv3-top fv5-top">
       <button type="button" disabled={busy} onClick={()=>{cancelSpeech();onBack();}}
@@ -228,27 +230,29 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
         <GardenHelp label="Nasıl Oynanır?">{stageMeta.description}</GardenHelp>
       </div>
     </header>
-    <nav className="fv-district-nav fv3-district-nav fv5-district-nav" aria-label="Aile Köyü mahalleleri">
+    <GardenQuestNavigator areaTitle={lane.title} stageTitle={stageMeta.title} stage={stage} totalStages={5}>
+    <nav className="fv-district-nav fv3-district-nav fv5-district-nav gg-quest-zone-nav" aria-label="Aile Köyü mahalleleri">
       {VILLAGE_DISTRICTS.map((part,i)=><button key={part.id} type="button"
-        aria-pressed={district===part.id} disabled={!access(i)||busy}
-        className={`fv-district fv3-district ${district===part.id?'fv-district-current':''}`}
+        aria-pressed={district===part.id} aria-current={district===part.id?'true':undefined} disabled={!access(i)||busy}
+        className={`fv-district fv3-district gg-quest-zone ${district===part.id?'fv-district-current':''}`}
         onClick={()=>start(Math.min(5,progress.completedByDistrict[part.id]+1) as VillageStage,part.id)}>
         <span className={`fv-district-icon fv5-district-icon fv5-district-icon-${part.id}`} aria-hidden="true"/>
         <span className="fv4-district-copy"><strong>{part.title}</strong><small>{access(i)?`${progress.completedByDistrict[part.id]}/5 bölüm`:'Önceki mahalleyi keşfet'}</small></span>
         {!access(i)&&<span className="fv4-district-lock" aria-hidden="true">🔒</span>}
       </button>)}
     </nav>
-    <nav className="fv-stepnav fv3-stepnav fv5-stepnav" aria-label="İngilizce görev adımları">
+    <nav className="fv-stepnav fv3-stepnav fv5-stepnav gg-quest-stage-nav" aria-label="İngilizce görev adımları">
       {VILLAGE_STAGES.map(item=><button key={item.stage} type="button"
         disabled={item.stage>currentCompleted+1||busy}
         aria-pressed={item.stage===stage}
         aria-current={item.stage===stage?'step':undefined}
         onClick={()=>start(item.stage as VillageStage)}
-        className={`fv-step fv3-step ${stage===item.stage?'fv-step-current':''}`}>
+        className={`fv-step fv3-step gg-quest-step ${stage===item.stage?'fv-step-current':''}`}>
         <span className={`fv3-step-icon fv5-step-icon fv5-step-icon-${item.stage}`} aria-hidden="true"/><small className="fv3-step-title">{item.stage}. {item.title}</small><small className="fv3-step-index">{item.stage}/5</small>
         {progress.starsByLevel[VILLAGE_OFFSETS[district]+item.stage]>0&&<b>★</b>}
       </button>)}
     </nav>
+    </GardenQuestNavigator>
     <main className="fv-card fv3-card fv5-card">
       <div className="fv-scene fv3-scene fv5-scene">
         <FamilyVillageScenery district={district}/>

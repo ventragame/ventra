@@ -13,6 +13,8 @@ import {TempleScenery} from './TempleScenery';
 import './temple-adventure.css';
 import './temple-v6.css';
 import './temple-v7.css';
+import {GardenQuestNavigator} from './GardenQuestNavigator';
+import './garden-quest-navigation.css';
 import {GardenHelp} from '../GardenHelp';
 import {LearningMotion} from '@/components/learning/motion/LearningMotion';
 
@@ -222,7 +224,7 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
  });
  const canEnter=(i:number)=>i===0||progress.completedByChamber[TEMPLE_CHAMBERS[i-1].id]===5;
  const pairQuestions=stage===5&&current?current.questions.slice(Math.floor(question/2)*2,Math.floor(question/2)*2+2):[];
- return <div className="tp-screen tp6-screen tp7-screen" data-chamber={chamber} role="dialog" aria-modal="true"
+ return <div className="tp-screen tp6-screen tp7-screen gg-quest-screen" data-chamber={chamber} role="dialog" aria-modal="true"
   aria-label="Keşif Tapınağı İngilizce final dünyası" ref={scrollRef}>
   <div className="tp-shell tp6-shell">
    <header className="tp-header tp6-header">
@@ -234,10 +236,11 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
     </div>
     <div className="tp-score tp6-score">⭐ {Object.values(progress.starsByLevel).reduce((sum,v)=>sum+v,0)} / 75</div>
    </header>
-   <nav className="tp-chambers tp6-chambers" aria-label="Keşif Tapınağı bölümleri">
+   <GardenQuestNavigator areaTitle={roomInfo.title} stageTitle={stageInfo.title} stage={stage} totalStages={5}>
+   <nav className="tp-chambers tp6-chambers gg-quest-zone-nav" aria-label="Keşif Tapınağı bölümleri">
     {TEMPLE_CHAMBERS.map((room,i)=><button type="button" key={room.id}
-       disabled={!canEnter(i)||busy} aria-pressed={chamber===room.id}
-       className={`tp-chamber ${chamber===room.id?'tp-active-chamber':''}`}
+       disabled={!canEnter(i)||busy} aria-pressed={chamber===room.id} aria-current={chamber===room.id?'true':undefined}
+       className={`tp-chamber gg-quest-zone ${chamber===room.id?'tp-active-chamber':''}`}
        onClick={()=>enter(room.id,Math.min(5,progress.completedByChamber[room.id]+1) as TempleStage)}>
        <img className="tp7-chamber-art" src={`/assets/temple/temple-${room.id}-v7.webp`} alt="" draggable={false} decoding="async" loading="lazy"/>
        <span aria-hidden="true">{room.icon}</span>
@@ -245,15 +248,16 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
        <small>{canEnter(i)?`${progress.completedByChamber[room.id]}/5 görev`:'Kilitli 🔒'}</small>
      </button>)}
    </nav>
-   <nav className="tp-trials tp6-trials" aria-label="Bölümün beş dil görevi">
+   <nav className="tp-trials tp6-trials gg-quest-stage-nav" aria-label="Bölümün beş dil görevi">
     {TEMPLE_STAGES.map(trial=><button type="button" key={trial.stage}
-     disabled={trial.stage>completedSteps+1||busy} aria-pressed={trial.stage===stage}
-     className={`tp-trial ${trial.stage===stage?'tp-active-trial':''}`}
+     disabled={trial.stage>completedSteps+1||busy} aria-pressed={trial.stage===stage} aria-current={trial.stage===stage?'step':undefined}
+     className={`tp-trial gg-quest-step ${trial.stage===stage?'tp-active-trial':''}`}
      onClick={()=>enter(chamber,trial.stage as TempleStage)}>
      <span aria-hidden="true">{trial.icon}</span><small>{trial.stage}. {trial.title}</small><small className="tp6-trial-index">{trial.stage}/5</small>
      {progress.starsByLevel[TEMPLE_OFFSETS[chamber]+trial.stage]>0&&<b>★</b>}
     </button>)}
    </nav>
+   </GardenQuestNavigator>
    <section className="tp-quest tp6-quest">
     <div className="tp-scenery tp6-scenery">
      <TempleScenery chamber={chamber} cleared={completedSteps}/>

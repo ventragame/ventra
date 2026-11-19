@@ -12,6 +12,8 @@ import './food-market.css';
 import './food-market-v4.css';
 import './food-market-logic-v5.css';
 import './food-market-visual-v6.css';
+import {GardenQuestNavigator} from './GardenQuestNavigator';
+import './garden-quest-navigation.css';
 import {GardenHelp} from '../GardenHelp';
 import {LearningMotion} from '@/components/learning/motion/LearningMotion';
 
@@ -217,7 +219,7 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
  const allowedAisle=(i:number)=>i===0||(i===1?progress.completedByAisle.orchard===5:progress.completedByAisle.bakery===5);
  const stageEnabled=(n:number)=>n<=usedStage+1;
  return <div ref={dialog} role="dialog" aria-modal="true" aria-label="Lezzet Pazarı İngilizce macerası"
- className="fm-screen fm4-screen fm6-screen" data-aisle={aisle}>
+ className="fm-screen fm4-screen fm6-screen gg-quest-screen" data-aisle={aisle}>
   <div className="fm-shell fm4-shell">
    <header className="fm-header fm4-header">
     <button className="fm-back fm4-back" aria-label="Kelime Bahçesi’ne dön" onClick={()=>{cancelVoice();onBack();}}>
@@ -227,31 +229,33 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
       <p className="sr-only">See it · Hear it · Say it · Find it!</p></div>
     <div className="fm-score fm4-score">⭐ {Object.values(progress.starsByLevel).reduce((n,v)=>n+v,0)} / 45</div>
    </header>
-   <section className="fm-map fm4-map" aria-label="Pazar sokakları">
+   <GardenQuestNavigator areaTitle={currentAisle.title} stageTitle={stageMeta.title} stage={stage} totalStages={5}>
+   <section className="fm-map fm4-map gg-quest-zone-nav" aria-label="Pazar sokakları">
     {MARKET_AISLES.map((lane,i)=>{
      const unlocked=allowedAisle(i);
      return <button key={lane.id} disabled={!unlocked||busy} onClick={()=>changeStage(
       Math.min(5,progress.completedByAisle[lane.id]+1) as MarketStage,lane.id)}
       data-current={lane.id===aisle} data-aisle={lane.id}
       aria-current={lane.id===aisle?'true':undefined}
-       className={`fm-lane fm4-lane ${lane.id===aisle?'fm-lane-active':''}`}>
+       className={`fm-lane fm4-lane gg-quest-zone ${lane.id===aisle?'fm-lane-active':''}`}>
       <span className="fm6-lane-art" aria-hidden="true"><img src={MARKET_ART[lane.id]} alt="" loading="lazy" decoding="async" draggable={false}/></span>
       <span className="fm-lane-icon" aria-hidden="true">{lane.icon}</span>
       <span className="fm-lane-copy"><strong>{lane.title}</strong><small>{unlocked?`${progress.completedByAisle[lane.id]}/5 görev`:'Önce önceki sokağı tamamla'}</small></span>
      </button>})}
    </section>
-   <section className="fm-stagebar fm4-stagebar" aria-label="Dil görevleri">
+   <section className="fm-stagebar fm4-stagebar gg-quest-stage-nav" aria-label="Dil görevleri">
     {MARKET_STAGES.map(item=><button key={item.stage} disabled={!stageEnabled(item.stage)||busy}
       data-current={item.stage===stage}
       data-completed={progress.starsByLevel[MARKET_OFFSETS[aisle]+item.stage]>0}
       aria-label={`${item.stage}. ${item.title}${stageEnabled(item.stage)?'':' (henüz açılmadı)'}`}
        aria-current={item.stage===stage?'step':undefined}
-       className={`fm-stage-pill fm4-stage-pill ${item.stage===stage?'fm-pill-active':''}`}
+       className={`fm-stage-pill fm4-stage-pill gg-quest-step ${item.stage===stage?'fm-pill-active':''}`}
       onClick={()=>changeStage(item.stage as MarketStage)}>
       <span className="fm4-step-icon" aria-hidden="true">{item.icon}</span><span className="fm4-step-name">{item.stage}. {item.title}</span><span className="fm4-step-index">{item.stage}/5</span>
       {progress.starsByLevel[MARKET_OFFSETS[aisle]+item.stage]>0&&<span>⭐</span>}
     </button>)}
    </section>
+   </GardenQuestNavigator>
    <section className="fm-play fm4-play" aria-label={stageMeta.title}>
     <div className="fm-scenery fm4-scenery">
       <MarketBackdrop aisle={aisle}/>
