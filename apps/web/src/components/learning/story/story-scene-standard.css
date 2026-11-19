@@ -46,3 +46,19 @@
 @media(prefers-reduced-motion:reduce){
  .story-standard-guide,.story-standard-narration{scroll-behavior:auto}
 }
+
+/* Short-screen safe: guide scrolls with scene, never covers answers. */
+.sj-root .sj-play:has(.story-standard-guide){
+ justify-content:flex-start;overflow-y:auto;overscroll-behavior-y:contain;scrollbar-width:thin
+}
+.sj-root .sj-play:has(.story-standard-guide) .sj-scene{flex:0 0 auto;height:min(68dvh,670px)}
+.ss-root .ss-order-instruction-body{min-width:0;flex:1}
+.ss-root .ss-order-instruction-body .story-standard-caption{
+ margin:3px 0 0;text-align:left;color:#245969;font-weight:900
+}
+@media(max-width:700px){
+ .sj-root .sj-play:has(.story-standard-guide) .sj-scene{height:min(64dvh,520px);min-height:260px}
+}
+@media(max-height:550px){
+ .sj-root .sj-play:has(.story-standard-guide) .sj-scene{height:65dvh;min-height:210px}
+}

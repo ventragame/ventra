@@ -210,7 +210,7 @@ export function StoryDetectiveAdventure({profileId,gradeLevel,englishLevel,onBac
   currentRoute?:ForestScene){
   locked.current=false;phaseRef.current='step';setPhase('step');
   setStepIndex(index);setMistakes(0);setHintUsed(false);
-  setWrong(null);setCorrect(false);setCaption(false);
+  setWrong(null);setCorrect(false);
   speak(currentPlan,'step',currentPlan.steps[index],currentRoute);
  }
  function start(episode:ForestEpisode){
@@ -291,7 +291,7 @@ export function StoryDetectiveAdventure({profileId,gradeLevel,englishLevel,onBac
    const record=collectRecord(plan,nextAnswers);
    completed.current=record;
    locked.current=false;phaseRef.current='ending';setPhase('ending');
-   setCaption(false);setCorrect(false);
+   setCorrect(false);
    speak(plan,'ending',undefined,selectedRoute??undefined);
   },750);
  }

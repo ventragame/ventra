@@ -129,14 +129,14 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
  function watchNext(){
   if(!deck||page!=='watch')return;
   if(watchIndex===deck.frames.length-1){
-   setPage('order');setShowCaption(false);setVoiceUnavailable(false);
+   setPage('order');setVoiceUnavailable(false);
    soundService.cancelSpeech();
    // The initial guided playback is complete; now the child assembles it.
    soundService.speakEnglish('What happened first?',{rate:voiceRate});
    return;
   }
   const next=watchIndex+1;
-  setWatchIndex(next);setShowCaption(false);
+  setWatchIndex(next);
   setVoiceUnavailable(false);
   soundService.playSfx('tap',.36);
   narrate(deck.frames[next]);
@@ -146,7 +146,7 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
   if(page==='watch'&&watchFrame)narrate(watchFrame);
   if(page==='order'){
    soundService.unlockAudio();
-   soundService.speakEnglish('What happened next?',{rate:voiceRate});
+   soundService.speakEnglish(slot===0?'What happened first?':'What happened next?',{rate:voiceRate});
   }
  }
  function showHint(){
@@ -332,10 +332,10 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
      trigger={selectedIds.length>slot?'sequence-ordered-'+episode+'-'+slot:null}/>
     <StorySceneGuide mode="order" current={slot+1} total={deck.frames.length}
      title={currentStory.title}/>
-    <div className="ss-instruction">
-      <button type="button" onClick={replayNarration} aria-label="Sesli ipucunu tekrarla">🔊</button>
-      <span>Hikâyede önce ne oldu?</span>
-    </div>
+    <StoryNarrationPanel text={slot===0?'What happened first?':'What happened next?'}
+     showText={true} promptOnly voiceUnavailable={false} disabled={busy}
+     onListen={replayNarration} classes={{root:'ss-instruction',
+      listen:'ss-speak',body:'ss-order-instruction-body'}}/>
     <div className="ss-slots" aria-label="Hikâyenin tamamlanan sıralaması">
      {deck.frames.map((frame,i)=><div key={frame.id}
        className={'ss-slot '+(i===slot?'active':i<slot?'done':'')}>

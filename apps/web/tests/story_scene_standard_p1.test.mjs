@@ -37,7 +37,7 @@ test('Illustrated response choices remain governed by original engines and savin
  assert.match(sequence,/selectCheck\(id\)/);
  assert.match(sequence,/sequenceComprehensionPrompt\(activeCheck.kind,englishLevel\)/);
  assert.match(sequence,/saveSequenceStory/);
- assert.equal((sequence.match(/<StoryNarrationPanel/g)||[]).length,2);
+ assert.equal((sequence.match(/<StoryNarrationPanel/g)||[]).length,3);
  assert.equal((sequence.match(/<StorySceneGuide/g)||[]).length,3);
  const detective=read('StoryDetectiveAdventure.tsx');
  assert.match(detective,/<ChoiceArt kind=\{step.kind\} value=\{choice\}/);
@@ -61,4 +61,17 @@ test('Shared illustrated narration is readable on phones with accessible control
  assert.match(core,/Resmi incele, anlatımı dinle/);
  assert.match(core,/Resme bak, anlatımı dinle/);
  assert.match(core,/role="group" aria-label="Hikâye görev rehberi"/);
+});
+
+test('Caption preference persists through story beats; sequence narration distinguishes first and next',()=>{
+ const forest=read('StoryForestAdventure.tsx'),seq=read('StorySequenceAdventure.tsx');
+ const det=read('StoryDetectiveAdventure.tsx');
+ assert.doesNotMatch(forest,/setCaption\(false\);setVoiceUnavailable\(false\)/);
+ assert.doesNotMatch(seq,/setWatchIndex\(next\);setShowCaption\(false\)/);
+ assert.match(seq,/slot===0\?'What happened first\?'\:'What happened next\?'/);
+ assert.match(seq,/showText=\{true\} promptOnly/);
+ assert.doesNotMatch(det,/setWrong\(null\);setCorrect\(false\);setCaption\(false\)/);
+ const css=read('story-scene-standard.css');
+ assert.match(css,/overflow-y:auto/);
+ assert.match(css,/@media\(max-height:550px\)/);
 });

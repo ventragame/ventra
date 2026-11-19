@@ -171,7 +171,7 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
  }
  function enterPhase(nextPlan:JourneyPlan,stage:JourneyPhase,loc:ForestScene|null){
   stopAudio();phaseRef.current=stage;setPhase(stage);
-  setCaption(false);setVoiceUnavailable(false);setWrong(null);setCorrect(false);
+  setVoiceUnavailable(false);setWrong(null);setCorrect(false);
   const token=generation.current;
   const spoken=narrativeFor(nextPlan,stage,loc??undefined);
   const voiceStarted=soundService.speakEnglish(spoken,{
@@ -201,7 +201,7 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
   setDestination(null);setMistakes(0);setUsedHint(false);
   setFirstResult({mistakes:0,hint:false});setSecondResult({mistakes:0,hint:false});
   setLearningAnswers([]);setHighlight(false);setSaveError('');
-  setWrong(null);setCorrect(false);
+  setWrong(null);setCorrect(false);setCaption(false);
   actionLock.current=false;resultRef.current=null;
   runId.current='journey:'+profileId+':'+id+':'+Date.now()+':'+seed;
   startedAt.current=Date.now();
