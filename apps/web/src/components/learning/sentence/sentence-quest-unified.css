@@ -1,0 +1,27 @@
+/* Sentence Plaza P1: visual language shared by four distinct game scenes. */
+.sq-builder{display:grid;gap:10px;min-width:0}
+.sq-builder-heading{display:flex;align-items:center;justify-content:space-between;gap:8px;
+ border:1px solid #bfd7c2;border-radius:14px;padding:10px 12px;
+ background:linear-gradient(120deg,#fffdf2,#e6f6e8);color:#194e54}
+.sq-builder-heading strong{font-size:clamp(15px,2vw,18px);font-weight:950}
+.sq-builder-heading span{border-radius:11px;background:#15536b;padding:7px 10px;color:#fff;
+ font-size:13px;font-weight:850;font-variant-numeric:tabular-nums}
+.sq-builder-instruction{margin:0;color:#27565a;font-size:clamp(12px,1.8vw,14px);line-height:1.5}
+.sq-word-slots,.sq-word-tiles{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;min-width:0}
+.sq-builder .sq-word-slot,.sq-builder .sq-word-tile{min-height:46px;min-width:44px;
+ touch-action:manipulation;font-size:clamp(14px,2vw,17px);line-height:1.3;overflow-wrap:anywhere}
+.sq-builder .sq-word-slot:focus-visible,.sq-builder .sq-word-tile:focus-visible{outline:3px solid #f4b94d;outline-offset:3px;position:relative;z-index:2}
+.sq-builder .sq-word-slot[data-error=true],.sq-builder .sq-word-slot[data-wrong=true]{border-color:#d76a64}
+.sq-task-progress{display:flex;align-items:center;justify-content:space-between;gap:8px;flex-wrap:wrap;
+ margin:7px 0 11px;padding:9px 12px;border:1px solid #e1c988;border-radius:14px;background:#fff6dc;color:#2d5255}
+.sq-task-progress span{font-size:clamp(12px,1.8vw,14px);font-weight:850;line-height:1.35}
+.sq-task-progress strong{font-size:13px;white-space:nowrap;font-variant-numeric:tabular-nums}
+.sq-success{display:grid;gap:4px;margin:10px 0;padding:12px;border:1px solid #80caa8;border-radius:14px;
+ background:linear-gradient(120deg,#e0f9e6,#f5fff0);color:#205c4c;font-size:13px;line-height:1.45}
+.sq-success strong{font-size:15px}
+.sq-reward-note{border:1px solid #a3d5a3;background:#e7fae8;color:#245a48;
+ border-radius:14px;padding:11px 13px;font-weight:850;font-size:14px;line-height:1.45}
+@media(max-width:520px){.sq-builder{gap:8px}.sq-builder-heading{padding:8px 10px}
+ .sq-builder-heading strong{font-size:15px}.sq-builder-heading span{padding:6px 8px;font-size:12px}
+ .sq-builder .sq-word-slot,.sq-builder .sq-word-tile{min-height:46px;font-size:15px}}
+@media(prefers-reduced-motion:reduce){.sq-builder .sq-word-slot,.sq-builder .sq-word-tile{transition:none!important}}

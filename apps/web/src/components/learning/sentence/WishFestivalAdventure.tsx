@@ -7,7 +7,10 @@ import {getProgressRepository} from '@/lib/progress';
 import {saveSentencePlazaMission} from '@/lib/progress/sentencePlazaProgress';
 import {plazaWordTiles} from '@/lib/learning/sentencePlazaEngine';
 import {WishFestivalStage} from './WishFestivalStage';
-import {sentenceStart,visibleWord} from './sentencePresentation';
+import {sentenceStart} from './sentencePresentation';
+import {SentenceQuestBuilder,SentenceQuestProgress,SentenceQuestSuccess,SentenceQuestReward} from './SentenceQuestComponents';
+import {sentenceQuestHint,sentenceQuestCorrect} from './sentence-quest-language';
+import './sentence-quest-unified.css';
 import {WISH_CHAPTERS,WISH_GUESTS,WISH_FOODS,wishRoundsForGrade,planWishFestival,
  checkWishFood,checkWishSecond,checkWishIntent,checkWishSentence,wishIntentOptions,
  type WishChapter,type WishFood,type WishIntent,type WishPlan}
@@ -235,7 +238,7 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
  function hint(){
   if(!question||locked.current)return;
   setHintUsed(true);setFeedbackError(false);
-  setFeedback(question.explanation+' Bir sonraki İngilizce kelime: '+(question.tokens[picked.length]??question.tokens[0]));
+  setFeedback(sentenceQuestHint(question.explanation,question.tokens[picked.length]??question.tokens[0]));
  }
  async function finish(rows:SentenceAnswerEvidence[]){
   if(savingLock.current||!plan)return;
@@ -263,7 +266,7 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
    setWrongSlot(error);wrong('Cümlenin '+(error+1)+'. kelimesini kontrol et. '+question.explanation);return;
   }
   locked.current=true;setServed(true);setFeedbackError(false);
-  setFeedback('✦ '+question.sentence+' — Konuğunun dileği İngilizceyle yerine geldi!');
+  setFeedback(sentenceQuestCorrect(question.sentence,'Konuğunun dileği gerçekleşti.'));
   const evidence:SentenceAnswerEvidence={
    questionId:trial.id,skill:'preference',placement:englishLevel,
    sentenceKind:question.kind,challengeMode:question.mode,mistakes,hintUsed,modelHeard,
@@ -366,7 +369,8 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
    </>:screen==='reward'?<div className="wf-reward" role="status">
     <div className="wf-overline">DİLEKLER FESTİVALİ TAMAMLANDI · PROFİL KAYDI</div>
     <div className="wf-reward-stars" aria-label={stars+' yıldız'}>{'★'.repeat(stars)}</div>
-    <h2>Festival senin İngilizcenle canlandı!</h2>
+    <SentenceQuestReward independent={independent}/>
+     <h2>Festival senin İngilizcenle canlandı!</h2>
     <p>Beğenilerini, isteklerini, kibar ricayı ve karşılaştırmaları kullanarak gerçek
      iletişim görevlerini tamamladın. Kayıtların kendi profiline eklendi.</p>
     <div className="wf-summary">
@@ -398,7 +402,7 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
       <button type="button" className="wf-primary" onClick={()=>{resetRound();setScreen('play');soundService.playSfx('whoosh',.48);}}>
        ✨ {meta.title} Başlasın</button>
      </>:trial&&question?<>
-      <div className="wf-overline">✦ {WISH_GUESTS.find(g=>g.id===trial.guest)?.name} İLE İNGİLİZCE GÖREVİ</div>
+      <SentenceQuestProgress index={index+1} total={total} label={WISH_GUESTS.find(g=>g.id===trial.guest)?.name??meta.title}/>
       <h2>İsteği anla. Doğru cümleyi kur.</h2>
       <div className="wf-cue-wrap"><h3 tabIndex={-1} className="wf-cue">{sentenceStart(question.cue)}</h3>
        <p>{chapter===1?'Önce doğru yiyeceği seç, sonra beğeniyi anlat.':
@@ -428,18 +432,10 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
           onClick={()=>reasonChoice(o.id as WishReason)}><b>{o.id}</b><small>{o.tr}</small></button>)}</div>
        </div>}
       {ready&&<div className="wf-builder">
-       <div className="wf-builder-heading"><b>✧ İngilizce Cümle Atölyesi</b><span>{picked.length}/{question.tokens.length} kelime</span></div>
-       <div className="wf-slots" role="group" aria-label="Kurduğun İngilizce cümle">
-        {question.tokens.map((word,i)=><button key={i} type="button" className="wf-slot"
-         data-filled={Boolean(selectedWords[i])} data-wrong={wrongSlot===i}
-         disabled={!selectedWords[i]||served||saving}
-         aria-label={selectedWords[i]?selectedWords[i]+' kelimesini çıkar':'Boş kelime alanı'}
-         onClick={()=>{setPicked(old=>old.filter((_,j)=>i!==j));setWrongSlot(-1);}}>
-         {selectedWords[i]?visibleWord(selectedWords[i],i):'✧'}</button>)}</div>
-       <div className="wf-tiles" role="group" aria-label="İngilizce cümle kelimeleri">
-        {tiles.map(item=><button key={item.id} type="button" className="wf-tile"
-         disabled={picked.includes(item.id)||picked.length>=question.tokens.length||served||saving}
-         onClick={()=>pickWord(item.id)}>{item.word}</button>)}</div>
+       <SentenceQuestBuilder tokens={question.tokens} tiles={tiles} pickedIds={picked}
+ selectedWords={selectedWords} wrongIndex={wrongSlot} locked={served||saving}
+ onRemove={i=>{setPicked(old=>old.filter((_,j)=>i!==j));setWrongSlot(-1);}}
+ onAdd={pickWord} slotRowClass="wf-slots" slotClass="wf-slot" tileRowClass="wf-tiles" tileClass="wf-tile"/>
       </div>}
       {!ready&&<p className="wf-guide">Önce festivalin içindeki yiyecek ve anlam seçimlerini tamamla.
        İngilizce cümle atölyesi ardından açılır.</p>}
@@ -448,7 +444,7 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
         onClick={()=>{setPicked(old=>old.slice(0,-1));setWrongSlot(-1);}}>↶ Geri Al</button>
        <button className="wf-minor" type="button" disabled={served||saving}
         onClick={()=>speech(question.sentence,true)}>🔊 Dinle</button>
-       <button className="wf-minor" type="button" disabled={served||saving} onClick={hint}>💡 İpucu</button>
+       <button className="wf-minor" type="button" disabled={served||saving} onClick={hint}>💡 İpucu Al</button>
       </div>
       {feedback&&<div className="wf-feedback" data-error={feedbackError} role="status" aria-live="polite">{feedback}</div>}
       {saveError&&<div role="alert" className="wf-feedback" data-error="true">{saveError}
@@ -456,7 +452,7 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
         onClick={()=>{if(retryRows.current)void finish(retryRows.current);}}>Kaydı Güvenle Tekrar Dene</button></div>}
       {!served&&<button type="button" className="wf-primary" disabled={!ready||picked.length!==question.tokens.length||saving||Boolean(saveError)}
        onClick={submit}>✦ Canlandır</button>}
-      {served&&<div className="wf-success" role="status">✦ İngilizce cümlen kabul edildi. Sonraki görev otomatik başlıyor.</div>}
+      {served&&<SentenceQuestSuccess detail="Dileğin gerçekleşti; sıradaki görev otomatik başlıyor."/>}
       <details className="wf-compact-help"><summary>📖 Öğrenme yardımı</summary>
         <p>Süre cezası yok. İpucu ve dinleme desteği ayrı kaydedilir.</p></details>
      </>:null}

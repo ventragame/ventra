@@ -11,7 +11,10 @@ import {soundService} from '@/lib/audio/SoundService';
 import {SentencePlazaScene} from './SentencePlazaScene';
 import {LearningMotion} from '@/components/learning/motion/LearningMotion';
 import {SentenceAnimalArtwork,type SentenceAnimalSpecies} from './SentenceAnimalArtwork';
-import {sentenceStart,visibleWord,visibleRepairWord} from './sentencePresentation';
+import {sentenceStart,visibleRepairWord} from './sentencePresentation';
+import {SentenceQuestBuilder,SentenceQuestProgress,SentenceQuestSuccess,SentenceQuestReward} from './SentenceQuestComponents';
+import {sentenceQuestHint,sentenceQuestCorrect} from './sentence-quest-language';
+import './sentence-quest-unified.css';
 import {MovementMagicAdventure} from './MovementMagicAdventure';
 import {WishFestivalAdventure} from './WishFestivalAdventure';
 import {LanternFestivalAdventure} from './LanternFestivalAdventure';
@@ -172,7 +175,7 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
    setFeedback('Sahnedeki parlak hayvanı bul. Bulunduğu yerin işaretine dokun.');
    return;
   }
-  setFeedback(`Dil ipucu: ${task.explanation} Sıradaki kelime: “${task.tokens[chosenCount]??'—'}”.`);
+  setFeedback(sentenceQuestHint(task.explanation,task.tokens[chosenCount]));
  }
  async function finish(rows:SentenceAnswerEvidence[]){
   if(savingLock.current||!deck)return;
@@ -195,7 +198,7 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
   if(!task||!deck||awaitingTransition.current)return;
   awaitingTransition.current=true;
   setAwakened(true);setFeedbackError(false);
-  setFeedback(`✦ ${task.sentence} — Cümleyi kurdun! Sahne canlanıyor.`);
+  setFeedback(sentenceQuestCorrect(task.sentence,'Sahne canlanıyor.'));
   const evidence:SentenceAnswerEvidence={
    questionId:task.id,skill:task.skill,placement:englishLevel,sentenceKind:task.kind,challengeMode:task.mode,mistakes:roundMistakes,
    hintUsed,modelHeard,firstTryCorrect:roundMistakes===0&&!hintUsed&&!modelHeard,
@@ -421,7 +424,8 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
       <div className="sp-meter" role="progressbar" aria-label="Bölümde tamamlanan cümleler"
        aria-valuemin={0} aria-valuemax={totalQuestions} aria-valuenow={step+(awakened?1:0)}>
        <span style={{width:`${100*(step+(awakened?1:0))/totalQuestions}%`}}/></div>
-      <h3 tabIndex={-1} className="sp-cue">{visualLocation&&!selectedScene?
+      <SentenceQuestProgress index={step+1} total={totalQuestions} label={sentenceKindLabels[task.kind]}/>
+       <h3 tabIndex={-1} className="sp-cue">{visualLocation&&!selectedScene?
         `${locationAnimal} nerede? Resimde bul.`:sentenceStart(task.cue)}</h3>
       <div className="sp-v2-steps" aria-label="Seç, kur ve canlandır">
         <span className={taskReady?'sp-v2-step-done':'sp-v2-step-current'}>① {task.mode==='repair'?'Düzelt':task.mode==='scene'?'Seç':'Bak'}</span>
@@ -469,17 +473,10 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
          {task.vocabulary.map((w,i)=><span key={i}>{w.en} · {w.tr}</span>)}</div>
        </details>
       {taskReady?<>
-      <div className="sp-slots" role="group" aria-live="polite" aria-label="Oluşturduğun İngilizce cümle">
-       {task.tokens.map((word,i)=><button type="button" key={i} disabled={!selectedWords[i]||awakened||busy}
-        aria-label={selectedWords[i]?'“'+selectedWords[i]+'” kelimesini kaldır':'Boş kelime yuvası'}
-        onClick={()=>{setPicked(old=>old.filter((_,index)=>index!==i));setWrongSlot(-1);}}
-        data-error={wrongSlot===i}
-        className={`sp-slot ${selectedWords[i]?'sp-slot-filled':''}`}>
-        {selectedWords[i]?visibleWord(selectedWords[i],i):'✧'}</button>)}</div>
-      <div className="sp-tiles" role="group" aria-label="Cümle için kullanılabilecek İngilizce kelimeler">
-       {tiles.map(t=><button type="button" key={t.id} className="sp-tile"
-        disabled={!taskReady||picked.includes(t.id)||picked.length>=task.tokens.length||awakened||busy||Boolean(saveError)}
-        onClick={()=>pickWord(t.id)} aria-label={`“${t.word}” kelimesini cümleye ekle`}>{t.word}</button>)}</div>
+      <SentenceQuestBuilder tokens={task.tokens} tiles={tiles} pickedIds={picked}
+ selectedWords={selectedWords} wrongIndex={wrongSlot} locked={awakened||busy||Boolean(saveError)}
+ onRemove={i=>{setPicked(old=>old.filter((_,index)=>index!==i));setWrongSlot(-1);}}
+ onAdd={pickWord} slotRowClass="sp-slots" slotClass="sp-slot" tileRowClass="sp-tiles" tileClass="sp-tile"/>
       </>:<div className="sp-v3-waiting" role="status" aria-live="polite">
         <span aria-hidden="true">🔒</span>
         <span>{task.mode==='repair'?'Yanlış kelimeyi seçince cümle kurma alanı açılacak.':'Sahneyi seçince cümle kurma alanı açılacak.'}</span>
@@ -492,10 +489,10 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
        <button type="button" className="sp-secondary" disabled={awakened||busy}
         onClick={listenTask}>🔊 Dinle</button>
        <button type="button" className="sp-secondary" disabled={awakened||busy}
-        onClick={showHint}>💡 İpucu</button>
+        onClick={showHint}>💡 İpucu Al</button>
       </div>
       {feedback&&<div role="status" aria-live="polite" className="sp-feedback" data-error={feedbackError}>{feedback}</div>}
-      {awakened&&<p role="status" className="sp-caption" style={{marginTop:12}}>✨ Sahne canlandı!</p>}
+      {awakened&&<SentenceQuestSuccess detail="Sahne canlandı!"/>}
       {saveError&&<div role="alert" className="sp-feedback" data-error="true">
         {saveError}<button type="button" disabled={busy} className="sp-primary" style={{marginTop:12}}
          onClick={()=>void finish(completedAnswers.current)}>Tekrar Kaydet</button></div>}
@@ -505,7 +502,8 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
    </>:screen==='reward'?<div className="sp-reward relative isolate overflow-hidden" role="status">
      <LearningMotion variant="victory" trigger={'sentence-reward-'+mission}/>
      <div className="sp-eyebrow">Uyanan Meydan · Görev {mission} tamamlandı</div>
-     <h2>Şehir canlandı!</h2><div className="sp-reward-stars">{'★'.repeat(completedStars)}</div>
+     <SentenceQuestReward independent={completedAnswers.current.filter(x=>x.firstTryCorrect).length}/>
+      <h2>Şehir canlandı!</h2><div className="sp-reward-stars">{'★'.repeat(completedStars)}</div>
      <p>İngilizce cümleler kurarak dünyayı değiştirdin. Yeni göreve geçebilir veya bu bölümde başka cümlelerle çalışabilirsin.</p>
      <div className="sp-lesson-grid" style={{margin:'20px 0'}}>
       <div className="sp-lesson-tip">📖 <strong>{completedAnswers.current.length} anlamlı cümle</strong></div>

@@ -7,7 +7,10 @@ import {getProgressRepository} from '@/lib/progress';
 import {saveSentencePlazaMission} from '@/lib/progress/sentencePlazaProgress';
 import {plazaWordTiles} from '@/lib/learning/sentencePlazaEngine';
 import {MovementMagicStage} from './MovementMagicStage';
-import {sentenceStart,visibleWord,visibleRepairWord} from './sentencePresentation';
+import {sentenceStart,visibleRepairWord} from './sentencePresentation';
+import {SentenceQuestBuilder,SentenceQuestProgress,SentenceQuestSuccess,SentenceQuestReward} from './SentenceQuestComponents';
+import {sentenceQuestHint,sentenceQuestCorrect} from './sentence-quest-language';
+import './sentence-quest-unified.css';
 import {MAGIC_VERBS,MOVEMENT_CHAPTERS,checkMagicAction,checkMagicPlace,
  checkMagicRepair,checkMagicSentence,planMovementMagic,movementQuestionsPerChapter,
  type MagicVerb,type MagicPlace,type MovementPlan,type MovementTrial}
@@ -249,7 +252,7 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
   if(!question||advancing.current)return;
   setAssisted(true);setFeedbackError(false);
   const next=question.tokens[picked.length]??question.tokens[0];
-  setFeedback(question.explanation+' Sonraki kelime: '+next+'.');
+  setFeedback(sentenceQuestHint(question.explanation,next));
  }
  async function finish(rows:SentenceAnswerEvidence[]){
   if(saveLock.current||!plan)return;
@@ -279,7 +282,7 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
    return;
   }
   advancing.current=true;setActivated(true);setFeedbackError(false);
-  setFeedback('✦ '+question.sentence+' — İngilizce cümlen sahneyi harekete geçirdi!');
+  setFeedback(sentenceQuestCorrect(question.sentence,'Hareket canlanıyor.'));
   const row:SentenceAnswerEvidence={
    questionId:question.id,skill:'action',placement:englishLevel,
    sentenceKind:question.kind,challengeMode:question.mode,
@@ -363,7 +366,8 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
    </div>
   </>:phase==='reward'?<div className="mm-final-card" role="status">
    <div className="mm-eyebrow">DÖRT BÖLÜM · GERÇEK PROFİL KAYDI</div>
-   <h2>Hareket Büyüsü Tamamlandı!</h2>
+   <SentenceQuestReward independent={independentCount}/>
+    <h2>Hareket Büyüsü Tamamlandı!</h2>
    <div className="mm-final-stars" aria-label={rewardStars+' yıldız'}>{'★'.repeat(rewardStars)}</div>
    <p>Karakterleri doğru İngilizceyle yönlendirdin. Öğrenme kanıtların profiline kaydedildi;
     aynı görev tekrar oynandığında yeni cümleler ve sahne seçimleri seni bekliyor.</p>
@@ -406,7 +410,7 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
        onClick={()=>{resetRound();setPhase('play');soundService.playSfx('whoosh',.4);}}>
        ✨ {meta.title} Başlasın</button>
      </>:trial&&question?<>
-      <div className="mm-eyebrow">🎯 BÖLÜMÜN {currentChapterRound}. GÖREVİ / {perChapter}</div>
+      <SentenceQuestProgress index={index+1} total={plan?.trials.length??perChapter*4} label={meta.title}/>
       <h3>İngilizceyle sahneyi yönet.</h3>
       <div className="mm-challenge">
        <h4 className="mm-cue" tabIndex={-1}>{sentenceStart(question.cue)}</h4>
@@ -439,19 +443,10 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
          disabled={repairFixed||activated||saving} onClick={()=>repairChoice(i)}>{visibleRepairWord(word,i,(trial.brokenWords?.length??0),question.sentence)}</button>)}
        </div></div>}
       {prepared?<div className="mm-builder">
-       <div className="mm-builder-label"><span>✦ CÜMLE İNŞASI</span><span>{picked.length}/{question.tokens.length} kelime</span></div>
-       <div className="mm-sentence-slots" role="group" aria-label="Hazırladığın İngilizce cümle">
-        {question.tokens.map((word,i)=><button type="button" key={i}
-         className="mm-slot" data-filled={Boolean(selectedWords[i])} data-error={wrongSlot===i}
-         disabled={!selectedWords[i]||activated||saving}
-         aria-label={selectedWords[i]?selectedWords[i]+' kelimesini kaldır':'Boş kelime alanı'}
-         onClick={()=>removeWord(i)}>{selectedWords[i]?visibleWord(selectedWords[i],i):'✧'}</button>)}
-       </div>
-       <div className="mm-tile-tray" role="group" aria-label="İngilizce sözcükler">
-        {tiles.map(t=><button type="button" key={t.id} className="mm-tile"
-         disabled={picked.includes(t.id)||picked.length>=question.tokens.length||activated||saving}
-         onClick={()=>addWord(t.id)}>{t.word}</button>)}
-       </div>
+       <SentenceQuestBuilder tokens={question.tokens} tiles={tiles} pickedIds={picked}
+ selectedWords={selectedWords} wrongIndex={wrongSlot} locked={activated||saving}
+ onRemove={removeWord} onAdd={addWord}
+ slotRowClass="mm-sentence-slots" slotClass="mm-slot" tileRowClass="mm-tile-tray" tileClass="mm-tile"/>
       </div>:<p className="mm-inline-help">Hareketi ve/veya yeri doğru seçtikten sonra İngilizce cümle atölyesi açılır.</p>}
       <div className="mm-tools">
        <button type="button" className="mm-tool" disabled={!picked.length||activated||saving}
@@ -459,7 +454,7 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
        <button type="button" className="mm-tool" disabled={activated||saving}
         onClick={()=>{soundService.unlockAudio();speak(question.sentence,true);}}>🔊 Dinle</button>
        <button type="button" className="mm-tool" disabled={activated||saving}
-        onClick={hint}>💡 İpucu</button>
+        onClick={hint}>💡 İpucu Al</button>
       </div>
       {feedback&&<div className="mm-feedback" data-error={feedbackError} role="status" aria-live="polite">{feedback}</div>}
       {saveError&&<div className="mm-feedback" data-error="true" role="alert">{saveError}
@@ -469,7 +464,7 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
       {!activated&&<button type="button" className="mm-primary" style={{marginTop:10}}
        disabled={!prepared||!isComplete||saving||Boolean(saveError)}
        onClick={advanceWithSuccess}>✦ Canlandır</button>}
-      {activated&&<div className="mm-feedback" role="status">✨ Hareket gerçekleşiyor; sıradaki görev kendiliğinden başlayacak.</div>}
+      {activated&&<SentenceQuestSuccess detail="Hareket canlanıyor; sıradaki görev otomatik başlayacak."/>}
       <p className="mm-caption-text" style={{marginTop:12}}>
        İpucu veya tam cümle dinleme kullanırsan öğrenme kaydında destekli çözüm olarak görünür.
        Yavaş çözmek puan kaybettirmez.</p>
