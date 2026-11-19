@@ -16,7 +16,7 @@ export function SentenceQuestBuilder({tokens,tiles,pickedIds,selectedWords,wrong
   <div className={slotRowClass+' sq-word-slots'} role="group" aria-label="Kurduğun İngilizce cümle">
    {tokens.map((_,i)=>{
     const word=selectedWords[i]??'',filled=Boolean(word);
-    return <button key={i} type="button" className={slotClass+' sq-word-slot'+(filled?' sp-slot-filled':'')}
+    return <button key={i} type="button" className={slotClass+' sq-word-slot'+(filled&&slotClass==='sp-slot'?' sp-slot-filled':'')}
      disabled={!filled||locked} data-filled={filled} data-error={wrongIndex===i} data-wrong={wrongIndex===i}
      onClick={()=>onRemove(i)} aria-label={filled?word+' kelimesini çıkar':(i+1)+'. boş kelime yuvası'}>
       {filled?visibleWord(word,i):'✧'}</button>;

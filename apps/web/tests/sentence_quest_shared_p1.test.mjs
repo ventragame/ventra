@@ -39,3 +39,11 @@ test('Shared sentence UI uses touch targets, keyboard focus, overflow protection
   assert.ok(css.includes(x),x);
  }
 });
+
+
+test('Plaza filled-word skin does not leak to the three other visual themes',async()=>{
+ const b=read('SentenceQuestComponents.tsx');
+ assert.ok(b.includes("filled&&slotClass==='sp-slot'"));
+ const {sentenceQuestHint}=await import('../src/components/learning/sentence/sentence-quest-language.ts');
+ assert.equal(sentenceQuestHint('Özneye bak.',undefined),'💡 İpucu: Özneye bak. Seçtiğin kelimelerin sırasını yeniden incele.');
+});
