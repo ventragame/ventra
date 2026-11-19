@@ -329,8 +329,8 @@
  .fv5-screen .fv5-stepnav .fv3-step{min-height:54px;border-width:2px;border-radius:11px;
   flex-direction:column;gap:0;padding:4px 1px}
  .fv5-screen .fv5-stepnav .fv3-step-icon{width:31px;height:31px}
- .fv5-screen .fv5-stepnav .fv3-step-title{display:none}
- .fv5-screen .fv5-stepnav .fv3-step-index{display:block;color:inherit;font-size:9px}
+ /* Stage labels are visible in the shared mobile navigator; no mobile hiding. */
+ 
  .fv5-screen .fv5-card{border:2px solid #d1b6ff;border-radius:19px}
  .fv5-screen .fv5-scene{height:150px}
  .fv5-screen .fv5-scene .fv3-landscape img{object-position:center center}
@@ -375,7 +375,7 @@
 }
 @media(max-width:359px){
  .fv5-screen .fv5-scene{height:130px}
- .fv5-screen .fv5-district-nav .fv3-district strong{font-size:8px}
+ .fv5-screen .fv5-district-nav .fv3-district strong{font-size:12px}
  .fv5-screen .fv5-prompt strong{font-size:14px}
  .fv5-screen .fv5-back{padding:6px 5px}
  .fv5-screen .fv5-stars{font-size:9px;padding:6px}

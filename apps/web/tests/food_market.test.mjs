@@ -370,7 +370,7 @@ test('G1 visual V6 keeps market assets resolvable and UI design independent of e
  const ui=fs.readFileSync(new URL('../src/components/learning/activities/FoodMarketAdventure.tsx',import.meta.url),'utf8');
  const css=fs.readFileSync(new URL('../src/components/learning/activities/food-market-visual-v6.css',import.meta.url),'utf8');
  assert.match(ui,/import '\.\/food-market-visual-v6\.css'/);
- assert.match(ui,/className="fm-screen fm4-screen fm6-screen"/);
+ assert.match(ui,/className="fm-screen fm4-screen fm6-screen gg-quest-screen"/);
  assert.match(ui,/data-aisle=\{aisle\}/);
  assert.match(ui,/data-current=\{lane\.id===aisle\}/);
  assert.match(ui,/data-completed=\{progress\.starsByLevel/);

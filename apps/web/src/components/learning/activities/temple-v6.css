@@ -207,8 +207,6 @@
  .tp6-trials{grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin-bottom:9px}
  .tp6-trials .tp-trial{min-width:0;min-height:52px;gap:1px;padding:5px 2px;border-radius:10px}
  .tp6-trials .tp-trial>span{font-size:20px}
- .tp6-trials .tp-trial small:not(.tp6-trial-index){display:none}
- .tp6-trials .tp6-trial-index{display:block!important;font-size:9px}
  .tp6-trials .tp-trial b{font-size:9px;top:1px;right:2px}
  .tp6-quest{border-width:2px;border-radius:17px}
  .tp6-scenery{height:143px;border-bottom-width:3px}

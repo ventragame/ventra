@@ -38,3 +38,16 @@ test('Mobile navigation raises legibility while preserving each worlds art selec
  assert.match(css,/prefers-reduced-motion:reduce/);
  assert.doesNotMatch(css,/\.nv5-|\.cg4-|\.am3-/);
 });
+
+
+test('Legacy island styles no longer hide stage names or force tiny stage fractions on mobile',()=>{
+ const food=read('food-market-v4.css');
+ const family=read('family-village-reference-v5.css');
+ const temple=read('temple-v6.css');
+ const shared=read('garden-quest-navigation.css');
+ assert.doesNotMatch(food,/\.fm4-step-name\{display:none\}/);
+ assert.doesNotMatch(family,/\.fv5-stepnav \.fv3-step-title\{display:none\}/);
+ assert.doesNotMatch(temple,/\.tp6-trials \.tp-trial small:not\(\.tp6-trial-index\)\{display:none\}/);
+ assert.match(shared,/\.gg-quest-screen \.gg-quest-navigation \.gg-quest-step \.tp6-trial-index\{display:none\}/);
+ assert.match(shared,/\.gg-quest-screen \.gg-quest-navigation \.gg-quest-step small:not\(\.fv3-step-index\):not\(\.tp6-trial-index\)/);
+});

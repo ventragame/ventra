@@ -48,7 +48,8 @@
   display:block;font-size:12px;line-height:1.25;white-space:normal;overflow-wrap:anywhere;
  }
  .gg-quest-screen .gg-quest-navigation .gg-quest-step .fm4-step-index,
- .gg-quest-screen .gg-quest-navigation .gg-quest-step .fv3-step-index{display:none}
+ .gg-quest-screen .gg-quest-navigation .gg-quest-step .fv3-step-index,
+ .gg-quest-screen .gg-quest-navigation .gg-quest-step .tp6-trial-index{display:none}
  .gg-quest-screen .gg-quest-navigation .gg-quest-zone strong{font-size:12px}
  .gg-quest-screen .gg-quest-navigation .gg-quest-zone small{font-size:11px}
  .gg-quest-screen .fm4-command small,.gg-quest-screen .fv5-prompt small,.gg-quest-screen .tp6-command small{font-size:12px}
