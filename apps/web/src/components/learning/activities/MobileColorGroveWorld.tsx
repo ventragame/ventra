@@ -103,11 +103,11 @@ export function MobileColorGroveWorld({
           </div>
           <span className="cg4-focus-label">{isPainting ? 'BOYAYI BUL' : 'RENK HANGİSİ?'}</span>
         </div>
-        <div className="cg4-choice gg-game-control-grid" role="group" aria-label={isPainting ? 'Boya paleti' : 'İngilizce renk seçenekleri'}>
+        <div className="cg4-choice-grid" role="group" aria-label={isPainting ? 'Boya paleti' : 'İngilizce renk seçenekleri'}>
           {words.map(word => <button key={word.id} type="button" disabled={disabled}
             onClick={()=>onChoose?.(word.id)}
             data-correct={correctId===word.id} data-wrong={wrongId===word.id}
-            className={'cg4-choice vg-answer-card' + (isPainting ? ' cg4-choice--paint' : '')}
+            className={'cg4-choice gg-game-control vg-answer-card' + (isPainting ? ' cg4-choice--paint' : '')}
             aria-pressed={correctId===word.id}
             aria-label={isPainting?word.tr+' boyasını seç':word.id+' İngilizce renk adını seç'}>
             {isPainting && <span className="cg4-paint-swatch" style={{'--cg4-color':word.hex} as React.CSSProperties} aria-hidden="true"/>}

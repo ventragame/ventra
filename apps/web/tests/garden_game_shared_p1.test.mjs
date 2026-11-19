@@ -38,3 +38,11 @@ test('Number Valley V5 uses canonical selectors without legacy reading-layout ov
  assert.match(v5,/\.nv5-crystal-tile/);
  assert.match(v5,/\.nv5-answer/);
 });
+
+
+test('Shared touch token is added to choice buttons, not to palette grid containers',()=>{
+ const world=read('MobileColorGroveWorld.tsx');
+ assert.match(world,/className="cg4-choice-grid"/);
+ assert.match(world,/cg4-choice gg-game-control vg-answer-card/);
+ assert.doesNotMatch(world,/gg-game-control-grid/);
+});

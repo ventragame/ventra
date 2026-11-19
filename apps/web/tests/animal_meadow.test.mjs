@@ -199,7 +199,7 @@ test('Visual answer IDs and pre-answer disclosure are pedagogically safe',()=>{
  assert.match(stage,/isDiscovery\?known:right/);
  assert.match(stage,/const showName=isDiscovery\?known:right/);
  assert.match(stage,/animals.map\(\(animal,i\)=>/);
- assert.match(stage,/className="am3-listen-button"/);
+ assert.match(stage,/className="am3-listen-button gg-game-control"/);
  const plan=planAnimalMission({mission:5,history:starters,seed:123});
  assert.ok(plan.questions.every(q=>q.choices.includes(q.target)));
  assert.equal(plan.questions.length,6);
