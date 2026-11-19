@@ -84,3 +84,41 @@ test('Replays use persisted completed play count and the same plan after checkpo
  assert.match(checkpoint,/item\.taskIds\.some\(id=>!id\.startsWith\(prefix\)\)/);
  assert.match(checkpoint,/playIndex\?:number;taskIds\?:string\[\]/);
 });
+
+
+test('P0 visual desk, progressive help and mobile keyboard are separate and child-safe',async()=>{
+ const ui=read('../src/components/learning/writing/WritingWorkshopAdventure.tsx');
+ const scene=read('../src/components/learning/writing/WritingDeskScene.tsx');
+ const css=read('../src/components/learning/writing/writing-workshop.css');
+ const guide=await import('../src/lib/learning/writingWorkshopGuidance.ts');
+ assert.match(ui,/WritingDeskScene mode=\{task.mode\}/);
+ assert.doesNotMatch(ui,/writing-art-icon/);
+ assert.match(scene,/data-scene-mode=\{mode\}/);
+ assert.match(ui,/onClick=\{showHelp\}/);
+ assert.match(ui,/nextWorkshopHintStage\(helpStage\)/);
+ assert.match(ui,/onFocus=\{\(\)=>setTypingFocused\(true\)\}/);
+ assert.match(ui,/visualViewport/);
+ assert.match(ui,/scrollIntoView/);
+ assert.match(ui,/autoCorrect="off"/);
+ assert.match(ui,/inputMode="text"/);
+ assert.match(ui,/enterKeyHint="done"/);
+ assert.match(ui,/Klavyeyi kapat/);
+ assert.match(css,/data-keyboard-open="true"/);
+ assert.match(css,/sentence_workshop_mobile.webp/);
+ assert.equal(guide.nextWorkshopHintStage(0),1);
+ assert.equal(guide.nextWorkshopHintStage(1),2);
+ assert.equal(guide.nextWorkshopHintStage(2),3);
+ assert.equal(guide.nextWorkshopHintStage(3),3);
+ const words=[{mode:'spell',target:'bridge'},{mode:'assemble',target:'I see a bird.'},{mode:'write',target:'I can see a blue bird.'}];
+ for(const word of words){
+  const one=guide.workshopHint(word,1);
+  const two=guide.workshopHint(word,2);
+  const three=guide.workshopHint(word,3);
+  assert.equal(one.showAnswer,false);
+  assert.equal(two.showAnswer,false);
+  assert.equal(three.showAnswer,true);
+  assert.ok(!one.description.includes(word.target));
+  assert.ok(!two.description.includes(word.target));
+ }
+ assert.doesNotMatch(ui,/setItem\(.*input|setItem\(.*creative|fetch\(/);
+});

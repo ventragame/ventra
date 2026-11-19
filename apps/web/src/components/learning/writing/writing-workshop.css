@@ -285,3 +285,30 @@
 .writing-arc span[data-state="done"]{background:#c4f2de2e;color:#b7efd0;border-color:#b7efd066}
 .writing-guided-clue{border-radius:14px;background:#fff8df;color:#705229;padding:10px 12px;line-height:1.45;font-size:13px;font-weight:700;margin:8px 0}
 @media(max-width:390px){.writing-arc{gap:4px}.writing-arc span{padding:6px 3px;font-size:10px}}
+
+/* Yazı Atölyesi P0 — CSS-drawn writing desk: three task identities, no unrelated emoji. */
+.writing-workbench{position:relative;isolation:isolate;width:min(100%,640px);height:clamp(128px,18vw,198px);margin:9px auto 16px;border-radius:27px;overflow:hidden;border:2px solid #ffe9ba;box-shadow:inset 0 1px 0 #ffffffaa,0 9px 22px #352f5260;background:linear-gradient(120deg,#35426777,#5545616a),url('/assets/kids-islands/sentence_workshop.webp') center 52% / cover no-repeat}
+.writing-workbench:before{content:'';position:absolute;inset:0;z-index:-1;background:radial-gradient(ellipse at 60% 5%,#fbdc9a62,transparent 65%),linear-gradient(155deg,#432b4b8c,#263d5a70)}
+.writing-workbench-glow{position:absolute;inset:0;background:linear-gradient(90deg,#68487124,transparent 70%);pointer-events:none}
+.writing-workbench-paper{position:absolute;left:25%;top:8%;height:84%;width:51%;display:flex;align-items:stretch;border-radius:9px 17px 18px 9px;transform:rotate(-5deg);background:#ecdbb5;box-shadow:6px 9px 2px #604a65a6,9px 14px 20px #1b23428f;border:2px solid #f5e4c1;overflow:hidden}
+.writing-workbench-binding{width:13%;background:repeating-linear-gradient(180deg,#845c83 0,#845c83 8px,#e5a18d 9px,#e5a18d 12px);border-right:2px solid #73567f}
+.writing-workbench-page{flex:1;position:relative;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:13px;padding:11px 12px;background:repeating-linear-gradient(180deg,#fffaf1 0,#fffaf1 24px,#c5d5d9 25px,#fffaf1 26px)}
+.writing-workbench-watermark{width:clamp(35px,7vw,61px);height:clamp(35px,7vw,61px);color:#9878a8;filter:drop-shadow(1px 2px 1px #e9cae3)}
+.writing-workbench-line{width:70%;height:2px;border-radius:9px;background:#d8b8bb}
+.writing-workbench-ink{position:absolute;left:8%;bottom:19%;width:58px;height:58px;display:grid;place-items:center;background:linear-gradient(#f6e9b5,#dfac7e);color:#73538d;border:3px solid #fff5cf;border-radius:16px;transform:rotate(10deg);box-shadow:0 6px 0 #886681,0 10px 20px #1a1c317b}
+.writing-workbench-pencil{position:absolute;right:10%;bottom:13%;width:66px;height:66px;display:grid;place-items:center;border-radius:18px;background:linear-gradient(135deg,#f5bb8b,#f7e9b1);color:#663f72;border:2px solid #fff5d2;transform:rotate(19deg);box-shadow:0 6px 0 #956178,0 10px 17px #1f263879}
+.writing-workbench-shadow{position:absolute;bottom:0;left:7%;right:7%;height:8px;background:#b383a255;border-radius:99px}
+.writing-workbench[data-scene-mode="spell"] .writing-workbench-paper{transform:rotate(-8deg)}
+.writing-workbench[data-scene-mode="assemble"] .writing-workbench-paper{transform:rotate(3deg)}
+.writing-workbench[data-scene-mode="write"] .writing-workbench-paper{transform:rotate(-2deg)}
+.writing-step-help{display:flex;flex-direction:column;align-items:center;gap:6px;max-width:680px;margin:10px auto;padding:13px 17px;border:2px solid #a0c7ac;background:linear-gradient(145deg,#e8fff0,#fffaf0);border-radius:16px;color:#2f554e;text-align:center;line-height:1.55;font-size:13px}
+.writing-step-help strong{font-size:13px;color:#286659}
+.writing-keyboard-guidance{display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;margin:9px 0 12px;color:#715a81;font-size:12px;font-weight:750}
+.writing-keyboard-guidance button{min-height:44px;border:1px solid #a5bbc5;border-radius:12px;padding:8px 12px;background:#e4f4ef;color:#285c5c;font-size:12px;font-weight:850}
+.writing-answer-area textarea{font-size:16px!important;scroll-margin-block:24px;caret-color:#326d83;touch-action:manipulation}
+.writing-root[data-keyboard-open="true"] .writing-main{scroll-padding-bottom:calc(32px + var(--writing-keyboard-inset));padding-bottom:calc(24px + env(safe-area-inset-bottom) + var(--writing-keyboard-inset))}
+.writing-root[data-keyboard-open="true"] .writing-workbench{height:95px;margin:4px auto 9px}
+.writing-root[data-keyboard-open="true"] .writing-desk{scroll-margin-bottom:20px}
+@media(max-width:640px){.writing-workbench{height:118px;width:100%;margin:5px auto 10px;border-radius:19px;background-image:linear-gradient(120deg,#35426777,#5545616a),url('/assets/kids-islands/sentence_workshop_mobile.webp')}.writing-workbench-paper{width:53%;left:24%;top:8%;height:82%}.writing-workbench-page{gap:4px}.writing-workbench-ink{width:40px;height:40px;left:7%;bottom:20%;border-width:2px}.writing-workbench-pencil{width:45px;height:45px;right:7%;bottom:13%}.writing-workbench-pencil svg{width:25px;height:25px}.writing-workbench-ink svg{width:18px;height:18px}.writing-step-help{margin:8px 0;font-size:12px;padding:10px}.writing-keyboard-guidance{font-size:11px}}
+@media(max-width:360px){.writing-workbench{height:101px}.writing-workbench-paper{width:56%;left:23%}}
+@media(prefers-reduced-motion:reduce){.writing-workbench *,.writing-step-help{transition:none!important;animation:none!important}}

@@ -12,6 +12,8 @@ import {
 import {
  readWorkshopCheckpoint,saveWorkshopCheckpoint,clearWorkshopCheckpoint
 } from '@/lib/learning/writingWorkshopCheckpoint';
+import {WritingDeskScene} from './WritingDeskScene';
+import {nextWorkshopHintStage,workshopHint} from '@/lib/learning/writingWorkshopGuidance';
 import './writing-workshop.css';
 
 type Phase='map'|'playing'|'complete';
@@ -47,6 +49,10 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
  const [score,setScore]=useState<Score|null>(null);
  const [creative,setCreative]=useState('');
  const [exampleVisible,setExampleVisible]=useState(false);
+ const [helpStage,setHelpStage]=useState(0);
+ const [typingFocused,setTypingFocused]=useState(false);
+ const [keyboardInset,setKeyboardInset]=useState(0);
+ const inputRef=useRef<HTMLTextAreaElement|null>(null);
  const timer=useRef<ReturnType<typeof setTimeout>|null>(null);
  const session=useRef<string|null>(null);
  const locked=useRef(false);
@@ -61,9 +67,8 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
  const wordCount=task.target.trim().split(/\s+/).length;
  const act=Math.min(2,Math.floor(step*3/deck.length));
  const acts=['1 · Keşfet','2 · Deneyerek Yaz','3 · Kendi Başına'];
- const clue=task.mode==='spell'?`${task.target.replace(/[^a-z]/gi,'').length} harf var. İlk harf: ${task.target[0].toUpperCase()}.`:
-  task.mode==='assemble'?`Cümle ${wordCount} kelimeden oluşuyor. İlk kelime: ${task.target.split(' ')[0]}.`:
-  `İngilizce cevabın ${wordCount} kelime. İlk kelime ${task.target.split(' ')[0]} ile başlıyor.`;
+ const activeHelp=helpStage?workshopHint(task,helpStage as 1|2|3):null;
+ const keyboardOpen=typingFocused&&keyboardInset>100;
 
  const refresh=useCallback(async()=>{
   const levels=await getProgressRepository().getAllLevelProgress(WRITING_WORKSHOP_GAME_ID,profileId);
@@ -99,6 +104,25 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
   return()=>document.removeEventListener('visibilitychange',handle);
  },[]);
 
+ useEffect(()=>{
+  if(phase!=='playing'||task.mode!=='write')return;
+  const viewport=window.visualViewport;
+  if(!viewport)return;
+  let frame=0;
+  const sync=()=>{
+   const covered=Math.max(0,window.innerHeight-viewport.height-viewport.offsetTop);
+   setKeyboardInset(covered>100?Math.min(520,Math.ceil(covered)):0);
+   if(document.activeElement===inputRef.current){
+    window.cancelAnimationFrame(frame);
+    frame=window.requestAnimationFrame(()=>inputRef.current?.scrollIntoView({block:'nearest',behavior:'auto'}));
+   }
+  };
+  sync();
+  viewport.addEventListener('resize',sync);
+  viewport.addEventListener('scroll',sync);
+  return()=>{viewport.removeEventListener('resize',sync);viewport.removeEventListener('scroll',sync);window.cancelAnimationFrame(frame);};
+ },[phase,task.mode,step]);
+ 
  const enter=(id:number)=>{
   if(id>completed+1||saving||loading)return;
   stop();locked.current=false;
@@ -123,14 +147,14 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
   setAnswers(valid?.answers??[]);
   setSelected([]);setInput('');setSeed(Math.floor(Date.now()/5000)%8192+id);
   setHintOnStep(false);setWrongOnStep(0);setResolved(false);
-  setScore(null);setCreative('');setExampleVisible(false);
+  setScore(null);setCreative('');setExampleVisible(false);setHelpStage(0);setTypingFocused(false);setKeyboardInset(0);
   setMessage('');setSaveError('');setPhase('playing');
   session.current=null;started.current=Date.now();
   soundService.unlockAudio();soundService.playSfx('tap',.6);
  };
  const back=()=>{
   stop();locked.current=false;
-  setResolved(false);setMessage('');setSaveError('');setPhase('map');
+  setResolved(false);setMessage('');setSaveError('');setTypingFocused(false);setKeyboardInset(0);setPhase('map');
  };
  const exit=()=>{
   stop();onBack();
@@ -141,16 +165,19 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
   if(!hintOnStep){setHints(n=>n+1);setHintOnStep(true);}
   soundService.speakEnglish(task.target,{rate:gradeLevel!==null&&gradeLevel<=2?.78:.88});
  };
- const showExample=()=>{
+ const showHelp=()=>{
   if(saving||resolved)return;
   if(!hintOnStep){setHints(n=>n+1);setHintOnStep(true);}
-  setExampleVisible(true);
-  setMessage('Örneği incele; sonra kendi cevabını oluştur.');
+  const stage=nextWorkshopHintStage(helpStage);
+  setHelpStage(stage);
+  if(stage===3)setExampleVisible(true);
+  setMessage(stage===3?'Örneği incele; sonra yeniden dene.':'İpucunu kullanıp bir kez daha dene.');
  };
  const next=()=>{
   setStep(n=>n+1);setSelected([]);setInput('');
   setResolved(false);setHintOnStep(false);setWrongOnStep(0);
-  setExampleVisible(false);setMessage('');locked.current=false;
+  setExampleVisible(false);setHelpStage(0);setTypingFocused(false);setKeyboardInset(0);
+  setMessage('');locked.current=false;
  };
  const save=async(answerRows:WritingAnswerEvidence[],errors:number,helpCount:number,correctIndependent:number,typed:number)=>{
   setSaving(true);setSaveError('');
@@ -190,7 +217,7 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
  const submit=()=>{
   if(saving||resolved||locked.current)return;
   const response=currentResponse.trim();
-  if(!response){setMessage('Önce harfleri veya kelimeleri yerleştir.');return;}
+  if(!response){setMessage(task.mode==='write'?'Önce İngilizce cevabını yaz.':'Önce harfleri veya kelimeleri yerleştir.');return;}
   if(!isWorkshopAnswerCorrect(task,response)){
    setMistakes(n=>n+1);setWrongOnStep(n=>n+1);
    setMessage(workshopFeedback(task,response));
@@ -234,7 +261,8 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
   if(resolved||saving)return;
   setSelected([]);setInput('');setMessage('');
  };
- return <div className="writing-root" role="dialog" aria-modal="true" aria-label="Yazı Atölyesi">
+ return <div className="writing-root" role="dialog" aria-modal="true" aria-label="Yazı Atölyesi"
+  data-keyboard-open={keyboardOpen} style={{'--writing-keyboard-inset':keyboardInset+'px'} as React.CSSProperties}>
   <header className="writing-header">
    <button type="button" onClick={phase==='map'?exit:back} className="writing-back"
     aria-label={phase==='map'?'Adalara dön':'Bölüm haritasına dön'}>←</button>
@@ -287,10 +315,7 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
        task.mode==='assemble'?'🧩 Cümleyi Kur':'✍️ Kendin Yaz'}</span>
       <span className="writing-stage">GÖREV {step+1} / {deck.length}</span>
      </div>
-     <div className="writing-art" aria-hidden="true">
-      <span className="writing-art-icon">{task.icon}</span>
-      <span className="writing-art-deco">✦</span>
-     </div>
+     <WritingDeskScene mode={task.mode}/>
      <h2>{task.promptTr}</h2>
      <p className="writing-task-caption">
       {task.mode==='spell'?'Harfleri seçerek İngilizce kelimeyi tamamla.':
@@ -299,19 +324,29 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
      </p>
      <div className="writing-learning-tools">
       <button type="button" onClick={speakModel} disabled={saving||resolved}>🔊 Örneği dinle</button>
-      <button type="button" onClick={showExample} disabled={saving||resolved}>
-       💡 {exampleVisible?'Örneği gördün':'Örneği göster'}
+      <button type="button" onClick={showHelp} disabled={saving||resolved||helpStage===3}
+        aria-label={'Aşamalı ipucu '+(helpStage===3?3:helpStage+1)+'/3'}>
+       💡 {helpStage===3?'Tüm ipuçları açıldı':'İpucu '+(helpStage+1)+'/3'}
       </button>
      </div>
+     {activeHelp&&<div className="writing-step-help" role="status" aria-live="polite">
+      <strong>{activeHelp.title}</strong><span>{activeHelp.description}</span>
+     </div>}
      {exampleVisible&&<p className="writing-example" lang="en">{task.target}</p>}
      {task.mode==='write'?<div className="writing-answer-area">
       <label htmlFor="workshop-typed-answer">Senin İngilizce yazın</label>
-      <textarea id="workshop-typed-answer" lang="en" dir="ltr" spellCheck={false}
-       autoComplete="off" autoCapitalize="off"
+      <textarea ref={inputRef} id="workshop-typed-answer" lang="en" dir="ltr" spellCheck={false}
+       autoComplete="off" autoCapitalize="off" autoCorrect="off"
+       inputMode="text" enterKeyHint="done" aria-describedby="workshop-keyboard-guidance"
        value={input} maxLength={180} rows={wordCount>=9?3:2}
        placeholder={englishLevel==='Pre-A1'?'İngilizce kelimeyi yaz…':'İngilizce cümleni yaz…'}
        onChange={event=>{setInput(event.target.value);setMessage('');}}
+       onFocus={()=>setTypingFocused(true)} onBlur={()=>setTypingFocused(false)}
        disabled={saving||resolved}/>
+      <div className="writing-keyboard-guidance" id="workshop-keyboard-guidance">
+       <span>İngilizce klavyeyle yaz · Otomatik düzeltme kapalı</span>
+       {typingFocused&&<button type="button" onClick={()=>inputRef.current?.blur()}>Klavyeyi kapat</button>}
+      </div>
      </div>:<>
       <div className="writing-paper" aria-label="Oluşturduğun İngilizce cevap" lang="en">
        {selected.length?selected.map(key=><button type="button" className="writing-written-tile"
@@ -332,8 +367,8 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
      <div className="writing-feedback" role="status" aria-live="polite">
       {message||(resolved?'Doğru yazdın!':'Kelimeleri düşün, acele etme.')}
      </div>
-     {wrongOnStep>=2&&!resolved&&<p className="writing-guided-clue">
-      💡 Küçük ipucu: {clue} İstersen üstteki örneği de açabilirsin.
+     {wrongOnStep>=2&&!resolved&&helpStage===0&&<p className="writing-guided-clue">
+      💡 Bir ipucu alıp adım adım devam edebilirsin. Cevap hemen gösterilmez.
      </p>}
      <div className="writing-actions">
       <button className="writing-reset" type="button" disabled={saving||resolved}
