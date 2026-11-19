@@ -1,0 +1,48 @@
+/* Hikâye Ormanı P1: shared behavior and readability; separate artwork stays untouched. */
+.story-standard-narration{box-sizing:border-box;min-width:0}
+.story-standard-copy{min-width:0;flex:1}
+.story-standard-copy .story-standard-caption{
+ line-height:1.45;overflow-wrap:anywhere;word-break:normal;
+ font-size:clamp(13px,1.85vw,17px);max-width:100%
+}
+.story-standard-narration .story-standard-listen,
+.story-standard-narration .story-standard-toggle{
+ min-height:44px;min-width:44px;touch-action:manipulation;
+ -webkit-tap-highlight-color:transparent
+}
+.story-standard-narration .story-standard-listen:focus-visible,
+.story-standard-narration .story-standard-toggle:focus-visible{
+ outline:3px solid #f5b954;outline-offset:3px;z-index:3
+}
+.story-standard-narration .story-standard-toggle[aria-pressed=true]{
+ box-shadow:inset 0 0 0 2px #5ba993,0 3px 8px #23485221
+}
+.story-standard-guide{min-width:0;display:grid;gap:5px;
+ max-width:100%;padding:9px 12px;margin:8px 0 10px;
+ border:1px solid #bad9bb;border-radius:14px;
+ background:linear-gradient(110deg,#f0fae5,#fffbef);
+ color:#235b53;box-shadow:0 3px 10px #204c3c16}
+.story-standard-guide-top{min-width:0;display:flex;justify-content:space-between;align-items:center;gap:8px}
+.story-standard-guide-top strong{font-weight:950;line-height:1.3;font-size:clamp(12px,1.6vw,15px)}
+.story-standard-guide-top span{white-space:nowrap;flex:none;
+ font-size:12px;font-weight:850;font-variant-numeric:tabular-nums}
+.story-standard-guide p{margin:0;color:#285c56;line-height:1.45;font-size:clamp(12px,1.55vw,14px)}
+.sj-root .story-standard-guide,.sd-root .story-standard-guide,.ss-root .story-standard-guide{isolation:isolate}
+.sj-root .story-standard-guide{margin:8px 9px 11px}
+.sd-root .story-standard-guide{margin:8px 0 11px}
+.ss-root .story-standard-guide{margin:7px 0 12px}
+@media(max-width:700px){
+ .story-standard-narration .story-standard-listen,
+ .story-standard-narration .story-standard-toggle{min-height:44px;min-width:44px}
+ .story-standard-copy .story-standard-caption{font-size:13px;line-height:1.45}
+ .story-standard-guide{padding:9px 10px;margin:8px 0}
+ .story-standard-guide-top strong{font-size:13px}
+ .story-standard-guide p{font-size:12px}
+}
+@media(max-width:360px){
+ .story-standard-guide-top{flex-wrap:wrap}
+ .story-standard-guide-top span{font-size:11px}
+}
+@media(prefers-reduced-motion:reduce){
+ .story-standard-guide,.story-standard-narration{scroll-behavior:auto}
+}

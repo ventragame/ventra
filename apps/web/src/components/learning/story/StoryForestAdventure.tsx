@@ -13,11 +13,13 @@ import {getStoryForestProgress,saveForestJourney,type ForestProgress} from '@/li
 import {soundService} from '@/lib/audio/SoundService';
 import {StoryForestActor,StoryForestScenery,STORY_FOREST_PREMIUM_COVER} from './StoryForestArt';
 import {LearningMotion} from '@/components/learning/motion/LearningMotion';
+import {StoryNarrationPanel,StorySceneGuide,storyDecisionFeedback} from './StorySceneStandard';
 import './story-forest-journey.css';
 import './story-forest-object-staging.css';
 import './story-forest-mobile-cast.css';
 import './story-forest-level-checks.css';
 import './story-forest-rabbit-motion.css';
+import './story-scene-standard.css';
 
 type Screen='chapters'|'playing'|'reward';
 type Props={profileId:string;gradeLevel:number|null;englishLevel:ForestPlacement;onBack:()=>void;onSaved:()=>void};
@@ -352,17 +354,11 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
      <LearningMotion variant={phase==='ending'?'victory':'success'}
       trigger={phase==='ending'?'story-ending':correct?'story-'+phase: null}
       className="sj-feedback-motion"/>
-     <div className="sj-caption">
-      <button type="button" className="sj-speak" onClick={replay}
-       aria-label="İngilizce anlatımı tekrar dinle" disabled={busy}>🔊</button>
-      <div className="sj-spoken">
-       <span>{voiceUnavailable?'SES KAPALI · METİN':'DİNLE VE KEŞFET'}</span>
-       {caption||voiceUnavailable?<p lang="en">{narrativeFor(plan,phase,destination??undefined)}</p>:
-        <div className="sj-waves" aria-hidden="true">▂ ▄ ▆ ▃ ▅ ▂</div>}
-      </div>
-      <button className="sj-text" type="button" onClick={()=>setCaption(v=>!v)}
-       aria-label="Anlatımı yazılı göster veya gizle" disabled={busy}>Aa</button>
-     </div>
+     <StoryNarrationPanel text={narrativeFor(plan,phase,destination??undefined)}
+      showText={caption} voiceUnavailable={voiceUnavailable} disabled={busy}
+      onListen={replay} onToggleText={()=>setCaption(v=>!v)}
+      classes={{root:'sj-caption',listen:'sj-speak',body:'sj-spoken',
+       waves:'sj-waves',toggle:'sj-text'}}/>
      {phase==='discover'&&<div className="sj-objects" role="group" aria-label="Hikâyedeki nesneyi bul">
       {plan.objectChoices.map(object=><button type="button" key={object}
        aria-label={object==='key'?'Altın anahtar':object==='apple'?'Kırmızı elma':object==='bird'?'Mavi kuş':'Kristal'}
@@ -418,7 +414,7 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
       <button type="button" className="sj-help" onClick={hint}
        disabled={busy||actionLock.current} aria-label="Doğru görseli göster">💡</button>
       <div role="status" aria-live="polite" className="sj-feedback">
-       {correct?'✦ Harika!':wrong?'↻ Yeniden dene':''}
+       {correct?storyDecisionFeedback('correct'):wrong?storyDecisionFeedback('retry'):''}
       </div>
      </div>}
      {passive&&<button className="sj-continue" type="button" disabled={busy}
@@ -427,7 +423,9 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
         void finishStory(plan,resultRef.current);
         else nextPassive(plan,phase,destination);}}>▶</button>}
     </div>
-    <div className="sj-trail"><span>{active.badge} {active.title}</span>
+    <StorySceneGuide mode={passive?'watch':'choose'} current={journeyStep}
+      total={journeyStages.length} title={active.title}/>
+     <div className="sj-trail"><span>{active.badge} {active.title}</span>
      <span className="sj-trail-badge"
       aria-label={['opening','discover'].includes(phase)?'Bilinmeyen nesne':'Keşfedilen nesne'}>
       {['opening','discover'].includes(phase)?'🔎':

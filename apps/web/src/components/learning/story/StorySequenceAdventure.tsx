@@ -14,10 +14,12 @@ import {getProgressRepository} from '@/lib/progress';
 import {soundService} from '@/lib/audio/SoundService';
 import {StorySequenceFrame} from './StorySequenceFrame';
 import {LearningMotion} from '@/components/learning/motion/LearningMotion';
+import {StoryNarrationPanel,StorySceneGuide,storyDecisionFeedback} from './StorySceneStandard';
 import './story-sequence.css';
 import './story-sequence-comprehension.css';
 import './story-character-motion.css';
 import './story-motion-guards.css';
+import './story-scene-standard.css';
 
 interface Props{
  profileId:string;
@@ -167,7 +169,7 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
   const expected=deck.frames[slot];
   if(!expected)return;
   if(id!==expected.id){
-   setMistakes(n=>n+1);setWrongId(id);setMessage('Başka bir resim dene.');
+   setMistakes(n=>n+1);setWrongId(id);setMessage(storyDecisionFeedback('retry'));
    soundService.playSfx('gentle_retry',.64);
    return;
   }
@@ -304,6 +306,8 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
     </section>}
   </main>}
   {page==='watch'&&deck&&watchFrame&&<main className="ss-main ss-story-content">
+    <StorySceneGuide mode="watch" current={watchIndex+1} total={deck.frames.length}
+     title={currentStory.title}/>
     <div className="ss-story-top" aria-label="Hikâyeyi sırayla izle">
       {deck.frames.map((frame,i)=><span key={frame.id}
         className={'ss-pip '+(i<watchIndex?'done':i===watchIndex?'active':'')}/>)}
@@ -312,18 +316,11 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
      <StorySequenceFrame frame={watchFrame} scene={scene}
       characterMotion={watchFrame.action==='help'||watchFrame.action==='share'?'cheer':'listen'}/>
     </div>
-    <div className="ss-narration">
-     <button type="button" className="ss-speak" onClick={replayNarration}
-      aria-label="Bu sahneyi tekrar dinle">🔊</button>
-     <div className="ss-narration-body">
-      <span className="ss-narration-label">{voiceUnavailable?'SES YOK · OKUYABİLİRSİN':'DİNLE VE İZLE'}</span>
-      {showCaption||voiceUnavailable?
-       <p lang="en">{watchFrame.narration[englishLevel]}</p>:
-       <span className="ss-audio-wave" aria-hidden="true">▂ ▅ ▃ ▆ ▃ ▅ ▂</span>}
-     </div>
-     <button type="button" className="ss-text-toggle" onClick={()=>setShowCaption(s=>!s)}
-      aria-label="İngilizce metni göster veya gizle">Aa</button>
-    </div>
+    <StoryNarrationPanel text={watchFrame.narration[englishLevel]}
+     showText={showCaption} voiceUnavailable={voiceUnavailable} disabled={busy}
+     onListen={replayNarration} onToggleText={()=>setShowCaption(v=>!v)}
+     classes={{root:'ss-narration',listen:'ss-speak',body:'ss-narration-body',
+      label:'ss-narration-label',waves:'ss-audio-wave',toggle:'ss-text-toggle'}}/>
     <div className="ss-bottom-actions">
      <button type="button" className="ss-primary" onClick={watchNext}>
       {watchIndex+1===deck.frames.length?'Resimleri sırala →':'Sonraki sahne →'}
@@ -333,6 +330,8 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
   {page==='order'&&deck&&<main className="ss-main ss-order-screen relative isolate">
     <LearningMotion variant="success"
      trigger={selectedIds.length>slot?'sequence-ordered-'+episode+'-'+slot:null}/>
+    <StorySceneGuide mode="order" current={slot+1} total={deck.frames.length}
+     title={currentStory.title}/>
     <div className="ss-instruction">
       <button type="button" onClick={replayNarration} aria-label="Sesli ipucunu tekrarla">🔊</button>
       <span>Hikâyede önce ne oldu?</span>
@@ -362,7 +361,7 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
        💡 İpucu
      </button>
      <div role="status" aria-live="polite" className={'ss-feedback '+(!message?'correct':'')}>
-       {busy?'Kaydediliyor…':message||('✦ '+selectedIds.length+'/'+deck.frames.length)}
+       {busy?'Kaydediliyor…':selectedIds.length>slot?storyDecisionFeedback('correct'):message||('✦ '+selectedIds.length+'/'+deck.frames.length)}
      </div>
      <button type="button" className="ss-hint-button" onClick={restartWatch}
       disabled={busy} aria-label="Hikâyeyi yeniden dinle">↻ Dinle</button>
@@ -376,16 +375,17 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
    aria-label="Dinlediğini anlama görevi">
    <LearningMotion variant="discovery"
     trigger={checks.length>checkIndex?'sequence-understood-'+episode+'-'+checkIndex:null}/>
-   <div className="ss-check-heading">
+   <StorySceneGuide mode="remember" current={checkIndex+1}
+     total={deck.comprehensionChecks?.length??1} title={currentStory.title}/>
+    <div className="ss-check-heading">
     <span>🧠 {englishLevel==='A2'?'Hikâyeyi Yorumla':'Sonra Ne Oldu?'}</span>
     <strong>{activeCheck.kind==='next'?'Bir Sonraki Olay':
       activeCheck.kind==='cause'?'Neden Oldu?':'Nasıl Bitti?'}</strong>
    </div>
-   <div className="ss-check-audio">
-    <button type="button" className="ss-speak" aria-label="Soruyu tekrar dinle"
-     onClick={()=>sayCheck(deck,checkIndex)}>🔊</button>
-    <p lang="en">{sequenceComprehensionPrompt(activeCheck.kind,englishLevel)}</p>
-   </div>
+   <StoryNarrationPanel text={sequenceComprehensionPrompt(activeCheck.kind,englishLevel)}
+    showText={true} voiceUnavailable={false} promptOnly disabled={busy}
+    onListen={()=>sayCheck(deck,checkIndex)}
+    classes={{root:'ss-check-audio',listen:'ss-speak',body:'ss-check-body'}}/>
    <div className="ss-check-reference" aria-label="Hatırlanacak hikâye sahnesi">
     {deck.frames.find(frame=>frame.id===activeCheck.referenceFrameId)&&
      <StorySequenceFrame
@@ -410,7 +410,7 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
      💡 İpucu
     </button>
     <span role="status" aria-live="polite" className="ss-feedback">
-     {checkWrong?'↻ Tekrar dene':'✦ '+(checkIndex+1)+' / '+(deck.comprehensionChecks?.length??0)}
+     {checkWrong?storyDecisionFeedback('retry'):'✦ '+(checkIndex+1)+' / '+(deck.comprehensionChecks?.length??0)}
     </span>
    </div>
    {saveError&&<div className="ss-save-error" role="alert">{saveError}

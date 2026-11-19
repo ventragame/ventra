@@ -21,10 +21,12 @@ import {soundService} from '@/lib/audio/SoundService';
 import {StoryForestActor,StoryForestScenery} from './StoryForestArt';
 import {DetectiveClueArt,DetectiveLostItem} from './StoryDetectiveArt';
 import {LearningMotion} from '@/components/learning/motion/LearningMotion';
+import {StoryNarrationPanel,StorySceneGuide,storyDecisionFeedback} from './StorySceneStandard';
 import './story-detective.css';
 import './story-detective-adventure.css';
 import './story-character-motion.css';
 import './story-motion-guards.css';
+import './story-scene-standard.css';
 
 interface Props{
  profileId:string;gradeLevel:number|null;englishLevel:ForestPlacement;
@@ -417,20 +419,14 @@ export function StoryDetectiveAdventure({profileId,gradeLevel,englishLevel,onBac
        step?.kind==='recover'?'Hazineyi Bul':'Yeni İpucu'}</h2>
      </div>
     </div>
-    <div className="sd-audio">
-     <button type="button" onClick={replayNarration} disabled={busy||correct}
-      aria-label="İngilizce hikâyeyi tekrar dinle" className="sd-sound">🔊</button>
-     <div className="sd-audio-body">
-      <small>{voiceUnavailable?'SES KAPALI · METİN':
-       speechOn?'DİNLE VE KEŞFET':'HAZIR · TEKRAR DİNLEYEBİLİRSİN'}</small>
-      {caption||voiceUnavailable?<p lang="en">{phrase}</p>:
-       <span className="sd-audio-waves" aria-hidden="true">▂ ▄ ▆ ▃ ▅ ▂</span>}
-     </div>
-     <button type="button" onClick={()=>setCaption(v=>!v)}
-      className="sd-captions" disabled={busy}
-      aria-label="İngilizce anlatımı göster veya gizle">Aa</button>
-    </div>
-
+    <StorySceneGuide mode={isStep?'choose':'watch'} current={position+1}
+     total={visualCount+2} title={chapter.title}/>
+    <StoryNarrationPanel text={phrase} showText={caption}
+     voiceUnavailable={voiceUnavailable} speaking={speechOn}
+     disabled={busy||correct} onListen={replayNarration}
+     onToggleText={()=>setCaption(v=>!v)} labelTag="small"
+     classes={{root:'sd-audio',listen:'sd-sound',body:'sd-audio-body',
+      waves:'sd-audio-waves',toggle:'sd-captions'}}/>
     {phase==='opening'&&<div className="sd-intro-box sd-story-intro">
      <div className="sd-intro-stamp" aria-hidden="true"><DetectiveLostItem id={plan.setup.item}/></div>
      <div className="sd-intro-title">Yeni bir macera seni bekliyor!</div>
@@ -474,7 +470,7 @@ export function StoryDetectiveAdventure({profileId,gradeLevel,englishLevel,onBac
       disabled={busy||locked.current||phase!=='step'||step?.kind==='crossroads'}
       aria-label="Doğru görseli aydınlat">💡 <span>İpucu</span></button>
      <div role="status" aria-live="polite" className="sd-feedback">
-      {busy?'Kaydediliyor…':correct?'✦ Harika!':wrong?'↻ Yeniden dene':
+      {busy?'Kaydediliyor…':correct?storyDecisionFeedback('correct'):wrong?storyDecisionFeedback('retry'):
        phase==='step'?('✦ '+answers.length+'/'+visualCount):''}
      </div>
      {(phase==='opening'||phase==='ending')&&<button type="button"
