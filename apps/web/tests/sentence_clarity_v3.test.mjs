@@ -56,7 +56,7 @@ test('All four sentence adventures clarify repairs, first-word case and progress
  const lantern=source('LanternFestivalAdventure.tsx');
  for(const ui of [plaza,move,wish,lantern]){
   assert.match(ui,/sentenceStart\(question\.cue\)|sentenceStart\(task\.cue\)/);
-  assert.match(ui,/visibleWord\(/);
+  assert.match(ui,/SentenceQuestBuilder/);
   assert.match(ui,/saveSentencePlazaMission/);
   assert.match(ui,/sentence-clarity-v3\.css/);
  }
