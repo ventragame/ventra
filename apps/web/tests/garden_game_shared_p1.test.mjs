@@ -21,3 +21,20 @@ test('Garden games opt into shared control and scene mechanics, preserving their
  assert.match(css,/overscroll-behavior-y:contain/);
  assert.doesNotMatch(css,/\.nv-|\.cg-|\.am-/);
 });
+
+
+test('Number Valley V5 uses canonical selectors without legacy reading-layout overrides',()=>{
+ const base=read('number-valley.css'),v5=read('number-valley-v5.css');
+ assert.doesNotMatch(base,/main>div\.py-6/);
+ assert.doesNotMatch(v5,/deliberately outrank|main>\.nv5-intro/);
+ assert.match(v5,/\.nv5-root \.nv5-intro\{padding:14px 8px 12px\}/);
+ assert.match(v5,/\.nv5-root \.nv5-title\{margin-top:5px/);
+ assert.match(v5,/\.nv5-root \.nv5-word-forge \.nv-forge-number\{/);
+ assert.match(v5,/\.nv5-root \.nv5-finale-stage \.nv5-scene-art>img/);
+ assert.match(v5,/@media\(max-width:767px\)/);
+ assert.match(v5,/@media\(max-width:359px\)/);
+ assert.match(v5,/prefers-reduced-motion:reduce/);
+ assert.match(base,/\.nv-forge-slot/);
+ assert.match(v5,/\.nv5-crystal-tile/);
+ assert.match(v5,/\.nv5-answer/);
+});
