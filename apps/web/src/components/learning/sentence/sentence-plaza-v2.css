@@ -273,3 +273,6 @@
  .sp-v2 .sp-v2-art.sp-art-awaken:after{animation:none!important}
  .sp-v2 .sp-v2-mission:hover:enabled .sp-v2-card-art{transform:none}
 }
+
+/* 44px touch target for the grammar disclosure (measured 38px tall). */
+.sp-v2-details>summary{min-height:44px;display:flex;align-items:center}

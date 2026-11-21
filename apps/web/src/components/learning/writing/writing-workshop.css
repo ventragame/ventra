@@ -316,3 +316,6 @@
 /* iOS notch / Dynamic Island safe area for the fixed full-screen workshop. */
 .writing-root .writing-header{padding-top:max(9px,env(safe-area-inset-top,0px))}
 @media(max-width:640px){.writing-root .writing-header{padding-top:max(7px,env(safe-area-inset-top,0px))}}
+
+/* Child legibility floor: hint and listen tools were 11px at 320px. */
+.writing-root .writing-learning-tools button{font-size:13px;min-height:44px}

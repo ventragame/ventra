@@ -106,3 +106,10 @@ test('The Kids home never shows a failed or stale progress read as zero or as an
  assert.match(kids,/harborCompleted===null\?'İlerleme okunamadı'/);
  assert.match(kids,/\{totalStars\?\?'—'\}/);
 });
+
+test('Functional labels measured at 11px on 320px phones have readable floors',()=>{
+ assert.match(src('components/learning/harbor/harbor-premium-scene.css'),/\.harbor-root \.hp-replay\{font-size:13px;min-height:44px\}/);
+ assert.match(src('components/learning/writing/writing-workshop.css'),/\.writing-root \.writing-learning-tools button\{font-size:13px;min-height:44px\}/);
+ assert.match(src('components/learning/academy/academy-adventure.css'),/\.academy-root \.academy-zone-text>span:last-child\{font-size:12px\}/);
+ assert.match(src('components/learning/sentence/sentence-plaza-v2.css'),/\.sp-v2-details>summary\{min-height:44px;/);
+});

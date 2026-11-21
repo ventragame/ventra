@@ -189,3 +189,5 @@
 .academy-root .academy-header{height:auto;padding-top:max(10px,env(safe-area-inset-top,0px))}
 .academy-root .academy-back{min-height:44px;min-width:44px}
 @media(max-width:650px){.academy-root .academy-header{padding-top:max(8px,env(safe-area-inset-top,0px))}}
+/* Child legibility floor: the zone card's call to action was 10px at 320px. */
+.academy-root .academy-zone-text>span:last-child{font-size:12px}

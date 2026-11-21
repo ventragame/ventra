@@ -336,3 +336,7 @@
  * so the exit button must sit below the status bar safe area. */
 .harbor-root .harbor-header{padding-top:max(10px,env(safe-area-inset-top,0px))}
 @media(max-width:640px){.harbor-root .harbor-header{padding-top:max(7px,env(safe-area-inset-top,0px))}}
+
+/* Child legibility floor (measured 11px at 320px): replay and the task line are actions. */
+.harbor-root .hp-replay{font-size:13px;min-height:44px}
+.harbor-root .harbor-talk-title span{font-size:13px}
