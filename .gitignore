@@ -72,3 +72,6 @@ Thumbs.db
 .idea/
 *.swp
 *.swo
+
+# Local real-browser mobile audit screenshots (scripts/mobile-audit.mjs)
+apps/web/.mobile-audit/

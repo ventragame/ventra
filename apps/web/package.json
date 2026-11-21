@@ -16,7 +16,8 @@
     "speech:prepare": "node scripts/prepare-sherpa-local.mjs",
     "speech:verify": "node scripts/verify-sherpa-assets.mjs",
     "speech:verify:export": "node scripts/verify-sherpa-assets.mjs --export",
-    "speech:smoke": "node scripts/smoke-sherpa-engine.mjs"
+    "speech:smoke": "node scripts/smoke-sherpa-engine.mjs",
+    "qa:mobile": "node scripts/mobile-audit.mjs"
   },
   "dependencies": {
     "@capacitor-community/text-to-speech": "4.1.1",

@@ -68,3 +68,12 @@ Canonical read-only course model: apps/web/src/lib/learning/englishCourseJourney
 ## Kids P3 Tema Kasabası — 2026-11-17
 
 Source content: apps/web/src/lib/learning/themeQuestCatalog.ts (8 themes × 3 English bands, 254 lexemes and 120 example phrases). Deterministic age-/English-aware lesson generation: themeQuestEngine.ts; profile-isolated 72 levelIds, existing game repo: themeQuestProgress.ts; 30-day local privacy-safe resume: themeQuestCheckpoint.ts. UI: components/learning/themes/ThemeTownAdventure.tsx. Entry: LearningPathModal/WordGardenDistrictMap and P2 garden.themes. Do NOT invent a seventh main island or overwrite existing six Garden world IDs. P0 now 28 topics/84 outcomes/15 surfaces (82 authored, 1 partial, 1 gap). Word and sentence taps do not prove CEFR mastery or spoken fluency. See docs/VENTRA_THEME_TOWN_P3.md for manual QA gates.
+
+## All-games quality pass — 2026-11-22
+Audit, fixes and open risks: [docs/VENTRA_ALL_GAMES_QUALITY_AUDIT_2026-11-22.md](docs/VENTRA_ALL_GAMES_QUALITY_AUDIT_2026-11-22.md). Preserve these invariants:
+- `npm test` / `test:ci` run `scripts/run-tests.mjs`, which discovers every `tests/*.test.mjs`; never go back to a hand-written list. Source-layout tests must normalise CRLF.
+- Level maps come from `lib/progress/levelProgressMap.ts`; a game with more than 10 level IDs must declare its count there. Activity titles come from `lib/progress/activityTitles.ts` and must match rewards `WORLD_GAMES` labels.
+- Sentence builders compare words via `lib/learning/sentenceTokens.ts` (case is typography); typed/spoken answers via `lib/learning/englishAnswerText.ts` (contractions, digits, Turkish-keyboard ı/İ — never fuzzy). A lesson's on-screen example must not be the task answer.
+- Audio that says the assessed answer makes that answer assisted, never independent. `SoundService` must never speak while microphone capture is active.
+- Deleted profiles never receive progress; Escape inside a garden game must go through the game's `data-game-exit` control.
+- Real-browser mobile checks: `npm --workspace=apps/web run qa:mobile` (needs a running app and `playwright-core`). Emulation is not device acceptance.
