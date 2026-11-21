@@ -81,3 +81,12 @@ test('A2 sequence cause questions name the specific link, so only the target pic
  }
  assert.equal(prompts.size,6,'one authored cause question per story');
 });
+
+test('Story Forest level-check cards start above the 💡 hint row on every width',()=>{
+ const css=source('../src/components/learning/story/story-forest-level-checks.css');
+ assert.match(css,/position:absolute;z-index:7;left:4%;right:4%;bottom:max\(5%,60px\);/);
+ assert.match(css,/left:3%;right:3%;bottom:max\(7%,60px\);gap:6px/);
+ const hint=source('../src/components/learning/story/story-forest-journey.css');
+ assert.match(hint,/\.sj-hint-row\{position:absolute;bottom:8px;/,'hint row geometry the 60px offset is based on');
+ assert.match(hint,/\.sj-help\{width:47px;height:44px;/);
+});
