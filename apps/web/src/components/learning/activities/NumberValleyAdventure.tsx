@@ -80,6 +80,12 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
   const dialog=useRef<HTMLDivElement>(null);
   const heading=useRef<HTMLHeadingElement>(null);
   const policy=useMemo(()=>resolveGradeAwarePolicy({domain:'numbers',gradeLevel,englishLevel}),[gradeLevel,englishLevel]);
+  /** Each number path resumes at its own next unfinished chapter. */
+  const resumeStage=(path:NumberBand)=>Math.min(5,progress.completedByBand[path]+1) as NumberStage;
+  const bandOpen=(path:NumberBand,unlocked:readonly NumberBand[])=>unlocked.includes(path)&&
+    policy.maxNumber>=(NUMBER_BANDS.find(x=>x.id===path)?.minimum??Infinity);
+  /** Entry goes to the furthest unlocked path that still has open chapters (once). */
+  const entryBandChosen=useRef(false);
   const key=`${profileId}:${gradeLevel??'unset'}:${englishLevel}:${band}:${stage}:${nonce}`;
   const activePlan=planKey===key&&plan?.mission===stage?plan:null;
   const current=stage===1?null:activePlan?.questions[question]??null;
@@ -100,7 +106,13 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
     setLoadError(false);setPlan(null);setPlanKey('');
     getProgressRepository().getNumberAnswerHistory(profileId).then(history=>{
       if(!alive)return;
-      setUnlockedBands(unlockedNumberBands(policy.maxNumber,history));
+      const unlocked=unlockedNumberBands(policy.maxNumber,history);
+      setUnlockedBands(unlocked);
+      if(!entryBandChosen.current){
+        entryBandChosen.current=true;
+        const entry=[...NUMBER_BANDS].reverse().find(path=>bandOpen(path.id,unlocked)&&progress.completedByBand[path.id]<5);
+        if(entry&&entry.id!==band){restart(resumeStage(entry.id),entry.id);return;}
+      }
       const next=planNumberMission({mission:stage,gradeLevel,englishLevel,band,history,
         seed:Math.floor(Math.random()*4294967295)});
       setPlan(next);setPlanKey(key);
@@ -267,6 +279,8 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
   const done=stage===1?visited.length:question+Number(awaitingNext);
   const completeEnabled=stage===1&&activePlan&&visited.length===activePlan.discoveries.length&&visited.length>0;
   const bandLabel=NUMBER_BANDS.find(x=>x.id===band)?.title??'Kristal Patikası';
+  const nextPath=NUMBER_BANDS.slice(NUMBER_BANDS.findIndex(x=>x.id===band)+1)
+    .find(path=>bandOpen(path.id,unlockedBands)&&progress.completedByBand[path.id]<5);
   const buttonsDisabled=saving||awaitingNext||completed;
 
   return <div ref={dialog} role="dialog" aria-modal="true" aria-label="Sayı Vadisi macerası"
@@ -308,7 +322,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
           return <button key={path.id} type="button" disabled={!open||saving}
             aria-pressed={band===path.id}
             aria-label={`${path.title}: ${path.range} ${open?'oynanabilir':'henüz kilitli'}`}
-            onClick={()=>restart(1,path.id)}
+            onClick={()=>restart(resumeStage(path.id),path.id)}
             data-current={band===path.id}
              className={`nv-band-card nv5-band gg-game-control rounded-2xl px-2 py-3 text-center text-xs font-black sm:px-4 sm:py-4 sm:text-sm
               ${band===path.id?'nv-band-selected':''} disabled:cursor-not-allowed disabled:opacity-55`}>
@@ -520,8 +534,10 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
          </p>
          <div className="nv5-finale-stats"><span>✓ {answers.length} doğru</span><span>↻ {mistakes} hata</span></div>
          <button className="nv-primary nv5-next mt-6 min-h-14 w-full rounded-xl px-6 py-4 font-black" onClick={()=>{
-           if(stage===5)onBack();else restart((stage+1) as NumberStage);
-         }}>{stage===5?'Kelime Bahçesi’ne Dön →':'Sonraki Bölüme Geç →'}</button>
+           if(stage<5)restart((stage+1) as NumberStage);
+           else if(nextPath)restart(resumeStage(nextPath.id),nextPath.id);
+           else onBack();
+         }}>{stage<5?'Sonraki Bölüme Geç →':nextPath?`${nextPath.title} yoluna geç →`:'Kelime Bahçesi’ne Dön →'}</button>
          <button className="nv-control nv5-replay mt-3 min-h-12 w-full rounded-xl px-4 font-bold" onClick={()=>restart(stage)}>
            ↻ Farklı Sayılarla Tekrar Oyna
          </button>

@@ -120,7 +120,12 @@ export function planTempleMission(input:{chamber:TempleChamber;stage:TempleStage
  const words=chosen.map(w=>w.id);
  if(stage===1)return {chamber,stage,words,questions:[]};
  const rounds=stage===5?6:(gradeLevel!=null&&gradeLevel<=2?4:6);
- const targets=shuffle(Array.from({length:rounds},(_,i)=>chosen[i%chosen.length]),random);
+ // Stage 2 shows the Turkish word and asks for the English one: loanwords whose
+ // Turkish already spells the answer ("Pizza", "Zebra", "Simit benzeri pretzel")
+ // would be copied, not recalled. They stay in every other stage.
+ const recallable=stage===2?chosen.filter(w=>!templeTurkishRevealsEnglish(w)):chosen;
+ const targetPool=recallable.length>=2?recallable:chosen;
+ const targets=shuffle(Array.from({length:rounds},(_,i)=>targetPool[i%targetPool.length]),random);
  const questions=targets.map((w,i)=>{
   // Assess earlier discoveries before introducing unfamiliar distractors.
   // Fall back to grade-scoped vocabulary only if unique choices are scarce.
@@ -146,6 +151,9 @@ export function planTempleMission(input:{chamber:TempleChamber;stage:TempleStage
     ...(stage===5?{pair:Math.floor(i/2)}:{})};
  });
  return {chamber,stage,words,questions};
+}
+export function templeTurkishRevealsEnglish(w:Pick<TempleWord,'en'|'tr'>):boolean{
+ return w.tr.toLocaleLowerCase('tr').includes(w.en.toLocaleLowerCase('en-US'));
 }
 const VOWEL=/^[aeiou]/i;
 const FAMILY_MEMBERS=new Set(['mother','father','sister','brother','baby','grandmother','grandfather','family',

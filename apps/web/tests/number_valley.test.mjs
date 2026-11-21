@@ -148,3 +148,12 @@ test('Number portal varies tile order and answer position, and listening to the 
  assert.match(ui,/hintUsed:hintUsed \|\| answerAudioUsed/);
  assert.match(ui,/if\(now-lastMistakeAt\.current<280\)return;/);
 });
+
+test('Number paths resume at their own next chapter and the finale offers the next open path',()=>{
+ const ui=fs.readFileSync(new URL('../src/components/learning/activities/NumberValleyAdventure.tsx',import.meta.url),'utf8');
+ assert.match(ui,/const resumeStage=\(path:NumberBand\)=>Math\.min\(5,progress\.completedByBand\[path\]\+1\)/);
+ assert.match(ui,/onClick=\{\(\)=>restart\(resumeStage\(path\.id\),path\.id\)\}/,'switching path never restarts at chapter 1');
+ assert.doesNotMatch(ui,/onClick=\{\(\)=>restart\(1,path\.id\)\}/);
+ assert.match(ui,/if\(!entryBandChosen\.current\)\{/,'entry chooses the furthest open path once');
+ assert.match(ui,/else if\(nextPath\)restart\(resumeStage\(nextPath\.id\),nextPath\.id\);/);
+});

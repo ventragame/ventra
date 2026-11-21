@@ -185,7 +185,8 @@ export function planColorMission(args: {
   const sceneOffset = Math.floor(rnd() * 3);
   const sceneVariants = ['garden', 'butterfly', 'paint'] as const;
   const questions = sequence.map((target, index) => {
-    const distractors = weightedShuffle(allowed.filter(id => id !== target), () => 1, rnd).slice(0, policy.choiceCount-1);
+    const distractors = weightedShuffle(distinctColorDistractors(target, allowed, policy.choiceCount-1), () => 1, rnd)
+      .slice(0, policy.choiceCount-1);
     const choices = weightedShuffle([target, ...distractors], () => 1, rnd);
     return {
       target,
@@ -196,6 +197,41 @@ export function planColorMission(args: {
   const reviewColorIds = review;
   return { mission: args.mission, colors: [], questions, reviewColorIds, seed: args.seed,
     ...planMeta, freshColorIds: [] };
+}
+
+/** Perceptual (CIE76 ΔE) distance between two colour words' swatches. */
+const labCache = new Map<string, readonly [number, number, number]>();
+function swatchLab(id: string): readonly [number, number, number] {
+  const cached = labCache.get(id);
+  if (cached) return cached;
+  const hex = COLOR_GROVE_WORDS.find(word => word.id === id)?.hex ?? '#000000';
+  const n = parseInt(hex.slice(1), 16);
+  const [r, g, b] = [n >> 16 & 255, n >> 8 & 255, n & 255].map(v => {
+    const c = v / 255;
+    return c <= 0.04045 ? c / 12.92 : ((c + 0.055) / 1.055) ** 2.4;
+  });
+  const f = (t: number) => t > 0.008856 ? Math.cbrt(t) : 7.787 * t + 16 / 116;
+  const x = f((r * 0.4124 + g * 0.3576 + b * 0.1805) / 0.95047);
+  const y = f(r * 0.2126 + g * 0.7152 + b * 0.0722);
+  const z = f((r * 0.0193 + g * 0.1192 + b * 0.9505) / 1.08883);
+  const lab = [116 * y - 16, 500 * (x - y), 200 * (y - z)] as const;
+  labCache.set(id, lab);
+  return lab;
+}
+export function colorSwatchDistance(a: string, b: string): number {
+  const [l1, a1, b1] = swatchLab(a), [l2, a2, b2] = swatchLab(b);
+  return Math.hypot(l1 - l2, a1 - a2, b1 - b2);
+}
+/** Below this ΔE two swatches are easy to confuse (purple/violet, dark blue/indigo,
+ * yellow/gold, gray/silver, light/mint green…): a fair question never pairs them. */
+export const CONFUSABLE_COLOR_DELTA_E = 30;
+export function distinctColorDistractors<T extends string>(target: T, allowed: readonly T[], needed: number): T[] {
+  const others = allowed.filter(id => id !== target);
+  const distinct = others.filter(id => colorSwatchDistance(target, id) >= CONFUSABLE_COLOR_DELTA_E);
+  if (distinct.length >= needed) return distinct;
+  // Never block a mission: fall back to the visually farthest colours.
+  return [...others].sort((a, b) => colorSwatchDistance(target, b) - colorSwatchDistance(target, a))
+    .slice(0, Math.max(needed, distinct.length));
 }
 
 export function getColorInstruction(

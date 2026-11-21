@@ -264,3 +264,20 @@ test('Temple model sentences use "an" before vowel sounds (no "a orange crystal"
  assert.deepEqual(sentenceFor(TEMPLE_WORDS.find(w=>w.en==='orange'&&w.domain==='colors')),
   ['I','can','see','an','orange','crystal.']);
 });
+
+test('Temple stage 2 never asks for an English word that its Turkish prompt already spells',async()=>{
+ const {templeTurkishRevealsEnglish}=await import('../src/lib/learning/templeEngine.ts');
+ assert.ok(TEMPLE_WORDS.some(w=>templeTurkishRevealsEnglish(w)),'loanwords such as pizza/zebra exist in the bank');
+ let checked=0;
+ for(const chamber of TEMPLE_CHAMBERS)for(const gradeLevel of [null,2,4,6])for(const englishLevel of ['Pre-A1','A1','A2'])
+  for(let seed=1;seed<=8;seed++){
+   const plan=planTempleMission({chamber:chamber.id,stage:2,gradeLevel,englishLevel,history:[],seed:seed*101});
+   for(const q of plan.questions){
+    const word=templeWord(q.target);
+    const recallable=plan.words.map(templeWord).filter(w=>!templeTurkishRevealsEnglish(w));
+    if(recallable.length>=2)assert.ok(!templeTurkishRevealsEnglish(word),`${word.en} / ${word.tr}`);
+    checked++;
+   }
+  }
+ assert.ok(checked>200);
+});

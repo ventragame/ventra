@@ -191,3 +191,28 @@ test('Mission 2 listen button asks the question and never speaks the colour it a
     }
   }
 });
+
+test('Colour choices never pair two swatches a child could reasonably confuse', async () => {
+  const { colorSwatchDistance, CONFUSABLE_COLOR_DELTA_E, distinctColorDistractors } =
+    await import('../src/lib/learning/colorMissionEngine.ts');
+  assert.ok(colorSwatchDistance('purple', 'violet') < CONFUSABLE_COLOR_DELTA_E);
+  assert.ok(colorSwatchDistance('dark blue', 'indigo') < CONFUSABLE_COLOR_DELTA_E);
+  assert.ok(colorSwatchDistance('red', 'green') > CONFUSABLE_COLOR_DELTA_E);
+  const all = COLOR_GROVE_WORDS.map((c) => ({ wordId: c.id, mistakes: 0, firstTryCorrect: false, kind: 'discovery', timestamp: '2026-10-31T00:00:00.000Z' }));
+  let checked = 0;
+  for (const englishLevel of ['Pre-A1', 'A1', 'A2']) for (const gradeLevel of [1, 3, 5, 7]) for (let seed = 1; seed <= 25; seed++) {
+    for (const mission of [2, 3]) {
+      const plan = planColorMission({ mission, history: all, seed: seed * 37, englishLevel, gradeLevel });
+      for (const q of plan.questions) {
+        for (const choice of q.choices) {
+          if (choice === q.target) continue;
+          assert.ok(colorSwatchDistance(q.target, choice) >= CONFUSABLE_COLOR_DELTA_E,
+            `${q.target} vs ${choice} (${englishLevel}, grade ${gradeLevel})`);
+        }
+        checked++;
+      }
+    }
+  }
+  assert.ok(checked > 500);
+  assert.equal(distinctColorDistractors('purple', ['purple', 'violet'], 1).length, 1, 'never blocks a mission when only close colours remain');
+});
