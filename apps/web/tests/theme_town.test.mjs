@@ -7,7 +7,7 @@ import {
 } from '../src/lib/learning/themeQuestCatalog.ts';
 import {
  planThemeLesson,themeEffectiveTier,themeGradeTaskCount,
- validateThemeDecks,isThemeAnswerCorrect,themeTaskHint
+ validateThemeDecks,isThemeAnswerCorrect,themeTaskHint,themeAnswerIndependent
 } from '../src/lib/learning/themeQuestEngine.ts';
 import {recordThemeQuest,getThemeTownProgress} from '../src/lib/learning/themeQuestProgress.ts';
 import {visualForEnglishWord} from '../src/lib/learning/learningArt.ts';
@@ -257,4 +257,30 @@ test('Discover hints distinguish exact pictures from context-only learning cues'
  assert.match(engine,/Türkçe anlamı oku, konu ipucunu incele/);
  const cue=read('../src/components/learning/themes/ThemeWordCue.tsx');
  assert.match(cue,/Görsel açılamadı/);
+});
+
+test('Playing the speaker that says the answer never counts as independent recall',()=>{
+ let revealing=0;
+ for(const theme of THEME_ORDER)for(const placement of THEME_TIERS)for(const gradeLevel of [1,4,7])for(let replay=0;replay<3;replay++){
+  const deck=planThemeLesson({theme,placement,gradeLevel,replay});
+  for(const task of deck.tasks){
+   if(task.kind==='discover'||task.kind==='assemble'){
+    assert.equal(themeAnswerIndependent(task,true,false),false);continue;
+   }
+   if(task.kind==='listen'){
+    assert.equal(themeAnswerIndependent(task,true,true),true,'heard listening task');
+    assert.equal(themeAnswerIndependent(task,true,false),false,'listening without audio is not listening evidence');
+    continue;
+   }
+   assert.equal(themeAnswerIndependent(task,true,false),true,task.kind+' answered without audio');
+   if(task.audioText){
+    revealing++;
+    assert.equal(themeAnswerIndependent(task,true,true),false,`${task.kind} audio "${task.audioText}" reveals the answer`);
+   }
+   assert.equal(themeAnswerIndependent(task,false,false),false,'mistake or hint is never independent');
+  }
+ }
+ assert.ok(revealing>100,'translate/phrase/clock/picture audio tasks are covered');
+ const ui=fs.readFileSync(new URL('../src/components/learning/themes/ThemeTownAdventure.tsx',import.meta.url),'utf8');
+ assert.match(ui,/independent:themeAnswerIndependent\(task,firstTry,speechStarted\)/);
 });

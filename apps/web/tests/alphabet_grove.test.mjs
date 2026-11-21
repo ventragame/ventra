@@ -236,3 +236,19 @@ test('Alphabet unknown short words never show unrelated emoji pictures',()=>{
  assert.match(ui,/ag-unillustrated-word/);
  assert.doesNotMatch(ui,/task\.word\.icon/);
 });
+
+test('Sound-in-word tasks never offer two letters that start the word with the same sound (C/K/Q)',()=>{
+ const twins=new Set(['C','K','Q']);
+ let checked=0;
+ for(let lesson=1;lesson<=12;lesson++)for(const placement of ['Pre-A1','A1','A2'])
+  for(const gradeLevel of [null,1,3,6])for(let replay=0;replay<8;replay++){
+   const deck=planAlphabetLesson({lesson,placement,gradeLevel,replay});
+   for(const task of deck.filter(t=>t.kind==='sound-in-word')){
+    if(!twins.has(task.answer))continue;
+    checked++;
+    assert.deepEqual(task.choices.filter(c=>twins.has(c)),[task.answer],
+     `${task.id}: ${task.choices.join('/')} has more than one /k/ onset letter`);
+   }
+  }
+ assert.ok(checked>20);
+});

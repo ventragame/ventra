@@ -204,7 +204,9 @@ export function getColorInstruction(
   level: EnglishPlacement
 ): { title: string; guide: string; speech: string } {
   if (mission === 2) {
-    return { title: 'Bu renk İngilizcede ne?', guide: 'Rengi gör ve İngilizce adını seç.', speech: target };
+    // The child must recall the colour word: the speaker asks the question and
+    // never says the answer (it used to speak `target`, saved as independent).
+    return { title: 'Bu renk İngilizcede ne?', guide: 'Rengi gör ve İngilizce adını seç.', speech: 'What color is this?' };
   }
   if (mission === 3 && level === 'Pre-A1') {
     // No unintroduced verb or sentence structure for beginners.

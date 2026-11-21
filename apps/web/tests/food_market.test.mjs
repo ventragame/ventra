@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {MARKET_WORDS,MARKET_AISLES,MARKET_STAGES,MARKET_TOTAL,
- eligibleMarketWords,planMarketMission,marketResumePoint,validMarketAnswers,marketWord,marketNounPhrase,marketMissionStars,MARKET_GAME_ID} from '../src/lib/learning/foodMarketEngine.ts';
+ eligibleMarketWords,planMarketMission,marketResumePoint,validMarketAnswers,marketWord,marketNounPhrase,negativeNounPhrase,marketMissionStars,MARKET_GAME_ID} from '../src/lib/learning/foodMarketEngine.ts';
 import {saveFoodMarketMission,getFoodMarketProgress} from '../src/lib/progress/foodMarketProgress.ts';
 import {MemoryProgressRepository} from '../src/lib/progress/MemoryProgressRepository.ts';
 import {normalizeLearningEvidence,getLearningSnapshot} from '../src/lib/learning/adaptiveLearningEngine.ts';
@@ -360,7 +360,7 @@ test('G5 higher A2 customer orders require selecting requested rather than rejec
    assert.match(q.prompt,/I would like /);
    assert.equal(q.audio,q.prompt);
    assert.ok(q.prompt.includes(marketNounPhrase(q.target)));
-   assert.ok(q.options.some(id=>id!==q.target&&q.prompt.includes(marketNounPhrase(id))),
+   assert.ok(q.options.some(id=>id!==q.target&&q.prompt.includes("I don't want "+negativeNounPhrase(id)+'.')),
      'rejected item must also be visible, so keyword spotting alone is not enough');
   }
   const beginner=planMarketMission({aisle:aisle.id,stage:4,englishLevel:'Pre-A1',gradeLevel:1,history:[],seed:209});
@@ -399,4 +399,26 @@ test('G1 V6 orchard hero is a real, compressed local WebP connected to the marke
  const ui=fs.readFileSync(new URL('../src/components/learning/activities/FoodMarketAdventure.tsx',import.meta.url),'utf8');
  assert.match(ui,/orchard:'\/assets\/foods\/market-orchard-v6\.webp'/);
  assert.match(ui,/<MarketBackdrop aisle=\{aisle\}\/>/);
+});
+
+test('G5 basket stage is always winnable: distinct targets and at least two other enabled products',()=>{
+ const tierDrop=(aisle)=>eligibleMarketWords(aisle,null,'A1').map(w=>make(w.id,'discovery'));
+ for(const aisle of MARKET_AISLES)for(const gradeLevel of [null,1,2,3,5,7])for(const englishLevel of ['Pre-A1','A1','A2'])
+  for(const history of [[],tierDrop(aisle.id).slice(0,4),tierDrop(aisle.id).slice(0,5),tierDrop(aisle.id)])
+   for(let seed=1;seed<=12;seed++){
+    const plan=planMarketMission({aisle:aisle.id,stage:5,gradeLevel,englishLevel,history,seed:seed*31});
+    const targets=plan.questions.map(q=>q.target);
+    assert.equal(new Set(targets).size,targets.length,'a basket target never repeats');
+    assert.ok(targets.length>=4&&targets.length%2===0,'FIRST/THEN pairs');
+    assert.ok(targets.every(id=>plan.words.includes(id)));
+    assert.ok(plan.words.length>=targets.length+2,'final round still offers two enabled distractors');
+   }
+});
+test('Negative food requests are grammatical (any, not some)',()=>{
+ assert.equal(negativeNounPhrase('milk'),'any milk');
+ assert.equal(negativeNounPhrase('apple'),'an apple');
+ for(const aisle of MARKET_AISLES)for(let seed=1;seed<=30;seed++){
+  const plan=planMarketMission({aisle:aisle.id,stage:4,englishLevel:'A2',gradeLevel:7,history:[],seed});
+  for(const q of plan.questions)assert.doesNotMatch(q.prompt,/don't want some /);
+ }
 });

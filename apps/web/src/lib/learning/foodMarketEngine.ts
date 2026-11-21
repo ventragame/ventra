@@ -81,6 +81,10 @@ export function marketNounPhrase(id:string):string{
  return PLURAL_MARKET.has(id)||MASS_MARKET.has(id)?`some ${id}`:
  /^[aeiou]/.test(id)?`an ${id}`:`a ${id}`;
 }
+/** "some" is for positive sentences: I don't want ANY milk / an apple. */
+export function negativeNounPhrase(id:string):string{
+ return marketNounPhrase(id).replace(/^some /,'any ');
+}
 export function marketWord(id:string):FoodWord{
  const found=MARKET_WORDS.find(w=>w.id===id);if(!found)throw Error('Unknown market item: '+id);return found;
 }
@@ -110,8 +114,11 @@ export function planMarketMission(input:{
  const active=ordered.slice(0,count);
  const words=active.map(w=>w.id);
  if(stage===1)return {aisle,stage,words,questions:[]};
- const rounds=stage===5?6:gradeLevel!=null&&gradeLevel<=2?4:6;
- const selected=Array.from({length:rounds},(_,i)=>active[i%active.length]);
+ // Stage 5 basket items stay in the basket (disabled), so every basket target
+ // must be a DIFFERENT word: a repeated target was unwinnable. Rounds come in
+ // FIRST/THEN pairs.
+ const rounds=stage===5?Math.min(6,Math.floor(active.length/2)*2):gradeLevel!=null&&gradeLevel<=2?4:6;
+ const selected=stage===5?active.slice(0,rounds):Array.from({length:rounds},(_,i)=>active[i%active.length]);
  const sequence=shuffled(selected,rng);
  const questions=sequence.map((word,i)=>{
    // Assess familiar vocabulary rather than confusing beginners with items
@@ -128,7 +135,7 @@ export function planMarketMission(input:{
    // distractor; only the requested item is correct.
    const contrast=stage===4&&gradeLevel!=null&&gradeLevel>=5&&englishLevel==='A2'&&i%2===1;
    const customerRequest=contrast?
-     `I don't want ${marketNounPhrase(distractors[0])}. I would like ${marketNounPhrase(word.id)}, please.`:
+     `I don't want ${negativeNounPhrase(distractors[0])}. I would like ${marketNounPhrase(word.id)}, please.`:
      `${customer} ${marketNounPhrase(word.id)}, please${i%2===0?'.':'?'}`;
    const first=sequence[Math.floor(i/2)*2];
    const second=sequence[Math.floor(i/2)*2+1];
@@ -141,7 +148,11 @@ export function planMarketMission(input:{
      audio:stage===3?word.id:phrase,
      ...(stage===5?{orderPair:Math.floor(i/2)}:{})};
  });
- return {aisle,stage,words,questions};
+ // The basket grid always keeps the last target plus at least two other
+ // enabled products, so the final pick is never a forced single choice.
+ const gridWords=stage===5&&words.length<rounds+2?[...words,...shuffled(all.filter(w=>!words.includes(w.id)),rng)
+  .slice(0,rounds+2-words.length).map(w=>w.id)]:words;
+ return {aisle,stage,words:gridWords,questions};
 }
 /**
  * Three stars reflect independent performance, not merely zero wrong taps.

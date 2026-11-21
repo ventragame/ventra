@@ -252,3 +252,15 @@ test('G3 V6 voice, double-tap protection, auto-discovery, ordered two-seal flow 
  assert.match(css,/touch-action:manipulation/);
  assert.match(css,/focus-visible/);
 });
+
+test('Temple model sentences use "an" before vowel sounds (no "a orange crystal")',()=>{
+ for(const word of TEMPLE_WORDS){
+  const tokens=sentenceFor(word);
+  for(let i=0;i<tokens.length-1;i++){
+   if(tokens[i]==='a')assert.doesNotMatch(tokens[i+1],/^[aeiou]/i,tokens.join(' '));
+   if(tokens[i]==='an')assert.match(tokens[i+1],/^[aeiou]/i,tokens.join(' '));
+  }
+ }
+ assert.deepEqual(sentenceFor(TEMPLE_WORDS.find(w=>w.en==='orange'&&w.domain==='colors')),
+  ['I','can','see','an','orange','crystal.']);
+});

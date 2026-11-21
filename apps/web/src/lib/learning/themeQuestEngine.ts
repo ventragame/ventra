@@ -56,6 +56,20 @@ const toTask=(theme:ThemeId,placement:EnglishPlacement,tier:ThemeTier,replay:num
  id:'theme:'+theme+':'+placement+':'+tier+':'+replay+':'+kind+':'+index,
  theme,kind,answer,...payload
 });
+/**
+ * Independent evidence for one answered Theme Town task.
+ * - discover/assemble are exposure/support tasks, never independent recall;
+ * - listen tasks require that the English audio actually started;
+ * - every other task with audio (picture, translate, phrase, clock) is
+ *   assessed WITHOUT audio: its speaker says the exact answer, so playing it
+ *   makes the answer assisted.
+ */
+export function themeAnswerIndependent(task:Pick<ThemeTask,'kind'|'audioText'>,
+ firstTry:boolean,speechStarted:boolean):boolean{
+ if(!firstTry||task.kind==='discover'||task.kind==='assemble')return false;
+ if(task.kind==='listen')return speechStarted;
+ return !(task.audioText&&speechStarted);
+}
 /** No question is generated from unseen grade-specific vocabulary.
  * Pre-A1 introduces words visually; A1 expands context; A2 expands phrases.
  */

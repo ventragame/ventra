@@ -7,7 +7,7 @@ import {getProgressRepository} from '@/lib/progress';
 import type {EnglishPlacement} from '@/lib/learning/gradeAwareLearningPolicy';
 import {THEME_DEFINITIONS,THEME_TIERS,THEME_ORDER,
  type ThemeId,type ThemeTier} from '@/lib/learning/themeQuestCatalog';
-import {planThemeLesson,themeEffectiveTier,themeTaskHint,
+import {planThemeLesson,themeEffectiveTier,themeTaskHint,themeAnswerIndependent,
  themeGradeTaskCount,isThemeAnswerCorrect,
  type ThemeDeck,type ThemeTask,type ThemeAnswerEvidence} from '@/lib/learning/themeQuestEngine';
 import {getThemeTownProgress,recordThemeQuest,
@@ -30,7 +30,6 @@ const taskLabel=(kind:ThemeTask['kind']):string=>({
  meaning:'ANLAMINI BUL',phrase:'GÜNLÜK İNGİLİZCE',assemble:'CÜMLEYİ KUR',clock:'SAATİ OKU'
 })[kind];
 const wordTiles=(task:ThemeTask,selected:readonly number[])=>selected.map(i=>task.choices[i]);
-const isSpeechQuestion=(task:ThemeTask)=>task.kind==='listen';
 
 function ClockFace({minutes}: {minutes:number}){
  const hour=minutes/60,minute=minutes%60;
@@ -190,8 +189,7 @@ export function ThemeTownAdventure({profileId,englishLevel,gradeLevel,onBack,onS
   const evidence:ThemeAnswerEvidence={
    taskId:task.id,kind:task.kind,firstTryCorrect:firstTry,
    mistakes:wrongThisStep,hintUsed:hintVisible,speechStarted,
-   independent:firstTry&&task.kind!=='discover'&&task.kind!=='assemble'&&
-    (task.kind!=='picture'||!speechStarted)&&(!isSpeechQuestion(task)||speechStarted)
+   independent:themeAnswerIndependent(task,firstTry,speechStarted)
   };
   const nextAnswers=[...answers,evidence];
   setAnswers(nextAnswers);

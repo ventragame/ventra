@@ -155,7 +155,7 @@ const DAILY_ACTIONS=new Set(['wake up','brush my teeth','wash my face','get dres
 /** A phrase for every source-domain concept; always 4+ meaningful reorderable tokens. */
 export function sentenceFor(w:TempleWord):string[]{
  if(w.domain==='numbers')return ['I','can','count','to',w.en+'.'];
- if(w.domain==='colors')return ['I','can','see','a',w.en,'crystal.'];
+ if(w.domain==='colors')return ['I','can','see',VOWEL.test(w.en)?'an':'a',w.en,'crystal.'];
  if(w.domain==='animals')return ['I','can','see',VOWEL.test(w.en)?'an':'a',w.en+'.'];
  if(w.domain==='food')return ['I','would','like',...marketNounPhrase(w.en).split(' ').map((token,i,a)=>
    i===a.length-1?token+'.':token)];

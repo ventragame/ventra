@@ -41,6 +41,8 @@ export const ALPHABET_LETTERS:readonly AlphabetLetter[]=[
  make('x','fox','tilki','🦊','/ks/','end','X sesini FOX kelimesinin SONUNDA dinle.')
 ];
 const SEQUENCE='s a t p i n m d g o c k e u r h b f l j v w y z q x'.split(' ');
+/** Letters whose anchor words start with the same sound (/k/: cat, kite, queen). */
+const SAME_ONSET_SOUND:readonly (readonly string[])[]=[['c','k','q']];
 export type AlphabetLesson={id:number;title:string;subtitle:string;icon:string;letters:readonly string[];group:'letters'|'review'|'reading'};
 const unit=(id:number,title:string,subtitle:string,icon:string,letters:string[],group:'letters'|'review'|'reading'='letters'):AlphabetLesson=>({id,title,subtitle,icon,letters,group});
 export const ALPHABET_LESSONS:readonly AlphabetLesson[]=[
@@ -172,7 +174,11 @@ export function planAlphabetLesson(input:{
  const letterTask=(kind:AlphabetTaskKind,id:string,i:number):AlphabetTask=>{
   const letter=getLetter(id),linksWord=kind==='word-link';
   const answer=linksWord?letter.anchor:letter.upper;
-  const variants=linksWord?[letter.anchor,...ALPHABET_WORD_LINK_DISTRACTORS[id]]:available.map(x=>getLetter(x).upper);
+  // "Which letter starts the word you heard?" must have one defensible answer:
+  // cat/kite/queen all begin with /k/, so C, K and Q never compete there.
+  const soundTwins=kind==='sound-in-word'?SAME_ONSET_SOUND.find(group=>group.includes(id))??[]:[];
+  const variants=linksWord?[letter.anchor,...ALPHABET_WORD_LINK_DISTRACTORS[id]]:
+   available.filter(x=>x===id||!soundTwins.includes(x)).map(x=>getLetter(x).upper);
   return {
    id:'ag:'+lesson+':'+placement+':'+replay+':'+kind+':'+i+':'+id,
    kind,answer,letterId:id,choices:kind==='introduce'?[]:choices(answer,variants,seed+i*11,width),

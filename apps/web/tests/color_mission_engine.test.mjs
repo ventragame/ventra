@@ -181,3 +181,13 @@ test('Repeated color expeditions eventually uncover every eligible color while t
     }
   }
 });
+
+test('Mission 2 listen button asks the question and never speaks the colour it assesses', () => {
+  for (const level of ['Pre-A1', 'A1', 'A2']) {
+    for (const color of ['purple', 'red', 'blue', 'green', 'orange']) {
+      const instruction = getColorInstruction(color, 2, level);
+      assert.equal(instruction.speech, 'What color is this?');
+      assert.doesNotMatch(instruction.speech.toLowerCase(), new RegExp('\b' + color + '\b'));
+    }
+  }
+});

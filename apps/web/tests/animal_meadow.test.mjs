@@ -204,3 +204,12 @@ test('Visual answer IDs and pre-answer disclosure are pedagogically safe',()=>{
  assert.ok(plan.questions.every(q=>q.choices.includes(q.target)));
  assert.equal(plan.questions.length,6);
 });
+
+test('Animal album during an open question and per-question written mode keep listening evidence honest',()=>{
+ const ui=fs.readFileSync(new URL('../src/components/learning/activities/AnimalMeadowAdventure.tsx',import.meta.url),'utf8');
+ assert.match(ui,/if\(!showAlbum&&questionOpen\)setAssisted\(true\);/);
+ assert.match(ui,/setQuestionIndex\(x=>x\+1\);setQuestionWrong\(0\);setAwaiting\(false\);setAssisted\(false\);setTextMode\(false\);/,
+  '"Aa" written mode must not stay on for the rest of the listening chapter');
+ assert.match(ui,/if\(stage===3\)\{setAudioFailed\(true\);setAssisted\(true\);\}/,'a broken device voice keeps written support on');
+ assert.match(ui,/lastWrongTap\.current\.id===id&&now-lastWrongTap\.current\.at<280/,'double tap = one mistake');
+});

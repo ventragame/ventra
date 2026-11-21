@@ -1,5 +1,6 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
+import fs from 'node:fs';
 import { NUMBER_WORDS,englishNumber,planNumberMission,weakNumberValues,unlockedNumberBands,bandNumberPool } from '../src/lib/learning/numberValleyEngine.ts';
 
 const discovery=(value)=>({value,kind:'discovery',mistakes:0,firstTryCorrect:false,timestamp:'2026-11-01T10:00:00.000Z'});
@@ -131,4 +132,19 @@ test('tens and hundreds missions are grade-gated, deterministic, and require dis
   }
   assert.throws(()=>planNumberMission({mission:1,seed:1,englishLevel:'A1',gradeLevel:7,
     band:'hundreds',history:trained}),RangeError);
+});
+
+test('Number portal varies tile order and answer position, and listening to the answer is assisted',()=>{
+ const ui=fs.readFileSync(new URL('../src/components/learning/activities/NumberValleyAdventure.tsx',import.meta.url),'utf8');
+ const orders=JSON.parse(ui.match(/PORTAL_TILE_ORDERS:readonly \(readonly number\[\]\)\[\]=(\[\[.*?\]\]);/)[1]);
+ assert.ok(orders.length>=4);
+ for(const order of orders){
+  assert.deepEqual([...order].sort(),[0,1,2,3]);
+  assert.notDeepEqual(order,[0,1,2,3],'tiles are never in reading order');
+ }
+ assert.match(ui,/portalSeed%2===0\?\[current\.target,other\]:\[other,current\.target\]/);
+ assert.match(ui,/\$\{current\.target\} yıldız için doğru İngilizce cümleyi seç\./,'the seal shows which number to express');
+ assert.match(ui,/onClick=\{\(\)=>\{setAnswerAudioUsed\(true\);speak\(current\.target,true\);\}\}/);
+ assert.match(ui,/hintUsed:hintUsed \|\| answerAudioUsed/);
+ assert.match(ui,/if\(now-lastMistakeAt\.current<280\)return;/);
 });

@@ -40,6 +40,8 @@ function Gem({number,discovered=false}:{number:number;discovered?:boolean}){
     <span className="nv-gem-facet"/><span className="nv-gem-number">{number}</span>
   </span>;
 }
+/** Every order puts at least one word out of reading order ("I see seven stars"). */
+const PORTAL_TILE_ORDERS:readonly (readonly number[])[]=[[2,0,3,1],[3,1,0,2],[1,3,2,0],[2,3,1,0],[3,2,0,1],[1,0,3,2]];
 export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,progress,onBack,onSave}:Props){
   const [band,setBand]=useState<NumberBand>('ones');
   const [unlockedBands,setUnlockedBands]=useState<NumberBand[]>(['ones']);
@@ -57,6 +59,10 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
   const [mistakes,setMistakes]=useState(0);
   const [perQuestionMistakes,setPerQuestionMistakes]=useState(0);
   const [hintUsed,setHintUsed]=useState(false);
+  /** Stage 5 "collect" assesses reading the number word; its listen button says
+   * the answer ("I see seven stars"), so using it makes the answer assisted. */
+  const [answerAudioUsed,setAnswerAudioUsed]=useState(false);
+  const lastMistakeAt=useRef(0);
   const [feedback,setFeedback]=useState<{text:string;good:boolean}|null>(null);
   const [lastChoice,setLastChoice]=useState<number|null>(null);
   const [awaitingNext,setAwaitingNext]=useState(false);
@@ -80,7 +86,14 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
   const wordTiles=useMemo(()=>current&&stage===3?numberWordTiles(current.target,(activePlan?.seed??0)+question):[],
     [current?.target,stage,activePlan?.seed,question]);
   const portalWords=current?['I','see',englishNumber(current.target),'stars']:[];
-  const portalOrder=[2,0,3,1];
+  // Tile order and answer position vary per question/replay; a constant order
+  // let children memorise tap positions instead of English word order.
+  const portalSeed=((activePlan?.seed??0)>>>0)+question*7;
+  const portalOrder=PORTAL_TILE_ORDERS[portalSeed%PORTAL_TILE_ORDERS.length];
+  const sealOptions=current?(()=>{
+    const other=current.choices.find(n=>n!==current.target)??current.target+1;
+    return portalSeed%2===0?[current.target,other]:[other,current.target];
+  })():[];
 
   useEffect(()=>{
     let alive=true;
@@ -134,7 +147,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
     setBand(nextBand);setStage(next);setNonce(v=>v+1);setPlan(null);setPlanKey('');setLoadError(false);
     audioRequest.current++;soundService.cancelSpeech();setHeardAudio(false);setSpeaking(false);
     setVisited([]);setAnswers([]);setQuestion(0);setLastChoice(null);setSelectedWordTiles([]);setSelectedPortalTokens([]);setPortalPhase('collect');
-    setMistakes(0);setPerQuestionMistakes(0);setHintUsed(false);setFeedback(null);
+    setMistakes(0);setPerQuestionMistakes(0);setHintUsed(false);setAnswerAudioUsed(false);setFeedback(null);
     setAwaitingNext(false);setSaving(false);setSaveError('');setCompleted(false);
   }
   async function finish(evidence:NumberAnswerEvidence[],correct:number){
@@ -160,6 +173,10 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
   }
   function mistake(message:string){
     if(saving||awaitingNext)return;
+    // A double tap is one mistake: the second one would also reveal the written answer.
+    const now=Date.now();
+    if(now-lastMistakeAt.current<280)return;
+    lastMistakeAt.current=now;
     setMistakes(v=>v+1);setPerQuestionMistakes(v=>v+1);
     setFeedback({text:message,good:false});soundService.playSfx('gentle_retry');
     if(perQuestionMistakes>=1)setHintUsed(true);
@@ -169,8 +186,8 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
     soundService.playSfx('correct');
     const row:NumberAnswerEvidence={
       value:current.target,kind:current.skill,mistakes:perQuestionMistakes,
-      firstTryCorrect:perQuestionMistakes===0&&!hintUsed && !(stage===4&&(!heardAudio||muted||!speechAvailable)) && !(stage===3&&(muted||!speechAvailable)),
-      hintUsed:hintUsed || (stage===4&&(!heardAudio||muted||!speechAvailable)) || (stage===3&&(muted||!speechAvailable)),
+      firstTryCorrect:perQuestionMistakes===0&&!hintUsed&&!answerAudioUsed && !(stage===4&&(!heardAudio||muted||!speechAvailable)) && !(stage===3&&(muted||!speechAvailable)),
+      hintUsed:hintUsed || answerAudioUsed || (stage===4&&(!heardAudio||muted||!speechAvailable)) || (stage===3&&(muted||!speechAvailable)),
       timestamp:new Date().toISOString()
     };
     setAnswers(old=>[...old,row]);
@@ -229,7 +246,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
     audioRequest.current++;setHeardAudio(false);setSpeaking(false);
     soundService.cancelSpeech();
     setQuestion(v=>v+1);setLastChoice(null);setSelectedWordTiles([]);setSelectedPortalTokens([]);setPortalPhase('collect');setPerQuestionMistakes(0);
-    setFeedback(null);setHintUsed(false);setAwaitingNext(false);
+    setFeedback(null);setHintUsed(false);setAnswerAudioUsed(false);setAwaitingNext(false);
   }
   // Visibility-aware one-shot transition, canceled on unmount and error.
   useAutoQuestionAdvance({
@@ -367,7 +384,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
                   stage===4?'Sesi dinle ve duyduğun rakama dokun.':
                   portalPhase==='collect'?`${current.target} için doğru İngilizce kelimeyi bul.`:
                   portalPhase==='decode'?'I see … stars. Cümleyi oluştur.':
-                  'Doğru İngilizce cümleyi seç.'}
+                  `${current.target} yıldız için doğru İngilizce cümleyi seç.`}
               </p>
               <ValleyMilestone stage={stage} completed={question+Number(awaitingNext)}
                 total={total} active={speaking&&!muted}/>
@@ -412,7 +429,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
               </div>}
               {stage===5&&portalPhase==='collect'&&<div className="nv-portal-language nv5-portal mx-auto mt-5 max-w-xl rounded-2xl p-4">
                 <p className="mb-3 font-extrabold text-amber-100">🔮 {current.target} · İngilizce anahtar kelime hangisi?</p>
-                <button type="button" onClick={()=>speak(current.target,true)} disabled={muted||!speechAvailable||buttonsDisabled}
+                <button type="button" onClick={()=>{setAnswerAudioUsed(true);speak(current.target,true);}} disabled={muted||!speechAvailable||buttonsDisabled}
                   className="nv-control nv5-listen gg-game-control mb-4 min-h-11 rounded-xl px-4 text-sm font-bold disabled:opacity-45">🔊 İngilizce Cümleyi Dinle</button>
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   {current.choices.map(value=><button key={value} type="button" onClick={()=>choose(value)}
@@ -438,7 +455,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
               {stage===5&&portalPhase==='seal'&&<div className="nv-portal-language nv5-portal mx-auto mt-5 max-w-xl rounded-2xl p-4">
                 <p className="mb-4 text-base font-extrabold text-lime-100">🌀 Son adım: Doğru İngilizce cümleyi seç</p>
                 <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  {[current.target,current.choices.find(n=>n!==current.target)??current.target+1].map((value,i)=>
+                  {sealOptions.map((value,i)=>
                     <button type="button" key={i} disabled={buttonsDisabled}
                       onClick={()=>choosePortalSentence(value)}
                       className="nv-choice gg-game-control min-h-24 rounded-2xl p-4 text-base font-black disabled:opacity-50">

@@ -69,7 +69,11 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
   const [awaiting,setAwaiting] = useState(false);
   const [assisted,setAssisted] = useState(false);
   const [wrongChoice,setWrongChoice] = useState<AnimalId|null>(null);
+  /** "Aa" written support for the CURRENT listening question only. */
   const [textMode,setTextMode] = useState(false);
+  /** Device voice failed: written support stays on for the rest of the chapter. */
+  const [audioFailed,setAudioFailed] = useState(false);
+  const lastWrongTap = useRef<{id:string;at:number}>({id:'',at:0});
   const [showAlbum,setShowAlbum] = useState(false);
   const [seenAnimals,setSeenAnimals] = useState<AnimalId[]>([]);
   const [completed,setCompleted] = useState(false);
@@ -88,7 +92,8 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
   const activePlan = planKey===key && plan?.mission===stage ? plan : null;
   const currentQuestion = stage===1?null:activePlan?.questions[questionIndex]??null;
   const target = currentQuestion?findAnimal(currentQuestion.target):null;
-  const noAudioMode = stage===3 && (textMode || muted || (!voiceAvailable && !target?.audio));
+  const noAudioMode = stage===3 && (textMode || audioFailed || muted || (!voiceAvailable && !target?.audio));
+  const questionOpen = stage>1 && Boolean(currentQuestion) && !awaiting && !completed;
   useEffect(()=>{
     setVoiceAvailable(soundService.hasEnglishSpeech());
     const cancelSpeech=()=>soundService.cancelSpeech();
@@ -127,7 +132,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
       setSpeaking(false);
       if(!sentence&&word.audio){soundService.playSpeech(word.audio);return;}
       setAudioHelp('İngilizce ses açılamadı. Cihazın İngilizce ses paketini kontrol et veya yazılı destekle devam et.');
-      if(stage===3){setTextMode(true);setAssisted(true);}
+      if(stage===3){setAudioFailed(true);setAssisted(true);}
     };
     const accepted=soundService.speakEnglish(
       sentence?(stage===5?animalRescueCommandFor(word,englishLevel,gradeLevel):animalCommandFor(word,englishLevel,gradeLevel)):word.id,
@@ -149,7 +154,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
     setStage(next);setNonce(x=>x+1);setPlan(null);setPlanKey(null);setLoadError(false);
     setDiscovered([]);setAnswered([]);setQuestionIndex(0);setWrongCount(0);setQuestionWrong(0);
     setCorrectCount(0);setFeedback(null);setAwaiting(false);setAssisted(false);setWrongChoice(null);
-    setTextMode(false);setAudioHelp(null);setShowAlbum(false);
+    setTextMode(false);setAudioFailed(false);setAudioHelp(null);setShowAlbum(false);
     setCompleted(false);setSaving(false);setSaveError(null);startedAt.current=Date.now();
     sessionId.current=`am_${profileId}_${next}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
   }
@@ -164,6 +169,10 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
   function choose(id:AnimalId) {
     if(saving||completed||awaiting||busy.current||answerLocked.current||!currentQuestion||!target)return;
     if(id!==target.id) {
+      // A double tap on the same wrong card is one mistake, not two.
+      const now=Date.now();
+      if(lastWrongTap.current.id===id&&now-lastWrongTap.current.at<280)return;
+      lastWrongTap.current={id,at:now};
       setWrongCount(x=>x+1);setQuestionWrong(x=>x+1);setWrongChoice(id);
       setFeedback({text:'Bir daha dene! 🐾',good:false});
       soundService.playSfx('gentle_retry');
@@ -187,7 +196,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
     if(!awaiting||busy.current)return;
     if(!activePlan)return;
     if(questionIndex+1>=activePlan.questions.length) {void finish();return;}
-    setQuestionIndex(x=>x+1);setQuestionWrong(0);setAwaiting(false);setAssisted(false);
+    setQuestionIndex(x=>x+1);setQuestionWrong(0);setAwaiting(false);setAssisted(false);setTextMode(false);
     soundService.cancelSpeech();setSpeaking(false);
     setFeedback(null);setWrongChoice(null);setAudioHelp(null);
     answerLocked.current=false;
@@ -255,7 +264,11 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
           </div>
           <div className="am-hud-actions">
             <span className="am-hud-btn" aria-label={'Toplam '+stars+' yıldız'}>⭐ {stars}</span>
-            <button type="button" className="am-hud-btn gg-game-control" onClick={()=>setShowAlbum(v=>!v)}
+            <button type="button" className="am-hud-btn gg-game-control" onClick={()=>{
+              // The album shows every discovered animal with its English name: looking
+              // during an open question makes that answer assisted, never independent.
+              if(!showAlbum&&questionOpen)setAssisted(true);
+              setShowAlbum(v=>!v);}}
               aria-expanded={showAlbum} aria-label="Keşif albümünü aç veya kapat">📖</button>
             <button type="button" className="am-hud-btn gg-game-control" onClick={toggleMute}
               aria-label={muted?'Sesi aç':'Sesi kapat'} aria-pressed={muted}>{muted?'🔇':'🔊'}</button>
@@ -279,7 +292,8 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
         {showAlbum && <section aria-label="Keşif albümü" className="am-album mb-4 rounded-3xl border border-lime-200/40 bg-[#0b3649]/90 p-3 shadow-2xl sm:p-5">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div><h2 className="text-lg font-black text-lime-100">📖 Hayvan Dostları Albümü</h2>
-            <p className="text-xs text-sky-100">Çayırı tekrar keşfederek 40 hayvanın İngilizce adını öğren.</p></div>
+            <p className="text-xs text-sky-100">Çayırı tekrar keşfederek 40 hayvanın İngilizce adını öğren.</p>
+            {questionOpen&&<p className="mt-1 text-xs font-bold text-amber-100">💡 Albüme baktığın için bu sorudaki cevabın ipuçlu sayılır.</p>}</div>
             <button onClick={()=>setShowAlbum(false)} aria-label="Albümü kapat"
               className="am-tap min-h-11 rounded-xl border border-white/25 bg-white/10 px-3 font-black">✕</button>
           </div>
