@@ -7,7 +7,7 @@ test('Story discovery, sequencing and detective share the same illustrated narra
  assert.match(core,/export function StoryNarrationPanel/);
  assert.match(core,/export function StorySceneGuide/);
  assert.match(core,/export function storyDecisionFeedback/);
- assert.match(core,/onListen:()=>void/);
+ assert.match(core,/onListen:\(\)=>void/);
  assert.match(core,/onToggleText\?:\(\)=>void/);
  assert.match(core,/lang="en"/);
  assert.match(core,/aria-pressed=\{showText\}/);

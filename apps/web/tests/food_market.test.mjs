@@ -8,6 +8,8 @@ import {MemoryProgressRepository} from '../src/lib/progress/MemoryProgressReposi
 import {normalizeLearningEvidence,getLearningSnapshot} from '../src/lib/learning/adaptiveLearningEngine.ts';
 import {MemoryEconomyStorage,getPassport} from '../src/lib/rewards/economyRepository.ts';
 
+/** Source-layout assertions must not depend on the checkout's line endings (Windows autocrlf). */
+const readSource=relative=>fs.readFileSync(new URL(relative,import.meta.url),'utf8').replace(/\r\n/g,'\n');
 const stamp='2026-11-01T11:15:00.000Z';
 const make=(id,kind='recognition',mistakes=0,hintUsed=false)=>({
  wordId:id,kind,mistakes,firstTryCorrect:mistakes===0&&!hintUsed,hintUsed,timestamp:stamp
@@ -267,7 +269,7 @@ test('G4 questions never use unknown distractors when enough foods are discovere
 });
 
 test('G5 recognition assesses English words, never copies the featured illustration into answer options',()=>{
- const ui=fs.readFileSync(new URL('../src/components/learning/activities/FoodMarketAdventure.tsx',import.meta.url),'utf8');
+ const ui=readSource('../src/components/learning/activities/FoodMarketAdventure.tsx');
  const css=fs.readFileSync(new URL('../src/components/learning/activities/food-market-logic-v5.css',import.meta.url),'utf8');
  const imagePrompt=ui.indexOf('{stage===2&&<div className="fm-featured');
  const textChoice=ui.indexOf('stage===2?\n         <div className="fm5-word-choices"');
@@ -281,7 +283,7 @@ test('G5 recognition assesses English words, never copies the featured illustrat
  assert.match(css,/fm5-word-option/);
 });
 test('G5 listening and customer dialogue do not print or duplicate the answer without assisted mode',()=>{
- const ui=fs.readFileSync(new URL('../src/components/learning/activities/FoodMarketAdventure.tsx',import.meta.url),'utf8');
+ const ui=readSource('../src/components/learning/activities/FoodMarketAdventure.tsx');
  const intro=ui.slice(ui.indexOf('<div className="fm-command fm4-command">',ui.indexOf('<div className="fm-command fm4-command">')+1),
   ui.indexOf('{stage===2&&<div className="fm-featured'));
  assert.match(intro,/Customer says:/);
