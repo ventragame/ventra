@@ -38,7 +38,7 @@
 .harbor-mic-button:disabled{opacity:.63}.harbor-stop{border:1px solid #f8c8b4;border-radius:12px;padding:12px;color:#fdd2bd}
 .harbor-download{margin:12px auto 0;display:block;color:#fff5ad;text-decoration:underline;font-size:12px}
 .harbor-feedback{min-height:32px;text-align:center;margin:10px 0;color:#e8f6b7;font-weight:850;font-size:13px}.harbor-hint{display:block;margin:3px auto 0;color:#b5efff;font-weight:800;font-size:12px}
-.harbor-error{border:1px solid #f6a1ab;padding:12px;border-radius:13px;color:#ffe0de;font-size:12px}.harbor-error button{display:block;margin:8px auto;text-decoration:underline}
+.harbor-error{border:1px solid #f6a1ab;padding:12px;border-radius:13px;color:#ffe0de;font-size:12px}.harbor-error button{display:block;margin:8px auto;min-height:44px;padding:8px 18px;border-radius:12px;border:1px solid #ffd2cf;background:#ffffff1f;font-weight:900;text-decoration:none;touch-action:manipulation}.harbor-error button:disabled{opacity:.6}
 .harbor-finale{max-width:700px;margin:10vh auto;text-align:center;border:1px solid #b8f9d0;background:#071d4ac9;border-radius:35px;padding:36px}
 .harbor-finale>div{font-size:55px}.harbor-finale h2{font-size:clamp(24px,4vw,38px);font-weight:950}.harbor-finale p{color:#d4ebf8;margin:13px 0}.harbor-finale button{margin-top:13px;border-radius:16px;background:#aaf4d1;color:#154c61;padding:14px 19px;font-weight:950}
 .harbor-footer{padding:8px 14px;text-align:center;background:#061934;color:#b4dce9;font-size:10px}

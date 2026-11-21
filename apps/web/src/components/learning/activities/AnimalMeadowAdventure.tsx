@@ -257,7 +257,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
       </div>
       <main className="am-main relative mx-auto max-w-5xl px-3 py-4 sm:px-6" style={{paddingTop:'max(16px, env(safe-area-inset-top))',paddingBottom:'max(30px, env(safe-area-inset-bottom))'}}>
         <header className="am-hud">
-          <button type="button" className="am-hud-btn gg-game-control" disabled={saving} onClick={onBack}
+          <button type="button" data-game-exit className="am-hud-btn gg-game-control" disabled={saving} onClick={onBack}
             aria-label="Kelime Bahçesi bölgelerine geri dön">← <span className="hidden sm:inline">Bölgeler</span></button>
           <div className="am-hud-title"><span className="am-hud-icon" aria-hidden="true">🐾</span>
             <span><strong>Hayvan Çayırı</strong><small>{gradeLevel??'—'}. sınıf · {englishLevel}</small></span>

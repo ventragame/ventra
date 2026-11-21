@@ -278,7 +278,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
     <main className="nv5-main relative mx-auto max-w-6xl px-3 pb-12 pt-4 sm:px-7 sm:pt-6"
       style={{paddingTop:'max(16px,env(safe-area-inset-top))',paddingBottom:'max(28px,env(safe-area-inset-bottom))'}}>
       <header className="nv5-header">
-        <button onClick={onBack} disabled={saving} aria-label="Kelime Bahçesi’ne dön" className="nv-control nv5-back gg-game-control rounded-2xl px-4 py-3 text-sm font-bold disabled:opacity-50">
+        <button data-game-exit onClick={onBack} disabled={saving} aria-label="Kelime Bahçesi’ne dön" className="nv-control nv5-back gg-game-control rounded-2xl px-4 py-3 text-sm font-bold disabled:opacity-50">
           <span className="nv5-back-arrow" aria-hidden="true">‹</span><span className="nv5-back-label">Kelime Bahçesi</span>
         </button>
         <div className="nv5-header-status">

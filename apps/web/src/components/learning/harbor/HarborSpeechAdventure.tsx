@@ -186,7 +186,9 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
    score,
    metrics:{durationSeconds:Math.max(1,Math.round((Date.now()-startedAt.current)/1000)),
     attemptsCount:script.length+errors,wrongAttempts:errors,hintsUsed:assisted,
-    accuracyRate:independent/script.length},
+    accuracyRate:independent/script.length,
+    speakingSteps:{recognized:Math.min(recognized,script.length),
+     tapped:Math.max(0,script.length-recognized),assisted}},
    completedAt:new Date().toISOString()
   };
   try{
@@ -553,7 +555,8 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
        💡 {hintStage>0?'İpucu '+hintStage+'/3':'Yardım Et'}
       </button>
      </div>}
-     {saveError&&<p role="alert" className="harbor-error">{saveError}<button type="button" onClick={()=>void save(mistakes,hints,voiceRecognized)}>Tekrar Kaydet</button></p>}
+     {saveError&&<p role="alert" className="harbor-error">{saveError}<button type="button" disabled={busy}
+      onClick={()=>{if(!busy)void save(mistakes,hints,voiceRecognized);}}>{busy?'Kaydediliyor…':'Tekrar Kaydet'}</button></p>}
     </div>
    </>:<>
     <div className="harbor-finale relative isolate overflow-hidden">

@@ -183,3 +183,9 @@
  .academy-scene-character{left:8px;bottom:77px;width:84px}
  .academy-scene-icon{margin-left:25%;margin-right:0}
 }
+
+/* iOS notch / Dynamic Island safe area, and a 44px exit target on phones
+ * (the back button was ~33px tall and is the only way out of a quest). */
+.academy-root .academy-header{height:auto;padding-top:max(10px,env(safe-area-inset-top,0px))}
+.academy-root .academy-back{min-height:44px;min-width:44px}
+@media(max-width:650px){.academy-root .academy-header{padding-top:max(8px,env(safe-area-inset-top,0px))}}

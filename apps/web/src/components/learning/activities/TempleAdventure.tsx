@@ -228,7 +228,7 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
   aria-label="Keşif Tapınağı İngilizce final dünyası" ref={scrollRef}>
   <div className="tp-shell tp6-shell">
    <header className="tp-header tp6-header">
-    <button className="tp-return tp6-return" disabled={busy} aria-label="Kelime Bahçesine dön"
+    <button type="button" data-game-exit className="tp-return tp6-return" disabled={busy} aria-label="Kelime Bahçesine dön"
      onClick={()=>{stopAudio();onBack()}}><span className="tp6-back-icon" aria-hidden="true">‹</span>
      <span className="tp6-back-text">Kelime Bahçesi</span></button>
     <div className="tp-title tp6-title"><span>VENTRA • THE ENGLISH TEMPLE</span>

@@ -21,6 +21,7 @@ import type {
   CreateProfileInput
 } from './types.ts';
 import { buildLevelProgressMap, levelRecordPrefix } from './levelProgressMap.ts';
+import { gameActivityLabel } from './activityTitles.ts';
 
 const DB_NAME = 'VentraProgressDB';
 const DB_VERSION = 2; // Phase 3.4: v1 -> v2 (Oyuncu Profilleri desteği)
@@ -120,6 +121,15 @@ export class IndexedDBProgressRepository implements IProgressRepository {
 
       req.onsuccess = async () => {
         const db = req.result;
+        // Another Ventra tab upgrading the schema must not stay blocked by us,
+        // and a connection the browser/WebView closed must be reopened later.
+        db.onversionchange = () => {
+          db.close();
+          this.dbPromise = null;
+        };
+        db.onclose = () => {
+          this.dbPromise = null;
+        };
         try {
           // v1 -> v2 Veri Taşıma (Migration) Kontrolü
           await this.migrateV1DataIfNeeded(db);
@@ -129,10 +139,19 @@ export class IndexedDBProgressRepository implements IProgressRepository {
         resolve(db);
       };
 
+      req.onblocked = () => {
+        console.warn('[IndexedDB] açılış başka bir sekme tarafından bekletiliyor');
+      };
       req.onerror = () => reject(req.error);
     });
+    // A failed open (e.g. a transient WebView backing-store error) must not be
+    // cached forever: "Yeniden Dene" has to be able to open the database again.
+    const pending = this.dbPromise;
+    pending.catch(() => {
+      if (this.dbPromise === pending) this.dbPromise = null;
+    });
 
-    return this.dbPromise;
+    return pending;
   }
 
   /**
@@ -431,6 +450,12 @@ export class IndexedDBProgressRepository implements IProgressRepository {
     const db = await this.getDB();
     const profileId = await this.ensureActiveProfileId(targetProfileId || payload.profileId);
     const sessionId = payload.sessionId || `game_${payload.levelId}_${Date.now()}`;
+    // A deleted child's ID must never receive new progress (it would be orphaned
+    // and vanish on restart). The UI switches to the replacement profile; this
+    // is the storage-level guarantee.
+    if (await this.getRecord(db, 'meta', `tombstone:${profileId}`)) {
+      throw new Error('Deleted player profile cannot record progress');
+    }
 
     const existing = await this.getRecord<any>(db, 'sessions', sessionId);
     if (existing) {
@@ -496,18 +521,7 @@ export class IndexedDBProgressRepository implements IProgressRepository {
       });
     }
 
-    const gameTitle = payload.gameId === 'island_language_academy_atlas' ? 'Keşif Akademisi'
-      : payload.gameId === 'island_story_forest_detective' ? 'Hikâye Dedektifi'
-      : payload.gameId === 'island_story_forest_sequence' ? 'Sonra Ne Oldu?'
-      : payload.gameId === 'island_story_forest_discover' ? 'Hikâyeyi Keşfet'
-      : payload.gameId === 'island_word_garden_temple' ? 'Keşif Tapınağı'
-      : payload.gameId === 'island_word_garden_family' ? 'Aile Köyü'
-      : payload.gameId === 'island_word_garden_food' ? 'Lezzet Pazarı'
-      : payload.gameId === 'island_word_garden_numbers' ? 'Sayı Vadisi'
-      : payload.gameId === 'island_word_garden_colors' ? 'Renk Korusu'
-      : payload.gameId === 'island_word_garden_steps' || payload.gameId === 'phaser_exploration_island'
-      ? 'Hayvan Çayırı'
-      : payload.gameId === 'kesir_koprusu' ? 'Kesir Köprüsü' : 'Kesir Atölyesi';
+    const gameTitle = gameActivityLabel(payload.gameId);
     const logEntry: ActivityLogEntry & { profileId: string } = {
       id: `act_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       profileId,

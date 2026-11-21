@@ -183,8 +183,13 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
     const onKey = (event: KeyboardEvent) => {
       if (event.key !== 'Escape') return;
       event.preventDefault();
-      if (district === 'overview') onClose();
-      else setDistrict('overview');
+      if (district === 'overview') { onClose(); return; }
+      // Inside a game, Escape presses that game's own exit control, which is
+      // disabled while a result is saving. Unmounting the game directly used to
+      // drop in-flight saves and hide their retry button.
+      const exit = document.querySelector<HTMLButtonElement>('[data-game-exit]');
+      if (exit) { if (!exit.disabled) exit.click(); return; }
+      setDistrict('overview');
     };
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);

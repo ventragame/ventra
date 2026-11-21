@@ -169,6 +169,12 @@ export interface GameMetrics {
   sequenceAnswers?: SequenceAnswerEvidence[];
   sequenceChecks?: {checkId:string;selectedId:string;mistakes:number;hintUsed:boolean;firstTryCorrect:boolean;}[];
   detectiveRuns?: DetectiveRunEvidence[];
+  /**
+   * Diyalog Limanı: how the dialogue steps were answered. Categorical counts
+   * only — never audio or transcripts. A tapped reply is comprehension, not
+   * speaking evidence, so it must stay distinguishable from recognised speech.
+   */
+  speakingSteps?: {recognized:number;tapped:number;assisted:number};
 }
 
 export interface GameCompletedPayload {

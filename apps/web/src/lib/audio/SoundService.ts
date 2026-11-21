@@ -135,7 +135,13 @@ class SoundService {
   this.music.setPaused(!playable||this.captureActive);
   if(playable&&!this.captureActive&&this.context?.state==='running')this.music.start(this.context);
  }
- setCaptureActive(active:boolean):void{this.captureActive=active;this.refreshMusic();}
+ /** While the microphone records, the app must never talk into it: a delayed
+  * narration could otherwise be recognised as the child's own answer. */
+ setCaptureActive(active:boolean):void{
+  this.captureActive=active;
+  if(active)this.cancelSpeech();
+  this.refreshMusic();
+ }
  setMusicScene(scene:MusicScene):void{this.music.setScene(scene);this.refreshMusic();}
  getMusicScene():MusicScene{return this.music.getScene();}
  getSettings():AudioSettings{return {...this.settings};}
@@ -306,7 +312,7 @@ class SoundService {
  }
  speakEnglish(text:string,options:EnglishSpeechOptions={}):boolean{
   this.cancelSpeech();
-  if(!text.trim()||this.isMuted||this.settings.voice<=0||
+  if(!text.trim()||this.isMuted||this.settings.voice<=0||this.captureActive||
    typeof window==='undefined'||document.hidden)return false;
   const id=this.speechGeneration;
   if(this.hasNativeSpeech()){

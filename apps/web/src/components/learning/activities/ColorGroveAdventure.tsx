@@ -277,7 +277,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
       <div className="cg-main relative mx-auto max-w-5xl px-3 py-4 sm:px-7 sm:py-6"
         style={{ paddingTop: 'max(16px, env(safe-area-inset-top))', paddingBottom: 'max(28px, env(safe-area-inset-bottom))' }}>
         <header className="cg-hud flex flex-wrap items-center justify-between gap-2">
-          <button onClick={onBack} disabled={saving} aria-label="Kelime Bahçesine dön"
+          <button data-game-exit onClick={onBack} disabled={saving} aria-label="Kelime Bahçesine dön"
             className="cg-hud-back gg-game-control vg-answer-card min-h-11 rounded-2xl border border-white/25 bg-white/10 px-3 py-2.5 text-sm font-bold hover:bg-white/20 disabled:opacity-50 sm:px-4">
             ← <span className="cg-hud-back-label">Bahçeye Dön</span>
           </button>

@@ -78,6 +78,9 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
  const plan=useMemo(()=>reviewSkill?buildAcademyFocusPlan(zone,englishLevel,reviewSkill,variant):
   buildAcademyPlan(zone,englishLevel,variant),[zone,englishLevel,variant,reviewSkill]);
  const task=plan.tasks[step]??plan.tasks[plan.tasks.length-1];
+ /** All tasks answered: only saving (or retrying the save) remains. */
+ const runComplete=answers.length>=plan.tasks.length;
+ const inputLocked=busy||runComplete;
  const completed=ACADEMY_ZONES.filter(z=>(levels[z.id]?.completedCount??0)>0).length;
  const available=completed+1;
  const currentZone=ACADEMY_ZONES[zone-1];
@@ -217,7 +220,8 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
   }
  }
  function accept(speechVerified=false,independentOverride?:boolean){
-  if(busy||pending.current)return;
+  // Every task already answered (e.g. the final save failed): never add a row.
+  if(busy||pending.current||runComplete)return;
   pending.current=true;
   const independent=(independentOverride??(task.kind==='write'||task.kind==='build'))&&
     !hintOnStep&&errorOnStep===0;
@@ -244,7 +248,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
   },ACADEMY_ADVANCE_DELAY_MS);
  }
  function wrong(){
-  if(busy)return;
+  if(busy||runComplete)return;
   setMistakes(n=>n+1);setErrorOnStep(n=>n+1);
   persistDraft({attempts:mistakes+1,currentMistakes:errorOnStep+1});
   setMessage('Bir daha deneyelim. İstersen soru işaretinden ipucu alabilirsin.');
@@ -373,7 +377,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
     </section>
     <section className="academy-task" ref={taskTarget}>
      <div className="academy-task-head"><AcademyTaskIdentity kind={task.kind} current={step+1} total={plan.tasks.length}/>
-      <button type="button" className="academy-hint" disabled={busy||hintLevel===2} onClick={showHint}
+      <button type="button" className="academy-hint" disabled={inputLocked||hintLevel===2} onClick={showHint}
        aria-label={hintLevel===0?'İpucu göster':hintLevel===1?'Bir ipucu daha göster':'Tüm ipuçları gösterildi'}><Lightbulb size={18} aria-hidden="true"/>
        <span>{hintLevel===0?'İpucu':hintLevel===1?'Bir İpucu Daha':'İpucu Kullanıldı'}</span></button>
      </div>
@@ -382,49 +386,49 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
      {task.line&&<p className={'academy-line '+(task.kind==='hear'?'academy-line-hidden':'')}>
       {task.kind==='hear'&&!hintOnStep?'Önce sesi dinle.':'“'+task.line+'”'}</p>}
      {(task.kind==='hear'||task.kind==='talk')&&
-      <button className="academy-audio" type="button" onClick={readLine} disabled={busy}> <span aria-hidden="true">🔊</span> {task.kind==='hear'?'Dinle / Tekrar Dinle':'Soruyu Dinle'}</button>}
+      <button className="academy-audio" type="button" onClick={readLine} disabled={inputLocked}> <span aria-hidden="true">🔊</span> {task.kind==='hear'?'Dinle / Tekrar Dinle':'Soruyu Dinle'}</button>}
      {task.kind==='hear'&&!audioAttempted&&<p className="academy-listen-note">🔊 İlk olarak İngilizce sesi dinle.</p>}
      {kinds.slice(0,3).includes(task.kind as 'hear'|'read'|'talk')&&<div className="academy-choices">
       {academyRoundOptions(task,levels[zone]?.completedCount??0).map(o=>{
        const visual=choiceVisual(o);
-       return <button type="button" key={o} disabled={busy||(task.kind==='hear'&&!audioAttempted)} onClick={()=>choose(o)}>
+       return <button type="button" key={o} disabled={inputLocked||(task.kind==='hear'&&!audioAttempted)} onClick={()=>choose(o)}>
         <span className="academy-choice-icon" aria-hidden="true" style={{backgroundColor:visual.tint}}>{visual.icon}</span>
         <span>{o}</span>
        </button>;
       })}
      </div>}
      {task.kind==='talk'&&<div className="academy-voice">
-      <button type="button" className="academy-mic" onClick={()=>void speak()} disabled={!hasSpeech||busy}>
+      <button type="button" className="academy-mic" onClick={()=>void speak()} disabled={!hasSpeech||inputLocked}>
        🎙️ {busy?'Dinleniyor…':'Sesinle Cevap Ver'}</button>
       <small>{hasSpeech?'Mikrofon isteğe bağlıdır; dokunarak da ilerleyebilirsin.':'Cihaz içi konuşma tanıma kullanılamıyor. Dokunarak devam et.'}</small>
      </div>}
      {(task.kind==='build'||task.kind==='write')&&
-      <button type="button" className="academy-audio academy-audio-support" onClick={readLine} disabled={busy}>🔊 Sesli Örnek Dinle (yardımlı)</button>}
+      <button type="button" className="academy-audio academy-audio-support" onClick={readLine} disabled={inputLocked}>🔊 Sesli Örnek Dinle (yardımlı)</button>}
      {task.kind==='build'&&<div className="academy-build">
       <div className="academy-built" aria-label="Kurulan İngilizce cümle">
-       {picked.length?picked.map(i=><button key={i} type="button" onClick={()=>setPicked(old=>old.filter(x=>x!==i))} disabled={busy}>
+       {picked.length?picked.map(i=><button key={i} type="button" onClick={()=>setPicked(old=>old.filter(x=>x!==i))} disabled={inputLocked}>
         {wordTiles.find(w=>w.key===i)?.word}</button>):<span>Kelime kartlarına dokun…</span>}
       </div>
       <div className="academy-tiles">
        {wordTiles.filter(w=>!picked.includes(w.key)).map(w=><button type="button" key={w.key}
-        disabled={busy} onClick={()=>setPicked(old=>[...old,w.key])}>{w.word}</button>)}
+        disabled={inputLocked} onClick={()=>setPicked(old=>[...old,w.key])}>{w.word}</button>)}
       </div>
-      <button type="button" className="academy-submit" disabled={busy||picked.length===0} onClick={()=>submit()}>Cümleyi Kontrol Et</button>
+      <button type="button" className="academy-submit" disabled={inputLocked||picked.length===0} onClick={()=>submit()}>Cümleyi Kontrol Et</button>
      </div>}
      {task.kind==='write'&&<div className="academy-writing">
       <label htmlFor="academy-write">İngilizce cevabını yaz</label>
       <input id="academy-write" value={typed} maxLength={150} autoComplete="off" autoCapitalize="none" autoCorrect="off" spellCheck={false} inputMode="text" enterKeyHint="done"
        onChange={e=>setTyped(e.target.value)} placeholder={englishLevel==='Pre-A1'?'English word…':'English sentence…'}
-       disabled={busy} onKeyDown={e=>{if(e.key==='Enter'&&typed.trim()){e.preventDefault();submit();}}}/>
-      <button type="button" className="academy-submit" disabled={busy||!typed.trim()} onClick={()=>submit()}>Mesajı Kontrol Et</button>
+       disabled={inputLocked} onKeyDown={e=>{if(e.key==='Enter'&&typed.trim()){e.preventDefault();submit();}}}/>
+      <button type="button" className="academy-submit" disabled={inputLocked||!typed.trim()} onClick={()=>submit()}>Mesajı Kontrol Et</button>
       {englishLevel==='Pre-A1'&&<div className="academy-touch-write">
        <p>Klavye zor mu? Kelime kartlarıyla da tamamlayabilirsin. Bu, bağımsız yazma olarak sayılmaz.</p>
        <div className="academy-built">{picked.length?picked.map(i=><button type="button" key={i}
-        disabled={busy} onClick={()=>setPicked(old=>old.filter(x=>x!==i))}>
+        disabled={inputLocked} onClick={()=>setPicked(old=>old.filter(x=>x!==i))}>
          {wordTiles.find(w=>w.key===i)?.word}</button>):<span>Kelimeleri sıraya koy…</span>}</div>
        <div className="academy-tiles">{wordTiles.filter(w=>!picked.includes(w.key)).map(w=>
-        <button type="button" key={w.key} disabled={busy} onClick={()=>setPicked(old=>[...old,w.key])}>{w.word}</button>)}</div>
-       <button type="button" className="academy-submit" disabled={busy||picked.length===0} onClick={()=>submit(true)}>
+        <button type="button" key={w.key} disabled={inputLocked} onClick={()=>setPicked(old=>[...old,w.key])}>{w.word}</button>)}</div>
+       <button type="button" className="academy-submit" disabled={inputLocked||picked.length===0} onClick={()=>submit(true)}>
         Kartlarla Tamamla
        </button>
       </div>}
@@ -432,7 +436,8 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
      </div>
      {(message||resolved)&&<AcademyTaskStatus message={message} resolved={resolved}
       index={step} total={plan.tasks.length} kind={task.kind}/>} 
-     {saveError&&<div className="academy-alert" role="alert">{saveError}<button type="button" onClick={()=>void save(answers,mistakes,hints)}>Kaydı Yeniden Dene</button></div>}
+     {saveError&&<div className="academy-alert" role="alert">{saveError}<button type="button" disabled={busy}
+      onClick={()=>{if(busy)return;setBusy(true);void save(answers,mistakes,hints);}}>{busy?'Kaydediliyor…':'Kaydı Yeniden Dene'}</button></div>}
     </section>
    </main>}
    {stage==='pending'&&<main className="academy-finale">

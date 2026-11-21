@@ -331,3 +331,8 @@
  color:#965447;font-size:16px;font-weight:900;
 }
 .hp-object-choice{position:relative}
+
+/* iOS notch / Dynamic Island: the root is fixed full-screen with viewport-fit=cover,
+ * so the exit button must sit below the status bar safe area. */
+.harbor-root .harbor-header{padding-top:max(10px,env(safe-area-inset-top,0px))}
+@media(max-width:640px){.harbor-root .harbor-header{padding-top:max(7px,env(safe-area-inset-top,0px))}}

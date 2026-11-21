@@ -222,7 +222,7 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
  className="fm-screen fm4-screen fm6-screen gg-quest-screen" data-aisle={aisle}>
   <div className="fm-shell fm4-shell">
    <header className="fm-header fm4-header">
-    <button className="fm-back fm4-back" aria-label="Kelime Bahçesi’ne dön" onClick={()=>{cancelVoice();onBack();}}>
+    <button type="button" data-game-exit className="fm-back fm4-back" disabled={busy} aria-label="Kelime Bahçesi’ne dön" onClick={()=>{cancelVoice();onBack();}}>
       <span className="fm4-back-arrow" aria-hidden="true">‹</span><span className="fm4-back-label">Kelime Bahçesi</span>
      </button>
     <div className="fm-brand fm4-brand"><span>VENTRA KIDS · WORD GARDEN</span><h1><span aria-hidden="true">🍓</span> Lezzet Pazarı</h1>

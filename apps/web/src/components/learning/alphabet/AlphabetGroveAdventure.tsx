@@ -206,7 +206,7 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
   <div className="ag-starscape" aria-hidden="true"/>
   <div className="ag-shell">
    <header className="ag-header">
-    <button type="button" onClick={leave} disabled={saving} className="ag-back" aria-label={phase==='home'?'Kelime Bahçesi’ne dön':'Harf Korusu haritasına dön'}>← <span>Geri</span></button>
+    <button type="button" data-game-exit onClick={leave} disabled={saving} className="ag-back" aria-label={phase==='home'?'Kelime Bahçesi’ne dön':'Harf Korusu haritasına dön'}>← <span>Geri</span></button>
     <div className="ag-identity"><span className="ag-crest" aria-hidden="true">🌿</span>
      <div><small>VENTRA · KELİME BAHÇESİ</small><h1>Harf Korusu</h1></div>
     </div>

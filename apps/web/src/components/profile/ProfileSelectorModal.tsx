@@ -121,8 +121,15 @@ export const ProfileSelectorModal:React.FC<ProfileSelectorModalProps>=({
   if(!window.confirm('“'+p.nickname+'” profilini ve bu profile ait oyun ilerlemesini silmek istediğine emin misin?'))return;
   setBusy(true);setError('');
   try{
-   await getProgressRepository().deleteProfile(p.id);
+   const repo=getProgressRepository();
+   await repo.deleteProfile(p.id);
    await loadProfiles();
+   // Deleting the child who is playing: the repository already activated a
+   // replacement, the page must switch too or games keep saving to a deleted ID.
+   if(p.id===activeProfile?.id){
+    const replacement=await repo.getActiveProfile();
+    if(replacement)onProfileSwitched(replacement);
+   }
   }catch(e){console.error(e);setError('Profil silinemedi.');}
   finally{setBusy(false);}
  }

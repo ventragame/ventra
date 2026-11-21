@@ -21,6 +21,7 @@ import type {
   CreateProfileInput
 } from './types.ts';
 import { buildLevelProgressMap, levelRecordPrefix } from './levelProgressMap.ts';
+import { gameActivityLabel } from './activityTitles.ts';
 
 interface StoredSession {
   sessionId: string;
@@ -251,6 +252,9 @@ export class MemoryProgressRepository implements IProgressRepository {
   public async recordGameCompleted(payload: GameCompletedPayload, targetProfileId?: string): Promise<RecordGameCompletedResult> {
     const profileId = await this.ensureActiveProfileId(targetProfileId || payload.profileId);
     const sessionId = payload.sessionId || `game_${payload.levelId}_${Date.now()}`;
+    if (this.deletedProfileIds.has(profileId)) {
+      throw new Error('Deleted player profile cannot record progress');
+    }
 
     // Idempotency kontrolü
     if (this.sessions.has(sessionId)) {
@@ -315,18 +319,7 @@ export class MemoryProgressRepository implements IProgressRepository {
       });
     }
 
-    const gameTitle = payload.gameId === 'island_language_academy_atlas' ? 'Keşif Akademisi'
-      : payload.gameId === 'island_story_forest_detective' ? 'Hikâye Dedektifi'
-      : payload.gameId === 'island_story_forest_sequence' ? 'Sonra Ne Oldu?'
-      : payload.gameId === 'island_story_forest_discover' ? 'Hikâyeyi Keşfet'
-      : payload.gameId === 'island_word_garden_temple' ? 'Keşif Tapınağı'
-      : payload.gameId === 'island_word_garden_family' ? 'Aile Köyü'
-      : payload.gameId === 'island_word_garden_food' ? 'Lezzet Pazarı'
-      : payload.gameId === 'island_word_garden_numbers' ? 'Sayı Vadisi'
-      : payload.gameId === 'island_word_garden_colors' ? 'Renk Korusu'
-      : payload.gameId === 'island_word_garden_steps' || payload.gameId === 'phaser_exploration_island'
-      ? 'Hayvan Çayırı'
-      : payload.gameId === 'kesir_koprusu' ? 'Kesir Köprüsü' : 'Kesir Atölyesi';
+    const gameTitle = gameActivityLabel(payload.gameId);
     const logEntry: ActivityLogEntry & { profileId: string } = {
       id: `act_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
       profileId,

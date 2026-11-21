@@ -312,3 +312,7 @@
 @media(max-width:640px){.writing-workbench{height:118px;width:100%;margin:5px auto 10px;border-radius:19px;background-image:linear-gradient(120deg,#35426777,#5545616a),url('/assets/kids-islands/sentence_workshop_mobile.webp')}.writing-workbench-paper{width:53%;left:24%;top:8%;height:82%}.writing-workbench-page{gap:4px}.writing-workbench-ink{width:40px;height:40px;left:7%;bottom:20%;border-width:2px}.writing-workbench-pencil{width:45px;height:45px;right:7%;bottom:13%}.writing-workbench-pencil svg{width:25px;height:25px}.writing-workbench-ink svg{width:18px;height:18px}.writing-step-help{margin:8px 0;font-size:12px;padding:10px}.writing-keyboard-guidance{font-size:11px}}
 @media(max-width:360px){.writing-workbench{height:101px}.writing-workbench-paper{width:56%;left:23%}}
 @media(prefers-reduced-motion:reduce){.writing-workbench *,.writing-step-help{transition:none!important;animation:none!important}}
+
+/* iOS notch / Dynamic Island safe area for the fixed full-screen workshop. */
+.writing-root .writing-header{padding-top:max(9px,env(safe-area-inset-top,0px))}
+@media(max-width:640px){.writing-root .writing-header{padding-top:max(7px,env(safe-area-inset-top,0px))}}

@@ -213,7 +213,7 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
    className="fv-screen fv3-screen fv4-screen fv5-screen gg-quest-screen">
   <div className="fv-shell fv3-shell fv4-shell">
     <header className="fv-top fv3-top fv5-top">
-      <button type="button" disabled={busy} onClick={()=>{cancelSpeech();onBack();}}
+      <button type="button" data-game-exit disabled={busy} onClick={()=>{cancelSpeech();onBack();}}
         className="fv-back fv3-back fv5-back" aria-label="Kelime Bahçesi’ne dön">
         <span className="fv5-back-arrow" aria-hidden="true">←</span>
         <span className="fv5-back-text">Kelime Bahçesi</span>

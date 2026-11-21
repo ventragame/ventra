@@ -210,7 +210,7 @@ export function ThemeTownAdventure({profileId,englishLevel,gradeLevel,onBack,onS
  return <div className="tt-root" role="dialog" aria-modal="true" aria-label="Tema Kasabası">
   <div className="tt-shell">
    <header className="tt-header">
-    <button className="tt-back" type="button" disabled={saving} onClick={leave} aria-label="Kelime Bahçesi'ne ya da tema listesine dön">← <span>Geri</span></button>
+    <button className="tt-back" type="button" data-game-exit disabled={saving} onClick={leave} aria-label="Kelime Bahçesi'ne ya da tema listesine dön">← <span>Geri</span></button>
     <div className="tt-brand"><span className="tt-brand-icon" aria-hidden="true">🏘️</span>
      <div><small>VENTRA · KELİME BAHÇESİ</small><h1>Tema Kasabası</h1></div>
     </div>
