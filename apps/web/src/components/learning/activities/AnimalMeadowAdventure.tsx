@@ -14,6 +14,7 @@ import {
 import {MeadowPlayStage} from './MeadowPlayStage';
 import './garden-game-foundation.css';
 import './animal-meadow.css';
+import './garden-child-legibility.css';
 
 const STAGES = [
   { name:'Keşfet', icon:'🌱',desc:'Hayvanlarla tanış',story:'Çayırın yeni dostları seni bekliyor. Hepsini ziyaret et ve isimlerini öğren!' },

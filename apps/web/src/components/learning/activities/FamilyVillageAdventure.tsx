@@ -22,6 +22,7 @@ import {CharacterGuide,type CharacterMood} from '@/components/learning/motion/Ch
 import './family-village-guides.css';
 import {GardenQuestNavigator} from './GardenQuestNavigator';
 import './garden-quest-navigation.css';
+import './garden-child-legibility.css';
 
 type Props={
  profileId:string;gradeLevel:number|null;englishLevel:EnglishPlacement;progress:FamilyVillageProgress;

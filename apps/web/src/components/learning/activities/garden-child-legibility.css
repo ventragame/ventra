@@ -1,0 +1,24 @@
+/* Ventra · Kelime Bahçesi shared child legibility floor (presentation only).
+ *
+ * Measured in Chrome mobile emulation at 320×640: exit buttons were 31–32px
+ * wide, the "?" help 32×32, sound 43×43 and the instructions a child must act
+ * on ("Her kutuya dokun…", "Ürünlere dokun…") were 10–11px. These are floors,
+ * not a theme: colours, art and layout stay owned by each game's own files.
+ * Imported last by Animal Meadow, Food Market, Family Village and Temple.
+ */
+
+/* Touch targets: exits, help and sound controls (WCAG 2.5.5 / child UX). */
+:is(.am-hud-btn,.fm-back,.fv-back,.tp-return,.tp-mute){
+ min-width:44px!important;min-height:44px!important;
+}
+.wg-game-help>summary{
+ min-width:44px!important;min-height:44px!important;
+ display:inline-grid;place-items:center;
+}
+.am3-missions>button{min-height:44px!important}
+
+/* Instructions the child reads to know what to do next. */
+:is(.fm4-discovery-status,.fv3-discovery-status,.tp6-discovery-guide){
+ font-size:max(13px,1em)!important;line-height:1.35!important;
+}
+.fv5-prompt small{font-size:max(13px,1em)!important;line-height:1.3!important}

@@ -46,3 +46,15 @@ test('Shared touch token is added to choice buttons, not to palette grid contain
  assert.match(world,/cg4-choice gg-game-control vg-answer-card/);
  assert.doesNotMatch(world,/gg-game-control-grid/);
 });
+
+test('Garden games share a child legibility floor: 44px exits/help/sound and readable instructions',()=>{
+ const css=fs.readFileSync(new URL('../src/components/learning/activities/garden-child-legibility.css',import.meta.url),'utf8');
+ assert.match(css,/:is\(\.am-hud-btn,\.fm-back,\.fv-back,\.tp-return,\.tp-mute\)\{\s*min-width:44px!important;min-height:44px!important;/);
+ assert.match(css,/\.wg-game-help>summary\{\s*min-width:44px!important;min-height:44px!important;/);
+ assert.match(css,/font-size:max\(13px,1em\)!important/);
+ for(const game of ['AnimalMeadowAdventure','FoodMarketAdventure','FamilyVillageAdventure','TempleAdventure']){
+  const ui=fs.readFileSync(new URL('../src/components/learning/activities/'+game+'.tsx',import.meta.url),'utf8');
+  const imports=[...ui.matchAll(/^import '\.\/([^']+\.css)';/gm)].map(m=>m[1]);
+  assert.equal(imports.at(-1),'garden-child-legibility.css',game+' imports the floor last');
+ }
+});

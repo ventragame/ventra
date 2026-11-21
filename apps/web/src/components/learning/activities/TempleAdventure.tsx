@@ -15,6 +15,7 @@ import './temple-v6.css';
 import './temple-v7.css';
 import {GardenQuestNavigator} from './GardenQuestNavigator';
 import './garden-quest-navigation.css';
+import './garden-child-legibility.css';
 import {GardenHelp} from '../GardenHelp';
 import {LearningMotion} from '@/components/learning/motion/LearningMotion';
 
