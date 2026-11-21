@@ -171,3 +171,16 @@ test('Course can actually route to ALL Word Garden subgames, Story Forest three 
  assert.match(styles,/prefers-reduced-motion:reduce/);
  assert.match(styles,/max-width:670px/);
 });
+test('Journey card and chapter art use small island thumbnails, not the 1254px masters',()=>{
+ const ui=source('../src/components/learning/journey/EnglishJourneyDashboard.tsx');
+ assert.match(ui,/islandThumb\(ARCHIPELAGO_ISLANDS_CATALOG/);
+ assert.match(ui,/thumbs\/\$1-320\.webp/);
+ for(const island of ARCHIPELAGO_ISLANDS_ORDERED){
+  const name=island.desktopAsset.match(/kids-islands\/([a-z_]+)\.webp$/)?.[1];
+  assert.ok(name,'island master follows the kids-islands naming used by islandThumb');
+  const thumb=new URL('../public/assets/kids-islands/thumbs/'+name+'-320.webp',import.meta.url);
+  assert.ok(fs.existsSync(thumb),name+' thumbnail exists');
+  const size=fs.statSync(thumb).size;
+  assert.ok(size>8_000&&size<60_000,name+' thumbnail stays light ('+size+' bytes)');
+ }
+});

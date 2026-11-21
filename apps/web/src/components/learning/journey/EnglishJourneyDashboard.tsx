@@ -16,14 +16,21 @@ type Props={
  profileId:string;playerName:string;placement:EnglishPlacement;gradeLevel:number|null;
  onClose:()=>void;onOpenSurface:(surfaceId:TeachingSurfaceId)=>void;
 };
+/**
+ * Card and chapter art is rendered at ≤170 CSS px, so it uses the 320px WebP
+ * thumbnails (~40 KB) instead of the 1254px island masters (~420 KB each).
+ * The hero keeps the full-size master.
+ */
+const islandThumb=(asset:string)=>
+ asset.replace(/^\/assets\/kids-islands\/([a-z_]+)\.webp$/,'/assets/kids-islands/thumbs/$1-320.webp');
 const ART:Record<string,string>={
- start:'/assets/kids-islands/word_garden.webp',
- words:'/assets/kids-islands/word_garden.webp',
- express:'/assets/kids-islands/story_castle.webp',
- story:'/assets/kids-islands/listening_forest.webp',
- talk:'/assets/kids-islands/speaking_harbor.webp',
- write:'/assets/kids-islands/sentence_workshop.webp',
- combine:'/assets/kids-islands/language_academy.webp'
+ start:islandThumb('/assets/kids-islands/word_garden.webp'),
+ words:islandThumb('/assets/kids-islands/word_garden.webp'),
+ express:islandThumb('/assets/kids-islands/story_castle.webp'),
+ story:islandThumb('/assets/kids-islands/listening_forest.webp'),
+ talk:islandThumb('/assets/kids-islands/speaking_harbor.webp'),
+ write:islandThumb('/assets/kids-islands/sentence_workshop.webp'),
+ combine:islandThumb('/assets/kids-islands/language_academy.webp')
 };
 const statusName=(card:JourneyCard):string=>
  card.status==='error'?'İlerleme okunamadı':
@@ -85,8 +92,8 @@ export function EnglishJourneyDashboard({profileId,playerName,placement,gradeLev
   if(!recommendation||!game)return null;
   return <div className={'jy-recommendation'+(secondary?' jy-recommendation-small':'')}>
    <div className="jy-recommendation-art">
-    <img src={ARCHIPELAGO_ISLANDS_CATALOG[game.islandId as keyof typeof ARCHIPELAGO_ISLANDS_CATALOG].desktopAsset}
-     loading="lazy" alt=""/>
+    <img src={islandThumb(ARCHIPELAGO_ISLANDS_CATALOG[game.islandId as keyof typeof ARCHIPELAGO_ISLANDS_CATALOG].desktopAsset)}
+     width={320} height={320} loading="lazy" decoding="async" alt=""/>
    </div>
    <div className="jy-rec-content">
     <span className="jy-rec-tag">{secondary?'🔁 PEKİŞTİRME ÖNERİSİ':'✦ ŞİMDİ NE ÖĞRENELİM?'}</span>
@@ -173,7 +180,7 @@ export function EnglishJourneyDashboard({profileId,playerName,placement,gradeLev
      </section>
      <section className="jy-chapter" aria-labelledby="jy-chapter-title">
       <div className="jy-chapter-heading">
-       <img src={ART[chapter.id]} alt="" loading="lazy"/>
+       <img src={ART[chapter.id]} width={320} height={320} alt="" loading="lazy" decoding="async"/>
        <div><span className="jy-eyebrow">{chapter.eyebrow}</span>
         <h2 id="jy-chapter-title">{chapter.icon} {chapter.title}</h2>
         <p>{chapter.description}</p></div>
