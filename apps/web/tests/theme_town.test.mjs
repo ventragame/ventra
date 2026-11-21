@@ -284,3 +284,18 @@ test('Playing the speaker that says the answer never counts as independent recal
  const ui=fs.readFileSync(new URL('../src/components/learning/themes/ThemeTownAdventure.tsx',import.meta.url),'utf8');
  assert.match(ui,/independent:themeAnswerIndependent\(task,firstTry,speechStarted\)/);
 });
+
+test('Listening tasks stay answerable without audio, with written Turkish support recorded as assisted',()=>{
+ for(const theme of THEME_ORDER)for(const placement of THEME_TIERS){
+  const deck=planThemeLesson({theme,placement,gradeLevel:3,replay:1});
+  for(const task of deck.tasks.filter(t=>t.kind==='listen')){
+   assert.ok(task.fallbackTr&&task.fallbackTr.length>1,'listen task has a Turkish fallback');
+   assert.ok(!task.fallbackTr.toLocaleLowerCase('tr').split(/\s+/).includes(task.answer.toLowerCase()),
+    'fallback never prints the English answer as a word');
+  }
+ }
+ const ui=fs.readFileSync(new URL('../src/components/learning/themes/ThemeTownAdventure.tsx',import.meta.url),'utf8');
+ assert.match(ui,/const listenFallback=task\?\.kind==='listen'&&!speechStarted&&/);
+ assert.match(ui,/hintUsed:hintVisible\|\|listenFallback/);
+ assert.match(ui,/const firstTry=wrongThisStep===0&&!hintVisible&&!listenFallback;/);
+});

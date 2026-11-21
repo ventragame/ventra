@@ -104,8 +104,9 @@ test('Harbor achievements reach the correct island badge, dock and player card',
  const scene=read('../src/components/game/scenes/WorldScene.ts');
  assert.match(kids,/getAllLevelProgress\(HARBOR_GAME_ID,profile\.id\)/);
  assert.match(kids,/setHarborCompleted\(harborCount\)/);
- assert.match(kids,/focusedIsland==='speaking_harbor'\?Math\.round\(100\*harborCompleted\/5\)/);
- assert.match(kids,/harborCompletedLevels=\{harborCompleted\}/);
+ // null = progress not read; shown as unknown, never as zero.
+ assert.match(kids,/focusedIsland==='speaking_harbor'\?Math\.round\(100\*\(harborCompleted\?\?0\)\/5\)/);
+ assert.match(kids,/harborCompletedLevels=\{harborCompleted\?\?0\}/);
  assert.match(kids,/island\.id==='speaking_harbor'\?harborCompleted===5/);
  assert.match(game,/islandId:'speaking_harbor',completed:harborCompletedLevels,total:5/);
  assert.match(scene,/def\.id==='speaking_harbor'\?this\.harborCompletedLevels:0/);

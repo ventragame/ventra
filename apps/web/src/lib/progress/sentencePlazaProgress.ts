@@ -16,11 +16,18 @@ export async function getSentencePlazaProgress(repo:IProgressRepository,profileI
  }
  return {completedLevels,totalLevels:6,starsByLevel};
 }
+/** Stars earned by THIS run (the level's best is kept separately in progress). */
+export function sentencePlazaRunStars(answers:readonly SentenceAnswerEvidence[]):1|2|3{
+ const errors=answers.reduce((sum,x)=>sum+x.mistakes,0);
+ const assisted=answers.filter(x=>x.hintUsed||x.modelHeard).length;
+ return errors===0&&assisted===0?3:errors<=2&&assisted<=2?2:1;
+}
+export type SentencePlazaSaveResult=SentencePlazaProgress&{runStars:1|2|3};
 export async function saveSentencePlazaMission(input:{
  repo:IProgressRepository;profileId:string;mission:PlazaMission;
  plan:PlazaDeck;answers:SentenceAnswerEvidence[];sessionId:string;
  durationSeconds:number;
-}):Promise<SentencePlazaProgress>{
+}):Promise<SentencePlazaSaveResult>{
  const {repo,profileId,mission,plan,answers,sessionId,durationSeconds}=input;
  if(!profileId||!sessionId||!Number.isFinite(durationSeconds)||durationSeconds<0||
     plan.mission!==mission||!validatePlazaEvidence(answers,plan))
@@ -32,7 +39,7 @@ export async function saveSentencePlazaMission(input:{
  const assisted=answers.filter(x=>x.hintUsed||x.modelHeard).length;
  const attempts=answers.length+errors;
  const independent=answers.filter(x=>x.firstTryCorrect).length;
- const stars=errors===0&&assisted===0?3:errors<=2&&assisted<=2?2:1;
+ const stars=sentencePlazaRunStars(answers);
  const payload:GameCompletedPayload={
   sessionId,profileId,gameId:SENTENCE_PLAZA_GAME_ID,levelId:mission,
   outcomeId:'en.sentence.plaza.'+plan.questions[0].skill,
@@ -47,5 +54,7 @@ export async function saveSentencePlazaMission(input:{
   completedAt:new Date().toISOString()
  };
  await repo.recordGameCompleted(payload,profileId);
- return getSentencePlazaProgress(repo,profileId);
+ // Reward screens show this run's stars; replaying with hints must not
+ // display the best-ever ★★★ as if it were earned now.
+ return {...await getSentencePlazaProgress(repo,profileId),runStars:stars};
 }

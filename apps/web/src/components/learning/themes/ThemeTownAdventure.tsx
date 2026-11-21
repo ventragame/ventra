@@ -74,6 +74,10 @@ export function ThemeTownAdventure({profileId,englishLevel,gradeLevel,onBack,onS
  const runRef=useRef(0),isMounted=useRef(true),lockRef=useRef(false);
  const timerRef=useRef<ReturnType<typeof setTimeout>|null>(null);
  const task=deck?.tasks[step],currentTheme=THEME_DEFINITIONS.find(t=>t.id===active)!;
+ /** No playable English voice (failed, muted or unsupported): a listening task
+  * gets written Turkish support instead of becoming unanswerable guesswork. */
+ const listenFallback=task?.kind==='listen'&&!speechStarted&&
+  (speechFailed||soundService.getMuted()||!soundService.hasEnglishSpeech());
  const wordArt=task?.word?visualForEnglishWord(task.word.en,task.word.tr):null;
  const gradeMode=gradeLevel!==null&&gradeLevel<=2?'Küçük kaşif':gradeLevel!==null&&gradeLevel>=5?'İleri kaşif':'Kaşif';
  const tierLabel=THEME_TIERS[tier];
@@ -185,10 +189,10 @@ export function ThemeTownAdventure({profileId,englishLevel,gradeLevel,onBack,onS
   }
   lockRef.current=true;setLocked(true);setFeedback('✓ Doğru! Yeni göreve geçiyoruz.');
   soundService.playSfx('correct',0.5);
-  const firstTry=wrongThisStep===0&&!hintVisible;
+  const firstTry=wrongThisStep===0&&!hintVisible&&!listenFallback;
   const evidence:ThemeAnswerEvidence={
    taskId:task.id,kind:task.kind,firstTryCorrect:firstTry,
-   mistakes:wrongThisStep,hintUsed:hintVisible,speechStarted,
+   mistakes:wrongThisStep,hintUsed:hintVisible||listenFallback,speechStarted,
    independent:themeAnswerIndependent(task,firstTry,speechStarted)
   };
   const nextAnswers=[...answers,evidence];
@@ -328,6 +332,8 @@ export function ThemeTownAdventure({profileId,englishLevel,gradeLevel,onBack,onS
       <button type="button" onClick={showHint} disabled={locked||saving||hintVisible}>💡 Küçük ipucu</button>
       {task.kind==='listen'&&<small>{speechStarted?'✓ Ses başlatıldı':'🔊 Düğmeden dinle'}</small>}
      </div>}
+     {listenFallback&&task.fallbackTr&&<p role="status" className="tt-hint">
+      🔇 Ses çalışmıyor. Yazılı destek: “{task.fallbackTr}” kelimesinin İngilizcesini seç. Bu cevap destekli kaydedilir.</p>}
      {hintVisible&&<p role="status" className="tt-hint">💡 {themeTaskHint(task)}</p>}
      <p className={'tt-feedback'+(locked?' tt-feedback-ok':'')} aria-live="polite" role="status">
       {feedback||'Resme bak, düşün, dinle. Acele etmene gerek yok.'}</p>

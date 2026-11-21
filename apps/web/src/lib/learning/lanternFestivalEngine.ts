@@ -4,7 +4,7 @@
  * Grade controls load, English placement controls language independently.
  */
 import type {EnglishPlacement} from './gradeAwareLearningPolicy.ts';
-import {decoysOutsideSentence,sentenceMatches} from './sentenceTokens.ts';
+import {decoysOutsideSentence,sentenceMatches,withoutLessonExample} from './sentenceTokens.ts';
 import type {SentenceAnswerEvidence} from '@ventra/shared';
 import type {PlazaDeck,PlazaQuestion,PlazaSceneEffect,PlazaSentenceKind} from './sentencePlazaEngine.ts';
 
@@ -162,7 +162,8 @@ export function planLanternFestival(input:{grade:number|null;englishLevel:Englis
  const familiar=new Set((input.knownWords??[]).map(w=>w.toLowerCase()));
  const trials:LanternTrial[]=[];
  for(let chapter=1 as LanternChapter;chapter<=4;chapter=(chapter+1) as LanternChapter){
-  const candidates=shuffle(pool.filter(x=>x.chapter===chapter),random);
+  const candidates=shuffle(withoutLessonExample(pool.filter(x=>x.chapter===chapter),
+   t=>t.question.sentence,LANTERN_CHAPTERS[chapter-1].example,per+1),random);
   const tie=new Map(candidates.map(t=>[t.id,random()]));
   const chosen:LanternTrial[]=[],usedColor=new Set<LanternColor>(),
     usedPlace=new Set<LanternPlace>(),usedAnimal=new Set<LanternAnimal>();

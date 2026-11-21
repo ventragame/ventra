@@ -4,7 +4,7 @@
  * Persists via existing island_sentence_square_plaza / mission 5.
  */
 import type {EnglishPlacement} from './gradeAwareLearningPolicy.ts';
-import {decoysOutsideSentence,sentenceMatches} from './sentenceTokens.ts';
+import {decoysOutsideSentence,sentenceMatches,withoutLessonExample} from './sentenceTokens.ts';
 import type {SentenceAnswerEvidence} from '@ventra/shared';
 import type {PlazaDeck,PlazaQuestion,PlazaSentenceKind,PlazaSceneEffect} from './sentencePlazaEngine.ts';
 export type WishChapter=1|2|3|4;
@@ -192,7 +192,8 @@ export function planWishFestival(input:{
  const familiar=new Set((input.knownFoods??[]).map(x=>x.toLowerCase()));
  const trials:WishTrial[]=[];
  for(let chapter=1 as WishChapter;chapter<=4;chapter=(chapter+1) as WishChapter){
-  const choices=shuffle(pool.filter(t=>t.chapter===chapter),random);
+  const choices=shuffle(withoutLessonExample(pool.filter(t=>t.chapter===chapter),
+   t=>t.question.sentence,WISH_CHAPTERS[chapter-1].sample,per+1),random);
   const tieBreak=new Map(choices.map(t=>[t.id,random()]));
   const usedFoods=new Set<WishFood>(),usedGuests=new Set<WishGuest>();
   const chosen:WishTrial[]=[];

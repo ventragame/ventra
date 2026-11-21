@@ -109,8 +109,10 @@ test('Real profile progress persists, isolates siblings, blocks skipping and de-
  const duplicate=await save(one.id,1,p,evidence(p),'first-sentence');
  assert.equal(duplicate.completedLevels,1);
  assert.equal(await repo.getTotalStars(one.id,SENTENCE_PLAZA_GAME_ID),3);
+ assert.equal(first.runStars,3);
  const assisted=await save(one.id,1,p,evidence(p,true),'replay-assisted');
  assert.equal(assisted.starsByLevel[1],3,'Assisted replay cannot inflate stars');
+ assert.ok(assisted.runStars<3,'the reward screen shows the stars of THIS assisted run, not the best ever');
  const history=await repo.getSentenceAnswerHistory(one.id);
  assert.equal(history.length,p.questions.length*2,'duplicate session excluded');
  assert.ok(history.some(x=>x.hintUsed));

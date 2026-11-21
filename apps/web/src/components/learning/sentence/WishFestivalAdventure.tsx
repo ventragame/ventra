@@ -249,7 +249,7 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
     repo:getProgressRepository(),profileId,mission:5,plan:plan.deck,answers:rows,
     sessionId:session.current,durationSeconds:(Date.now()-startTime.current)/1000
    });
-   setStars(progress.starsByLevel[5]??1);
+   setStars(progress.runStars);
    clearDraft();setScreen('reward');soundService.playSfx('fanfare',.9);onComplete(rows);
   }catch(error){
    console.error('Festival kayıt hatası',error);

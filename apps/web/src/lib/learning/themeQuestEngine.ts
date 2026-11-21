@@ -14,6 +14,9 @@ export interface ThemeTask{
  promptTr:string;word?:ThemeLexeme;phrase?:ThemePhrase;audioText?:string;
  /** The on-screen illustration deliberately does not reveal the English answer. */
  clockMinutes?:number;
+ /** Listening tasks only: Turkish meaning shown as written support when the
+  * device cannot play English audio (the answer is then recorded as assisted). */
+ fallbackTr?:string;
 }
 export interface ThemeAnswerEvidence{
  taskId:string;kind:ThemeTaskKind;firstTryCorrect:boolean;mistakes:number;
@@ -107,7 +110,7 @@ export function planThemeLesson(input:{
  };
  const heard=(w:ThemeLexeme)=>make('listen',w.en,{
   choices:options(w.en,bank.words.map(x=>x.en),salt+serial*23+replay*41,width),
-  promptTr:'Kelimeyi dinle ve İngilizce yazılışını seç.',audioText:w.en
+  promptTr:'Kelimeyi dinle ve İngilizce yazılışını seç.',audioText:w.en,fallbackTr:w.tr
  });
  const meant=(w:ThemeLexeme)=>make('meaning',w.tr,{
   choices:options(w.tr,bank.words.map(x=>x.tr),salt+serial*29+replay*43,width),

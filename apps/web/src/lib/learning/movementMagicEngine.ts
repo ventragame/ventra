@@ -6,7 +6,7 @@
  * Saved with the EXISTING island_sentence_square_plaza / level 4 contract.
  */
 import type {EnglishPlacement} from './gradeAwareLearningPolicy.ts';
-import {decoysOutsideSentence,sentenceMatches} from './sentenceTokens.ts';
+import {decoysOutsideSentence,sentenceMatches,withoutLessonExample} from './sentenceTokens.ts';
 import type {SentenceAnswerEvidence} from '@ventra/shared';
 import type {PlazaDeck,PlazaQuestion,PlazaSentenceKind,PlazaSceneEffect} from './sentencePlazaEngine.ts';
 
@@ -191,7 +191,8 @@ export function planMovementMagic(input:{
  const seen=new Set(history.map(a=>a.questionId));
  const trials:MovementTrial[]=[];
  for(let chapter=1 as MagicChapter;chapter<=4;chapter=(chapter+1) as MagicChapter){
-  const available=shuffle(pool.filter(t=>t.chapter===chapter),random);
+  const available=shuffle(withoutLessonExample(pool.filter(t=>t.chapter===chapter),
+   t=>t.question.sentence,MOVEMENT_CHAPTERS[chapter-1].example,perChapter+1),random);
   const chosen:MovementTrial[]=[],actors=new Set<MagicActor>(),places=new Set<MagicPlace>();
   const ranking=(t:MovementTrial)=>{
    const status=weak.has(t.id)?0:seen.has(t.id)?2:1;

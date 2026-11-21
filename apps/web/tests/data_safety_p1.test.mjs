@@ -96,3 +96,13 @@ test('Full-screen games keep their exit controls out of the iOS status bar',()=>
  };
  for(const [file,pattern] of Object.entries(css))assert.match(src(file),pattern,file);
 });
+
+test('The Kids home never shows a failed or stale progress read as zero or as another child',()=>{
+ const kids=src('app/kids/page.tsx');
+ assert.match(kids,/const load = \+\+progressLoadRef\.current;/);
+ assert.match(kids,/if\(stale\(\)\)return;\n\s*let harborCount=0;/);
+ assert.match(kids,/useState<number\|null>\(null\);\n\s*const \[workshopCompleted/);
+ assert.match(kids,/setTotalStars\(null\);setCoinBalance\(null\);/);
+ assert.match(kids,/harborCompleted===null\?'İlerleme okunamadı'/);
+ assert.match(kids,/\{totalStars\?\?'—'\}/);
+});

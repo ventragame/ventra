@@ -192,7 +192,7 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
   try{
    const p=await saveSentencePlazaMission({repo:getProgressRepository(),profileId,mission,plan:deck,
     answers:rows,sessionId:currentSession.current,durationSeconds:(Date.now()-startedAt.current)/1000});
-   const earned=p.starsByLevel[mission]??1;
+   const earned=p.runStars;
    setProgress(p);setCompletedStars(earned);
    setHistory(old=>[...old,...rows]);setScreen('reward');setFeedback('');
    soundService.playSfx('fanfare',.8);

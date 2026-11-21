@@ -83,11 +83,12 @@ export default function VentraKidsWorldPage() {
   const [forestProgress,setForestProgress]=useState<ForestProgress|null>(null);
   const [sequenceProgress,setSequenceProgress]=useState<SequenceProgress|null>(null);
   const [detectiveProgress,setDetectiveProgress]=useState<DetectiveProgress|null>(null);
-  const [harborCompleted,setHarborCompleted]=useState<number>(0);
-  const [workshopCompleted,setWorkshopCompleted]=useState<number>(0);
-  const [academyCompleted,setAcademyCompleted]=useState<number>(0);
+  // null = not read (yet) or the read failed: never shown as zero progress.
+  const [harborCompleted,setHarborCompleted]=useState<number|null>(null);
+  const [workshopCompleted,setWorkshopCompleted]=useState<number|null>(null);
+  const [academyCompleted,setAcademyCompleted]=useState<number|null>(null);
   const [wordGardenStarsByLevel, setWordGardenStarsByLevel] = useState<Record<number, number>>({});
-  const [totalStars, setTotalStars] = useState<number>(0);
+  const [totalStars, setTotalStars] = useState<number|null>(null);
   const [isPassportOpen,setIsPassportOpen]=useState(false);
   const [coinBalance,setCoinBalance]=useState<number|null>(null);
   const [avatarEquipment,setAvatarEquipment]=useState<Partial<Record<'hat'|'badge'|'aura',CosmeticId>>>({});
@@ -106,6 +107,8 @@ export default function VentraKidsWorldPage() {
   const [journeySurface,setJourneySurface]=useState<TeachingSurfaceId|null>(null);
   const [isTransitionActive, setIsTransitionActive] = useState<boolean>(false);
   const pendingRegionRef = useRef<string | null>(null);
+  /** Only the latest profile/progress load may write state (profile switches race). */
+  const progressLoadRef = useRef(0);
 
   // Ortak Oyun Durumu & Etkileşim Kilidi: Herhangi bir modal veya aktivite açıkken arka plan kilitlenir
   const isWorldLocked = Boolean(
@@ -187,6 +190,8 @@ export default function VentraKidsWorldPage() {
 
   // 1. Profil ve İlerleme Yükleme
   const loadProfileAndProgress = useCallback(async (profile: PlayerProfile) => {
+    const load = ++progressLoadRef.current;
+    const stale = () => load !== progressLoadRef.current;
     try {
       const overview=await getGardenOverallProgress(getProgressRepository(),profile.id,profile.gradeLevel??null,profile.englishLevel??'Pre-A1');
       const plaza=await getSentencePlazaProgress(getProgressRepository(),profile.id);
@@ -198,6 +203,12 @@ export default function VentraKidsWorldPage() {
         getProgressRepository().getAllLevelProgress(WRITING_WORKSHOP_GAME_ID,profile.id),
         getProgressRepository().getAllLevelProgress(ACADEMY_GAME_ID,profile.id)
       ]);
+      const stars=await getProgressRepository().getTotalStars(profile.id);
+      let passport:Awaited<ReturnType<typeof getPassport>>|null=null;
+      try{passport=await getPassport(getProgressRepository(),profile.id);}
+      catch(err){console.warn('P5 rewards could not be read',err);}
+      // A slower load for a previous child must never overwrite this child.
+      if(stale())return;
       let harborCount=0;
       for(let level=1;level<=5;level++){
         if(!harborLevels[level]||harborLevels[level].completedCount<=0)break;
@@ -223,25 +234,23 @@ export default function VentraKidsWorldPage() {
       setGardenOverall(overview);
       setWordGardenCompletedLevels(overview.animals.completedLevels);
       setWordGardenStarsByLevel(overview.animals.starsByLevel);
-      setTotalStars(await getProgressRepository().getTotalStars(profile.id));
-      try {
-        const passport=await getPassport(getProgressRepository(),profile.id);
-        setCoinBalance(passport.balance);
-        setAvatarEquipment(passport.economy.equipped);
-      }catch(err){console.warn('P5 rewards could not be read',err);
-        setCoinBalance(null);setAvatarEquipment({});
-      }
+      setTotalStars(stars);
+      setCoinBalance(passport?passport.balance:null);
+      setAvatarEquipment(passport?passport.economy.equipped:{});
       setWordGardenStatus(overview.completedWorlds===6?'blooming':'dormant');
     } catch (error) {
       console.error('Kelime Bahçesi ilerlemesi yüklenemedi:', error);
+      if(stale())return;
+      // Unknown, not zero — and never the previous child's totals.
+      setTotalStars(null);setCoinBalance(null);
       setGardenOverall(null);
       setPlazaProgress(null);
       setForestProgress(null);
       setSequenceProgress(null);
       setDetectiveProgress(null);
-      setHarborCompleted(0);
-      setWorkshopCompleted(0);
-      setAcademyCompleted(0);
+      setHarborCompleted(null);
+      setWorkshopCompleted(null);
+      setAcademyCompleted(null);
       showToast('İlerleme yüklenemedi. Lütfen tekrar deneyin.');
     }
   }, [showToast]);
@@ -449,16 +458,16 @@ export default function VentraKidsWorldPage() {
     ?Math.round(100*(plazaProgress?.completedLevels??0)/6)
     :focusedIsland==='listening_forest'
     ?Math.round(100*((forestProgress?.completedLevels??0)+(sequenceProgress?.completedLevels??0)+(detectiveProgress?.completedLevels??0))/18)
-    :focusedIsland==='speaking_harbor'?Math.round(100*harborCompleted/5)
-    :focusedIsland==='sentence_workshop'?Math.round(100*workshopCompleted/5)
-    :focusedIsland==='language_academy'?Math.round(100*academyCompleted/6):wordGardenProgressPercent;
+    :focusedIsland==='speaking_harbor'?Math.round(100*(harborCompleted??0)/5)
+    :focusedIsland==='sentence_workshop'?Math.round(100*(workshopCompleted??0)/5)
+    :focusedIsland==='language_academy'?Math.round(100*(academyCompleted??0)/6):wordGardenProgressPercent;
   const focusedCountText=focusedIsland==='story_castle'
     ?(plazaProgress?String(plazaProgress.completedLevels)+' / 6 görev tamamlandı':'İlerleme okunamadı')
     :focusedIsland==='listening_forest'
     ?(forestProgress&&sequenceProgress&&detectiveProgress?String(forestProgress.completedLevels+sequenceProgress.completedLevels+detectiveProgress.completedLevels)+' / 18 hikâye görevi tamamlandı':'İlerleme okunamadı')
-    :focusedIsland==='speaking_harbor'?String(harborCompleted)+' / 5 diyalog görevi tamamlandı'
-    :focusedIsland==='sentence_workshop'?String(workshopCompleted)+' / 5 yazı bölümü tamamlandı'
-    :focusedIsland==='language_academy'?String(academyCompleted)+' / 6 keşif bölgesi tamamlandı'
+    :focusedIsland==='speaking_harbor'?(harborCompleted===null?'İlerleme okunamadı':String(harborCompleted)+' / 5 diyalog görevi tamamlandı')
+    :focusedIsland==='sentence_workshop'?(workshopCompleted===null?'İlerleme okunamadı':String(workshopCompleted)+' / 5 yazı bölümü tamamlandı')
+    :focusedIsland==='language_academy'?(academyCompleted===null?'İlerleme okunamadı':String(academyCompleted)+' / 6 keşif bölgesi tamamlandı')
     :(gardenOverall?String(gardenOverall.completed)+' / '+String(gardenOverall.total)+' görev tamamlandı':'İlerleme okunamadı');
 
   return (
@@ -549,10 +558,10 @@ export default function VentraKidsWorldPage() {
           </button>
 
           {/* Yıldız Bakiyesi */}
-          <div className="kids-hud-glass kids-hud-stat kids-hud-stars" aria-label={`${totalStars} yıldız`}>
+          <div className="kids-hud-glass kids-hud-stat kids-hud-stars" aria-label={totalStars===null?'Yıldızlar okunamadı':`${totalStars} yıldız`}>
             <span className="kids-stat-icon">⭐</span>
             <span className="font-black">
-              {totalStars}
+              {totalStars??'—'}
             </span>
           </div>
           <button onClick={()=>{soundService.playSfx('tap');setIsPassportOpen(true);}}
@@ -596,7 +605,7 @@ export default function VentraKidsWorldPage() {
           </button>
         </div>
         <div className="kids-mobile-actions">
-          <span className="kids-mobile-stars" aria-label={`${totalStars} yıldız`}>⭐ {totalStars}</span>
+          <span className="kids-mobile-stars" aria-label={totalStars===null?'Yıldızlar okunamadı':`${totalStars} yıldız`}>⭐ {totalStars??'—'}</span>
           <button className="kids-mobile-icon" type="button"
             onClick={handleShowWorldOverview} aria-label="Altı adanın genel haritasını göster"
             title="Genel harita">🗺️</button>
@@ -649,7 +658,7 @@ export default function VentraKidsWorldPage() {
           wordGardenTotalLevels={gardenOverall?.total??73}
           plazaCompletedLevels={plazaProgress?.completedLevels??0}
           forestCompletedLevels={(forestProgress?.completedLevels??0)+(sequenceProgress?.completedLevels??0)+(detectiveProgress?.completedLevels??0)}
-          harborCompletedLevels={harborCompleted}
+          harborCompletedLevels={harborCompleted??0}
           onOpenLearningPath={handleOpenLearningPath}
           onToast={showToast}
         />

@@ -264,7 +264,7 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
     repo:getProgressRepository(),profileId,mission:4,plan:plan.deck,answers:rows,
     sessionId:sessionIdRef.current,durationSeconds:(Date.now()-startedAt.current)/1000
    });
-   setRewardStars(result.starsByLevel[4]??1);
+   setRewardStars(result.runStars);
    try{window.localStorage.removeItem(MOVEMENT_CHECKPOINT_PREFIX+profileId);}catch{}
    setPhase('reward');soundService.playSfx('fanfare',.86);
    onComplete(rows);

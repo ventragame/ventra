@@ -93,3 +93,24 @@ test('Leaving during the final auto-advance saves the solved mission instead of 
  assert.match(ui,/repo\.getSentenceAnswerHistory\(profileId\)\.catch\(\(\)=>\[\]\)/);
  assert.match(ui,/setLoadAttempt\(n=>n\+1\)/);
 });
+
+test('The lesson example sentence is never the task the child must build',async()=>{
+ const {SENTENCE_PLAZA_MISSIONS}=await import('../src/lib/learning/sentencePlazaEngine.ts');
+ const {MOVEMENT_CHAPTERS}=await import('../src/lib/learning/movementMagicEngine.ts');
+ const {WISH_CHAPTERS}=await import('../src/lib/learning/wishFestivalEngine.ts');
+ const {LANTERN_CHAPTERS}=await import('../src/lib/learning/lanternFestivalEngine.ts');
+ const {sameSentenceText}=await import('../src/lib/learning/sentenceTokens.ts');
+ for(const englishLevel of LEVELS)for(const grade of [null,2,4,6])for(let seed=1;seed<=40;seed++){
+  for(const mission of [1,2,3]){
+   const model=SENTENCE_PLAZA_MISSIONS[mission-1].model;
+   for(const q of planPlazaMission({mission,grade,englishLevel,seed}).questions)
+    assert.ok(!sameSentenceText(q.sentence,model),`plaza ${mission}: "${model}" is the shown example`);
+  }
+  for(const t of planMovementMagic({grade,englishLevel,seed}).trials)
+   assert.ok(!sameSentenceText(t.question.sentence,MOVEMENT_CHAPTERS[t.chapter-1].example),t.question.sentence);
+  for(const t of planWishFestival({grade,englishLevel,seed}).trials)
+   assert.ok(!sameSentenceText(t.question.sentence,WISH_CHAPTERS[t.chapter-1].sample),t.question.sentence);
+  for(const t of planLanternFestival({grade,englishLevel,seed}).trials)
+   assert.ok(!sameSentenceText(t.question.sentence,LANTERN_CHAPTERS[t.chapter-1].example),t.question.sentence);
+ }
+});

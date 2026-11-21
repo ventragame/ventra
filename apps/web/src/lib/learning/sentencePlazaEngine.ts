@@ -5,7 +5,7 @@
  * for producing it. Every template is human authored and grammatically checked.
  */
 import type {EnglishPlacement} from './gradeAwareLearningPolicy.ts';
-import {decoysOutsideSentence,firstSentenceMismatch} from './sentenceTokens.ts';
+import {decoysOutsideSentence,firstSentenceMismatch,withoutLessonExample} from './sentenceTokens.ts';
 import type {SentenceAnswerEvidence} from '@ventra/shared';
 
 export const SENTENCE_PLAZA_GAME_ID='island_sentence_square_plaza';
@@ -402,7 +402,8 @@ export function planPlazaMission(input:{mission:PlazaMission;grade:number|null;e
  if(!Number.isInteger(mission)||mission<1||mission>6)throw new RangeError('Unknown plaza mission');
  const random=seeded(seed^(mission*1009));
  const gradeLimit=grade!=null&&grade>=1&&grade<=2?10:grade!=null&&grade>=3&&grade<=4?13:22;
- const unique=plazaCurriculumPool(mission,englishLevel).filter(q=>q.tokens.length<=gradeLimit);
+ const unique=withoutLessonExample(plazaCurriculumPool(mission,englishLevel).filter(q=>q.tokens.length<=gradeLimit),
+  q=>q.sentence,SENTENCE_PLAZA_MISSIONS[mission-1].model,plazaQuestionsForGrade(grade)*2);
  const history=input.history??[];
  const weak=new Set(history.filter(e=>!e.firstTryCorrect||e.hintUsed).map(e=>e.questionId));
  const seen=new Set(history.map(e=>e.questionId));

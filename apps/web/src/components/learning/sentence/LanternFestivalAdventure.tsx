@@ -230,7 +230,7 @@ export function LanternFestivalAdventure({profileId,gradeLevel,englishLevel,hist
     repo:getProgressRepository(),profileId,mission:6,plan:plan.deck,answers:rows,
     sessionId:session.current,durationSeconds:(Date.now()-startedAt.current)/1000
    });
-   setStars(progress.starsByLevel[6]??1);
+   setStars(progress.runStars);
    removeCheckpoint();setPhase('reward');soundService.playSfx('fanfare',.92);
    onComplete(rows);
   }catch(error){
