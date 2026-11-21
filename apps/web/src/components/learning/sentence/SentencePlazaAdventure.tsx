@@ -45,6 +45,7 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
  const [lanternOpen,setLanternOpen]=useState(false);
  const [knownWords,setKnownWords]=useState<string[]>([]);
  const [loading,setLoading]=useState(true);
+ const [loadAttempt,setLoadAttempt]=useState(0);
  const [loadError,setLoadError]=useState('');
  const [screen,setScreen]=useState<Screen>('map');
  const [mission,setMission]=useState<PlazaMission>(1);
@@ -100,7 +101,8 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
   let live=true;
   setLoading(true);setLoadError('');
   const repo=getProgressRepository();
-  Promise.all([getSentencePlazaProgress(repo,profileId),repo.getSentenceAnswerHistory(profileId),
+  // Answer history only ranks questions; it must not lock the whole plaza.
+  Promise.all([getSentencePlazaProgress(repo,profileId),repo.getSentenceAnswerHistory(profileId).catch(()=>[]),
     Promise.all([
      repo.getAnimalAnswerHistory(profileId).catch(()=>[]),
      repo.getColorAnswerHistory(profileId).catch(()=>[]),
@@ -114,15 +116,22 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
     .catch(error=>{console.error('Cümle Meydanı ilerlemesi okunamadı',error);
       if(live){setLoadError('Oyuncu ilerlemesi okunamadı. Kaydını korumak için bölümler açılmadı.');setLoading(false);}});
   return()=>{live=false;clearTimer();soundService.cancelSpeech();};
- },[profileId]);
+ },[profileId,loadAttempt]);
  useEffect(()=>{
   soundService.setMusicScene('plaza');
   return()=>{soundService.setMusicScene('archipelago');soundService.cancelSpeech();};
  },[]);
  useEffect(()=>{if(screen==='play')root.current?.querySelector<HTMLElement>('.sp-cue')?.focus();},[screen,step]);
  function back(){
-  clearTimer();soundService.cancelSpeech();awaitingTransition.current=false;
   if(savingLock.current)return;
+  const solved=completedAnswers.current;
+  if(screen==='play'&&deck&&!saveError&&solved.length>0&&solved.length===deck.questions.length){
+   // The last sentence is solved and only waiting for its auto-advance. Leaving
+   // here used to cancel that timer and silently drop the finished mission:
+   // save it now instead (the reward screen still offers the way back).
+   clearTimer();awaitingTransition.current=false;void finish(solved);return;
+  }
+  clearTimer();soundService.cancelSpeech();awaitingTransition.current=false;
   if(screen==='map'){onBack();return;}
   if(screen==='reward'){setScreen('map');return;}
   // Never award half-finished attempts; a complete mission saves atomically.
@@ -316,6 +325,7 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
    </header>
    {loading?<div role="status" className="sp-reward"><h2>Şehir hazırlanıyor…</h2></div>:
    loadError?<div role="alert" className="sp-reward"><h2>Kayıt okunamadı</h2><p>{loadError}</p>
+    <button type="button" onClick={()=>setLoadAttempt(n=>n+1)} className="sp-primary">↻ Tekrar dene</button>
     <button type="button" onClick={onBack} className="sp-primary">Adalar Evreni'ne Dön</button>
    </div>:
    screen==='map'?<>

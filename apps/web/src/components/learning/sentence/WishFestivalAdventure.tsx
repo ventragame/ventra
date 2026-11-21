@@ -10,6 +10,7 @@ import {WishFestivalStage} from './WishFestivalStage';
 import {sentenceStart} from './sentencePresentation';
 import {SentenceQuestBuilder,SentenceQuestProgress,SentenceQuestSuccess,SentenceQuestReward} from './SentenceQuestComponents';
 import {sentenceQuestHint,sentenceQuestCorrect} from './sentence-quest-language';
+import {firstSentenceMismatch} from '@/lib/learning/sentenceTokens';
 import './sentence-quest-unified.css';
 import {WISH_CHAPTERS,WISH_GUESTS,WISH_FOODS,wishRoundsForGrade,planWishFestival,
  checkWishFood,checkWishSecond,checkWishIntent,checkWishSentence,wishIntentOptions,
@@ -262,7 +263,7 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
    setFeedback('Cümlede eksik sözcük var. Bütün cümleyi tamamla.');setFeedbackError(true);return;
   }
   if(!checkWishSentence(trial,selectedWords)){
-   const error=question.tokens.findIndex((w,i)=>w!==selectedWords[i]);
+   const error=firstSentenceMismatch(question.tokens,selectedWords);
    setWrongSlot(error);wrong('Cümlenin '+(error+1)+'. kelimesini kontrol et. '+question.explanation);return;
   }
   locked.current=true;setServed(true);setFeedbackError(false);

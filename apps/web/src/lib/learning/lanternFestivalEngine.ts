@@ -4,6 +4,7 @@
  * Grade controls load, English placement controls language independently.
  */
 import type {EnglishPlacement} from './gradeAwareLearningPolicy.ts';
+import {decoysOutsideSentence,sentenceMatches} from './sentenceTokens.ts';
 import type {SentenceAnswerEvidence} from '@ventra/shared';
 import type {PlazaDeck,PlazaQuestion,PlazaSceneEffect,PlazaSentenceKind} from './sentencePlazaEngine.ts';
 
@@ -133,8 +134,8 @@ function create(chapter:LanternChapter,color:LanternColor,place:LanternPlace,
  const question:PlazaQuestion={
   id,mission:6,skill:'transfer',englishLevel:level,kind,mode:chapter===3?'repair':'construct',
   sentence,cue,tokens,scene,
-  decoys:['are','is','can','not','the','near','and','because','please']
-   .filter(w=>!tokens.includes(w)).slice(0,3),
+  decoys:decoysOutsideSentence(['are','is','can','not','the','near','and','because','please'],tokens)
+   .slice(0,3),
   explanation,vocabulary:[{en:color,tr:col.tr},{en:animal,tr:who.tr},{en:place,tr:where.label},
    {en:who.verb,tr:who.actionTr}],
   ...(chapter===3?{brokenSentence:broken.join(' ')+'.'}:{})
@@ -190,5 +191,5 @@ export function checkLanternPlace(t:LanternTrial,c:LanternPlace){return t.place=
 export function checkLanternAnimal(t:LanternTrial,c:LanternAnimal){return t.animal===c;}
 export function checkLanternRepair(t:LanternTrial,i:number){return t.chapter===3&&t.errorIndex===i;}
 export function checkLanternSentence(t:LanternTrial,parts:readonly string[]){
- return parts.length===t.question.tokens.length&&parts.every((part,i)=>part===t.question.tokens[i]);
+ return sentenceMatches(t.question.tokens,parts);
 }

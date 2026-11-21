@@ -4,6 +4,7 @@
  * Persists via existing island_sentence_square_plaza / mission 5.
  */
 import type {EnglishPlacement} from './gradeAwareLearningPolicy.ts';
+import {decoysOutsideSentence,sentenceMatches} from './sentenceTokens.ts';
 import type {SentenceAnswerEvidence} from '@ventra/shared';
 import type {PlazaDeck,PlazaQuestion,PlazaSentenceKind,PlazaSceneEffect} from './sentencePlazaEngine.ts';
 export type WishChapter=1|2|3|4;
@@ -157,8 +158,8 @@ function author(chapter:WishChapter,level:EnglishPlacement,grade:number|null,gue
  const question:PlazaQuestion={
    id,mission:5,skill:'preference',englishLevel:level,
    kind,mode:'construct',cue,scene,sentence,tokens,
-   decoys:['want','like','not','are','do','because','but','please','have','some']
-    .filter(w=>!tokens.includes(w)).slice(0,3),
+   decoys:decoysOutsideSentence(['want','like','not','are','do','because','but','please','have','some'],tokens)
+    .slice(0,3),
    explanation,vocabulary:[{en:food,tr:first.tr},{en:second,tr:other.tr},
     {en:first.trait,tr:first.traitTr}]
  };
@@ -217,7 +218,7 @@ export function checkWishFood(t:WishTrial,id:WishFood):boolean{return t.food===i
 export function checkWishSecond(t:WishTrial,id:WishFood):boolean{return t.second===id;}
 export function checkWishIntent(t:WishTrial,intent:WishIntent):boolean{return t.intent===intent;}
 export function checkWishSentence(t:WishTrial,words:readonly string[]):boolean{
- return words.length===t.question.tokens.length&&words.every((w,i)=>w===t.question.tokens[i]);
+ return sentenceMatches(t.question.tokens,words);
 }
 export function wishIntentOptions(level:EnglishPlacement):readonly {id:WishIntent;en:string;tr:string}[]{
  return level==='Pre-A1'

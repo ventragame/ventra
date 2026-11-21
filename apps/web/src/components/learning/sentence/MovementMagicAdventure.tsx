@@ -10,6 +10,7 @@ import {MovementMagicStage} from './MovementMagicStage';
 import {sentenceStart,visibleRepairWord} from './sentencePresentation';
 import {SentenceQuestBuilder,SentenceQuestProgress,SentenceQuestSuccess,SentenceQuestReward} from './SentenceQuestComponents';
 import {sentenceQuestHint,sentenceQuestCorrect} from './sentence-quest-language';
+import {firstSentenceMismatch} from '@/lib/learning/sentenceTokens';
 import './sentence-quest-unified.css';
 import {MAGIC_VERBS,MOVEMENT_CHAPTERS,checkMagicAction,checkMagicPlace,
  checkMagicRepair,checkMagicSentence,planMovementMagic,movementQuestionsPerChapter,
@@ -277,7 +278,7 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
   if(!trial||!question||!plan||advancing.current||saving||!prepared)return;
   if(!isComplete){setFeedbackError(true);setFeedback('Önce İngilizce cümleyi tamamla.');return;}
   if(!checkMagicSentence(trial,selectedWords)){
-   const wrong=question.tokens.findIndex((w,i)=>w!==selectedWords[i]);
+   const wrong=firstSentenceMismatch(question.tokens,selectedWords);
    setWrongSlot(wrong);incorrect('Bu cümlenin '+(wrong+1)+'. kelimesinde sıralama veya dil bilgisi hatası var. '+question.explanation);
    return;
   }

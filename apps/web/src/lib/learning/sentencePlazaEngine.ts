@@ -5,6 +5,7 @@
  * for producing it. Every template is human authored and grammatically checked.
  */
 import type {EnglishPlacement} from './gradeAwareLearningPolicy.ts';
+import {decoysOutsideSentence,firstSentenceMismatch} from './sentenceTokens.ts';
 import type {SentenceAnswerEvidence} from '@ventra/shared';
 
 export const SENTENCE_PLAZA_GAME_ID='island_sentence_square_plaza';
@@ -172,7 +173,7 @@ function buildV2(mission:PlazaMission,level:EnglishPlacement):PlazaQuestion[]{
  const push=(d:NewSentence)=>{
   const tokens=split(d.sentence),words=new Set(tokens);
   const stock=['are','is','can','not','in','on','want','wants','but','because','has','do','does','where','the','a'];
-  const decoys=stock.filter(w=>!words.has(w)).slice(0,3);
+  const decoys=decoysOutsideSentence(stock,tokens).slice(0,3);
   const mode=d.mode??'construct';
   // Replace ONE meaningful word, not an arbitrary grammar token.
   // The child compares a valid English sentence against the displayed Turkish goal:
@@ -383,7 +384,7 @@ export function plazaCurriculumPool(mission:PlazaMission,level:EnglishPlacement)
 export function evaluatePlazaSentence(task:PlazaQuestion,words:readonly string[]):{
  correct:boolean;incorrectIndex:number;explanation:string;
 }{
- const first=task.tokens.findIndex((word,i)=>word!==words[i]);
+ const first=firstSentenceMismatch(task.tokens,words);
  if(first>=0)return {correct:false,incorrectIndex:first,
   explanation:(first+1)+'. kelimenin konumunu kontrol et. '+task.explanation};
  if(words.length!==task.tokens.length)return {correct:false,incorrectIndex:words.length,
@@ -428,7 +429,9 @@ export function planPlazaMission(input:{mission:PlazaMission;grade:number|null;e
   if(!found)break;
  }
  if(questions.length!==plazaQuestionsForGrade(grade))throw Error('Insufficient English curriculum diversity');
- const sampled=shuffle(questions,random);
+ // Picture-choice answers are authored target-first; never leave the answer in slot 1.
+ const sampled=shuffle(questions,random).map(q=>q.sceneChoices?
+  {...q,sceneChoices:shuffle(q.sceneChoices,random)}:q);
  return {mission,grade,englishLevel,seed,questions:sampled};
 }
 /** Duplicate words are independent physical tiles. */
@@ -436,7 +439,13 @@ export function plazaWordTiles(task:PlazaQuestion,seed:number):{id:string;word:s
  const words=task.tokens.map((word,i)=>({id:`word-${i}`,word,target:true}));
  const extras=task.decoys.map((word,i)=>({id:`extra-${i}`,word,target:false}));
  const mixed=shuffle([...words,...extras],seeded(seed^0x65bda21));
- if(mixed.every((item,i)=>item.id===`word-${i}`))mixed.push(mixed.shift()!);
+ // Decoys are always present, so judge only the relative order of the target
+ // tiles: if they read in sentence order, swap the first two target tiles.
+ const order=mixed.filter(item=>item.target).map(item=>item.id);
+ if(words.length>1&&order.every((id,i)=>id===`word-${i}`)){
+  const a=mixed.findIndex(item=>item.id==='word-0'),b=mixed.findIndex(item=>item.id==='word-1');
+  [mixed[a],mixed[b]]=[mixed[b],mixed[a]];
+ }
  return mixed;
 }
 export function plazaWordExpected(task:PlazaQuestion,position:number):string|null{

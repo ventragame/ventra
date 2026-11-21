@@ -14,7 +14,8 @@ test('Every sentence world reuses one word builder, progress, hint and correct f
   assert.ok(s.includes('firstTryCorrect'),name+' must preserve independent scoring');
  }
  const ui=read('SentenceQuestComponents.tsx');
- assert.ok(ui.includes('visibleWord(word,i)'));
+ // Slots show the target spelling for a case-variant tile ("the" tile placed first reads "The").
+ assert.ok(ui.includes('visibleWord(sameSentenceWord(tokens[i],word)?tokens[i]:word,i)'));
  assert.ok(ui.includes('onRemove(i)'));
  assert.ok(ui.includes('onAdd(t.id)'));
  assert.ok(ui.includes('data-error={wrongIndex===i}'));

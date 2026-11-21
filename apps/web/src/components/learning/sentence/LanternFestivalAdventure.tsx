@@ -10,6 +10,7 @@ import {LanternFestivalStage} from './LanternFestivalStage';
 import {sentenceStart,visibleRepairWord} from './sentencePresentation';
 import {SentenceQuestBuilder,SentenceQuestProgress,SentenceQuestSuccess,SentenceQuestReward} from './SentenceQuestComponents';
 import {sentenceQuestHint,sentenceQuestCorrect} from './sentence-quest-language';
+import {firstSentenceMismatch} from '@/lib/learning/sentenceTokens';
 import './sentence-quest-unified.css';
 import {LANTERN_CHAPTERS,LANTERN_COLORS,LANTERN_PLACES,LANTERN_ANIMALS,
  lanternRoundsForGrade,planLanternFestival,checkLanternColor,checkLanternPlace,
@@ -242,7 +243,7 @@ export function LanternFestivalAdventure({profileId,gradeLevel,englishLevel,hist
   if(!trial||!question||!plan||!prepared||lock.current||saving||saveError)return;
   if(picked.length!==question.tokens.length){setFeedbackError(true);setFeedback('Önce bütün İngilizce cümleyi tamamla.');return;}
   if(!checkLanternSentence(trial,chosenWords)){
-   const bad=question.tokens.findIndex((w,i)=>w!==chosenWords[i]);
+   const bad=firstSentenceMismatch(question.tokens,chosenWords);
    setWrongSlot(bad);wrong('Cümlenin '+(bad+1)+'. kelimesini incele. '+question.explanation);return;
   }
   lock.current=true;setLit(true);setFeedbackError(false);

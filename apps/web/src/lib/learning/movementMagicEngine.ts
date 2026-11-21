@@ -6,6 +6,7 @@
  * Saved with the EXISTING island_sentence_square_plaza / level 4 contract.
  */
 import type {EnglishPlacement} from './gradeAwareLearningPolicy.ts';
+import {decoysOutsideSentence,sentenceMatches} from './sentenceTokens.ts';
 import type {SentenceAnswerEvidence} from '@ventra/shared';
 import type {PlazaDeck,PlazaQuestion,PlazaSentenceKind,PlazaSceneEffect} from './sentencePlazaEngine.ts';
 
@@ -154,7 +155,7 @@ function fabricate(chapter:MagicChapter,actor:MagicActor,place:MagicPlace,colorI
   id,mission:4,skill:'action',englishLevel:level,kind,mode:chapter===3?'repair':chapter===2?'scene':'construct',
   cue:movementCueFor(chapter,actor,place,c.tr,level,grade,sentence),
   scene,sentence,tokens,
-  decoys:['are','is','can','running','sleeping','fly','jump','the'].filter(w=>!tokens.includes(w)).slice(0,2),
+  decoys:decoysOutsideSentence(['are','is','can','running','sleeping','fly','jump','the'],tokens).slice(0,2),
   explanation,
   vocabulary:[{en:data.verb,tr:data.actionTr},{en:actor,tr:data.tr},{en:loc.en,tr:loc.tr},
    {en:c.en,tr:c.tr}],
@@ -219,6 +220,5 @@ export function checkMagicRepair(trial:MovementTrial,index:number):boolean{
  return trial.chapter===3&&index===trial.errorIndex;
 }
 export function checkMagicSentence(trial:MovementTrial,words:readonly string[]):boolean{
- return trial.question.tokens.length===words.length&&
-  trial.question.tokens.every((w,i)=>w===words[i]);
+ return sentenceMatches(trial.question.tokens,words);
 }
