@@ -64,3 +64,20 @@ test('Story Forest replay cannot cancel a pending advance, and the helper is hid
  assert.ok(showFriend.length>0);
  assert.doesNotMatch(showFriend,/'friend'/,'helper must not be drawn during the find-the-helper question');
 });
+
+test('A2 sequence cause questions name the specific link, so only the target picture answers them',async()=>{
+ const {planSequenceStory,sequenceComprehensionPrompt}=await import('../src/lib/learning/storySequenceEngine.ts');
+ const generic=/Which earlier event helped make this ending possible/;
+ const prompts=new Set();
+ for(let episode=1;episode<=6;episode++)for(const gradeLevel of [null,2,6]){
+  const deck=planSequenceStory({episode,gradeLevel,englishLevel:'A2',seed:77,assessmentVersion:2});
+  const cause=deck.comprehensionChecks.find(c=>c.kind==='cause');
+  const prompt=sequenceComprehensionPrompt('cause','A2',episode);
+  assert.doesNotMatch(prompt,generic);
+  assert.match(prompt,/^At the end, .+\? *$/);
+  prompts.add(prompt);
+  const target=deck.frames.find(f=>f.id===cause.targetFrameId);
+  assert.ok(target,'target frame is in the deck');
+ }
+ assert.equal(prompts.size,6,'one authored cause question per story');
+});

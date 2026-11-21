@@ -215,7 +215,7 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
  function sayCheck(currentDeck:SequenceDeck,index:number){
   const challenge=currentDeck.comprehensionChecks?.[index];if(!challenge)return;
   soundService.unlockAudio();soundService.speakEnglish(
-   sequenceComprehensionPrompt(challenge.kind,englishLevel),
+   sequenceComprehensionPrompt(challenge.kind,englishLevel,currentDeck.episode),
    {rate:voiceRate,
     onError:()=>{if(alive.current)setVoiceUnavailable(true);}
    });
@@ -400,7 +400,7 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
     <strong>{activeCheck.kind==='next'?'Bir Sonraki Olay':
       activeCheck.kind==='cause'?'Neden Oldu?':'Nasıl Bitti?'}</strong>
    </div>
-   <StoryNarrationPanel text={sequenceComprehensionPrompt(activeCheck.kind,englishLevel)}
+   <StoryNarrationPanel text={sequenceComprehensionPrompt(activeCheck.kind,englishLevel,deck.episode)}
     showText={true} voiceUnavailable={false} promptOnly disabled={busy}
     onListen={()=>sayCheck(deck,checkIndex)}
     classes={{root:'ss-check-audio',listen:'ss-speak',body:'ss-check-body'}}/>

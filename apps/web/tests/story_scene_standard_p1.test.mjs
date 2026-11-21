@@ -35,7 +35,7 @@ test('Illustrated response choices remain governed by original engines and savin
  assert.match(sequence,/StorySequenceFrame frame=\{watchFrame\}/);
  assert.match(sequence,/selectFrame\(id\)/);
  assert.match(sequence,/selectCheck\(id\)/);
- assert.match(sequence,/sequenceComprehensionPrompt\(activeCheck.kind,englishLevel\)/);
+ assert.match(sequence,/sequenceComprehensionPrompt\(activeCheck.kind,englishLevel,deck\.episode\)/);
  assert.match(sequence,/saveSequenceStory/);
  assert.equal((sequence.match(/<StoryNarrationPanel/g)||[]).length,3);
  assert.equal((sequence.match(/<StorySceneGuide/g)||[]).length,3);

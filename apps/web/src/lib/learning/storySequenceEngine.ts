@@ -184,11 +184,25 @@ export function validateSequenceComprehension(
    answer.firstTryCorrect===(answer.mistakes===0&&!answer.hintUsed);
  });
 }
+/**
+ * A2 cause questions name the specific link to the ending, so exactly ONE
+ * pictured event answers them. The generic "which earlier event helped make
+ * this ending possible?" also fit the distractors (finding the apple, the
+ * hedgehog arriving…) and rejected defensible answers.
+ */
+const CAUSE_PROMPTS:Readonly<Record<ForestEpisode,string>>={
+ 1:'At the end, the friends share the apple under a tree. Which picture shows how the apple got to the tree?',
+ 2:'At the end, the kittens celebrate their surprise. Which picture shows who brought the shining star?',
+ 3:'At the end, the friends wave to the fish. Which picture shows the two friends finding the fish together?',
+ 4:'At the end, the rabbit enjoys the flowers. Which picture shows when the rabbit first saw the pink flowers?',
+ 5:'At the end, the rabbit and the fox watch the stars. Which picture shows why the fox came to the camp?',
+ 6:'At the end, the friends share a picnic. Which picture shows who brought the apple?'
+};
 export function sequenceComprehensionPrompt(kind:SequenceCheckKind,
- level:ForestPlacement):string{
+ level:ForestPlacement,episode?:ForestEpisode):string{
  if(kind==='next')return 'Listen and remember. What happened just after this scene?';
  if(kind==='cause')return level==='A2'?
-  'Look at the ending. Which earlier event helped make this ending possible?':
+  (episode?CAUSE_PROMPTS[episode]:'Look at the ending. Which earlier event helped make this ending possible?'):
   'Which event happened before the ending?';
  return 'Think about the previous event. Which picture shows the result at the end?';
 }
