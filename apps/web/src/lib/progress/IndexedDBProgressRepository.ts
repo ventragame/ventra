@@ -20,6 +20,7 @@ import type {
   RecordGameCompletedResult,
   CreateProfileInput
 } from './types.ts';
+import { buildLevelProgressMap, levelRecordPrefix } from './levelProgressMap.ts';
 
 const DB_NAME = 'VentraProgressDB';
 const DB_VERSION = 2; // Phase 3.4: v1 -> v2 (Oyuncu Profilleri desteği)
@@ -658,29 +659,11 @@ export class IndexedDBProgressRepository implements IProgressRepository {
   public async getAllLevelProgress(gameId = 'kesir_atolyesi', targetProfileId?: string): Promise<Record<number, LevelProgressRecord>> {
     const db = await this.getDB();
     const profileId = await this.ensureActiveProfileId(targetProfileId);
-    const result: Record<number, LevelProgressRecord> = {};
-
-    const maxLevel = gameId === 'island_language_academy_atlas' ? 6 : gameId === 'island_word_garden_temple' ? 25 : gameId === 'island_word_garden_family' ? 20 : gameId === 'island_word_garden_numbers' || gameId === 'island_word_garden_food' ? 15 : 10;
-    for (let i = 1; i <= maxLevel; i++) {
-      const key = `${profileId}:${gameId}:${i}`;
-      const rec = await this.getRecord<LevelProgressRecord>(db, 'levels', key);
-      if (rec) {
-        result[i] = rec;
-      } else {
-        result[i] = {
-          gameId,
-          levelId: i,
-          bestStars: 0,
-          bestScore: 0,
-          bestAccuracy: 0,
-          attemptsCount: 0,
-          completedCount: 0,
-          firstCompletedAt: '',
-          lastCompletedAt: ''
-        };
-      }
-    }
-    return result;
+    const prefix = levelRecordPrefix(profileId, gameId);
+    // One key-range read returns every stored level of this profile + game,
+    // including level IDs above the declared padding (Theme Town, Alphabet).
+    const stored = await this.getRecordsByKeyPrefix<LevelProgressRecord & { id: string }>(db, 'levels', prefix);
+    return buildLevelProgressMap(gameId, prefix, stored.map(record => [record.id, record] as const));
   }
 
   public async getActivityLog(limit = 20, targetProfileId?: string): Promise<ActivityLogEntry[]> {
@@ -992,6 +975,17 @@ export class IndexedDBProgressRepository implements IProgressRepository {
       const store = tx.objectStore(storeName);
       const index = store.index(indexName);
       const req = index.getAll(key);
+      req.onsuccess = () => resolve(req.result || []);
+      req.onerror = () => reject(req.error);
+    });
+  }
+
+  /** All records whose string primary key starts with `prefix` (single key-range read). */
+  private getRecordsByKeyPrefix<T>(db: IDBDatabase, storeName: string, prefix: string): Promise<T[]> {
+    return new Promise((resolve, reject) => {
+      const tx = db.transaction(storeName, 'readonly');
+      const store = tx.objectStore(storeName);
+      const req = store.getAll(IDBKeyRange.bound(prefix, prefix + '\uffff'));
       req.onsuccess = () => resolve(req.result || []);
       req.onerror = () => reject(req.error);
     });

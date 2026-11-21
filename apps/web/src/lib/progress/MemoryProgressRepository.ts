@@ -20,6 +20,7 @@ import type {
   RecordGameCompletedResult,
   CreateProfileInput
 } from './types.ts';
+import { buildLevelProgressMap, levelRecordPrefix } from './levelProgressMap.ts';
 
 interface StoredSession {
   sessionId: string;
@@ -468,29 +469,7 @@ export class MemoryProgressRepository implements IProgressRepository {
 
   public async getAllLevelProgress(gameId = 'kesir_atolyesi', targetProfileId?: string): Promise<Record<number, LevelProgressRecord>> {
     const profileId = await this.ensureActiveProfileId(targetProfileId);
-    const result: Record<number, LevelProgressRecord> = {};
-
-    const maxLevel = gameId === 'island_language_academy_atlas' ? 6 : gameId === 'island_word_garden_temple' ? 25 : gameId === 'island_word_garden_family' ? 20 : gameId === 'island_word_garden_numbers' || gameId === 'island_word_garden_food' ? 15 : 10;
-    for (let i = 1; i <= maxLevel; i++) {
-      const key = `${profileId}:${gameId}:${i}`;
-      const rec = this.levels.get(key);
-      if (rec) {
-        result[i] = rec;
-      } else {
-        result[i] = {
-          gameId,
-          levelId: i,
-          bestStars: 0,
-          bestScore: 0,
-          bestAccuracy: 0,
-          attemptsCount: 0,
-          completedCount: 0,
-          firstCompletedAt: '',
-          lastCompletedAt: ''
-        };
-      }
-    }
-    return result;
+    return buildLevelProgressMap(gameId, levelRecordPrefix(profileId, gameId), this.levels.entries());
   }
 
   public async getActivityLog(limit = 20, targetProfileId?: string): Promise<ActivityLogEntry[]> {
