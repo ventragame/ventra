@@ -68,6 +68,12 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
  const saving=useRef(false);
  const alive=useRef(true);
  const timer=useRef<ReturnType<typeof setTimeout>|null>(null);
+ /**
+  * Mistakes and hints made before "↻ Dinle" restarts the watch phase.
+  * Re-listening is a supported scaffold, but it must not erase evidence:
+  * a slot that was missed or hinted once is never re-saved as independent.
+  */
+ const carried=useRef<Record<number,{mistakes:number;hint:boolean}>>({});
  // Gentle speaking-speed changes preserve natural prosody rather than
  // stretching short beginner words into synthetic slow motion.
  const voiceRate=Math.max(.87,Math.min(1.02,
@@ -110,7 +116,7 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
   const next=planSequenceStory({episode:id,gradeLevel,englishLevel,seed,assessmentVersion:2});
   sessionId.current='seq:'+profileId+':'+id+':'+Date.now()+':'+Math.random().toString(36).slice(2);
   startedAt.current=Date.now();
-  locked.current=false;saving.current=false;
+  locked.current=false;saving.current=false;carried.current={};
   setEpisode(id);setDeck(next);setWatchIndex(0);setSlot(0);
   setSelectedIds([]);setAnswers([]);setChecks([]);setCheckIndex(0);
   setCheckMistakes(0);setCheckHint(false);setCheckWrong(null);
@@ -158,6 +164,15 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
  function restartWatch(){
   if(!deck||busy)return;
   // Listening again is a supported comprehension scaffold, not a reward.
+  // Saved slot answers already include earlier carried evidence.
+  for(const answer of answers){
+   if(answer.mistakes>0||answer.hintUsed)
+    carried.current[answer.slot]={mistakes:answer.mistakes,hint:answer.hintUsed};
+  }
+  if(page==='order'&&!answers.some(answer=>answer.slot===slot)&&(mistakes>0||hintUsed)){
+   const prior=carried.current[slot]??{mistakes:0,hint:false};
+   carried.current[slot]={mistakes:prior.mistakes+mistakes,hint:prior.hint||hintUsed};
+  }
   clearNext();soundService.cancelSpeech();locked.current=false;
   setWatchIndex(0);setSlot(0);setSelectedIds([]);setAnswers([]);
   setMistakes(0);setHintUsed(false);setHintFrame(null);setWrongId(null);
@@ -176,8 +191,11 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
   locked.current=true;
   setWrongId(null);setHintFrame(null);setMessage('');
   soundService.playSfx('correct',.78);
+  const prior=carried.current[slot];
+  const slotMistakes=mistakes+(prior?.mistakes??0),slotHint=hintUsed||Boolean(prior?.hint);
   const answer:SequenceAnswer={
-   frameId:id,slot,mistakes,hintUsed,firstTryCorrect:mistakes===0&&!hintUsed,
+   frameId:id,slot,mistakes:slotMistakes,hintUsed:slotHint,
+   firstTryCorrect:slotMistakes===0&&!slotHint,
    placement:englishLevel,timestamp:new Date().toISOString()
   };
   const completed=[...answers,answer],ordered=[...selectedIds,id];

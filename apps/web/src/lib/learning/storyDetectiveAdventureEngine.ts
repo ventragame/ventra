@@ -113,6 +113,10 @@ export const DETECTIVE_THEME_NAMES:Record<DetectiveStoryTheme,string>={
 function article(name:string):string{
  return /^[aeiou]/i.test(name)?'an ':'a ';
 }
+/** Sentence-initial article: English captions must start with a capital letter. */
+function capitalArticle(name:string):string{
+ return /^[aeiou]/i.test(name)?'An ':'A ';
+}
 function shuffle<T>(src:readonly T[],seed:number):T[]{
  const out=[...src];let state=seed>>>0;
  for(let i=out.length-1;i>0;i--){
@@ -129,10 +133,13 @@ const colorNames:readonly DetectiveAdventurePlan['palette'][]=[
  'sunny','twilight','golden','misty'
 ];
 function cluePairs(first:DetectiveClueId,second:DetectiveClueId,
- mode:'sequence'|'evidence',seed:number):readonly string[]{
+ mode:'sequence'|'evidence',seed:number,
+ destinationClues:readonly DetectiveClueId[]=[]):readonly string[]{
  const separator=mode==='sequence'?'>':'+';
+ // Every clue of the real destination is valid evidence for it, so none of
+ // them may be used to build a "wrong" pair (e.g. fish+water for the pond).
  const distractor=shuffle(ALL_CLUES.filter(id=>
-  id!==first&&id!==second),seed+47)[0];
+  id!==first&&id!==second&&!destinationClues.includes(id)),seed+47)[0];
  const target=first+separator+second;
  // For sequence, reversing the same correct clues tests temporal order.
  // For evidence, the wrong pairs contain one incorrect clue.
@@ -193,7 +200,7 @@ export function planDetectiveAdventure(input:{
   const first=base.requiredClues[0],second=base.requiredClues[1];
   const target=first+'>'+second;
   add('sequence','chosenWaypoint',target,[target],
-   cluePairs(first,second,'sequence',seed+52));
+   cluePairs(first,second,'sequence',seed+52,base.chosen.clueIds));
  }
  if(base.requiredClues.length===3){
   add('clue','chosenWaypoint',base.requiredClues[2],[base.requiredClues[2]],
@@ -207,7 +214,7 @@ export function planDetectiveAdventure(input:{
   const first=base.requiredClues[0],second=base.requiredClues[1];
   const target=first+'+'+second;
   add('evidence','chosenWaypoint',target,[target],
-   cluePairs(first,second,'evidence',seed+63));
+   cluePairs(first,second,'evidence',seed+63,base.chosen.clueIds));
  }
  add('destination','chosenWaypoint',base.chosen.destination,
   [base.chosen.destination],
@@ -236,22 +243,22 @@ function introForTheme(plan:DetectiveAdventurePlan):Record<ForestPlacement,strin
   f=ANIMAL_EN[plan.setup.friend]??'friend',item=ITEM_EN[plan.setup.item];
  const here=SCENE_EN[plan.startScene];
  if(plan.setup.theme==='lost')return {
-  'Pre-A1':'Oh no! '+article(h)+h+' lost '+article(item)+item+'. Help!',
+  'Pre-A1':'Oh no! '+capitalArticle(h)+h+' lost '+article(item)+item+'. Help!',
   A1:'At the '+here+', '+article(h)+h+' loses '+article(item)+item+
    '. Can you and '+article(f)+f+' find it?',
   A2:'During a walk by the '+here+', '+article(h)+h+
    ' notices that '+article(item)+item+' has disappeared. Follow the clues with '+article(f)+f+'.'
  };
  if(plan.setup.theme==='surprise')return {
-  'Pre-A1':'A surprise! '+article(item)+item+' is missing. Help '+article(h)+h+'!',
+  'Pre-A1':'A surprise! '+capitalArticle(item)+item+' is missing. Help '+article(h)+h+'!',
   A1:'The friends are planning a surprise at the '+here+
    '. But the '+item+' has gone missing. Can we find it?',
-  A2:'A special celebration is coming. '+article(h)+h+
+  A2:'A special celebration is coming. '+capitalArticle(h)+h+
    ' needs the '+item+' for a surprise, but no one knows where it is. Let us investigate.'
  };
  if(plan.setup.theme==='delivery')return {
   'Pre-A1':'A gift for a friend! Where is the '+item+'? Let us look!',
-  A1:article(h)+h+' wants to take '+article(item)+item+
+  A1:capitalArticle(h)+h+' wants to take '+article(item)+item+
    ' to a friend. The gift is not in the bag. Let us follow the clues!',
   A2:'The forest friends have an important delivery to make. But when '+
    article(h)+h+' opens the bag, the '+item+' is gone. Can you trace the delivery route?'
@@ -260,7 +267,7 @@ function introForTheme(plan:DetectiveAdventurePlan):Record<ForestPlacement,strin
   'Pre-A1':'A secret treasure! Find the '+item+'. Ready?',
   A1:'A mystery map shows '+article(item)+item+
    ' hidden somewhere in the forest. Let us follow the clues.',
-  A2:article(h)+h+' finds a mysterious treasure map near the '+here+
+  A2:capitalArticle(h)+h+' finds a mysterious treasure map near the '+here+
    '. A special '+item+' is hidden in the forest. Which clues will lead to it?'
  };
 }

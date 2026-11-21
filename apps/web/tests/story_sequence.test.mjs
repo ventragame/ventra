@@ -127,7 +127,11 @@ test('Picture-first UX has native readable fallback, no manual next button in or
  assert.match(ui,/setShowCaption\(true\)/);
  assert.match(ui,/setSelectedIds\(ordered\)/);
  assert.match(ui,/saveSequenceStory/);
- assert.match(ui,/firstTryCorrect:mistakes===0&&!hintUsed/);
+ assert.match(ui,/firstTryCorrect:slotMistakes===0&&!slotHint/);
+ // "↻ Dinle" restarts the watch phase but must carry earlier mistakes/hints per slot.
+ assert.match(ui,/const carried=useRef<Record<number,\{mistakes:number;hint:boolean\}>>\(\{\}\)/);
+ assert.match(ui,/slotMistakes=mistakes\+\(prior\?\.mistakes\?\?0\),slotHint=hintUsed\|\|Boolean\(prior\?\.hint\)/);
+ assert.match(ui,/carried\.current=\{\};/);
  assert.match(ui,/if\(id!==expected\.id\)/);
  assert.match(ui,/ss-card/);
  assert.match(ui,/ss-slots/);

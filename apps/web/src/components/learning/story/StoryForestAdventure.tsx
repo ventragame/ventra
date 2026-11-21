@@ -65,7 +65,9 @@ function StoryScene({plan,phase,location}:{
  const rabbitMotion=phase==='ending'||phase==='result'?'cheer':
   phase==='opening'||phase==='meet'?'listen':
   phase==='discover'?'search':'idle';
- const showFriend=['meet','choose','result','friend','place','consequence','ending'].includes(phase);
+ // The 'friend' recall question asks the child to find the helper, so the helper
+ // must not be standing in the scene above the answer cards.
+ const showFriend=['meet','choose','result','place','consequence','ending'].includes(phase);
  // A lost object must not be visible in the opening scene.
  const objectRecovered=phase==='result'||phase==='ending';
  // Group actors so their bounding boxes cannot overlap on narrow devices.
@@ -293,7 +295,9 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
   soundService.playSfx('tap',.42);
  }
  function replay(){
-  if(!plan||busy)return;
+  // While a correct answer is advancing (actionLock), replaying would cancel the
+  // advance timer and leave every choice disabled with no way forward.
+  if(!plan||busy||actionLock.current)return;
   clearTimer();enterPhase(plan,phaseRef.current,destination);
  }
  const active=FOREST_EPISODES[episode-1];
@@ -355,7 +359,7 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
       trigger={phase==='ending'?'story-ending':correct?'story-'+phase: null}
       className="sj-feedback-motion"/>
      <StoryNarrationPanel text={narrativeFor(plan,phase,destination??undefined)}
-      showText={caption} voiceUnavailable={voiceUnavailable} disabled={busy}
+      showText={caption} voiceUnavailable={voiceUnavailable} disabled={busy||actionLock.current}
       onListen={replay} onToggleText={()=>setCaption(v=>!v)}
       classes={{root:'sj-caption',listen:'sj-speak',body:'sj-spoken',
        waves:'sj-waves',toggle:'sj-text'}}/>

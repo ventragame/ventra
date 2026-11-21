@@ -109,7 +109,9 @@ export function planJourneyStory(input:{
   const grade=input.gradeLevel;
   const numberOfPlaces=grade!==null&&grade<=2?2:
    grade!==null&&grade<=4?3:4;
-  const extra=shuffle(all.filter(x=>!route.destinations.some(d=>d.scene===x)),
+  // The starting scene is also a place the friends "visited" and is the
+  // backdrop during this check, so it can never be an extra (wrong) choice.
+  const extra=shuffle(all.filter(x=>x!==route.scene&&!route.destinations.some(d=>d.scene===x)),
    seed+343).slice(0,numberOfPlaces-2);
   const choices=shuffle([...route.destinations.map(x=>x.scene),...extra],seed+401);
   const consequenceCount=grade!==null&&grade<=2?2:
