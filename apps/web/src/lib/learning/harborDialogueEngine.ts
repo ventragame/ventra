@@ -2,6 +2,7 @@ export type HarborLevel='Pre-A1'|'A1'|'A2';
 export type HarborPrompt={line:string;reply:string;choices:readonly [string,string,string];accept:readonly string[];illustration:string};
 export type HarborEpisode={id:number;title:string;subtitle:string;icon:string;prompts:Record<HarborLevel,readonly HarborPrompt[]>};
 const phrase=(line:string,reply:string,choices:readonly [string,string,string],accept:readonly string[],illustration:string):HarborPrompt=>({line,reply,choices,accept,illustration});
+import {canonicalEnglishAnswer} from './englishAnswerText.ts';
 export const HARBOR_GAME_ID='island_speaking_harbor_dialogue' as const;
 export const HARBOR_EPISODES:readonly HarborEpisode[]=[
  {id:1,title:'Merhaba, Kaptan!',subtitle:'Tanışma ve selamlaşma',icon:'👋',prompts:{
@@ -70,9 +71,9 @@ export const HARBOR_EPISODES:readonly HarborEpisode[]=[
    phrase('What did you enjoy most today?', 'I enjoyed helping the crew.', ['I enjoyed helping the crew.','I will go to school.','I have a blue hat.'],['i enjoyed helping the crew'],'🎊'),
    phrase('Would you like to sail with us tomorrow?', 'That sounds wonderful. See you tomorrow!', ['That sounds wonderful. See you tomorrow!','I am eating breakfast.','The table is small.'],['that sounds wonderful see you tomorrow','see you tomorrow'],'⛵')]}}
 ] as const;
+/** Contractions, digits, case and punctuation are not speaking errors (see englishAnswerText). */
 export function normalizeSpeech(text:string):string{
- return text.toLocaleLowerCase('en-US').normalize('NFKD').replace(/[\u0300-\u036f]/g,'')
-  .replace(/['’]/g,'').replace(/[^a-z0-9 ]+/g,' ').replace(/\s+/g,' ').trim();
+ return canonicalEnglishAnswer(text);
 }
 export function matchesExpectedSpeech(alternatives:readonly string[],expected:readonly string[]):boolean{
  return alternatives.some(actual=>{

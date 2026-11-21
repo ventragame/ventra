@@ -7,6 +7,7 @@
 export type AcademyLevel = 'Pre-A1' | 'A1' | 'A2';
 export type AcademyKind = 'hear' | 'read' | 'talk' | 'build' | 'write';
 export type AcademySkill = 'listening' | 'reading' | 'dialogue' | 'sentence' | 'writing';
+import {sameEnglishAnswer} from './englishAnswerText.ts';
 export const ACADEMY_GAME_ID = 'island_language_academy_atlas' as const;
 export const ACADEMY_REVIEW_GAME_ID = 'island_language_academy_review' as const;
 export const ACADEMY_ZONE_COUNT = 6;
@@ -75,9 +76,8 @@ export type AcademyAnswer = {
   independentlyCompleted:boolean;speechVerified:boolean;timestamp:string;
 };
 export function matchesAcademyAnswer(answer:string,expected:string):boolean{
-  const clean=(v:string)=>v.normalize('NFKC').toLocaleLowerCase('en-US')
-    .replace(/[’‘]/g,"'").replace(/[.,!?;:]+/g,'').replace(/\s+/g,' ').trim();
-  return clean(answer)===clean(expected);
+  // Case, punctuation, contractions and Turkish-keyboard ı/İ are not English errors.
+  return sameEnglishAnswer(answer,expected);
 }
 export function isAcademyTaskAnswerCorrect(task:AcademyTask,answer:string):boolean{
   return [task.answer,...(task.accepted??[])].some(expected=>matchesAcademyAnswer(answer,expected));

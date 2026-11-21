@@ -5,8 +5,8 @@
 import type {WorkshopMode,WorkshopTask} from './writingWorkshopEngine.ts';
 type SeedTask=Omit<WorkshopTask,'id'>;
 type BonusChapter=Readonly<Record<'Pre-A1'|'A1'|'A2',readonly SeedTask[]>>;
-const x=(mode:WorkshopMode,promptTr:string,target:string,icon:string):SeedTask=>
- ({mode,promptTr,target,icon,accepted:[]});
+const x=(mode:WorkshopMode,promptTr:string,target:string,icon:string,accepted:readonly string[]=[]):SeedTask=>
+ ({mode,promptTr,target,icon,accepted});
 export const WORKSHOP_BONUS_CHAPTERS:readonly BonusChapter[]=[
  {
   'Pre-A1':[
@@ -19,7 +19,7 @@ export const WORKSHOP_BONUS_CHAPTERS:readonly BonusChapter[]=[
    x('write','Bir kalemin İngilizce adını kendin yaz.','pen','🖊️'),
    x('write','Bir kalemin olduğunu tam cümleyle yaz.','I have a pen.','✍️'),
    x('write','Bir kitabın İngilizce adını yaz.','book','📖'),
-   x('write','Bir arkadaşına İngilizce merhaba yaz.','hello','👋')
+   x('write','Bir arkadaşına İngilizce merhaba yaz.','hello','👋',['hi'])
   ],
   A1:[
    x('spell','Posta pulunun İngilizcesini harflerle oluştur.','stamp','📮'),
@@ -57,7 +57,7 @@ export const WORKSHOP_BONUS_CHAPTERS:readonly BonusChapter[]=[
    x('write','Arkadaş kelimesinin İngilizcesini yaz.','friend','🧑‍🤝‍🧑'),
    x('write','Arkadaşına nazik olduğunu söyleyen İngilizce cümleyi yaz.','You are kind.','💛'),
    x('write','Arkadaşını sevdiğini İngilizce cümleyle yaz.','I like my friend.','🧸'),
-   x('write','Birlikte oynadığınızı İngilizce yaz.','We play.','🎲')
+   x('write','Birlikte oynadığınızı İngilizce yaz.','We play.','🎲',['We play together.'])
   ],
   A1:[
    x('spell','Birlikte sözcüğünü İngilizce harflerle oluştur.','together','🎈'),
@@ -133,7 +133,7 @@ export const WORKSHOP_BONUS_CHAPTERS:readonly BonusChapter[]=[
    x('write','Deniz sözcüğünü İngilizce yaz.','sea','🌊'),
    x('write','Tekne sözcüğünü İngilizce yaz.','boat','⛵'),
    x('write','Balık kelimesini İngilizce yaz.','fish','🐟'),
-   x('write','Kaptana İngilizce selam yaz.','Hello captain!','⚓')
+   x('write','Kaptana İngilizce selam yaz.','Hello captain!','⚓',['Hi captain!'])
   ],
   A1:[
    x('spell','Denizci sözcüğünün İngilizcesini oluştur.','sailor','🧑‍✈️'),

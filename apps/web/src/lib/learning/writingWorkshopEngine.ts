@@ -5,6 +5,7 @@
  */
 import {WORKSHOP_BONUS_CHAPTERS} from './writingWorkshopExpansion.ts';
 import {WORKSHOP_EXTENDED_CHAPTERS} from './writingWorkshopExtended.ts';
+import {foldTurkishKeyboardLetters,sameEnglishAnswer} from './englishAnswerText.ts';
 export type WorkshopLevel='Pre-A1'|'A1'|'A2';
 export type WorkshopMode='spell'|'assemble'|'write';
 export type WorkshopTask={
@@ -35,35 +36,35 @@ const catalog:readonly RawChapter[]=[
   a1:[
    q('spell','Postanede bir mektup var. İngilizcesini oluştur.','letter','✉️'),
    q('assemble','Mektubu yazdığını anlat.','I write a letter.','📝'),
-   q('write','Bir kediyi gördüğünü İngilizce yaz.','I see a cat.','🐈'),
+   q('write','İngilizce yaz: “Bir kedi görüyorum.”','I see a cat.','🐈',['I can see a cat.']),
    q('assemble','Arkadaşına haber vermek için cümle kur.','My letter is ready.','💌'),
-   q('write','Kısa bir mektup yazdığını İngilizce anlat.','I write a short letter.','✉️')],
+   q('write','İngilizce yaz: “Kısa bir mektup yazarım.”','I write a short letter.','✉️',['I am writing a short letter.'])],
   a2:[
    q('spell','Bir ileti için İngilizce kelime oluştur.','message','💬'),
    q('assemble','Arkadaşına mesaj yazdığını anlat.','I am writing a message for my friend.','💌'),
-   q('write','Arkadaşına mesaj yazıyorsun. Tam cümle yaz.','I am writing a message for my friend.','✉️'),
+   q('write','İngilizce yaz: “Arkadaşım için bir mesaj yazıyorum.”','I am writing a message for my friend.','✉️',['I am writing a message to my friend.']),
    q('assemble','Arkadaşın üzgün olduğu için ona yazdın.','I wrote a message because my friend was sad.','💗'),
-   q('write','İki cümlelik küçük bir not oluştur.','I wrote a short message. It made my friend happy.','📮')]
+   q('write','İki cümleyi İngilizce yaz: “Kısa bir mesaj yazdım. Arkadaşımı mutlu etti.”','I wrote a short message. It made my friend happy.','📮')]
  },
  {title:'Dostluk Defteri',subtitle:'Arkadaşlar hakkında yaz',icon:'🐻',color:'#b7d9ff',
   pre:[
    q('spell','Arkadaşının kedisinin İngilizce adını kur.','cat','🐱'),
    q('assemble','Arkadaşını selamla.','Hello my friend!','👋'),
-   q('write','Bir arkadaşın için İngilizce selam yaz.','hello','👋'),
+   q('write','Bir arkadaşın için İngilizce selam yaz.','hello','👋',['hi','hello friend','hi friend']),
    q('assemble','Arkadaş olduğunu söyle.','We are friends.','🐻'),
    q('spell','Arkadaş kelimesini İngilizce oluştur.','friend','🧸')],
   a1:[
    q('spell','Dostluk defterine arkadaş sözcüğünü yaz.','friend','🤝'),
    q('assemble','Arkadaşının nazik olduğunu söyle.','My friend is kind.','🧸'),
-   q('write','Arkadaşın için kısa bir mesaj yaz.','You are my friend.','💌'),
+   q('write','Arkadaşına İngilizce yaz: “Sen benim arkadaşımsın.”','You are my friend.','💌'),
    q('assemble','Birlikte oynadığınızı anlat.','We play in the park.','🌳'),
-   q('write','Arkadaşını anlatan kısa cümleyi yaz.','My friend likes music.','🎶')],
+   q('write','İngilizce yaz: “Arkadaşım müziği sever.”','My friend likes music.','🎶')],
   a2:[
    q('spell','İngilizce destek kelimesini oluştur.','support','🤗'),
    q('assemble','Arkadaşının neden özel olduğunu açıkla.','My friend is special because she is kind.','💛'),
-   q('write','Bir dostluk cümlesi yaz.','We help each other when we feel sad.','🤝'),
+   q('write','İngilizce yaz: “Üzgün olduğumuzda birbirimize yardım ederiz.”','We help each other when we feel sad.','🤝',['When we feel sad, we help each other.']),
    q('assemble','Dün arkadaşına yardım ettin.','Yesterday I helped my friend with a project.','🎨'),
-   q('write','İki cümleyle dostluğun değerini yaz.','My friend is always kind. We enjoy learning together.','📖')]
+   q('write','İki cümleyi İngilizce yaz: “Arkadaşım her zaman naziktir. Birlikte öğrenmekten keyif alırız.”','My friend is always kind. We enjoy learning together.','📖')]
  },
  {title:'Renkli Kartpostallar',subtitle:'Nesne ve yer tarifleri',icon:'🎨',color:'#f4b4d3',
   pre:[
@@ -75,15 +76,15 @@ const catalog:readonly RawChapter[]=[
   a1:[
    q('spell','Güzel bir manzarayı anlatan sözcüğü kur.','beautiful','🌈'),
    q('assemble','Parktaki yeşil ağacı anlat.','There is a green tree.','🌳'),
-   q('write','Küçük mavi kuşu tarif et.','The small bird is blue.','🐦'),
+   q('write','İngilizce yaz: “Küçük kuş mavi.”','The small bird is blue.','🐦',['The little bird is blue.']),
    q('assemble','Güneşin gökyüzündeki yerini anlat.','The sun is above the trees.','☀️'),
-   q('write','Kartpostalına bir yer cümlesi yaz.','I can see a beautiful garden.','🌸')],
+   q('write','Kartpostalına İngilizce yaz: “Güzel bir bahçe görebiliyorum.”','I can see a beautiful garden.','🌸',['I see a beautiful garden.'])],
   a2:[
    q('spell','Manzara için İngilizce sözcük oluştur.','landscape','🌄'),
    q('assemble','Manzarayı ve neden sevdiğini anlat.','I like this garden because it is peaceful.','🌿'),
-   q('write','Gördüğün renkli kuşu tam cümleyle anlat.','A colorful bird is sitting in the tree.','🐦'),
+   q('write','İngilizce yaz: “Renkli bir kuş ağaçta oturuyor.”','A colorful bird is sitting in the tree.','🐦',['A colourful bird is sitting in the tree.']),
    q('assemble','İki bilgiyi because ile birleştir.','I stayed outside because the weather was lovely.','🌤️'),
-   q('write','İki cümlelik kartpostal yaz.','The garden is full of flowers. I love the bright colors.','🌺')]
+   q('write','İki cümleyi İngilizce yaz: “Bahçe çiçeklerle dolu. Parlak renkleri çok seviyorum.”','The garden is full of flowers. I love the bright colors.','🌺',['The garden is full of flowers. I love the bright colours.'])]
  },
  {title:'Liman Mektupları',subtitle:'Yolculuk ve kısa mesajlar',icon:'⛵',color:'#90e2db',
   pre:[
@@ -95,15 +96,15 @@ const catalog:readonly RawChapter[]=[
   a1:[
    q('spell','Liman kelimesini İngilizce kur.','harbor','⚓'),
    q('assemble','Bugün teknede olduğunu anlat.','I am on a boat today.','⛵'),
-   q('write','Arkadaşına limandan kısa bir mesaj yaz.','I am at the harbor.','💌'),
+   q('write','Arkadaşına İngilizce yaz: “Limandayım.”','I am at the harbor.','💌',['I am at the harbour.']),
    q('assemble','Yolculuğun keyifli olduğunu anlat.','The boat trip is fun.','🌊'),
-   q('write','Bir sonraki yolculuğunu anlat.','I want to visit the island.','🏝️')],
+   q('write','İngilizce yaz: “Adayı ziyaret etmek istiyorum.”','I want to visit the island.','🏝️')],
   a2:[
    q('spell','Yolculuk kelimesini İngilizce oluştur.','journey','🧭'),
    q('assemble','Dün limana gittiğini anlat.','Yesterday we visited the busy harbor.','⚓'),
-   q('write','Bir seyahatten İngilizce haber ver.','We sailed to a beautiful island yesterday.','⛵'),
+   q('write','İngilizce yaz: “Dün güzel bir adaya yelken açtık.”','We sailed to a beautiful island yesterday.','⛵',['Yesterday we sailed to a beautiful island.']),
    q('assemble','İki olayı sırayla anlat.','First we boarded the boat and then we sailed.','🚢'),
-   q('write','Kısa bir seyahat notu oluştur.','Yesterday we sailed across the sea. Then we explored the island.','🏝️')]
+   q('write','İki cümleyi İngilizce yaz: “Dün denizi yelkenle geçtik. Sonra adayı keşfettik.”','Yesterday we sailed across the sea. Then we explored the island.','🏝️')]
  },
  {title:'Küçük Hikâye Kitabı',subtitle:'Anlamlı cümlelerden küçük hikâyeye',icon:'📚',color:'#d0b8ff',
   pre:[
@@ -115,15 +116,15 @@ const catalog:readonly RawChapter[]=[
   a1:[
    q('spell','Hikâye kelimesini İngilizce oluştur.','story','📖'),
    q('assemble','Bir zamanlar küçük kedi vardı.','There was a little cat.','🐈'),
-   q('write','Hikâyenin ilk cümlesini yaz.','One day a bird found a key.','🐦'),
+   q('write','Hikâyenin ilk cümlesini İngilizce yaz: “Bir gün bir kuş bir anahtar buldu.”','One day a bird found a key.','🐦'),
    q('assemble','Sonra kuş arkadaşını çağırdı.','Then the bird called a friend.','🗝️'),
-   q('write','Hikâyeye mutlu bir bitiş yaz.','They were happy together.','💛')],
+   q('write','Mutlu sonu İngilizce yaz: “Birlikte mutluydular.”','They were happy together.','💛')],
   a2:[
    q('spell','Macerayı anlatan İngilizce kelimeyi kur.','adventure','🌟'),
    q('assemble','Olayın başladığını geçmiş zamanda anlat.','One morning the little fox found a secret map.','🦊'),
-   q('write','Hikâyenin başlangıcını tam cümleyle yaz.','A small rabbit discovered a golden key in the garden.','🐇'),
+   q('write','İngilizce yaz: “Küçük bir tavşan bahçede altın bir anahtar keşfetti.”','A small rabbit discovered a golden key in the garden.','🐇',['A little rabbit discovered a golden key in the garden.']),
    q('assemble','Olayın nedenini ve sonucunu bağla.','The rabbit followed the map because she was curious.','🗺️'),
-   q('write','İki cümlelik hikâye sonu yaz.','Finally the friends found the treasure. They celebrated together.','🏆')]
+   q('write','İki cümleyi İngilizce yaz: “Sonunda arkadaşlar hazineyi buldu. Birlikte kutladılar.”','Finally the friends found the treasure. They celebrated together.','🏆')]
  }
 ];
 export const WORKSHOP_CHAPTERS:readonly WorkshopChapter[]=catalog.map((item,index)=>({
@@ -213,7 +214,8 @@ export function getWorkshopTasks(
  });
 }
 export function normalizeWorkshopAnswer(text:string):string{
- return text.toLocaleLowerCase('en-US').normalize('NFKC')
+ // Turkish Q keyboards type ı/İ for the English I key; never delete those letters.
+ return foldTurkishKeyboardLetters(text).toLocaleLowerCase('en-US').normalize('NFKC')
   .replace(/[’‘]/g,"'").replace(/[^a-z0-9\s']/g,'')
   .replace(/\s+/g,' ').trim();
 }
@@ -221,9 +223,9 @@ export function normalizeWorkshopAnswer(text:string):string{
  * Creative, non-template text is presented as practice, never auto-scored.
  */
 export function isWorkshopAnswerCorrect(task:WorkshopTask,response:string):boolean{
- const actual=normalizeWorkshopAnswer(response);
- if(!actual)return false;
- return [task.target,...task.accepted].some(v=>normalizeWorkshopAnswer(v)===actual);
+ if(!normalizeWorkshopAnswer(response))return false;
+ // Same words, ignoring contractions ("I'm" = "I am") and the Turkish keyboard's ı/İ.
+ return [task.target,...task.accepted].some(v=>sameEnglishAnswer(response,v));
 }
 export function workshopTiles(task:WorkshopTask,seed:number):readonly {key:number;value:string}[]{
  if(task.mode==='write')return [];
