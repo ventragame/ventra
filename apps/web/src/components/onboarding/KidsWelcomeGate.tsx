@@ -84,7 +84,7 @@ export function KidsWelcomeGate({ onCreateProfile, onOpenParent, existingProfile
           <p className="mx-auto mt-3 max-w-lg text-sm leading-relaxed text-sky-100/85 sm:text-base">
             {screen === 'choose' ? (existingProfile ? `${existingProfile.nickname}, yıldızların, avatarın ve görevlerin korunacak. Dilediğin zaman oyun yolunu değiştirebilirsin.` : 'İngilizce öğrenirken adalarını canlandır, yeni görevler keşfet. Başlamak için bir yol seç.') :
              screen === 'individual' ? 'Gerçek adını yazmana gerek yok. Takma ad ve ücretsiz bir avatar yeterli.' :
-             screen === 'family' ? 'Ebeveyn hesabıyla bulut yedekleme ayarlarına eriş. Ailece aynı anda oyun modu henüz yok.' :
+             screen === 'family' ? 'Çocuğunuzun İngilizce karnesini görün; isterseniz ilerlemesini aile hesabınıza yedekleyin.' :
              'Okul sınıfları ve veli davet kodları yetişkin hesabı ile yönetilir.'}
           </p>
         </div>
@@ -155,7 +155,7 @@ export function KidsWelcomeGate({ onCreateProfile, onOpenParent, existingProfile
               </label>
             </div>
             <p className="mt-3 flex items-start gap-2 text-xs leading-relaxed text-slate-300"><BookOpen size={16} className="mt-0.5 shrink-0" /> Bu seçim seviye sınavı değildir; oyunlar sana göre gelişirken değiştirilebilir.</p>
-            <p className="mt-3 flex items-start gap-2 text-xs leading-relaxed text-amber-100/85"><CloudOff size={16} className="mt-0.5 shrink-0" /> Bireysel ilerleme bu cihazda saklanır. Tarayıcı verilerini temizlersen kaybolabilir; aile hesabına bağlama sonraki aşamada geliştirilecek.</p>
+            <p className="mt-3 flex items-start gap-2 text-xs leading-relaxed text-amber-100/85"><CloudOff size={16} className="mt-0.5 shrink-0" /> İlerleme bu cihazda saklanır; tarayıcı verileri temizlenirse kaybolabilir. Bir yetişkin, Aile Paneli'nden ilerlemeyi aile hesabına yedekleyebilir.</p>
             {error && <p role="alert" className="mt-4 rounded-xl border border-rose-400/50 bg-rose-950/70 px-4 py-3 text-sm text-rose-100">{error}</p>}
             <button type="submit" disabled={isSaving} className="mt-6 flex min-h-14 w-full items-center justify-center gap-3 rounded-2xl bg-gradient-to-r from-lime-300 to-emerald-300 px-6 text-base font-black text-emerald-950 shadow-lg shadow-emerald-800/40 transition hover:brightness-110 disabled:opacity-60">
               {isSaving ? 'Kaşifin kaydediliyor…' : 'Macera Evrenine Gir'} <ArrowRight size={20} />
@@ -168,18 +168,21 @@ export function KidsWelcomeGate({ onCreateProfile, onOpenParent, existingProfile
             <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-sky-400/15 text-sky-200">
               {screen === 'family' ? <ShieldCheck size={34} /> : <GraduationCap size={34} />}
             </div>
-            <h2 className="mt-5 text-xl font-extrabold">{screen === 'family' ? 'Ebeveyn alanı mevcut' : 'Okul ve sınıf yönetimi'}</h2>
+            <h2 className="mt-5 text-xl font-extrabold">{screen === 'family' ? 'Aile Paneli' : 'Okul ve sınıf yönetimi'}</h2>
             <p className="mt-3 text-sm leading-relaxed text-slate-300">
               {screen === 'family'
-                ? 'Yetişkin hesabı ve mevcut bulut eşitleme araçları açılabilir. Yeni cihazda aynı profilden kesintisiz devam etme ve profil bağlama işlemleri henüz doğrulanmadı; P2 kapsamında tamamlanacak.'
+                ? 'Hangi İngilizce kelimeleri keşfettiğini, neleri tekrar etmesi gerektiğini ve hangi adalarda ilerlediğini tek sayfada görün. Panel ebeveyn doğrulamasıyla açılır.'
                 : 'Öğretmenler sınıf oluşturabilir; ebeveynler davet koduyla mevcut çocuk profillerini okula bağlayabilir. Bulut hesabı gerekir.'}
             </p>
             <div className="mt-6 flex flex-col gap-3">
-              {screen === 'family' && (
-                <button onClick={onOpenParent} className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-sky-400 px-5 font-extrabold text-slate-950">
-                  <ShieldCheck size={18} /> Ebeveyn Alanını Aç
+              {screen === 'family' && (<>
+                <Link href="/progress" className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-sky-400 px-5 font-extrabold text-slate-950">
+                  <ShieldCheck size={18} /> Aile Paneli'ni Aç <ArrowRight size={18} />
+                </Link>
+                <button onClick={onOpenParent} className="flex min-h-12 items-center justify-center gap-2 rounded-xl border border-sky-300/40 bg-sky-900/40 px-5 text-sm font-bold text-sky-50 hover:bg-sky-800/50">
+                  ☁️ Yedekleme ve hesap
                 </button>
-              )}
+              </>)}
               {screen === 'school' && (
                 <Link href="/school" className="flex min-h-12 items-center justify-center gap-2 rounded-xl bg-violet-300 px-5 font-extrabold text-slate-950">
                   <GraduationCap size={18} /> Öğretmen / Ebeveyn Okul Paneli <ArrowRight size={18} />

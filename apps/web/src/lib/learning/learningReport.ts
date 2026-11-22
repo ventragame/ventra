@@ -21,7 +21,8 @@ export async function loadLearningReport(
   return getLearningSnapshot({
     animalAnswers,colorAnswers,
     animalWords:ANIMAL_MEADOW_WORDS.map(w=>w.id),
-    colorWords:COLOR_GROVE_WORDS.map(w=>w.id),numberWords:[],numberAnswers,
+    // Numbers run to 1000: the report lists the ones this child has met.
+    colorWords:COLOR_GROVE_WORDS.map(w=>w.id),numberWords:[...new Set(numberAnswers.map(a=>String(a.value)))],numberAnswers,
     foodWords:MARKET_WORDS.map(w=>w.id),foodAnswers,
     familyWords:VILLAGE_WORDS.map(w=>w.id),familyAnswers,
     templeWords:TEMPLE_WORDS.map(w=>w.id),templeAnswers,now

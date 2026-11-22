@@ -68,10 +68,10 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
               <Shield className="w-6 h-6 text-indigo-600" />
               <div className="text-left">
                 <div className="text-sm font-bold text-slate-900 group-hover:text-indigo-600 transition-colors">
-                  Ebeveyn & İlerleme Paneli
+                  Aile Paneli
                 </div>
                 <div className="text-xs text-slate-500">
-                  Gelişim raporu ve bulut senkronizasyonu
+                  İngilizce karne ve yedekleme
                 </div>
               </div>
             </div>
