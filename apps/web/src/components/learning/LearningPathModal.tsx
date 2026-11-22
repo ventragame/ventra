@@ -17,7 +17,7 @@ const AlphabetGroveAdventure=dynamic(
 import './word-garden-world-art.css';
 import {soundService} from '@/lib/audio/SoundService';
 import {musicSceneForDistrict} from '@/lib/audio/MusicDirector';
-import {FirstPlayGuide} from './FirstPlayGuide';
+import {FirstPlayHost} from './FirstPlayGuide';
 import type {TutorialWorld} from '@/lib/learning/firstPlayTutorial';
 import { AnimalMeadowAdventure } from './activities/AnimalMeadowAdventure';
 import { ColorGroveAdventure } from './activities/ColorGroveAdventure';
@@ -195,9 +195,8 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
     return () => window.removeEventListener('keydown', onKey);
   }, [district, onClose]);
 
-  const withFirstPlay=(world:TutorialWorld,ready:boolean,hasPlayed:boolean,game:React.ReactNode)=><>
-    {game}<FirstPlayGuide key={profileId+':'+world} world={world} profileId={profileId} ready={ready} hasPlayed={hasPlayed}/>
-  </>;
+  const withFirstPlay=(world:TutorialWorld,ready:boolean,hasPlayed:boolean,game:React.ReactNode)=>
+    <FirstPlayHost key={profileId+':'+world} world={world} profileId={profileId} ready={ready} hasPlayed={hasPlayed}>{game}</FirstPlayHost>;
   // A course deep link may enter a district before repository reads settle.
   // Never mount a game with synthetic zero-progress data while it is loading.
   const districtLoading:Partial<Record<District,boolean>>={

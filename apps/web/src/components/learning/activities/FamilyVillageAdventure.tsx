@@ -228,9 +228,9 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
         <h1 className="sr-only">Aile Köyü</h1>
       </div>
       <div className="fv5-top-actions">
-        <div className="fv-stars fv3-stars fv4-stars fv5-stars"
+        <div className="fv-stars fv3-stars fv4-stars fv5-stars" role="img"
           aria-label={`${Object.values(progress.starsByLevel).reduce((n,v)=>n+v,0)} / 60 yıldız`}>
-          <span aria-hidden="true">⭐</span> {Object.values(progress.starsByLevel).reduce((n,v)=>n+v,0)} / 60
+          <span aria-hidden="true">⭐</span> {Object.values(progress.starsByLevel).reduce((n,v)=>n+v,0)}<span className="fv5-stars-total"> / 60</span>
         </div>
         <GardenHelp label="Nasıl Oynanır?">{stageMeta.description}</GardenHelp>
       </div>

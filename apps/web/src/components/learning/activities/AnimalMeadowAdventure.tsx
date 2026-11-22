@@ -2,6 +2,7 @@
 
 import React, { useEffect, useRef, useState } from 'react';
 import {useQuestionFocus} from './useQuestionFocus';
+import {TutorialReplayButton} from '../tutorialReplay';
 import type { AnimalAnswerEvidence } from '@ventra/shared';
 import { soundService } from '@/lib/audio/SoundService';
 import {useAutoQuestionAdvance} from '@/lib/learning/useAutoQuestionAdvance';
@@ -16,6 +17,7 @@ import {MeadowPlayStage} from './MeadowPlayStage';
 import './garden-game-foundation.css';
 import './animal-meadow.css';
 import './garden-child-legibility.css';
+import {gradeLevelLabel} from '@/lib/learning/gradeLabel';
 
 const STAGES = [
   { name:'Keşfet', icon:'🌱',desc:'Hayvanlarla tanış',story:'Çayırın yeni dostları seni bekliyor. Hepsini ziyaret et ve isimlerini öğren!' },
@@ -265,7 +267,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
           <button type="button" data-game-exit className="am-hud-btn gg-game-control" disabled={saving} onClick={onBack}
             aria-label="Kelime Bahçesi bölgelerine geri dön">← <span className="hidden sm:inline">Bölgeler</span></button>
           <div className="am-hud-title"><span className="am-hud-icon" aria-hidden="true">🐾</span>
-            <span><strong>Hayvan Çayırı</strong><small>{gradeLevel??'—'}. sınıf · {englishLevel}</small></span>
+            <span><strong>Hayvan Çayırı</strong><small>{gradeLevelLabel(gradeLevel)} · {englishLevel}</small></span>
           </div>
           <div className="am-hud-actions">
             <span className="am-hud-btn" aria-label={'Toplam '+stars+' yıldız'}>⭐ {stars}</span>
@@ -293,6 +295,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
         <details className="am3-help">
           <summary aria-label="Pufi'den oyun yardımı" title="Nasıl oynanır?">?<span className="sr-only">Yardım</span></summary>
           <p>{STAGES[stage-1].story}</p>
+          <TutorialReplayButton/>
         </details>
         {showAlbum && <section aria-label="Keşif albümü" className="am-album mb-4 rounded-3xl border border-lime-200/40 bg-[#0b3649]/90 p-3 shadow-2xl sm:p-5">
           <div className="mb-3 flex items-center justify-between gap-3">

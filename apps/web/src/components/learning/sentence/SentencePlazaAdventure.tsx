@@ -26,6 +26,7 @@ import './sentence-plaza-covers-v5.css';
 import './sentence-plaza-scenes-v6.css';
 import './sentence-plaza-learning-v7.css';
 import './sentence-plaza-friends-v9.css';
+import {gradeLevelLabel} from '@/lib/learning/gradeLabel';
 
 interface Props{
  profileId:string;gradeLevel:number|null;englishLevel:EnglishPlacement;
@@ -316,7 +317,7 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
       <p className="sp-sub sr-only">Kelimeler dünyayı değiştirsin.</p></div>
     </div>
     <div className="sp-actions">
-     <span className="sp-chip">🎓 {gradeLevel??'—'}. sınıf · {englishLevel}</span>
+     <span className="sp-chip">🎓 {gradeLevelLabel(gradeLevel)} · {englishLevel}</span>
      <span className="sp-chip">⭐ {starsTotal} / 18</span>
      <button type="button" className="sp-back" onClick={back} disabled={busy}>
       ← {screen==='map'?'Adalar Evreni':'Meydana Dön'}

@@ -4,7 +4,7 @@
  margin:0 0 10px;padding:10px 14px;border:1px solid #f4e9c280;border-radius:16px;
  background:linear-gradient(110deg,#142c45ed,#315465e8);color:#f9fff0}
 .gg-quest-screen .gg-quest-location-copy{display:grid;gap:4px;min-width:0}
-.gg-quest-screen .gg-quest-location-kicker{font-size:10px;line-height:1.3;letter-spacing:.12em;color:#def6df;font-weight:900}
+.gg-quest-screen .gg-quest-location-kicker{font-size:11px;line-height:1.3;letter-spacing:.12em;color:#def6df;font-weight:900}
 .gg-quest-screen .gg-quest-location strong{display:flex;align-items:center;gap:7px;min-width:0;flex-wrap:wrap;
  font-size:clamp(13px,2.3vw,17px);line-height:1.35;font-weight:900;overflow-wrap:anywhere}
 .gg-quest-screen .gg-quest-separator{color:#ffe3a5;font-size:19px}

@@ -1,0 +1,10 @@
+/* "Replay the tutorial" action inside a game's own help panel (tutorialReplay.tsx). */
+.tutorial-replay-button{
+ display:flex;align-items:center;justify-content:center;gap:6px;width:100%;
+ min-height:44px;margin-top:10px;padding:8px 12px;border-radius:14px;
+ border:2px solid #fde68a;background:#020617f2;color:#fef3c7;
+ font-size:13px;font-weight:800;line-height:1.2;cursor:pointer;
+ box-shadow:0 6px 16px #02061766;touch-action:manipulation;
+}
+.tutorial-replay-button:hover{filter:brightness(1.12)}
+.tutorial-replay-button:focus-visible{outline:4px solid #bef264;outline-offset:2px}

@@ -19,6 +19,7 @@ import {LANTERN_CHAPTERS,LANTERN_COLORS,LANTERN_PLACES,LANTERN_ANIMALS,
  from '@/lib/learning/lanternFestivalEngine';
 import './lantern-festival.css';
 import './sentence-clarity-v3.css';
+import {gradeLevelLabel} from '@/lib/learning/gradeLabel';
 
 type Phase='welcome'|'lesson'|'play'|'reward';
 interface Props{
@@ -303,7 +304,7 @@ export function LanternFestivalAdventure({profileId,gradeLevel,englishLevel,hist
      <div className="lf-eyebrow">VENTRA · CÜMLE MEYDANI · FİNAL MACERASI</div>
      <h1>Fener Festivali</h1><small>İngilizcenle gece göğünü aydınlat.</small></div></div>
     <div className="lf-header-actions">
-     <span className="lf-chip">🎓 {gradeLevel??'—'}. sınıf · {englishLevel}</span>
+     <span className="lf-chip">🎓 {gradeLevelLabel(gradeLevel)} · {englishLevel}</span>
      <span className="lf-chip">◷ {formatTime(seconds)} · Süre cezası yok</span>
      <button type="button" className="lf-back" disabled={saving} onClick={()=>{
       lock.current=false;clearTimer();soundService.cancelSpeech();onExit();

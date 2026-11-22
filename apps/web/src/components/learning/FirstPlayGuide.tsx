@@ -1,5 +1,6 @@
 'use client';
-import React,{useEffect,useRef,useState} from 'react';
+import React,{useEffect,useMemo,useRef,useState} from 'react';
+import {TutorialReplayContext,type TutorialReplay} from './tutorialReplay';
 import {FIRST_PLAY_LESSONS,tutorialSeenKey,type TutorialWorld} from '@/lib/learning/firstPlayTutorial';
 import {soundService} from '@/lib/audio/SoundService';
 
@@ -10,8 +11,11 @@ interface FirstPlayGuideProps {
   profileId:string;
   ready:boolean;
   hasPlayed:boolean;
+  /** false while the game's own help panel offers "replay" (see tutorialReplay). */
+  floating?:boolean;
+  replayRef?:React.MutableRefObject<(()=>void)|null>;
 }
-export function FirstPlayGuide({world,profileId,ready,hasPlayed}:FirstPlayGuideProps){
+export function FirstPlayGuide({world,profileId,ready,hasPlayed,floating=true,replayRef}:FirstPlayGuideProps){
   const lesson=FIRST_PLAY_LESSONS[world];
   const [checked,setChecked]=useState(false);
   const [open,setOpen]=useState(false);
@@ -39,6 +43,7 @@ export function FirstPlayGuide({world,profileId,ready,hasPlayed}:FirstPlayGuideP
     setOpen(false);setStep(0);setFeedback('');
   };
   const reopen=()=>{setStep(0);setFeedback('');setOpen(true);};
+  useEffect(()=>{if(replayRef)replayRef.current=reopen;});
   const choose=(choiceId:string)=>{
     if(step>=lesson.steps.length)return;
     const current=lesson.steps[step];
@@ -55,7 +60,7 @@ export function FirstPlayGuide({world,profileId,ready,hasPlayed}:FirstPlayGuideP
     world!=='food'||step===1?world!=='food'||step!==1||choice.id==='basket':choice.id!=='basket');
   const result=step>=lesson.steps.length;
   return <>
-    {checked&&!open&&<button type="button" onClick={reopen}
+    {checked&&!open&&floating&&<button type="button" onClick={reopen}
       aria-label={lesson.name+' nasıl oynanır? Öğretimi tekrar aç'}
       className="fixed right-3 top-[75px] z-[70] flex min-h-11 items-center gap-1.5 rounded-full border-2 border-amber-200 bg-slate-950/95 px-3 py-2 text-xs font-extrabold text-amber-100 shadow-xl shadow-slate-950/60 focus-visible:outline focus-visible:outline-4 focus-visible:outline-lime-300"
       title="Nasıl Oynanır?">
@@ -135,4 +140,20 @@ export function FirstPlayGuide({world,profileId,ready,hasPlayed}:FirstPlayGuideP
       </section>
     </div>}
   </>;
+}
+
+/** Game + its first-play tutorial. In-game help panels register through
+ * TutorialReplayContext; while one exists the floating button is hidden. */
+export function FirstPlayHost({world,profileId,ready,hasPlayed,children}:Omit<FirstPlayGuideProps,'floating'|'replayRef'>&{children:React.ReactNode}){
+  const replay=useRef<(()=>void)|null>(null);
+  const [hosts,setHosts]=useState(0);
+  const value=useMemo<TutorialReplay>(()=>({
+    replay:()=>replay.current?.(),
+    registerHost:()=>{setHosts(count=>count+1);return()=>setHosts(count=>Math.max(0,count-1));}
+  }),[]);
+  return <TutorialReplayContext.Provider value={value}>
+    {children}
+    <FirstPlayGuide world={world} profileId={profileId} ready={ready} hasPlayed={hasPlayed}
+      floating={hosts===0} replayRef={replay}/>
+  </TutorialReplayContext.Provider>;
 }

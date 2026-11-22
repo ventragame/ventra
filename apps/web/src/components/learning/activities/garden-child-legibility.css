@@ -22,3 +22,12 @@
  font-size:14px!important;line-height:1.35!important;
 }
 .fv5-prompt small{font-size:13px!important;line-height:1.3!important}
+
+/* Navigation and progress a child reads: area/lane names, chamber state,
+   mission steps and step counters were 9–11px at 320px (real-browser audit). */
+:is(.fm-lane-copy strong,.fm-lane-copy small,.tp-chamber strong,.tp-chamber small,.am3-step,.fv-count,.fv-discovery strong){
+ font-size:12px!important;line-height:1.2!important;
+}
+/* Labels painted on the scene art repeat information shown elsewhere; keep
+   them legible without letting them dominate the illustration. */
+:is(.fm-banner,.tp-mission-tag,.fv-mission-label){font-size:11px!important}

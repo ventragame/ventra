@@ -186,24 +186,24 @@
 @media(max-width:660px){
  .lf-container{padding:8px}.lf-header{border-radius:17px;padding:10px}
  .lf-crest{width:45px;height:45px;font-size:24px}
- .lf-brand h1{font-size:20px}.lf-brand small{font-size:10px}
- .lf-chip{font-size:10px;padding:7px;min-height:33px}
+ .lf-brand h1{font-size:20px}.lf-brand small{font-size:12px}
+ .lf-chip{font-size:12px;padding:7px;min-height:33px}
  .lf-header-actions{gap:5px}.lf-intro{padding:16px}.lf-intro h2{font-size:26px}
- .lf-intro p{font-size:11px}.lf-track{gap:5px}
+ .lf-intro p{font-size:13px}.lf-track{gap:5px}
  .lf-chapter{padding:7px 5px;min-height:63px;align-items:center;text-align:center;gap:4px}
- .lf-chapter>span{font-size:17px}.lf-chapter strong{font-size:9px}.lf-chapter small{display:none}
+ .lf-chapter>span{font-size:17px}.lf-chapter strong{font-size:11px;line-height:1.15}.lf-chapter small{display:none}
  .lf-world{border-radius:17px}.lf-scene{min-height:195px}
- .lf-scene-footer{min-height:41px;font-size:10px;padding:7px 9px}
+ .lf-scene-footer{min-height:41px;font-size:12px;padding:7px 9px}
  .lf-hotspot{min-height:50px;min-width:60px;padding:5px 8px;border-radius:12px}
  .lf-hotspot>span{font-size:17px}.lf-hotspot small{font-size:9px}
  .lf-panel{padding:12px;border-radius:17px}
  .lf-color-choice{min-height:67px}.lf-color-choice span{width:28px;height:28px;font-size:18px}
  .lf-animals{gap:5px}.lf-animal-choice{min-height:75px}
- .lf-animal-choice>span{font-size:23px}.lf-animal-choice strong{font-size:10px}
+ .lf-animal-choice>span{font-size:23px}.lf-animal-choice strong{font-size:12px}
  .lf-slot{min-height:40px;font-size:12px;padding:7px}
  .lf-tile{min-height:45px;font-size:12px;min-width:45px}
  .lf-status{margin:12px 0}.lf-status h2{font-size:23px}
- .lf-result-grid{gap:5px}.lf-result-grid>div{padding:8px;font-size:9px}.lf-result-grid strong{font-size:17px}
+ .lf-result-grid{gap:5px}.lf-result-grid>div{padding:8px;font-size:11px}.lf-result-grid strong{font-size:17px}
 }
 @media(prefers-reduced-motion:reduce){
  .lf-root *,.lf-root *::before,.lf-root *::after{
@@ -212,3 +212,17 @@
 }
 /* iOS notch / Dynamic Island: full-screen scroll root starts below the status bar (0 elsewhere). */
 .lf-root{padding-top:env(safe-area-inset-top,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+
+/* Phone layout (≤660px, see LanternFestivalStage): icon markers on the map,
+   choices in a readable 2×2 picker under the scene. */
+.lf-hotspots-markers .lf-hotspot{min-width:38px;min-height:38px;width:38px;height:38px;padding:0;border-radius:50%;pointer-events:none}
+.lf-hotspots-markers .lf-hotspot small{display:none}
+.lf-hotspots-markers .lf-hotspot>span{font-size:19px}
+.lf-place-list{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
+.lf-place{display:flex;align-items:center;gap:8px;min-height:48px;padding:8px 12px;border-radius:14px;
+ border:2px solid #ffecba;background:linear-gradient(145deg,#315980,#264576);color:#fff6dd;
+ font-size:13px;font-weight:900;line-height:1.2;text-align:left;box-shadow:0 4px 14px #0b204c70}
+.lf-place>span{font-size:20px;line-height:1}
+.lf-place[data-selected=true]{border-color:#d6f8bf;background:#34877f}
+.lf-place:disabled:not([data-selected=true]){opacity:.6}
+.lf-place:focus-visible{outline:3px solid #fff1ae;outline-offset:2px}

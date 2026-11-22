@@ -18,6 +18,7 @@ import {WISH_CHAPTERS,WISH_GUESTS,WISH_FOODS,wishRoundsForGrade,planWishFestival
  from '@/lib/learning/wishFestivalEngine';
 import './wish-festival.css';
 import './sentence-clarity-v3.css';
+import {gradeLevelLabel} from '@/lib/learning/gradeLabel';
 
 type Screen='welcome'|'lesson'|'play'|'reward';
 type WishReason='sweet'|'juicy'|'crunchy';
@@ -337,7 +338,7 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
     <div className="wf-title-line"><div className="wf-emblem" aria-hidden="true">❧</div>
      <div><div className="wf-overline">VENTRA · CÜMLE MEYDANI · BÖLÜM 5</div>
       <h1>İstekler Meydanı</h1><small>Konuş, anlaş, paylaş. İngilizceyle canlanan festival.</small></div></div>
-    <div className="wf-header-actions"><span className="wf-pill">🎓 {gradeLevel??'—'}. sınıf · {englishLevel}</span>
+    <div className="wf-header-actions"><span className="wf-pill">🎓 {gradeLevelLabel(gradeLevel)} · {englishLevel}</span>
      <span className="wf-pill">◷ {clock(elapsed)} · Süre sınırı yok</span>
      <button type="button" className="wf-back" disabled={saving}
       onClick={()=>{locked.current=false;clearTimer();soundService.cancelSpeech();onExit();}}>← Cümle Meydanı</button></div>

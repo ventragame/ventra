@@ -1,5 +1,5 @@
 'use client';
-import React from 'react';
+import React,{useEffect,useState} from 'react';
 import {LANTERN_COLORS,LANTERN_PLACES,LANTERN_ANIMALS,
  type LanternAnimal,type LanternChapter,type LanternColor,type LanternPlace}
  from '@/lib/learning/lanternFestivalEngine';
@@ -13,13 +13,29 @@ const PINS:{id:LanternPlace;x:number;y:number}[]=[
  {id:'tree',x:26,y:76},{id:'bridge',x:49,y:75},
  {id:'tower',x:79,y:62},{id:'fountain',x:64,y:86}
 ];
+/** At the game's phone layout (≤660px) the four labelled pins overlap: Ay
+ * Köprüsü and Işık Çeşmesi are ~43px apart at 320px while each pin is ≥60px.
+ * There the map keeps icon markers and the choice moves to a readable 2×2
+ * picker under the scene; only the picker is focusable and announced. */
+const COMPACT_PLACES='(max-width:660px)';
+function useCompactPlaces():boolean{
+ const [compact,setCompact]=useState(false);
+ useEffect(()=>{
+  const query=window.matchMedia(COMPACT_PLACES);
+  const update=()=>setCompact(query.matches);
+  update();query.addEventListener('change',update);
+  return()=>query.removeEventListener('change',update);
+ },[]);
+ return compact;
+}
 const HEX:Record<LanternColor,string>=Object.fromEntries(LANTERN_COLORS.map(c=>[c.id,c.hex])) as Record<LanternColor,string>;
 export function LanternFestivalStage({chapter,color,place,animal,lit,lights,showPlaces,
  onPlace,disabled,caption}:LanternSceneProps){
  const theme=color?HEX[color]:'#ffdfaa';
  const offset=place?PINS.find(p=>p.id===place):null;
  const selectedAnimal=LANTERN_ANIMALS.find(a=>a.id===animal);
- return <div className={'lf-world lf-chapter-'+chapter+(lit?' lf-awaken':'')}
+ const compact=useCompactPlaces();
+ return <><div className={'lf-world lf-chapter-'+chapter+(lit?' lf-awaken':'')}
   role="group" aria-label="Etkileşimli büyülü fener festivali, ışık köprüsü, kule, fener ağacı ve çeşme">
   <svg viewBox="0 0 1200 660" className="lf-scene" role="img"
    aria-label="Gece gökyüzündeki fenerler, ay ışıklı köprü, yıldız kulesi, ağaç ve çeşme"
@@ -131,10 +147,12 @@ export function LanternFestivalStage({chapter,color,place,animal,lit,lights,show
     })}
    </g>}
   </svg>
-  {showPlaces&&<div className="lf-hotspots" role="group" aria-label="Festival sahnesinde fener konumu seç">
+  {showPlaces&&<div className={'lf-hotspots'+(compact?' lf-hotspots-markers':'')}
+   role={compact?undefined:'group'} aria-label={compact?undefined:'Festival sahnesinde fener konumu seç'}
+   aria-hidden={compact||undefined}>
    {PINS.map(pin=>{
     const p=LANTERN_PLACES.find(l=>l.id===pin.id)!;
-    return <button key={p.id} type="button" className="lf-hotspot"
+    return <button key={p.id} type="button" className="lf-hotspot" tabIndex={compact?-1:undefined}
      disabled={disabled} data-selected={place===p.id} aria-pressed={place===p.id}
      onClick={()=>onPlace?.(p.id)} style={{left:pin.x+'%',top:pin.y+'%'}}>
      <span aria-hidden="true">{p.icon}</span><small>{p.label}</small></button>;
@@ -146,5 +164,14 @@ export function LanternFestivalStage({chapter,color,place,animal,lit,lights,show
      chapter===2?'Sahnedeki doğru yeri seç.':'Fenerler senin İngilizceni bekliyor.'}</strong>
    <span className="lf-night-counter" aria-label={lights+' fener yakıldı'}>🏮 {lights}</span>
   </div>
- </div>;
+ </div>
+ {showPlaces&&compact&&<div className="lf-place-list" role="group" aria-label="Festival sahnesinde fener konumu seç">
+  {PINS.map(pin=>{
+   const p=LANTERN_PLACES.find(l=>l.id===pin.id)!;
+   return <button key={p.id} type="button" className="lf-place" disabled={disabled}
+    data-selected={place===p.id} aria-pressed={place===p.id} onClick={()=>onPlace?.(p.id)}>
+    <span aria-hidden="true">{p.icon}</span>{p.label}</button>;
+  })}
+ </div>}
+ </>;
 }

@@ -1,6 +1,7 @@
 'use client';
 import React from 'react';
 import './word-garden-quiet.css';
+import {TutorialReplayButton} from './tutorialReplay';
 
 /** Progressive disclosure for nonessential explanations.
  * Reading is optional for young players, but the instructions remain
@@ -11,6 +12,6 @@ export function GardenHelp({children,label='Nasıl oynanır?'}:{
 }) {
  return <details className="wg-game-help">
   <summary title={label} aria-label={label}><span aria-hidden="true">?</span></summary>
-  <div className="wg-game-help-body">{children}</div>
+  <div className="wg-game-help-body">{children}<TutorialReplayButton/></div>
  </details>;
 }

@@ -18,6 +18,7 @@ import {MAGIC_VERBS,MOVEMENT_CHAPTERS,checkMagicAction,checkMagicPlace,
  from '@/lib/learning/movementMagicEngine';
 import './movement-magic.css';
 import './sentence-clarity-v3.css';
+import {gradeLevelLabel} from '@/lib/learning/gradeLabel';
 
 type Phase='welcome'|'chapter'|'play'|'reward';
 interface Props{
@@ -326,7 +327,7 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
     <div><div className="mm-eyebrow">VENTRA · CÜMLE MEYDANI · ÖZGÜN MACERA</div>
      <h1 className="mm-main-title">Hareket Büyüsü</h1></div></div>
    <div className="mm-top-pills">
-    <span className="mm-pill">🎓 {gradeLevel??'—'}. sınıf · {englishLevel}</span>
+    <span className="mm-pill">🎓 {gradeLevelLabel(gradeLevel)} · {englishLevel}</span>
     <span className="mm-pill">⏳ {CLOCK(seconds)} · Süre cezası yok</span>
     <button type="button" className="mm-back" onClick={()=>{if(saving)return;clearPending();soundService.cancelSpeech();onExit();}}
      disabled={saving}>← Cümle Meydanı</button>
