@@ -54,7 +54,7 @@ test('The end-of-mission panel takes focus the same way when the last answer dis
   'NumberValleyAdventure.tsx':[/useQuestionFocus<HTMLHeadingElement>\(completed\?'done':'play'\)/,/<h2 ref=\{doneHeading\} tabIndex=\{-1\}>\{CHAPTERS\[stage-1\]\.title\} tamamlandı!<\/h2>/],
   'FoodMarketAdventure.tsx':[/useQuestionFocus<HTMLHeadingElement>\(finished\?'done':'play'\)/,/<h2 ref=\{doneHeading\} tabIndex=\{-1\} lang="en">Fantastic! Great shopping!<\/h2>/],
   'FamilyVillageAdventure.tsx':[/useQuestionFocus<HTMLHeadingElement>\(saved\?'done':'play'\)/,/<h2 ref=\{doneHeading\} tabIndex=\{-1\} lang=\"en\">Well done! Great English!<\/h2>/],
-  'TempleAdventure.tsx':[/useQuestionFocus<HTMLHeadingElement>\(finished\?'done':'play'\)/,/<h2 ref=\{doneHeading\} tabIndex=\{-1\}>\{chamber==='crown'&&stage===5/]
+  'TempleAdventure.tsx':[/useQuestionFocus<HTMLHeadingElement>\(finished\?'done':'play'\)/,/<h2 ref=\{doneHeading\} tabIndex=\{-1\} lang=\"en\">\{chamber==='crown'&&stage===5/]
  };
  for(const [file,patterns] of Object.entries(games)){const code=read(file);for(const pattern of patterns)assert.match(code,pattern,file);}
 });

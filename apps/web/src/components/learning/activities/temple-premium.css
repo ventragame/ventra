@@ -1,0 +1,179 @@
+/* Keşif Tapınağı — premium layer, loaded after the V6/V7 skins and the shared
+   quest navigation, before the child legibility floor. The hall picture
+   becomes a scene strip carrying the feedback and the step counter, help and
+   sound join the header, the duplicate location bar is kept for screen
+   readers only and every mission fits the screen. */
+
+/* 1. Header: stars, help and sound sit together. */
+.tp8-screen .tp6-header{margin-bottom:10px}
+.tp8-screen .tp8-hud-tools{display:flex;align-items:center;gap:8px;flex:none}
+.tp8-screen .tp6-header .wg-game-help{position:relative;max-width:none;margin:0;color:#2f625c}
+.tp8-screen .tp6-header .wg-game-help summary{width:46px;height:46px;border-radius:15px;
+ border:2px solid #fff2d4;background:linear-gradient(145deg,#fff6df,#f4deb5);color:#6b4a2c;
+ box-shadow:0 4px 0 #bd8c56;font-size:21px}
+.tp8-screen .tp6-header .wg-game-help-body{position:absolute;right:0;top:calc(100% + 8px);z-index:60;
+ width:min(340px,calc(100vw - 28px));margin:0;text-align:left;color:#e8f7f0}
+.tp8-screen .tp6-header .tp-mute{min-width:46px;min-height:46px;border-radius:15px;border:2px solid #fff2d4;
+ background:linear-gradient(145deg,#e7f6e3,#c9e6d4);font-size:20px;box-shadow:0 4px 0 #8fb9a0}
+
+/* 2. The location bar repeats the highlighted hall and step: screen readers only. */
+.tp8-screen .gg-quest-location{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+ clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.tp8-screen .gg-quest-navigation{margin-bottom:10px}
+
+/* 3. Halls and steps: one compact row each. */
+.tp8-screen .tp6-chambers .tp-chamber{min-height:64px;padding:5px 6px}
+.tp8-screen .tp6-chambers .tp-chamber>span{font-size:19px}
+.tp8-screen .tp6-chambers .tp-chamber>strong{font-size:clamp(12px,1.2vw,14px)}
+.tp8-screen .tp6-chambers .tp-chamber>small{font-size:12px}
+.tp8-screen .tp6-trials{margin-bottom:0}
+.tp8-screen .tp6-trials .tp-trial{min-height:50px;flex-direction:row;gap:7px;padding:5px 8px}
+.tp8-screen .tp6-trials .tp-trial>span{font-size:20px}
+.tp8-screen .tp6-trials .tp-trial small{font-size:13px}
+.tp8-screen .tp6-trials .tp-trial b{font-size:12px}
+
+/* 4. Scene strip: picture, hall name, step counter and the feedback toast. */
+.tp8-screen .tp6-scenery{height:clamp(112px,11vw,140px)}
+.tp8-screen .tp7-scene-img{object-position:center 46%}
+.tp8-screen .tp6-scene-label{bottom:9px;left:11px;padding:5px 11px}
+.tp8-screen .tp6-scene-label>span{font-size:20px}
+.tp8-screen .tp6-scene-label small{font-size:12px}
+.tp8-screen .tp6-seal-trail{bottom:9px}
+.tp8-screen .tp6-seal-trail span{font-size:12px}
+.tp8-screen .tp6-collected-chip{font-size:13px}
+.tp8-screen .tp8-scene-count{position:absolute;z-index:5;top:10px;right:12px;padding:5px 12px;border-radius:999px;
+ border:2px solid #fff1c6;background:linear-gradient(130deg,#fff8dc,#ffe5aa);color:#795333;
+ font-size:13px;font-weight:1000;font-variant-numeric:tabular-nums;box-shadow:0 4px 0 #bd8c56}
+.tp8-screen .tp8-toast{
+ position:absolute;z-index:6;top:12px;left:50%;transform:translateX(-50%);
+ display:flex;align-items:baseline;justify-content:center;flex-wrap:wrap;gap:2px 10px;
+ width:max-content;max-width:calc(100% - 300px);margin:0;padding:9px 20px;border-radius:999px;
+ font-size:18px;font-weight:1000;line-height:1.2;text-align:center;
+ color:#1f5a47;background:#fffbe2f7;border:3px solid #fff;
+ box-shadow:0 5px 0 #4f9a77a8,0 10px 24px #07263966;
+ animation:tp8-toast-in .32s cubic-bezier(.2,1.5,.45,1) both;pointer-events:none}
+.tp8-screen .tp8-toast[data-good=false]{color:#6b2338;background:#fff0f2f7;box-shadow:0 5px 0 #c0577aa0,0 10px 24px #4a1b2d40}
+.tp8-screen .tp8-toast small{font-size:13px;font-weight:850;opacity:.85}
+@keyframes tp8-toast-in{from{opacity:0;transform:translate(-50%,-8px) scale(.9)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
+
+/* 5. Workbench: slim meter, compact prompt, featured picture and answers. */
+.tp8-screen .tp6-workbench{padding:12px 20px 16px}
+.tp8-screen .tp6-meter{margin-top:0}
+.tp8-screen .tp6-command{margin:10px auto;padding:8px 14px}
+.tp8-screen .tp6-command small{font-size:13px}
+.tp8-screen .tp6-featured{margin:4px auto 6px}
+.tp8-screen .tp6-featured .tp-rune{min-height:104px;max-height:112px}
+/* The asked word is shown at full strength: a disabled-looking (64%, desaturated)
+   colour crystal turned yellow into pale yellow in a colour question. */
+.tp8-screen .tp6-play .tp6-featured .tp-rune:disabled{opacity:1;filter:none}
+/* Light crystals (white, light yellow) need an edge on the cream cards; the
+   crystal is clipped to its shape, so the outline is drawn by its wrapper. */
+.tp8-screen .tp-rune-art:has(.tp6-color-crystal){filter:drop-shadow(0 0 1px #1d3f41b3) drop-shadow(0 4px 5px #2c4f4b40)}
+.tp8-screen .tp6-featured>span{font-size:14px;font-weight:900}
+.tp8-screen .tp6-controls{margin:4px auto 6px}
+.tp8-screen .tp6-workbench .tp-help{min-height:44px;font-size:13px}
+.tp8-screen .tp8-hint-text{padding:6px 12px;border-radius:12px;background:#fff3d4;border:1px solid #f0cf96;
+ color:#7a4a32;font-size:14px;font-weight:950}
+.tp8-screen .tp6-listen-panel{margin:6px auto 4px}
+.tp8-screen .tp6-listen-panel p{font-size:14px}
+.tp8-screen .tp8-listen-status{font-size:13px;color:#5b7f6c;font-weight:850}
+.tp8-screen .tp6-play .tp-grid{margin:8px auto}
+.tp8-screen .tp6-play .tp-rune{min-height:100px}
+.tp8-screen .tp6-rune-text{font-size:clamp(17px,1.9vw,23px)}
+.tp8-screen .tp6-discovery .tp-rune{min-height:104px}
+.tp8-screen .tp6-discovery .tp-reveal strong{font-size:16px}
+.tp8-screen .tp6-discovery .tp-reveal small{font-size:12px}
+.tp8-screen .tp6-sentence .tp-sentence-line{min-height:62px}
+.tp8-screen .tp6-sentence .tp-sentence-line em{font-size:13px}
+.tp8-screen .tp6-sentence .tp-word-token{min-width:48px;min-height:48px;font-size:18px}
+.tp8-screen .tp6-play .tp-collected{margin:8px auto 0}
+/* Seal gate: the code and its line fit one compact card; the stall is two short rows. */
+.tp8-screen[data-stage="5"] .tp6-command small:first-of-type{display:inline;margin-right:6px}
+.tp8-screen[data-stage="5"] .tp6-command small:last-of-type{display:block}
+.tp8-screen[data-stage="5"] .tp6-code{display:inline-block;margin:4px 0;padding:4px 12px}
+@media(min-width:768px){
+ .tp8-screen[data-stage="5"] .tp6-play .tp-seal-grid .tp-rune{min-height:84px;padding:4px}
+ .tp8-screen[data-stage="5"] .tp6-play .tp-seal-grid .tp-rune-art{max-height:74px}
+ .tp8-screen[data-stage="5"] .tp6-play .tp-seal-grid :is(.tp6-sprite,.tp-rune-animal){height:70px;width:76px}
+ .tp8-screen[data-stage="5"] .tp6-play .tp-seal-grid .tp-color-crystal{width:58px;height:58px}
+ .tp8-screen[data-stage="5"] .tp6-controls{margin:2px auto 4px}
+}
+/* Answers answer back: correct pops, wrong shakes. */
+.tp8-screen .tp6-play .tp-rune[data-result=correct]{animation:tp8-pop .55s cubic-bezier(.2,1.5,.4,1) both}
+.tp8-screen .tp6-play .tp-rune[data-result=wrong]{animation:tp8-shake .42s ease-in-out both}
+@keyframes tp8-pop{0%{transform:scale(1)}40%{transform:translateY(-6px) scale(1.05)}100%{transform:scale(1)}}
+@keyframes tp8-shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}
+ 40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(2px)}}
+
+/* 6. Reward: honest result and a tap-to-hear recap with the word pictures. */
+.tp8-screen .tp6-finished{padding:12px 16px 14px}
+.tp8-screen .tp6-finished .tp-trophy{font-size:40px;line-height:1.1}
+.tp8-screen .tp6-finished .tp6-performance{display:block;margin-top:4px;font-size:15px;font-weight:900}
+.tp8-screen .tp8-recap{margin:12px auto 4px;max-width:680px}
+.tp8-screen .tp8-recap-title{margin-bottom:8px;color:#5b7f6c;font-size:12px;font-weight:900;letter-spacing:.04em}
+.tp8-screen .tp8-recap-list{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.tp8-screen .tp8-recap-word{display:inline-flex;align-items:center;gap:6px;min-height:48px;
+ padding:3px 14px 3px 4px;border-radius:999px;border:2px solid #f2d9ae;
+ background:linear-gradient(150deg,#fffdf2,#eaf7ee);color:#2f625c;font-size:16px;font-weight:1000;
+ box-shadow:0 4px 0 #b5caa8;touch-action:manipulation}
+.tp8-screen .tp8-recap-word .tp-rune-art{display:grid;place-items:center;width:40px;height:40px;flex:none;overflow:hidden}
+.tp8-screen .tp8-recap-word .tp6-sprite,.tp8-screen .tp8-recap-word .tp-rune-animal{width:38px;height:38px}
+.tp8-screen .tp8-recap-word .tp-color-crystal{width:26px;height:26px}
+.tp8-screen .tp8-recap-word .tp-number-glyph{font-size:16px}
+.tp8-screen .tp8-recap-word:active:not(:disabled){transform:translateY(2px);box-shadow:0 2px 0 #b5caa8}
+.tp8-screen .tp8-recap-word:disabled{opacity:.8}
+.tp8-screen .tp8-recap-word:focus-visible{outline:3px solid #f4b83e;outline-offset:3px}
+/* Short screens: the next-mission button comes before the recap. */
+@media(max-height:940px){
+ .tp8-screen .tp6-finished{display:flex;flex-direction:column;align-items:center}
+ .tp8-screen .tp6-finished .tp8-recap{order:10;width:100%}
+}
+
+/* 7. Phones: the play area fills the screen and answers sit in the thumb zone. */
+@media(max-width:767px){
+ .tp8-screen .tp6-header .wg-game-help summary,.tp8-screen .tp6-header .tp-mute{width:44px;min-width:44px;height:44px;min-height:44px;font-size:18px}
+ .tp8-screen .tp8-hud-tools{gap:5px}
+ /* One-line title between the back button and the three HUD tools. */
+ .tp8-screen .tp6-title h1{font-size:clamp(17px,4.8vw,22px);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+ .tp8-screen .tp8-title-spark{display:none}
+ .tp8-screen .tp6-score{font-size:12px;padding:6px 8px}
+ .tp8-screen .gg-quest-navigation .gg-quest-zone-nav,.tp8-screen .gg-quest-navigation .gg-quest-stage-nav{padding-bottom:6px;margin-bottom:4px}
+ .tp8-screen .gg-quest-navigation .tp-chamber.gg-quest-zone{min-height:58px}
+ .tp8-screen .gg-quest-navigation .tp-trial.gg-quest-step{min-height:48px}
+ .tp8-screen .tp6-trials .tp-trial small{font-size:12px}
+ .tp8-screen .tp6-scenery{height:92px}
+ .tp8-screen .tp6-scene-label{bottom:6px;left:6px;padding:3px 8px}
+ .tp8-screen .tp6-scene-label small{display:none}
+ .tp8-screen .tp6-scene-label strong{font-size:13px}
+ .tp8-screen .tp6-seal-trail{display:none}
+ .tp8-screen .tp8-scene-count{top:6px;right:6px;font-size:12px;padding:3px 9px}
+ .tp8-screen .tp8-toast{top:8px;max-width:calc(100% - 16px);padding:6px 14px;font-size:16px;flex-direction:column;align-items:center;border-radius:18px}
+ .tp8-screen .tp8-toast small{font-size:12px}
+ .tp8-screen .tp6-scenery:has(.tp8-toast) :is(.tp6-scene-label,.tp8-scene-count){visibility:hidden}
+ .tp8-screen .tp6-workbench{padding:9px 8px 12px}
+ .tp8-screen .tp6-command{margin:8px auto;padding:7px 9px}
+ .tp8-screen .tp6-command small{font-size:12px}
+ .tp8-screen .tp6-play .tp-rune{min-height:84px}
+ .tp8-screen .tp6-rune-text{font-size:clamp(15px,4.2vw,18px)}
+ .tp8-screen .tp6-discovery .tp-rune{min-height:84px}
+ .tp8-screen .tp6-discovery .tp-reveal strong{font-size:14px}
+ .tp8-screen .tp6-sentence .tp-word-token{font-size:16px}
+ /* Seal gate on a phone: the eight-word stall is two rows of four. */
+ .tp8-screen .tp6-play .tp-seal-grid{grid-template-columns:repeat(4,minmax(0,1fr))}
+ .tp8-screen[data-stage="5"] .tp6-play .tp-seal-grid .tp-rune{min-height:70px;padding:3px}
+ .tp8-screen[data-stage="5"] .tp6-play .tp-seal-grid :is(.tp6-sprite,.tp-rune-animal){height:54px;width:58px}
+ .tp8-screen[data-stage="5"] .tp6-play .tp-seal-grid .tp-color-crystal{width:44px;height:44px}
+ .tp8-screen[data-stage="5"] .tp6-play .tp-seal-grid .tp-rune-text{font-size:13px}
+ .tp8-screen[data-stage="5"] .tp6-code{font-size:13px!important}
+ .tp8-screen .tp6-play .tp-collected{font-size:12px;padding:5px 8px}
+ .tp8-screen .tp6-play .tp-collected>*{font-size:12px}
+ .tp8-screen .tp6-play>:is(.tp-grid,.tp6-sentence)~.tp-collected{width:100%}
+ /* Fill the screen so the answers drop to the bottom (thumb zone). */
+ .tp8-screen .tp6-quest{display:flex;flex-direction:column;min-height:calc(100dvh - var(--tp8-chrome,260px) - env(safe-area-inset-bottom,0px))}
+ .tp8-screen .tp6-workbench{flex:1 1 auto;display:flex;flex-direction:column}
+ .tp8-screen .tp6-play{flex:1 1 auto;display:flex;flex-direction:column}
+ .tp8-screen .tp6-play>:is(.tp-grid,.tp6-sentence){width:100%;margin-top:auto}
+}
+@media(prefers-reduced-motion:reduce){
+ .tp8-screen .tp8-toast,.tp8-screen .tp6-play .tp-rune{animation:none!important}
+}

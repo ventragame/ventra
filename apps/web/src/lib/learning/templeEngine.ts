@@ -1,10 +1,10 @@
 import type {TempleAnswerEvidence,AnimalAnswerEvidence,ColorAnswerEvidence,FoodAnswerEvidence,FamilyAnswerEvidence,NumberAnswerEvidence} from '@ventra/shared';
 import {resolveVocabularyTier,type EnglishPlacement} from './gradeAwareLearningPolicy.ts';
-import {ANIMAL_MEADOW_WORDS,ANIMAL_VOCAB_TIERS} from './animalMissionEngine.ts';
+import {ANIMAL_MEADOW_WORDS,ANIMAL_VOCAB_TIERS,animalsConfusable,type AnimalId} from './animalMissionEngine.ts';
 import {COLOR_GROVE_WORDS} from '../progress/colorGroveProgress.ts';
 import {colorsConfusable} from './colorMissionEngine.ts';
-import {MARKET_WORDS,marketNounPhrase} from './foodMarketEngine.ts';
-import {VILLAGE_WORDS} from './familyVillageEngine.ts';
+import {MARKET_WORDS,marketNounPhrase,marketLookalike} from './foodMarketEngine.ts';
+import {VILLAGE_WORDS,villageLookalike} from './familyVillageEngine.ts';
 import {englishNumber} from './numberValleyEngine.ts';
 
 export type TempleDomain='animals'|'colors'|'numbers'|'food'|'family';
@@ -89,6 +89,18 @@ export function confusableColours(a:Pick<TempleWord,'en'|'domain'>,b:Pick<Temple
  // One rule for every colour question in Ventra (swatch distance + general word vs its shade).
  return a.domain==='colors'&&b.domain==='colors'&&colorsConfusable(a.en,b.en);
 }
+/** One rule for every world the Temple borrows from: a word is never offered
+ * next to one a child could fairly take it for — a general word and its kind
+ * (bird/duck, cat/lion), look-alike pictures (apple/tomato, tea/coffee, every
+ * meal at a plate) and close colours. */
+export function templeLookalike(a:Pick<TempleWord,'id'|'en'|'domain'>,b:Pick<TempleWord,'id'|'en'|'domain'>):boolean{
+ if(a.domain!==b.domain||a.id===b.id)return false;
+ if(a.domain==='animals')return animalsConfusable(a.en as AnimalId,b.en as AnimalId);
+ if(a.domain==='food')return marketLookalike(a.en,b.en);
+ if(a.domain==='family')return villageLookalike(a.en,b.en);
+ if(a.domain==='colors')return colorsConfusable(a.en,b.en);
+ return false;
+}
 export function templeWeakWords(prior:TemplePriorEvidence):Set<string>{
  const out=new Set<string>();
  for(const [domain,rows] of [
@@ -118,12 +130,17 @@ export function planTempleMission(input:{chamber:TempleChamber;stage:TempleStage
  const count=gradeLevel!=null&&gradeLevel>=1&&gradeLevel<=2?6:8;
  // Cross-world homonyms must not produce two visually or audibly ambiguous answers
  // (e.g. orange as colour/fruit, fish as animal/food).
+ // The seal gate shows every mission word at once, so look-alikes (bird and
+ // duck, apple and tomato) are left out first and used only to fill a gap.
  const seenEnglish=new Set<string>(),seenTurkish=new Set<string>();
- const chosen=ordered.filter(w=>{
+ const unique=ordered.filter(w=>{
   const english=w.en.toLowerCase(),turkish=w.tr.toLowerCase();
   if(seenEnglish.has(english)||seenTurkish.has(turkish))return false;
   seenEnglish.add(english);seenTurkish.add(turkish);return true;
- }).slice(0,count);
+ });
+ const distinct:TempleWord[]=[],later:TempleWord[]=[];
+ for(const w of unique)(distinct.some(d=>templeLookalike(d,w))?later:distinct).push(w);
+ const chosen=[...distinct,...later].slice(0,count);
  const words=chosen.map(w=>w.id);
  if(stage===1)return {chamber,stage,words,questions:[]};
  const rounds=stage===5?6:(gradeLevel!=null&&gradeLevel<=2?4:6);
@@ -140,7 +157,7 @@ export function planTempleMission(input:{chamber:TempleChamber;stage:TempleStage
   // Colour crystals are told apart by their swatch: perceptually close colours
   // (navy/dark blue, violet/purple) would be a second defensible answer.
   const safe=(other:TempleWord)=>other.id!==w.id&&other.en.toLowerCase()!==w.en.toLowerCase()&&
-    other.tr.toLowerCase()!==w.tr.toLowerCase()&&!confusableColours(w,other);
+    other.tr.toLowerCase()!==w.tr.toLowerCase()&&!templeLookalike(w,other);
   const preferred=shuffle(pool.filter(safe),random);
   const fallback=shuffle(all.filter(safe),random);
   const unique=new Map<string,TempleWord>();
@@ -153,10 +170,13 @@ export function planTempleMission(input:{chamber:TempleChamber;stage:TempleStage
   const distractors=[...unique.keys()];
   const options=shuffle([w.id,...distractors],random);
   const sentence=sentenceFor(w);
+  // The sentence bridge never hands the answer over already in reading order.
+  const tokens=stage===4?shuffle(sentence,random):sentence;
+  if(stage===4&&tokens.every((token,t)=>token===sentence[t]))tokens.push(tokens.shift()!);
   return {target:w.id,options,prompt:stage===2?w.tr:
     stage===3?'Listen and choose':stage===4?'Build this English sentence':w.context,
     audio:stage===3?w.en:stage===5?w.context:sentence.join(' '),
-    ...(stage===4?{sentenceTokens:shuffle(sentence,random),sentenceAnswer:sentence}:{}),
+    ...(stage===4?{sentenceTokens:tokens,sentenceAnswer:sentence}:{}),
     ...(stage===5?{pair:Math.floor(i/2)}:{})};
  });
  return {chamber,stage,words,questions};
@@ -179,6 +199,8 @@ export function sentenceFor(w:TempleWord):string[]{
  if(DAILY_ACTIONS.has(w.en))return ['Every','day,','I',...w.en.split(' ').map((x,i,a)=>i===a.length-1?x+'.':x)];
  if(w.en==='stairs')return ['These','are','the','stairs.'];
  if(w.en==='parents')return ['These','are','my','parents.'];
+ // A child does not say "my baby": the village says "This is the baby." too.
+ if(w.en==='baby')return ['This','is','the','baby.'];
  if(FAMILY_MEMBERS.has(w.en))return ['This','is','my',w.en+'.'];
  return ['This','is','the',w.en+'.'];
 }
