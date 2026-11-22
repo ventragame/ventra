@@ -84,7 +84,9 @@ test('P6: existing local child is visible to current parent for explicit cloud l
 test('P6: school enrollment source requires explicit parental confirmation and valid invite code',()=>{
  const source=fs.readFileSync(new URL('../src/app/school/page.tsx',import.meta.url),'utf8');
  assert.match(source,/localSchoolCandidates\(local,profiles,auth\.data\.user\.id\)/);
- assert.match(source,/window\.confirm\(/);
+ // An in-page confirmation (works in app WebViews, says exactly what happens).
+ assert.match(source,/onClick=\{\(\)=>setPendingLink\(profile\)\}/);
+ assert.match(source,/pendingLink\?\.id===profile\.id&&<div role="group" aria-label="Bağlamayı onayla"/);
  assert.match(source,/linkLocalSchoolCandidate\(profile\.id,adultUserId\)/);
  assert.match(source,/minLength=\{36\} maxLength=\{36\}/);
 });

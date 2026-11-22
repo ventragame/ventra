@@ -19,6 +19,10 @@ export async function schoolClient(client:SchoolApiClient|null=getSupabaseClient
  if(error||!data.user)throw new Error('Bu işlem için yetişkin hesabına giriş yapmalısınız.');
  return client;
 }
+/** A class code is a UUID; parents paste it with spaces, capitals or line breaks. */
+export function normaliseInviteCode(value:string):string{
+ return value.replace(/[^0-9a-fA-F-]/g,'').toLowerCase();
+}
 function validUUID(id:string){
  if(!uuid.test(id))throw new Error('Kimlik biçimi geçersiz.');
  return id;

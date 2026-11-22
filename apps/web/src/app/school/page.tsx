@@ -8,11 +8,20 @@ import {getProgressRepository} from '@/lib/progress';
 import {linkLocalSchoolCandidate,localSchoolCandidates,type LocalSchoolCandidate} from '@/lib/school/parentProfileBridge';
 import {
  schoolDashboard,createSchool,createClassroom,issueClassInvite,teacherRoster,
- parentLinkedChildren,enrollChild,parentClassrooms,leaveClassroom,
+ parentLinkedChildren,enrollChild,parentClassrooms,leaveClassroom,normaliseInviteCode,
  type VentraSchool,type VentraClassroom,type TeacherRosterEntry,type ParentClassroom,type LinkedChild
 } from '@/lib/school/schoolService';
 
 type Mode='teacher'|'parent';
+const ROLE_KEY='ventra:school:role';
+/** Shown in groups so a teacher can read it out or copy it without mistakes. */
+function groupedCode(code:string){return code.toUpperCase().split('-');}
+
+const card='rounded-[2rem] border border-white/12 bg-white/[.05] p-5 sm:p-7';
+const field='mt-2 min-h-12 w-full rounded-xl border border-white/25 bg-[#0b1d35] px-4 text-base text-white placeholder:text-slate-400 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-300';
+const primary='inline-flex min-h-12 items-center justify-center gap-2 rounded-xl bg-gradient-to-r from-lime-300 to-emerald-300 px-5 font-black text-emerald-950 shadow-lg shadow-emerald-900/30 disabled:cursor-not-allowed disabled:opacity-45';
+const secondary='inline-flex min-h-11 items-center justify-center gap-2 rounded-xl border border-white/20 bg-white/[.07] px-4 text-sm font-bold hover:bg-white/15 disabled:opacity-45';
+
 export default function SchoolPortal(){
  const [mode,setMode]=useState<Mode>('teacher');
  const [signedIn,setSignedIn]=useState(false);
@@ -23,13 +32,16 @@ export default function SchoolPortal(){
  const [classes,setClasses]=useState<VentraClassroom[]>([]);
  const [activeClass,setActiveClass]=useState('');
  const [roster,setRoster]=useState<TeacherRosterEntry[]>([]);
+ const [rosterLoading,setRosterLoading]=useState(false);
  const [newSchool,setNewSchool]=useState('');
  const [brand,setBrand]=useState('#2563eb');
  const [newClass,setNewClass]=useState('');
  const [grade,setGrade]=useState(3);
  const [issuedInvite,setIssuedInvite]=useState('');
+ const [copied,setCopied]=useState(false);
  const [children,setChildren]=useState<LinkedChild[]>([]);
  const [localCandidates,setLocalCandidates]=useState<LocalSchoolCandidate[]>([]);
+ const [pendingLink,setPendingLink]=useState<LocalSchoolCandidate|null>(null);
  const [adultUserId,setAdultUserId]=useState('');
  const [chosenChild,setChosenChild]=useState('');
  const [inviteCode,setInviteCode]=useState('');
@@ -38,15 +50,21 @@ export default function SchoolPortal(){
  const [loading,setLoading]=useState(true);
  const [error,setError]=useState('');
  const [notice,setNotice]=useState('');
+
+ const chooseMode=(next:Mode)=>{
+  setMode(next);setError('');setNotice('');
+  try{window.localStorage.setItem(ROLE_KEY,next);}catch{/* remembered for this visit only */}
+ };
+ useEffect(()=>{try{const saved=window.localStorage.getItem(ROLE_KEY);if(saved==='teacher'||saved==='parent')setMode(saved);}catch{/* ignore */}},[]);
+
  const refresh=useCallback(async(nextMode:Mode)=>{
    if(nextMode==='teacher'){
      const result=await schoolDashboard();
      setSchools(result.schools);setClasses(result.classes);
-     const hasClass=result.classes.some(c=>c.id===activeClass);
-     setActiveClass(hasClass?activeClass:result.classes[0]?.id??'');
+     setActiveClass(old=>result.classes.some(c=>c.id===old)?old:result.classes[0]?.id??'');
    }else{
      const client=getSupabaseClient();
-     if(!client)throw new Error('Supabase bağlantısı yok.');
+     if(!client)throw new Error('Bulut bağlantısı kurulamadı.');
      const [profiles,memberships,local,auth]=await Promise.all([
        parentLinkedChildren(),parentClassrooms(),getProgressRepository().getAllProfiles(),client.auth.getUser()
      ]);
@@ -56,11 +74,11 @@ export default function SchoolPortal(){
      setChildren(profiles);setJoined(memberships);
      setChosenChild(old=>profiles.some(p=>p.id===old)?old:profiles[0]?.id??'');
    }
- },[activeClass]);
+ },[]);
  useEffect(()=>{
    let alive=true;
    const initialize=async()=>{
-     if(!isSupabaseConfigured()){if(alive){setError('Bu bölüm için Supabase yapılandırılması gerekiyor.');setLoading(false);}return;}
+     if(!isSupabaseConfigured()){if(alive)setLoading(false);return;}
      const {data,error}=await getSupabaseClient()!.auth.getUser();
      if(!alive)return;
      setSignedIn(!error&&Boolean(data.user));
@@ -78,6 +96,16 @@ export default function SchoolPortal(){
      .finally(()=>{if(alive)setLoading(false);});
    return()=>{alive=false;};
  },[signedIn,mode,refresh]);
+ // The selected class shows its students straight away.
+ useEffect(()=>{
+   if(!signedIn||mode!=='teacher'||!activeClass)return;
+   let alive=true;
+   setRosterLoading(true);setRoster([]);
+   teacherRoster(activeClass).then(list=>{if(alive)setRoster(list);})
+     .catch(e=>{if(alive)setError(e instanceof Error?e.message:'Öğrenci listesi yüklenemedi.');})
+     .finally(()=>{if(alive)setRosterLoading(false);});
+   return()=>{alive=false;};
+ },[signedIn,mode,activeClass]);
 
  const run=async(action:()=>Promise<void>,success:string)=>{
    if(busy)return;
@@ -98,231 +126,236 @@ export default function SchoolPortal(){
        if(!res.success)throw new Error(res.error);
        setSignedIn(true);
      }
-   },otpSent?'Yetişkin hesabına giriş yapıldı.':'E-postana giriş kodu gönderildi.');
+   },otpSent?'Giriş yapıldı.':'E-postanıza 6 haneli bir giriş kodu gönderdik.');
+ };
+ const signOut=()=>{
+   if(busy)return;setBusy(true);setError('');
+   void signOutAdult().then(()=>{
+     setSignedIn(false);setSchools([]);setChildren([]);setLocalCandidates([]);setAdultUserId('');setClasses([]);setRoster([]);setIssuedInvite('');
+     setOtpSent(false);setCode('');setNotice('Oturum kapatıldı.');
+   }).catch(e=>setError(e instanceof Error?e.message:'Çıkış yapılamadı.')).finally(()=>setBusy(false));
  };
  const activeSchool=schools[0];
  const currentClass=classes.find(c=>c.id===activeClass);
- return <main className="min-h-screen bg-gradient-to-b from-[#09152c] via-[#142b4d] to-[#071e35] px-3 pb-20 pt-5 text-white sm:px-8">
-   <div className="mx-auto max-w-6xl">
-     <header className="flex flex-wrap items-center justify-between gap-3">
-       <Link href="/kids" className="min-h-11 rounded-xl border border-slate-400/40 bg-slate-900/60 px-4 py-3 text-sm font-bold hover:bg-slate-800">← Ventra Kids</Link>
-       <span className="rounded-full border border-cyan-300/40 bg-cyan-900/35 px-3 py-2 text-xs font-extrabold text-cyan-100">VENTRA · OKUL YÖNETİMİ</span>
-     </header>
-     <div className="mx-auto max-w-3xl py-8 text-center">
-       <div className="text-6xl" aria-hidden="true">🏫</div>
-       <h1 className="mt-3 text-3xl font-black sm:text-5xl">Okulumla Oyna</h1>
-       <p className="mt-3 text-sm leading-relaxed text-sky-100 sm:text-base">
-         Öğretmen sınıfını oluşturur, ebeveyn davet koduyla çocuğunu bağlar.
-         Çocuk takma adları ve yalnızca özet öğrenme ilerlemesi sınıf panelinde görüntülenir.
-       </p>
-     </div>
-     <nav aria-label="Okul portalı görünümü" className="mx-auto mb-5 grid max-w-xl grid-cols-2 gap-2">
-       {([{id:'teacher',label:'👩‍🏫 Öğretmen Paneli'},{id:'parent',label:'🛡️ Ebeveyn Katılımı'}] as const).map(item=>
-         <button key={item.id} aria-pressed={mode===item.id} onClick={()=>{setMode(item.id);setError('');setNotice('');}}
-           className={`min-h-14 rounded-xl border p-3 text-sm font-bold ${mode===item.id?'border-lime-300 bg-emerald-700/65':'border-sky-300/30 bg-slate-900/70'}`}>{item.label}</button>)}
-     </nav>
-     {error&&<div role="alert" className="mx-auto mb-5 max-w-3xl rounded-xl border border-rose-300/50 bg-rose-950/65 p-4 text-sm">{error}</div>}
-     {notice&&<div role="status" className="mx-auto mb-5 max-w-3xl rounded-xl border border-lime-300/50 bg-emerald-950/65 p-4 text-sm">{notice}</div>}
-     {loading?<p role="status" className="p-10 text-center font-semibold text-sky-100">Okul hesabı yükleniyor…</p>:
-     !signedIn?<form onSubmit={login} className="mx-auto max-w-md rounded-3xl border border-white/20 bg-slate-900/80 p-6 shadow-2xl">
-       <h2 className="text-xl font-black">Yetişkin Hesabıyla Giriş</h2>
-       <p className="mt-2 text-sm text-slate-300">Öğretmen veya ebeveyn e-posta doğrulaması gerekir. Çocuktan e-posta istenmez.</p>
-       <label className="mt-5 block text-sm font-bold">E-posta
-         <input type="email" autoComplete="email" required value={email} onChange={e=>setEmail(e.target.value)}
-           disabled={otpSent||busy} className="mt-2 min-h-12 w-full rounded-xl border border-white/30 bg-slate-800 px-4 text-white"/>
-       </label>
-       {otpSent&&<label className="mt-4 block text-sm font-bold">Doğrulama kodu
-         <input inputMode="numeric" autoComplete="one-time-code" required value={code} onChange={e=>setCode(e.target.value)}
-           className="mt-2 min-h-12 w-full rounded-xl border border-white/30 bg-slate-800 px-4 text-white"/>
-       </label>}
-       <button disabled={busy} className="mt-5 min-h-12 w-full rounded-xl bg-lime-300 px-5 font-black text-slate-950 disabled:opacity-50">
-         {busy?'İşleniyor…':otpSent?'Doğrula ve Gir':'Giriş Kodu Gönder'}
-       </button>
-       {otpSent&&<button type="button" onClick={()=>{setOtpSent(false);setCode('');}}
-         className="mt-3 min-h-11 w-full text-xs font-bold text-cyan-200">Başka e-posta kullan</button>}
-     </form>:
-     <div className="space-y-5">
-       <div className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-sky-300/25 bg-slate-900/60 p-3">
-         <span className="text-sm text-sky-100">Yetişkin hesabı: <strong>{email}</strong></span>
-         <button disabled={busy} onClick={()=>{if(busy)return;setBusy(true);setError('');
-           void signOutAdult().then(()=>{
-             setSignedIn(false);setSchools([]);setChildren([]);setLocalCandidates([]);setAdultUserId('');setClasses([]);setRoster([]);setIssuedInvite('');
-             setOtpSent(false);setCode('');setNotice('Oturum kapatıldı.');
-           }).catch(e=>setError(e instanceof Error?e.message:'Çıkış yapılamadı.'))
-             .finally(()=>setBusy(false));
-         }}
-           className="min-h-11 rounded-xl border border-white/25 bg-slate-800 px-4 text-xs font-bold">Çıkış Yap</button>
-       </div>
-       {mode==='teacher'?<>
-         {!activeSchool?<form onSubmit={e=>{e.preventDefault();void run(async()=>{await createSchool(newSchool,brand);},'Okul çalışma alanı oluşturuldu.');}}
-           className="mx-auto max-w-xl rounded-3xl border border-sky-200/25 bg-slate-900/70 p-6">
-           <h2 className="text-xl font-black">Okul çalışma alanı oluştur</h2>
-           <p className="mt-2 text-sm text-slate-300">Bu kayıt okul doğrulaması değildir. Kurum kimliği ve lisanslama P6'nın sonraki kabul kapısıdır.</p>
-           <label className="mt-5 block text-sm font-semibold">Okul adı
-             <input minLength={3} maxLength={90} required value={newSchool} onChange={e=>setNewSchool(e.target.value)}
-               placeholder="Örnek: Ventra Eğitim Merkezi" className="mt-2 min-h-12 w-full rounded-xl border border-white/30 bg-slate-800 px-3"/>
-           </label>
-           <label className="mt-4 flex items-center gap-4 text-sm font-semibold">Marka rengi
-             <input aria-label="Okul marka rengi" type="color" value={brand} onChange={e=>setBrand(e.target.value)}
-               className="h-12 w-24 rounded-lg border border-white/20 bg-transparent"/>
-           </label>
-           <button disabled={busy} className="mt-5 min-h-12 rounded-xl bg-lime-300 px-6 font-black text-slate-950 disabled:opacity-40">Okulu Oluştur</button>
-         </form>:<>
-           <section className="rounded-3xl border border-sky-300/30 bg-slate-900/75 p-5 sm:p-7">
-             <div className="flex flex-wrap items-center gap-3">
-               <span className="flex h-14 w-14 items-center justify-center rounded-2xl text-3xl"
-                 style={{background:activeSchool.brand_color}}>🏫</span>
-               <div className="flex-1"><h2 className="text-2xl font-black">{activeSchool.name}</h2>
-                 <p className="text-xs text-slate-300">{activeSchool.verified_at?'Doğrulanmış kurum':'Doğrulanmamış okul çalışma alanı'}</p></div>
-               <span className="rounded-xl bg-white/10 px-3 py-2 text-xs font-black">{classes.length} sınıf</span>
-             </div>
-             <form onSubmit={e=>{e.preventDefault();void run(async()=>{await createClassroom(activeSchool.id,newClass,grade);setNewClass('');},'Sınıf oluşturuldu.');}}
-               className="mt-6 grid gap-3 border-t border-white/15 pt-5 sm:grid-cols-[1fr_140px_auto]">
-               <label className="text-xs font-semibold text-sky-100">Yeni sınıf adı
-                 <input required minLength={2} maxLength={60} value={newClass} onChange={e=>setNewClass(e.target.value)}
-                   placeholder="Örnek: 3-A" className="mt-2 min-h-12 w-full rounded-xl border border-white/30 bg-slate-800 px-3 text-base text-white"/>
-               </label>
-               <label className="text-xs font-semibold text-sky-100">Sınıf düzeyi
-                 <select value={grade} onChange={e=>setGrade(Number(e.target.value))}
-                   className="mt-2 min-h-12 w-full rounded-xl border border-white/30 bg-slate-800 px-3 text-base text-white">
-                   {Array.from({length:8},(_,i)=><option key={i} value={i+1}>{i+1}. sınıf</option>)}
-                 </select>
-               </label>
-               <button disabled={busy} className="self-end min-h-12 rounded-xl bg-lime-300 px-4 text-sm font-black text-slate-950 disabled:opacity-40">+ Sınıf Ekle</button>
-             </form>
-           </section>
-           {classes.length>0&&<section className="grid gap-4 lg:grid-cols-[minmax(220px,1fr)_minmax(0,2fr)]">
-             <nav aria-label="Sınıflar" className="space-y-2 rounded-3xl border border-white/20 bg-slate-900/65 p-4">
-               <h3 className="mb-3 font-black">📚 Sınıflarım</h3>
-               {classes.map(c=><button key={c.id} onClick={()=>{setActiveClass(c.id);setRoster([]);setIssuedInvite('');}}
-                 aria-pressed={activeClass===c.id}
-                 className={`flex min-h-14 w-full items-center justify-between rounded-xl border px-4 text-left text-sm font-bold
-                   ${activeClass===c.id?'border-lime-300 bg-emerald-700/60':'border-white/20 bg-slate-800/75'}`}>
-                 <span>{c.name}</span><span className="text-xs text-cyan-100">{c.grade_level}. sınıf</span>
-               </button>)}
-             </nav>
-             <div className="rounded-3xl border border-white/20 bg-slate-900/65 p-5">
-               <h3 className="text-xl font-black">🎒 {currentClass?.name??'Sınıf seç'}</h3>
-               <p className="mt-2 text-xs leading-relaxed text-slate-300">Katılım kodunu ebeveyne özel ilet. Öğrenci, kendi yetişkin hesabından bağlanır.</p>
-               <div className="mt-5 flex flex-wrap gap-3">
-                 <button disabled={!activeClass||busy}
-                   onClick={()=>void run(async()=>{setIssuedInvite(await issueClassInvite(activeClass));},'7 gün geçerli, en fazla 30 kullanımlık davet oluşturuldu.')}
-                   className="min-h-12 rounded-xl bg-lime-300 px-4 text-sm font-black text-slate-950 disabled:opacity-40">🔑 Davet Kodu Üret</button>
-                 <button disabled={!activeClass||busy}
-                   onClick={()=>void run(async()=>{setRoster(await teacherRoster(activeClass));},'Sınıf listesi yenilendi.')}
-                   className="min-h-12 rounded-xl border border-white/25 bg-sky-900/60 px-4 text-sm font-bold disabled:opacity-40">↻ Öğrencileri Gör</button>
-               </div>
-               {issuedInvite&&<div className="mt-4 break-all rounded-xl border border-cyan-300/35 bg-[#082a47] p-4">
-                 <p className="mb-2 text-xs text-cyan-100">Davet kodu (yalnızca burada gösterilir)</p>
-                 <code className="text-sm font-bold">{issuedInvite}</code>
-                 <button onClick={()=>void navigator.clipboard?.writeText(issuedInvite)}
-                   className="mt-2 block min-h-11 rounded-lg bg-sky-300 px-4 text-xs font-black text-slate-950">Kopyala</button>
-               </div>}
-               <h4 className="mt-6 font-bold">Öğrenci ilerleme özeti</h4>
-               <div className="mt-3 overflow-x-auto rounded-xl border border-white/20">
-                 <table className="min-w-full text-left text-xs sm:text-sm">
-                   <thead className="bg-slate-700/50 text-slate-200"><tr><th className="px-3 py-3">Takma ad</th><th className="px-3 py-3">Sınıf</th>
-                     <th className="px-3 py-3">Görev</th><th className="px-3 py-3">Yıldız</th></tr></thead>
-                   <tbody>{roster.map(x=><tr key={x.profile_id} className="border-t border-white/10">
-                     <td className="px-3 py-3 font-bold">{x.nickname}</td><td className="px-3 py-3">{x.grade_level??'—'}</td>
-                     <td className="px-3 py-3">{x.completed_levels}</td><td className="px-3 py-3">⭐ {x.stars}</td></tr>)}
-                   </tbody>
-                 </table>
-                 {!roster.length&&<p className="px-3 py-5 text-center text-xs text-slate-300">Kayıtlı öğrenci henüz yok veya sınıf listesi yüklenmedi.</p>}
-               </div>
-             </div>
-           </section>}
-         </>}
-       </>:<section className="mx-auto max-w-3xl rounded-3xl border border-white/20 bg-slate-900/70 p-5 sm:p-7">
-         <h2 className="text-xl font-black">🛡️ Çocuğumu Sınıfa Bağla</h2>
-         <p className="mt-2 text-sm leading-relaxed text-slate-300">
-           Ebeveyn olarak öğretmenin verdiği davet kodunu kullan. Yalnızca bu hesabına bulutta bağlı olan çocuklar seçilebilir.
-           Katılımı daha sonra kaldırabilirsin. Öğretmen gerçek isim veya e-posta yerine takma adı ve özet ilerlemeyi görür.
-         </p>
-         {localCandidates.length>0&&<div className="mt-5 rounded-2xl border border-amber-300/45 bg-amber-950/25 p-4">
-           <h3 className="text-base font-black text-amber-100">☁️ Cihazdaki Çocuk Profilini Aileye Bağla</h3>
-           <p className="mt-2 text-sm leading-relaxed text-amber-50/90">
-             Bu tarayıcıdaki profiller henüz yetişkin hesabının bulut listesinde görünmüyor.
-             Mevcut oyun ilerlemesi korunarak aile hesabına bağlanabilir.
-           </p>
-           <div className="mt-3 space-y-2">
-             {localCandidates.map(profile=><div key={profile.id}
-               className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/15 bg-slate-900/75 p-3">
-               <div>
-                 <strong className="text-sm">{profile.nickname}</strong>
-                 <p className="mt-1 text-xs text-slate-300">
-                   {profile.gradeLevel?`${profile.gradeLevel}. sınıf · `:''}
-                   {profile.status==='unlinked'?'Yalnızca bu cihazda':'Bulut eşitlemesi gerekiyor'}
-                 </p>
-               </div>
-               <button type="button" disabled={busy}
-                 onClick={()=>{
-                   const verb=profile.status==='unlinked'?'kalıcı olarak bağlamak':'bulutla eşitlemek';
-                   if(!window.confirm(
-                     `"${profile.nickname}" profilini ${email} hesabına ${verb} istiyor musun? `+
-                     'Öğrenme kayıtları silinmez; farklı yetişkin hesabına aktarma desteklenmez.'
-                   ))return;
-                   void run(async()=>{await linkLocalSchoolCandidate(profile.id,adultUserId);},
-                     `${profile.nickname} aile hesabına bağlandı. Şimdi sınıfa katılabilir.`);
-                 }}
-                 className="min-h-11 rounded-xl bg-amber-200 px-4 text-xs font-black text-slate-950 disabled:opacity-40">
-                 {profile.status==='unlinked'?'Aileye Bağla':'Buluta Eşitle'}
-               </button>
-             </div>)}
-           </div>
-         </div>}
-         {children.length===0&&<div role="status" className="mt-5 rounded-2xl border border-sky-300/30 bg-sky-950/45 p-4">
-           <p className="text-sm font-extrabold text-sky-100">Bu yetişkin hesabında bağlı çocuk bulunamadı</p>
-           <p className="mt-2 text-sm leading-relaxed text-slate-200">
-             Yukarıda mevcut profilin görünüyorsa önce <strong>Aileye Bağla</strong> düğmesini kullan.
-             Hiç görünmüyorsa başka Chrome profilinde veya cihazda oluşturmuş olabilirsin.
-             O cihazdaki <strong>Ebeveyn &amp; Bulut</strong> alanından aynı yetişkin hesabına bağla ve bu sayfayı yenile.
-           </p>
-           <Link href="/kids" className="mt-3 inline-flex min-h-11 items-center rounded-xl border border-sky-300/40 bg-sky-900/70 px-4 text-xs font-bold">
-             🎮 Çocuk profillerine git
-           </Link>
-         </div>}
-         <form onSubmit={e=>{e.preventDefault();void run(async()=>{
-           await enrollChild(chosenChild,inviteCode);setInviteCode('');
-         },'Çocuk sınıfa bağlandı.');}} className="mt-5 space-y-4">
-           <label className="block text-sm font-bold">Bağlı çocuk profili
-             <select required value={chosenChild} onChange={e=>setChosenChild(e.target.value)}
-               className="mt-2 min-h-12 w-full rounded-xl border border-white/30 bg-slate-800 px-3 text-white">
-               {children.length===0&&<option value="">Bu yetişkin hesabında bulut profili yok</option>}
-               {children.map(c=><option key={c.id} value={c.id}>{c.nickname} {c.grade_level?`(${c.grade_level}. sınıf)`:''}</option>)}
-             </select>
-           </label>
-           <label className="block text-sm font-bold">Öğretmenin gönderdiği davet kodu
-             <input required value={inviteCode} onChange={e=>setInviteCode(e.target.value)}
-               minLength={36} maxLength={36} pattern="[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}"
-               title="Öğretmen panelindeki 36 karakterli sınıf davet kodunu kullan."
-               autoComplete="off" placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX"
-               className="mt-2 min-h-12 w-full rounded-xl border border-white/30 bg-slate-800 px-3 font-mono text-sm text-white"/>
-           </label>
-           <p className="-mt-2 text-xs text-sky-200">Sınıf daveti 36 karakterli UUID kodudur; e-postaya gelen giriş kodunu kullanma.</p>
-           <button disabled={!children.length||!chosenChild||busy}
-             className="min-h-12 rounded-xl bg-lime-300 px-5 font-black text-slate-950 disabled:cursor-not-allowed disabled:opacity-40">
-             Çocuğumun Sınıfa Katılmasını Onaylıyorum
-           </button>
-         </form>
-         <h3 className="mt-7 font-bold">Bağlı Sınıflar</h3>
-         <div className="mt-3 space-y-2">
-           {joined.length===0&&<p className="text-sm text-slate-300">Henüz sınıfa bağlı çocuk yok.</p>}
-           {joined.map(x=><div key={`${x.classroom_id}:${x.profile_id}`}
-             className="flex flex-wrap items-center justify-between gap-3 rounded-xl border border-white/20 bg-slate-800/75 p-3">
-             <div className="text-sm font-bold">{x.school_name} · {x.class_name}
-               <span className="block text-xs font-normal text-slate-300">{children.find(c=>c.id===x.profile_id)?.nickname??'Çocuk profili'}</span>
-             </div>
-             <button disabled={busy} className="min-h-11 rounded-xl border border-rose-300/50 px-3 text-xs font-black text-rose-100"
-               onClick={()=>void run(async()=>{await leaveClassroom(x.profile_id,x.classroom_id);},'Sınıf bağlantısı kaldırıldı.')}>Bağlantıyı Kaldır</button>
-           </div>)}
-         </div>
-       </section>}
-     </div>}
-     <footer className="mx-auto mt-9 max-w-3xl text-center text-xs leading-relaxed text-slate-300">
-       Okul hesapları başlangıçta doğrulanmamıştır. Kişisel çocuk verileri doğrudan paylaşılmaz; sınıfa katılım yetişkin onayı gerektirir.
-       İki cihaz ve gerçek Supabase güvenlik kabulü tamamlanmadan kurumsal yayına açılmamalıdır.
-     </footer>
+ const totalStars=roster.reduce((n,r)=>n+Number(r.stars),0);
+ const averageMissions=roster.length?Math.round(10*roster.reduce((n,r)=>n+Number(r.completed_levels),0)/roster.length)/10:0;
+ const maxMissions=Math.max(1,...roster.map(r=>Number(r.completed_levels)));
+ const typedCode=normaliseInviteCode(inviteCode);
+
+ return <div className="min-h-[100dvh] bg-[#071427] text-white">
+  <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden">
+   <div className="absolute -left-40 -top-32 h-[34rem] w-[34rem] rounded-full bg-violet-500/15 blur-3xl"/>
+   <div className="absolute -right-32 top-1/3 h-[30rem] w-[30rem] rounded-full bg-sky-500/15 blur-3xl"/>
+  </div>
+  <header className="relative z-30 border-b border-white/10 bg-[#071427]/85 backdrop-blur-xl sm:sticky sm:top-0" style={{paddingTop:'env(safe-area-inset-top)'}}>
+   <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3">
+    <Link href="/" className="flex min-h-11 items-center gap-3">
+     <span aria-hidden="true" className="flex h-10 w-10 items-center justify-center rounded-2xl bg-gradient-to-br from-violet-400 to-sky-500 text-xl shadow-lg shadow-violet-900/40">🏫</span>
+     <span className="leading-tight"><span className="block text-sm font-black tracking-[.18em] text-violet-200">VENTRA</span>
+      <span className="block text-base font-black">Okul Paneli</span></span>
+    </Link>
+    <nav aria-label="Okul paneli bağlantıları" className="flex flex-wrap items-center gap-2">
+     <Link href="/progress" className={secondary}>🛡️ Aile Paneli</Link>
+     <Link href="/kids" className="flex min-h-11 items-center rounded-xl bg-gradient-to-r from-lime-300 to-emerald-300 px-4 text-sm font-black text-emerald-950">🏝️ Ventra Kids</Link>
+    </nav>
    </div>
- </main>;
+  </header>
+  <main className="relative mx-auto max-w-6xl px-4 pt-6" style={{paddingBottom:'max(64px,env(safe-area-inset-bottom))'}}>
+   <div className="mx-auto max-w-3xl pb-6 pt-2 text-center sm:pt-6">
+    <h1 className="text-3xl font-black tracking-tight sm:text-5xl">Okulumla Oyna</h1>
+    <p className="mx-auto mt-3 max-w-2xl text-sm leading-relaxed text-sky-100/85 sm:text-base">
+     Öğretmen sınıfını kurar ve veliye bir davet kodu verir; veli, çocuğunu kendi hesabından sınıfa bağlar.
+     Öğretmen yalnızca çocuğun takma adını ve İngilizce görev özetini görür.
+    </p>
+   </div>
+   <div role="radiogroup" aria-label="Paneli kim kullanıyor?" className="mx-auto mb-6 grid max-w-2xl grid-cols-2 gap-3">
+    {([{id:'teacher',icon:'👩‍🏫',label:'Öğretmenim',sub:'Sınıf kur, ilerlemeyi gör'},{id:'parent',icon:'🛡️',label:'Veliyim',sub:'Çocuğumu sınıfa bağla'}] as const).map(item=>
+     <button key={item.id} type="button" role="radio" aria-checked={mode===item.id} onClick={()=>chooseMode(item.id)}
+      className={`flex min-h-[76px] items-center gap-3 rounded-2xl border p-3 text-left transition focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-300
+       ${mode===item.id?'border-lime-300/70 bg-lime-300/15':'border-white/15 bg-white/[.05] hover:bg-white/10'}`}>
+      <span aria-hidden="true" className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/10 text-xl sm:h-12 sm:w-12 sm:text-2xl">{item.icon}</span>
+      <span className="min-w-0 leading-tight"><span className="block text-[15px] font-black sm:text-base">{item.label}</span><span className="block text-xs text-slate-300">{item.sub}</span></span>
+     </button>)}
+   </div>
+   {error&&<div role="alert" className="mx-auto mb-5 max-w-3xl rounded-2xl border border-rose-300/45 bg-rose-950/60 p-4 text-sm">{error}</div>}
+   {notice&&<div role="status" className="mx-auto mb-5 max-w-3xl rounded-2xl border border-lime-300/45 bg-emerald-950/60 p-4 text-sm">{notice}</div>}
+
+   {loading?<p role="status" className="p-10 text-center font-semibold text-sky-100">Yükleniyor…</p>:
+   !isSupabaseConfigured()?<section className={`${card} mx-auto max-w-xl text-center`}>
+    <div aria-hidden="true" className="text-5xl">☁️</div>
+    <h2 className="mt-3 text-xl font-black">Okul paneli bu kurulumda kapalı</h2>
+    <p className="mt-2 text-sm leading-relaxed text-slate-300">Sınıflar ve davetler bulut hesabıyla çalışır. Bu sürümde bulut bağlantısı tanımlı değil; çocuklar Ventra Kids'te bireysel oynamaya devam edebilir.</p>
+   </section>:
+   !signedIn?<form onSubmit={login} className={`${card} mx-auto max-w-md`}>
+    <h2 className="text-xl font-black">{mode==='teacher'?'Öğretmen girişi':'Veli girişi'}</h2>
+    <p className="mt-2 text-sm leading-relaxed text-slate-300">Şifre yok: e-postanıza gelen kodla girersiniz. Çocuktan e-posta istenmez.</p>
+    <label className="mt-5 block text-sm font-bold">E-posta
+     <input type="email" autoComplete="email" required value={email} onChange={e=>setEmail(e.target.value)}
+      disabled={otpSent||busy} className={field}/>
+    </label>
+    {otpSent&&<label className="mt-4 block text-sm font-bold">E-postadaki giriş kodu
+     <input inputMode="numeric" autoComplete="one-time-code" required value={code} onChange={e=>setCode(e.target.value)} className={field}/>
+    </label>}
+    <button disabled={busy} className={`${primary} mt-5 w-full`}>{busy?'İşleniyor…':otpSent?'Doğrula ve Gir':'Giriş Kodu Gönder'}</button>
+    {otpSent&&<button type="button" onClick={()=>{setOtpSent(false);setCode('');}} className="mt-3 min-h-11 w-full text-sm font-bold text-sky-200">Başka e-posta kullan</button>}
+   </form>:
+   <div className="space-y-6">
+    <div className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/12 bg-white/[.04] px-4 py-3">
+     <span className="text-sm text-sky-100">Giriş yapan: <strong className="break-all">{email}</strong></span>
+     <button type="button" disabled={busy} onClick={signOut} className={secondary}>Çıkış Yap</button>
+    </div>
+    {mode==='teacher'?(!activeSchool?
+     <form onSubmit={e=>{e.preventDefault();void run(async()=>{await createSchool(newSchool,brand);},'Okul alanınız hazır. Şimdi ilk sınıfınızı ekleyin.');}} className={`${card} mx-auto max-w-xl`}>
+      <h2 className="text-xl font-black">Okul alanınızı oluşturun</h2>
+      <p className="mt-2 text-sm leading-relaxed text-slate-300">Sınıflarınız ve davet kodlarınız bu alanda durur. Okul alanı, kurum doğrulaması yapılana kadar “doğrulanmamış” etiketiyle görünür.</p>
+      <label className="mt-5 block text-sm font-bold">Okul adı
+       <input minLength={3} maxLength={90} required value={newSchool} onChange={e=>setNewSchool(e.target.value)} placeholder="Örnek: Martı İlkokulu" className={field}/>
+      </label>
+      <label className="mt-4 flex items-center gap-4 text-sm font-bold">Okul rengi
+       <input aria-label="Okul rengi" type="color" value={brand} onChange={e=>setBrand(e.target.value)} className="h-12 w-20 cursor-pointer rounded-xl border border-white/20 bg-transparent"/>
+      </label>
+      <button disabled={busy} className={`${primary} mt-5`}>Okul Alanını Oluştur</button>
+     </form>:<>
+     <section aria-labelledby="school-name" className="relative overflow-hidden rounded-[2rem] border border-white/15 bg-gradient-to-br from-[#1c2c5c] via-[#14264a] to-[#102a42] p-5 sm:p-7">
+      <div className="flex flex-wrap items-center gap-4">
+       <span aria-hidden="true" className="flex h-16 w-16 items-center justify-center rounded-3xl text-3xl shadow-xl" style={{background:activeSchool.brand_color}}>🏫</span>
+       <div className="min-w-0 flex-1">
+        <h2 id="school-name" className="truncate text-2xl font-black sm:text-3xl">{activeSchool.name}</h2>
+        <p className="mt-1 text-sm text-slate-300">{activeSchool.verified_at?'✓ Doğrulanmış kurum':'Doğrulanmamış okul alanı'} · {classes.length} sınıf</p>
+       </div>
+      </div>
+      <form onSubmit={e=>{e.preventDefault();void run(async()=>{await createClassroom(activeSchool.id,newClass,grade);setNewClass('');},'Sınıf eklendi.');}}
+       className="mt-6 grid gap-3 border-t border-white/12 pt-5 sm:grid-cols-[1fr_150px_auto]">
+       <label className="text-sm font-bold">Yeni sınıf
+        <input required minLength={2} maxLength={60} value={newClass} onChange={e=>setNewClass(e.target.value)} placeholder="Örnek: 3-A" className={field}/>
+       </label>
+       <label className="text-sm font-bold">Sınıf düzeyi
+        <select value={grade} onChange={e=>setGrade(Number(e.target.value))} className={field}>
+         {Array.from({length:8},(_,i)=><option key={i} value={i+1}>{i+1}. sınıf</option>)}
+        </select>
+       </label>
+       <button disabled={busy} className={`${primary} self-end`}>+ Sınıf Ekle</button>
+      </form>
+     </section>
+     {classes.length===0?<p className="text-center text-sm text-slate-300">İlk sınıfınızı ekleyince davet kodu üretebilir ve öğrencilerinizi görebilirsiniz.</p>:
+     <div className="grid items-start gap-6 lg:grid-cols-[minmax(220px,300px)_minmax(0,1fr)]">
+      <nav aria-label="Sınıflar" className={`${card} space-y-2 !p-4`}>
+       <h3 className="mb-2 px-1 text-sm font-black uppercase tracking-[.14em] text-sky-200">Sınıflarım</h3>
+       {classes.map(c=><button key={c.id} type="button" onClick={()=>{setActiveClass(c.id);setIssuedInvite('');setCopied(false);}}
+        aria-pressed={activeClass===c.id}
+        className={`flex min-h-14 w-full items-center justify-between gap-2 rounded-2xl border px-4 text-left text-sm font-black transition
+         ${activeClass===c.id?'border-lime-300/70 bg-lime-300/15':'border-white/12 bg-white/[.04] hover:bg-white/10'}`}>
+        <span className="truncate">{c.name}</span><span className="shrink-0 text-xs font-bold text-sky-100">{c.grade_level}. sınıf</span>
+       </button>)}
+      </nav>
+      <section aria-labelledby="class-title" className={card}>
+       <div className="flex flex-wrap items-center justify-between gap-3">
+        <h3 id="class-title" className="text-2xl font-black">🎒 {currentClass?.name??'Sınıf seçin'}</h3>
+        <span className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold">{currentClass?`${currentClass.grade_level}. sınıf`:''}</span>
+       </div>
+       <dl className="mt-5 grid grid-cols-3 gap-3">
+        {[['Öğrenci',String(roster.length)],['Ort. görev',String(averageMissions)],['Toplam ⭐',String(totalStars)]].map(([label,value])=>
+         <div key={label} className="rounded-2xl border border-white/12 bg-white/[.06] p-3 sm:p-4">
+          <dt className="text-xs font-bold text-sky-100">{label}</dt><dd className="mt-1 text-2xl font-black tabular-nums">{rosterLoading?'…':value}</dd>
+         </div>)}
+       </dl>
+       <div className="mt-5 rounded-2xl border border-violet-300/30 bg-violet-500/10 p-4">
+        <h4 className="font-black">🔑 Veli davet kodu</h4>
+        <p className="mt-1 text-sm leading-relaxed text-slate-300">Kodu velilere iletin; veli, “Veliyim” bölümünden çocuğunu bu sınıfa bağlar. Kod 7 gün ve en fazla 30 kez geçerlidir; yalnızca şimdi gösterilir.</p>
+        {issuedInvite?<div className="mt-3">
+         <p className="sr-only">Davet kodu: {issuedInvite}</p>
+         <div aria-hidden="true" className="flex flex-wrap gap-1.5 font-mono text-base font-black tracking-wider sm:text-lg">
+          {groupedCode(issuedInvite).map((part,i)=><span key={i} className="rounded-lg bg-[#0b1d35] px-2.5 py-2">{part}</span>)}
+         </div>
+         <button type="button" onClick={()=>{void navigator.clipboard?.writeText(issuedInvite).then(()=>setCopied(true)).catch(()=>setCopied(false));}}
+          className={`${secondary} mt-3`}>{copied?'✓ Kopyalandı':'📋 Kodu Kopyala'}</button>
+        </div>:
+        <button type="button" disabled={!activeClass||busy}
+         onClick={()=>void run(async()=>{setCopied(false);setIssuedInvite(await issueClassInvite(activeClass));},'Yeni davet kodu hazır.')}
+         className={`${primary} mt-3`}>Davet Kodu Oluştur</button>}
+       </div>
+       <h4 className="mt-6 font-black">Öğrencilerin İngilizce görevleri</h4>
+       {rosterLoading?<p role="status" className="mt-3 text-sm text-slate-300">Öğrenci listesi yükleniyor…</p>:
+       roster.length===0?<p className="mt-3 rounded-2xl border border-white/10 bg-white/[.03] p-4 text-sm text-slate-300">Bu sınıfa henüz bağlanan öğrenci yok. Davet kodunu velilere ilettiğinizde öğrenciler burada görünür.</p>:
+       <ul className="mt-3 divide-y divide-white/10 rounded-2xl border border-white/12 bg-white/[.03]">
+        {roster.map(x=><li key={x.profile_id} className="flex flex-wrap items-center gap-3 px-4 py-3">
+         <span className="min-w-[8rem] flex-1">
+          <span className="block text-sm font-black">{x.nickname}</span>
+          <span className="block text-xs text-slate-300">{x.grade_level?`${x.grade_level}. sınıf`:'Sınıf seçilmedi'}</span>
+         </span>
+         <span className="w-full min-w-[10rem] flex-[2] sm:w-auto">
+          <span className="flex justify-between text-xs font-bold text-sky-100"><span>{Number(x.completed_levels)} görev</span><span>⭐ {Number(x.stars)}</span></span>
+          <span className="mt-1.5 block h-2 overflow-hidden rounded-full bg-white/10" aria-hidden="true">
+           <span className="block h-full rounded-full bg-gradient-to-r from-lime-300 to-emerald-300" style={{width:`${Math.round(100*Number(x.completed_levels)/maxMissions)}%`}}/>
+          </span>
+         </span>
+        </li>)}
+       </ul>}
+       <p className="mt-3 text-xs leading-relaxed text-slate-400">Görev ve yıldızlar velinin bulut hesabına yedeklenmiş oyunlardan gelir. Gerçek ad, e-posta, ses ya da yazılan metin paylaşılmaz.</p>
+      </section>
+     </div>}
+    </>):
+    <div className="mx-auto grid max-w-3xl gap-6">
+     {localCandidates.length>0&&<section aria-labelledby="parent-step-1" className={card}>
+      <p className="text-xs font-black uppercase tracking-[.16em] text-amber-200">Adım 1 · Hesaba bağla</p>
+      <h2 id="parent-step-1" className="mt-1 text-xl font-black">Bu cihazdaki çocuk profili</h2>
+      <p className="mt-2 text-sm leading-relaxed text-slate-300">Sınıfa katılmak için çocuğun profili hesabınıza bağlı olmalı. Bağlarken oyun ilerlemesi korunur.</p>
+      <ul className="mt-4 space-y-2">{localCandidates.map(profile=><li key={profile.id}
+       className="rounded-2xl border border-white/12 bg-white/[.05] p-3">
+       <div className="flex flex-wrap items-center justify-between gap-3">
+        <div><strong className="text-sm">{profile.nickname}</strong>
+         <p className="mt-0.5 text-xs text-slate-300">{profile.gradeLevel?`${profile.gradeLevel}. sınıf · `:''}{profile.status==='unlinked'?'Yalnızca bu cihazda':'Bulut eşitlemesi gerekiyor'}</p></div>
+        {pendingLink?.id!==profile.id&&<button type="button" disabled={busy} onClick={()=>setPendingLink(profile)}
+         className="min-h-11 rounded-xl bg-amber-200 px-4 text-sm font-black text-slate-950 disabled:opacity-45">
+         {profile.status==='unlinked'?'Hesabıma Bağla':'Buluta Eşitle'}</button>}
+       </div>
+       {pendingLink?.id===profile.id&&<div role="group" aria-label="Bağlamayı onayla" className="mt-3 rounded-xl border border-amber-200/40 bg-amber-950/30 p-3">
+        <p className="text-sm leading-relaxed">“{profile.nickname}” profili <strong className="break-all">{email}</strong> hesabına {profile.status==='unlinked'?'kalıcı olarak bağlanacak':'eşitlenecek'}. Öğrenme kayıtları silinmez; başka bir yetişkin hesabına aktarılamaz.</p>
+        <div className="mt-3 flex flex-wrap gap-2">
+         <button type="button" disabled={busy} onClick={()=>{setPendingLink(null);void run(async()=>{await linkLocalSchoolCandidate(profile.id,adultUserId);},
+          `${profile.nickname} hesabınıza bağlandı. Şimdi sınıfa katılabilir.`);}} className="min-h-11 rounded-xl bg-amber-200 px-4 text-sm font-black text-slate-950">Onaylıyorum</button>
+         <button type="button" onClick={()=>setPendingLink(null)} className={secondary}>Vazgeç</button>
+        </div>
+       </div>}
+      </li>)}</ul>
+     </section>}
+     <form aria-labelledby="parent-step-2" onSubmit={e=>{e.preventDefault();void run(async()=>{
+       await enrollChild(chosenChild,typedCode);setInviteCode('');
+      },'Çocuğunuz sınıfa katıldı.');}} className={card}>
+      <p className="text-xs font-black uppercase tracking-[.16em] text-lime-200">{localCandidates.length>0?'Adım 2':'Adım 1'} · Sınıfa katıl</p>
+      <h2 id="parent-step-2" className="mt-1 text-xl font-black">Öğretmenin davet kodu</h2>
+      {children.length===0?<p role="status" className="mt-3 rounded-2xl border border-sky-300/30 bg-sky-950/40 p-4 text-sm leading-relaxed text-slate-200">
+       Bu hesapta bağlı çocuk profili yok. {localCandidates.length>0?'Önce yukarıdan profili hesabınıza bağlayın.':
+       <>Profil başka bir cihazdaysa, o cihazda <Link href="/progress" className="font-bold text-sky-200 underline">Aile Paneli → Yedekleme</Link> ile bu hesaba bağlayın.</>}
+      </p>:<>
+       <label className="mt-4 block text-sm font-bold">Çocuk
+        <select required value={chosenChild} onChange={e=>setChosenChild(e.target.value)} className={field}>
+         {children.map(c=><option key={c.id} value={c.id}>{c.nickname}{c.grade_level?` (${c.grade_level}. sınıf)`:''}</option>)}
+        </select>
+       </label>
+       <label className="mt-4 block text-sm font-bold">Davet kodu
+        <input required value={inviteCode} onChange={e=>setInviteCode(normaliseInviteCode(e.target.value))}
+         minLength={36} maxLength={36} autoComplete="off" autoCapitalize="off" spellCheck={false}
+         placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" className={`${field} font-mono text-sm`}/>
+       </label>
+       <p className="mt-2 text-xs leading-relaxed text-sky-200">Öğretmenin verdiği 36 karakterli kodu yapıştırın. E-postanıza gelen giriş kodu bu değildir.</p>
+       <button disabled={!chosenChild||typedCode.length!==36||busy} className={`${primary} mt-5`}>Çocuğumun Sınıfa Katılmasını Onaylıyorum</button>
+       <p className="mt-3 text-xs leading-relaxed text-slate-400">Öğretmen yalnızca takma adı, sınıf düzeyini ve İngilizce görev özetini görür. Bağlantıyı istediğiniz zaman kaldırabilirsiniz.</p>
+      </>}
+     </form>
+     <section aria-labelledby="parent-joined" className={card}>
+      <h2 id="parent-joined" className="text-xl font-black">Bağlı sınıflar</h2>
+      {joined.length===0?<p className="mt-2 text-sm text-slate-300">Henüz sınıfa bağlı çocuk yok.</p>:
+      <ul className="mt-4 space-y-2">{joined.map(x=><li key={`${x.classroom_id}:${x.profile_id}`}
+       className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/12 bg-white/[.05] p-3">
+       <span className="text-sm font-black">{x.school_name} · {x.class_name}
+        <span className="block text-xs font-normal text-slate-300">{children.find(c=>c.id===x.profile_id)?.nickname??'Çocuk profili'}</span></span>
+       <button type="button" disabled={busy} className="min-h-11 rounded-xl border border-rose-300/50 px-4 text-sm font-black text-rose-100 hover:bg-rose-500/10"
+        onClick={()=>void run(async()=>{await leaveClassroom(x.profile_id,x.classroom_id);},'Sınıf bağlantısı kaldırıldı.')}>Bağlantıyı Kaldır</button>
+      </li>)}</ul>}
+     </section>
+    </div>}
+   </div>}
+  </main>
+ </div>;
 }
