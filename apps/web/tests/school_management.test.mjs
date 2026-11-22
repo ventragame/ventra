@@ -88,5 +88,9 @@ test('P6: school enrollment source requires explicit parental confirmation and v
  assert.match(source,/onClick=\{\(\)=>setPendingLink\(profile\)\}/);
  assert.match(source,/pendingLink\?\.id===profile\.id&&<div role="group" aria-label="Bağlamayı onayla"/);
  assert.match(source,/linkLocalSchoolCandidate\(profile\.id,adultUserId\)/);
- assert.match(source,/minLength=\{36\} maxLength=\{36\}/);
+ // A complete code is required to join, but the field never truncates a
+ // pasted code before it is tidied (a 36-character limit cut codes pasted
+ // with spaces): the button checks the normalised length instead.
+ assert.match(source,/disabled=\{!chosenChild\|\|typedCode\.length!==36\|\|busy\}/);
+ assert.doesNotMatch(source,/maxLength=\{36\}/);
 });

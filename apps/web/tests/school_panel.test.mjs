@@ -44,3 +44,19 @@ test('Roster migration counts all twelve English worlds and keeps the same secur
  assert.match(sql,/REVOKE ALL ON FUNCTION public\.ventra_teacher_roster\(uuid\) FROM PUBLIC,anon;/);
  assert.doesNotMatch(sql,/kesir|fraction/i);
 });
+
+test('Signed-in school panel: codes without dashes work, leaving asks first, errors read as plain formal Turkish',async()=>{
+ assert.equal(normaliseInviteCode('AAAAAAAABBBB4CCC8DDD000000000777'),'aaaaaaaa-bbbb-4ccc-8ddd-000000000777','typed from the grouped display without dashes');
+ assert.equal(normaliseInviteCode(' AAAAAAAA - BBBB - 4CCC - 8DDD - 000000000777 \n'),'aaaaaaaa-bbbb-4ccc-8ddd-000000000777');
+ const ui=page();
+ assert.doesNotMatch(ui,/maxLength=\{36\}/,'a pasted code is never cut before it is tidied');
+ assert.match(ui,/`Kod eksik görünüyor: \$\{typedHex\}\/32 harf ve rakam\.`/);
+ assert.match(ui,/\{pendingLeave!==key&&<button type="button" disabled=\{busy\} onClick=\{\(\)=>setPendingLeave\(key\)\}/);
+ assert.match(ui,/aria-label=\{`\$\{nickname\} sınıftan ayrılsın mı\?`\}/);
+ assert.equal(ui.match(/friendlyAccountError\(e,'[^']*',\{formal:true\}\)/g).length,4,'every school error is translated, in the "siz" form');
+ assert.doesNotMatch(ui,/console\.error\(/,'handled errors are warnings (no dev overlay "Issue")');
+ assert.match(ui,/onChange=\{e=>setCode\(cleanOtpCode\(e\.target\.value\)\)\}/);
+ const {friendlyAccountError}=await import('../src/lib/profile/profileHub.ts');
+ assert.equal(friendlyAccountError(new TypeError('Failed to fetch'),'x',{formal:true}),'İnternet bağlantısı kurulamadı. Bağlantınızı kontrol edip yeniden deneyin.');
+ assert.equal(friendlyAccountError(new TypeError('Failed to fetch'),'x'),'İnternet bağlantısı kurulamadı. Bağlantını kontrol edip yeniden dene.');
+});

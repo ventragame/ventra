@@ -72,16 +72,24 @@ export function isEmailLike(value:string):boolean{
 /** Parents see what happened and what to do, never a server stack or a
  * setup note. Our own Turkish messages keep their first sentence; English
  * auth/network errors are translated; anything else gets the fallback. */
-export function friendlyAccountError(raw:unknown,fallback:string):string{
+const ACCOUNT_MESSAGES={
+ rate:['Çok sık kod istendi. Bir dakika bekleyip yeniden dene.','Çok sık kod istendi. Bir dakika bekleyip yeniden deneyin.'],
+ code:['Kod geçersiz ya da süresi dolmuş. Yeni bir kod isteyebilirsin.','Kod geçersiz ya da süresi dolmuş. Yeni bir kod isteyebilirsiniz.'],
+ email:['E-posta adresini kontrol et.','E-posta adresinizi kontrol edin.'],
+ network:['İnternet bağlantısı kurulamadı. Bağlantını kontrol edip yeniden dene.','İnternet bağlantısı kurulamadı. Bağlantınızı kontrol edip yeniden deneyin.']
+} as const;
+
+/** `formal` addresses the reader as "siz" (school panel for teachers and
+ * parents); the default "sen" matches the family backup window. */
+export function friendlyAccountError(raw:unknown,fallback:string,options:{formal?:boolean}={}):string{
  const text=raw instanceof Error?raw.message:typeof raw==='string'?raw:'';
  if(!text.trim())return fallback;
  const lower=text.toLowerCase();
- if(/rate limit|too many|only request this after|security purposes/.test(lower))
-  return 'Çok sık kod istendi. Bir dakika bekleyip yeniden dene.';
- if(/expired|otp|token/.test(lower))return 'Kod geçersiz ya da süresi dolmuş. Yeni bir kod isteyebilirsin.';
- if(/invalid.*email|email.*invalid|validate email/.test(lower))return 'E-posta adresini kontrol et.';
- if(/failed to fetch|network|fetch failed|load failed|timeout/.test(lower))
-  return 'İnternet bağlantısı kurulamadı. Bağlantını kontrol edip yeniden dene.';
+ const say=(key:keyof typeof ACCOUNT_MESSAGES)=>ACCOUNT_MESSAGES[key][options.formal?1:0];
+ if(/rate limit|too many|only request this after|security purposes/.test(lower))return say('rate');
+ if(/expired|otp|token/.test(lower))return say('code');
+ if(/invalid.*email|email.*invalid|validate email/.test(lower))return say('email');
+ if(/failed to fetch|network|fetch failed|load failed|timeout/.test(lower))return say('network');
  const own=text.split(/:\s/)[0].trim();
  if(/[çğıöşüÇĞİÖŞÜ]/.test(own)&&!/sql|migration|rpc|supabase|ortam değişken/i.test(own))
   return /[.!?]$/.test(own)?own:own+'.';

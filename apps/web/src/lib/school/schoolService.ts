@@ -19,8 +19,12 @@ export async function schoolClient(client:SchoolApiClient|null=getSupabaseClient
  if(error||!data.user)throw new Error('Bu işlem için yetişkin hesabına giriş yapmalısınız.');
  return client;
 }
-/** A class code is a UUID; parents paste it with spaces, capitals or line breaks. */
+/** A class code is a UUID; parents paste it with spaces, capitals or line
+ * breaks, or type it from the teacher's grouped display without dashes: 32
+ * hex characters always come back in the 8-4-4-4-12 form. */
 export function normaliseInviteCode(value:string):string{
+ const hex=value.replace(/[^0-9a-fA-F]/g,'').toLowerCase();
+ if(hex.length===32)return `${hex.slice(0,8)}-${hex.slice(8,12)}-${hex.slice(12,16)}-${hex.slice(16,20)}-${hex.slice(20)}`;
  return value.replace(/[^0-9a-fA-F-]/g,'').toLowerCase();
 }
 function validUUID(id:string){

@@ -14,3 +14,11 @@
 .pg-lock::before{content:'';position:absolute;inset:9px;border-radius:50%;background:#0b1530}
 .pg-lock-time{position:relative;font-size:26px;font-weight:900;color:#fef3c7;letter-spacing:.02em}
 @media(prefers-reduced-motion:reduce){.pg-question--wrong{animation:none}.pg-lock{transition:none}}
+/* PIN boxes (PinField): dots only, the focused box glows. */
+.pin-box{display:grid;place-items:center;width:56px;height:64px;border-radius:16px;border:2px solid #7dd3fc40;
+ background:#050b1d;color:#e0f2fe;font-size:20px;transition:border-color .15s,box-shadow .15s}
+.pin-box--filled{border-color:#7dd3fc99}
+.pin-field:focus-within .pin-box--current{border-color:#bef264;box-shadow:0 0 0 4px #bef26433}
+.pin-box--invalid{border-color:#fda4afb3}
+@media(max-width:360px){.pin-box{width:50px;height:58px}}
+@media(prefers-reduced-motion:reduce){.pin-box{transition:none}}

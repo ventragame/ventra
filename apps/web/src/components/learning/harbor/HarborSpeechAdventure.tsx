@@ -590,7 +590,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   </main>
   <footer className="harbor-footer">🎤 Konuşmak isteğe bağlı. Sesin cihaz veya tarayıcı tarafından işlenebilir; dokunarak da oynayabilirsin.</footer>
   <ParentalGateModal isOpen={parentGateOpen} zIndex={120}
-   description="Konuşma motorları ve teknik hata bilgileri yetişkinlere özeldir. Devam etmek için soruyu yanıtlayın."
+   description="Konuşma motorları ve teknik hata bilgileri yetişkinlere özeldir."
    onClose={()=>setParentGateOpen(false)}
    onSuccess={()=>{setParentGateOpen(false);setParentToolsOpen(true);}}/>
   {parentToolsOpen&&<HarborSpeechAdultPanel capability={capability} activeCapability={activeCapability}

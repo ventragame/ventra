@@ -10,6 +10,8 @@ import type { AdultAccountInfo, PlayerProfile } from '@ventra/shared';
 import { useDialogFocus } from '@/lib/a11y/useDialogFocus';
 import { useFocusRescue } from '@/lib/a11y/useFocusRescue';
 import { AvatarPortrait } from './AvatarPortrait';
+import { PinField } from './PinField';
+import { clearPinRecord, createPinRecord, maskEmail, pinProblem, pinSupported, readPinRecord, writePinRecord, type ParentPinRecord } from '@/lib/profile/parentPin';
 import { cleanOtpCode, cloudState, friendlyAccountError, isEmailLike, lastSyncLabel, playerDetail } from '@/lib/profile/profileHub';
 
 interface AdultAccountModalProps {
@@ -46,9 +48,16 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
   const [pending, setPending] = useState<Pending>(null);
   const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
   const [deleteEmail, setDeleteEmail] = useState('');
+  // Parent lock: an optional PIN tied to the family account.
+  const [pinRecord, setPinRecord] = useState<ParentPinRecord | null>(null);
+  const [pinStep, setPinStep] = useState<'idle' | 'new' | 'confirm' | 'remove'>('idle');
+  const [pinFirst, setPinFirst] = useState('');
+  const [pinSecond, setPinSecond] = useState('');
+  const [pinMessage, setPinMessage] = useState('');
+  const [pinBusy, setPinBusy] = useState(false);
   const dialogRef = useRef<HTMLDivElement>(null);
   useDialogFocus(dialogRef, isOpen);
-  useFocusRescue(dialogRef, isOpen, [account, checked, isOtpSent, pending, deleteAccountOpen, message, profiles, isLoading]);
+  useFocusRescue(dialogRef, isOpen, [account, checked, isOtpSent, pending, deleteAccountOpen, message, profiles, isLoading, pinStep, pinRecord]);
 
   const configured = isSupabaseConfigured();
 
@@ -71,6 +80,11 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
     setPending(null);
     setDeleteAccountOpen(false);
     setDeleteEmail('');
+    setPinRecord(readPinRecord());
+    setPinStep('idle');
+    setPinFirst('');
+    setPinSecond('');
+    setPinMessage('');
   }, [isOpen, loadData]);
 
   useEffect(() => {
@@ -82,7 +96,8 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
   if (!isOpen) return null;
 
   const fail = (where: string, error: unknown, fallback: string) => {
-    console.error('[Yetişkin hesabı] ' + where, error);
+    // Handled and explained on screen: a warning, not an error report.
+    console.warn('[Yetişkin hesabı] ' + where, error);
     setMessage({ type: 'error', text: friendlyAccountError(error, fallback) });
   };
 
@@ -255,18 +270,64 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
       for (const profile of await repo.getAllProfiles()) {
         if (profile.userId === accountId) await repo.releaseProfileFromCloud(profile.id);
       }
+      // A PIN tied to the deleted account could never be reset by e-mail again.
+      const pinWasTied = readPinRecord()?.ownerId === accountId;
+      if (pinWasTied) { clearPinRecord(); setPinRecord(null); setPinStep('idle'); }
       try { window.localStorage.removeItem('ventra-last-sync:' + accountId); } catch {}
       setAccount(null);
       setDeleteAccountOpen(false);
       setDeleteEmail('');
       onSyncCompleted?.();
-      setMessage({ type: 'success', text: 'Aile hesabı ve buluttaki tüm yedekler silindi. Bu cihazdaki profiller ve ilerleme yerinde duruyor.' });
+      setMessage({ type: 'success', text: 'Aile hesabı ve buluttaki tüm yedekler silindi. Bu cihazdaki profiller ve ilerleme yerinde duruyor.' +
+        (pinWasTied ? ' Bu hesaba bağlı Ebeveyn PIN\'i de kaldırıldı; kapı yeniden yazılı soruyu soruyor.' : '') });
       await loadData();
     } catch (error) {
       fail('hesap silinemedi', error, 'Hesap silinemedi. Biraz sonra yeniden dene.');
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // The PIN needs a family account (to reset it by e-mail); changing an
+  // existing PIN while signed out keeps its family.
+  const pinOwner = account ? { id: account.userId, email: account.email }
+    : pinRecord ? { id: pinRecord.ownerId, email: pinRecord.ownerEmail } : null;
+  const startPin = () => { setPinStep('new'); setPinFirst(''); setPinSecond(''); setPinMessage(''); };
+  const stopPin = () => { setPinStep('idle'); setPinFirst(''); setPinSecond(''); setPinMessage(''); };
+  const advancePin = async (value: string) => {
+    if (pinBusy) return;
+    if (pinStep === 'new') {
+      const problem = pinProblem(value);
+      if (problem) { setPinMessage(problem); setPinFirst(''); return; }
+      setPinMessage('');
+      setPinStep('confirm');
+      return;
+    }
+    if (pinStep !== 'confirm' || !pinOwner) return;
+    if (value !== pinFirst) {
+      setPinMessage('PIN\'ler eşleşmedi. Baştan belirleyelim.');
+      setPinStep('new'); setPinFirst(''); setPinSecond('');
+      return;
+    }
+    setPinBusy(true);
+    try {
+      const record = await createPinRecord(value, pinOwner);
+      writePinRecord(record);
+      setPinRecord(record);
+      stopPin();
+      setMessage({ type: 'success', text: 'Ebeveyn kilidi açık: kapı artık yalnızca PIN\'i soracak. Unutursan e-postana gelen kodla sıfırlarsın.' });
+    } catch (error) {
+      console.warn('[Yetişkin hesabı] PIN kaydedilemedi', error);
+      setPinMessage(friendlyAccountError(error, 'PIN kaydedilemedi. Yeniden dene.'));
+    } finally {
+      setPinBusy(false);
+    }
+  };
+  const removePin = () => {
+    clearPinRecord();
+    setPinRecord(null);
+    stopPin();
+    setMessage({ type: 'success', text: 'PIN kaldırıldı. Kapı yeniden yazılı soruyu soruyor.' });
   };
 
   const linkedCount = account ? profiles.filter(p => p.userId === account.userId).length : 0;
@@ -276,6 +337,80 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
     : account
       ? 'Çocukların ilerlemesini aile hesabına yedekle, başka cihazda kaldığı yerden devam etsin.'
       : 'Şifre yok: her girişte e-postana tek kullanımlık bir kod gelir.';
+
+  const lockSection = configured && checked ? (
+            <section aria-labelledby="acct-pin-title" className="rounded-3xl border border-amber-200/25 bg-gradient-to-br from-amber-300/10 to-transparent p-4 sm:p-5">
+              <div className="flex items-start gap-3">
+                <span aria-hidden="true" className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-amber-300/15 text-2xl">🔐</span>
+                <div className="min-w-0 flex-1">
+                  <h3 id="acct-pin-title" className="text-base font-black">Ebeveyn kilidi</h3>
+                  <p className="mt-0.5 text-sm text-sky-100/80">
+                    {pinRecord ? <>PIN açık · <span className="break-all">{maskEmail(pinRecord.ownerEmail)}</span> hesabına bağlı</> : 'Şu an yazılı bir soru soruluyor.'}
+                  </p>
+                </div>
+                {pinRecord && <span className="shrink-0 rounded-full bg-emerald-400/15 px-2.5 py-1 text-xs font-black text-emerald-100">✓ Açık</span>}
+              </div>
+              {!pinSupported() ? (
+                <p className="mt-3 text-sm leading-relaxed text-sky-100/80">PIN yalnızca güvenli bağlantıda (https ya da uygulama) kullanılabilir.</p>
+              ) : pinStep === 'idle' ? (
+                pinRecord ? (
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    <button type="button" onClick={startPin} disabled={!pinOwner}
+                      className="min-h-12 rounded-2xl border border-white/20 bg-white/5 px-4 text-sm font-bold text-sky-50 hover:bg-white/10 disabled:opacity-60">PIN'i değiştir</button>
+                    <button type="button" onClick={() => setPinStep('remove')}
+                      className="min-h-12 rounded-2xl border border-rose-300/40 px-4 text-sm font-bold text-rose-100 hover:bg-rose-500/15">PIN'i kaldır</button>
+                  </div>
+                ) : account ? (
+                  <>
+                    <ul className="mt-3 space-y-1.5 text-sm leading-relaxed text-sky-100/85">
+                      <li>• Yazılı soruyu büyük çocuklar çözebilir; bilmedikleri bir PIN'i açamazlar.</li>
+                      <li>• Çocuklar yanlış denese de beklemezsin: e-postana gelen kodla hemen açarsın.</li>
+                      <li>• PIN'i unutursan yine e-postanla sıfırlarsın.</li>
+                    </ul>
+                    <button type="button" onClick={startPin}
+                      className="mt-3 min-h-12 w-full rounded-2xl bg-gradient-to-r from-amber-200 to-yellow-300 px-4 text-sm font-black text-slate-950 shadow-lg shadow-amber-950/40 hover:brightness-105 sm:w-auto">
+                      🔐 PIN belirle
+                    </button>
+                  </>
+                ) : (
+                  <p className="mt-3 text-sm leading-relaxed text-sky-100/85">
+                    Büyük çocuklara karşı daha güçlü koruma için önce yukarıdan aile hesabına giriş yap; sonra 4 haneli bir PIN belirleyebilirsin.
+                    PIN aile hesabına bağlanır, böylece unutursan e-postana gelen kodla sıfırlarsın.
+                  </p>
+                )
+              ) : pinStep === 'remove' ? (
+                <div role="group" aria-label="PIN kaldırılsın mı?" className="mt-3 rounded-2xl border border-rose-300/35 bg-rose-950/40 p-3">
+                  <p className="text-sm leading-relaxed">PIN kaldırılsın mı? Kapı yeniden yazılı soruyu sorar; büyük çocuklar soruyu çözebilir.</p>
+                  <div className="mt-3 grid grid-cols-2 gap-2">
+                    <button type="button" onClick={stopPin} className="min-h-11 rounded-xl border border-white/25 bg-white/5 px-3 text-sm font-bold">Vazgeç</button>
+                    <button type="button" onClick={removePin} className="min-h-11 rounded-xl bg-rose-600 px-3 text-sm font-black text-white">PIN'i kaldır</button>
+                  </div>
+                </div>
+              ) : (
+                <form onSubmit={e => { e.preventDefault(); void advancePin(pinStep === 'new' ? pinFirst : pinSecond); }}
+                  className="mt-4 flex flex-col gap-3 text-center">
+                  <p className="text-sm font-bold text-amber-50" aria-live="polite">{pinStep === 'new' ? 'Yeni PIN: 4 rakam' : 'Aynı PIN\'i tekrar yaz'}</p>
+                  <PinField key={pinStep} id="acct-pin" label={pinStep === 'new' ? 'Yeni Ebeveyn PIN\'i, 4 rakam' : 'Ebeveyn PIN\'ini tekrar yaz'}
+                    value={pinStep === 'new' ? pinFirst : pinSecond} autoFocus disabled={pinBusy} invalid={Boolean(pinMessage)}
+                    describedBy={pinMessage ? 'acct-pin-message' : 'acct-pin-help'}
+                    onChange={value => { if (pinStep === 'new') setPinFirst(value); else setPinSecond(value); if (value) setPinMessage(''); }}
+                    onComplete={value => void advancePin(value)} />
+                  {pinMessage && <p id="acct-pin-message" role="alert" className="rounded-xl border border-rose-300/40 bg-rose-950/60 px-3 py-2 text-sm font-bold text-rose-100">{pinMessage}</p>}
+                  <div className="grid grid-cols-2 gap-2">
+                    <button type="button" onClick={stopPin} className="min-h-12 rounded-2xl border border-white/25 bg-white/5 px-3 text-sm font-bold">Vazgeç</button>
+                    <button type="submit" disabled={pinBusy || (pinStep === 'new' ? pinFirst : pinSecond).length < 4}
+                      className="min-h-12 rounded-2xl bg-gradient-to-r from-amber-200 to-yellow-300 px-3 text-sm font-black text-slate-950 disabled:cursor-not-allowed disabled:opacity-60">
+                      {pinBusy ? 'Kaydediliyor…' : pinStep === 'new' ? 'Devam' : 'PIN\'i kaydet'}
+                    </button>
+                  </div>
+                  <p id="acct-pin-help" className="text-xs leading-relaxed text-sky-100/70">
+                    Kolay tahmin edilen PIN'ler (1111, 1234, 1212 gibi) kabul edilmez. PIN bu cihazda şifrelenmiş olarak saklanır ve
+                    {' '}{pinOwner ? maskEmail(pinOwner.email) : 'aile'} hesabına bağlanır.
+                  </p>
+                </form>
+              )}
+            </section>
+  ) : null;
 
   return (
     <div className="fixed inset-0 z-[65] flex items-center justify-center bg-[#030817]/90 p-2 backdrop-blur-xl sm:p-4"
@@ -378,6 +513,7 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
                   </form>
                 )}
               </section>
+              {lockSection}
             </>
           )}
 
@@ -471,6 +607,8 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
                   })}
                 </ul>
               </section>
+
+              {lockSection}
 
               <section aria-labelledby="acct-session-title" className="rounded-3xl border border-white/10 bg-[#071229]/60 p-4 sm:p-5">
                 <h3 id="acct-session-title" className="text-base font-black">Hesap</h3>

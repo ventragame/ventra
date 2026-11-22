@@ -11,6 +11,7 @@ import {
  parentLinkedChildren,enrollChild,parentClassrooms,leaveClassroom,normaliseInviteCode,
  type VentraSchool,type VentraClassroom,type TeacherRosterEntry,type ParentClassroom,type LinkedChild
 } from '@/lib/school/schoolService';
+import {cleanOtpCode,friendlyAccountError} from '@/lib/profile/profileHub';
 
 type Mode='teacher'|'parent';
 const ROLE_KEY='ventra:school:role';
@@ -39,6 +40,9 @@ export default function SchoolPortal(){
  const [grade,setGrade]=useState(3);
  const [issuedInvite,setIssuedInvite]=useState('');
  const [copied,setCopied]=useState(false);
+ const [copyFailed,setCopyFailed]=useState(false);
+ // Leaving a class asks first: key `${classroom_id}:${profile_id}`.
+ const [pendingLeave,setPendingLeave]=useState('');
  const [children,setChildren]=useState<LinkedChild[]>([]);
  const [localCandidates,setLocalCandidates]=useState<LocalSchoolCandidate[]>([]);
  const [pendingLink,setPendingLink]=useState<LocalSchoolCandidate|null>(null);
@@ -92,7 +96,7 @@ export default function SchoolPortal(){
    if(!signedIn)return;
    let alive=true;
    setLoading(true);setError('');
-   refresh(mode).catch(e=>{if(alive)setError(e instanceof Error?e.message:'Okul verileri yüklenemedi.');})
+   refresh(mode).catch(e=>{console.warn('[Okul paneli] yükleme',e);if(alive)setError(friendlyAccountError(e,'Okul verileri yüklenemedi. Sayfayı yenileyip yeniden deneyin.',{formal:true}));})
      .finally(()=>{if(alive)setLoading(false);});
    return()=>{alive=false;};
  },[signedIn,mode,refresh]);
@@ -102,7 +106,7 @@ export default function SchoolPortal(){
    let alive=true;
    setRosterLoading(true);setRoster([]);
    teacherRoster(activeClass).then(list=>{if(alive)setRoster(list);})
-     .catch(e=>{if(alive)setError(e instanceof Error?e.message:'Öğrenci listesi yüklenemedi.');})
+     .catch(e=>{console.warn('[Okul paneli] öğrenci listesi',e);if(alive)setError(friendlyAccountError(e,'Öğrenci listesi yüklenemedi. Biraz sonra yeniden deneyin.',{formal:true}));})
      .finally(()=>{if(alive)setRosterLoading(false);});
    return()=>{alive=false;};
  },[signedIn,mode,activeClass]);
@@ -111,36 +115,39 @@ export default function SchoolPortal(){
    if(busy)return;
    setBusy(true);setError('');setNotice('');
    try{await action();setNotice(success);await refresh(mode);}
-   catch(e){setError(e instanceof Error?e.message:'İşlem tamamlanamadı.');}
+   catch(e){console.warn('[Okul paneli]',e);setError(friendlyAccountError(e,'İşlem tamamlanamadı. Biraz sonra yeniden deneyin.',{formal:true}));}
    finally{setBusy(false);}
  };
  const login=async(event:FormEvent)=>{
    event.preventDefault();
    await run(async()=>{
      if(!otpSent){
-       const res=await sendAdultOtpEmail(email);
+       const clean=email.trim().toLowerCase();
+       const res=await sendAdultOtpEmail(clean);
        if(!res.success)throw new Error(res.error);
-       setOtpSent(true);
+       setEmail(clean);setOtpSent(true);
      }else{
        const res=await verifyAdultOtp(email,code);
        if(!res.success)throw new Error(res.error);
        setSignedIn(true);
      }
-   },otpSent?'Giriş yapıldı.':'E-postanıza 6 haneli bir giriş kodu gönderdik.');
+   },otpSent?'Giriş yapıldı.':'E-postanıza bir giriş kodu gönderdik. Gelen kutunuzu ve gereksiz klasörünü kontrol edin.');
  };
  const signOut=()=>{
    if(busy)return;setBusy(true);setError('');
    void signOutAdult().then(()=>{
      setSignedIn(false);setSchools([]);setChildren([]);setLocalCandidates([]);setAdultUserId('');setClasses([]);setRoster([]);setIssuedInvite('');
      setOtpSent(false);setCode('');setNotice('Oturum kapatıldı.');
-   }).catch(e=>setError(e instanceof Error?e.message:'Çıkış yapılamadı.')).finally(()=>setBusy(false));
+   }).catch(e=>{console.warn('[Okul paneli] çıkış',e);setError(friendlyAccountError(e,'Çıkış yapılamadı. Yeniden deneyin.',{formal:true}));}).finally(()=>setBusy(false));
  };
  const activeSchool=schools[0];
  const currentClass=classes.find(c=>c.id===activeClass);
  const totalStars=roster.reduce((n,r)=>n+Number(r.stars),0);
  const averageMissions=roster.length?Math.round(10*roster.reduce((n,r)=>n+Number(r.completed_levels),0)/roster.length)/10:0;
+ const averageLabel=averageMissions.toLocaleString('tr-TR',{maximumFractionDigits:1});
  const maxMissions=Math.max(1,...roster.map(r=>Number(r.completed_levels)));
  const typedCode=normaliseInviteCode(inviteCode);
+ const typedHex=typedCode.replace(/-/g,'').length;
 
  return <div className="min-h-[100dvh] bg-[#071427] text-white">
   <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden">
@@ -194,9 +201,10 @@ export default function SchoolPortal(){
       disabled={otpSent||busy} className={field}/>
     </label>
     {otpSent&&<label className="mt-4 block text-sm font-bold">E-postadaki giriş kodu
-     <input inputMode="numeric" autoComplete="one-time-code" required value={code} onChange={e=>setCode(e.target.value)} className={field}/>
+     <input inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength={10} required value={code}
+      onChange={e=>setCode(cleanOtpCode(e.target.value))} className={`${field} text-center text-xl font-black tracking-[.3em] tabular-nums`}/>
     </label>}
-    <button disabled={busy} className={`${primary} mt-5 w-full`}>{busy?'İşleniyor…':otpSent?'Doğrula ve Gir':'Giriş Kodu Gönder'}</button>
+    <button disabled={busy||(otpSent&&code.length<6)} className={`${primary} mt-5 w-full`}>{busy?'İşleniyor…':otpSent?'Doğrula ve Gir':'Giriş Kodu Gönder'}</button>
     {otpSent&&<button type="button" onClick={()=>{setOtpSent(false);setCode('');}} className="mt-3 min-h-11 w-full text-sm font-bold text-sky-200">Başka e-posta kullan</button>}
    </form>:
    <div className="space-y-6">
@@ -241,7 +249,7 @@ export default function SchoolPortal(){
      <div className="grid items-start gap-6 lg:grid-cols-[minmax(220px,300px)_minmax(0,1fr)]">
       <nav aria-label="Sınıflar" className={`${card} space-y-2 !p-4`}>
        <h3 className="mb-2 px-1 text-sm font-black uppercase tracking-[.14em] text-sky-200">Sınıflarım</h3>
-       {classes.map(c=><button key={c.id} type="button" onClick={()=>{setActiveClass(c.id);setIssuedInvite('');setCopied(false);}}
+       {classes.map(c=><button key={c.id} type="button" onClick={()=>{setActiveClass(c.id);setIssuedInvite('');setCopied(false);setCopyFailed(false);}}
         aria-pressed={activeClass===c.id}
         className={`flex min-h-14 w-full items-center justify-between gap-2 rounded-2xl border px-4 text-left text-sm font-black transition
          ${activeClass===c.id?'border-lime-300/70 bg-lime-300/15':'border-white/12 bg-white/[.04] hover:bg-white/10'}`}>
@@ -254,7 +262,7 @@ export default function SchoolPortal(){
         <span className="rounded-full bg-white/10 px-3 py-1.5 text-xs font-bold">{currentClass?`${currentClass.grade_level}. sınıf`:''}</span>
        </div>
        <dl className="mt-5 grid grid-cols-3 gap-3">
-        {[['Öğrenci',String(roster.length)],['Ort. görev',String(averageMissions)],['Toplam ⭐',String(totalStars)]].map(([label,value])=>
+        {[['Öğrenci',String(roster.length)],['Ort. görev',averageLabel],['Toplam ⭐',totalStars.toLocaleString('tr-TR')]].map(([label,value])=>
          <div key={label} className="rounded-2xl border border-white/12 bg-white/[.06] p-3 sm:p-4">
           <dt className="text-xs font-bold text-sky-100">{label}</dt><dd className="mt-1 text-2xl font-black tabular-nums">{rosterLoading?'…':value}</dd>
          </div>)}
@@ -264,11 +272,16 @@ export default function SchoolPortal(){
         <p className="mt-1 text-sm leading-relaxed text-slate-300">Kodu velilere iletin; veli, “Veliyim” bölümünden çocuğunu bu sınıfa bağlar. Kod 7 gün ve en fazla 30 kez geçerlidir; yalnızca şimdi gösterilir.</p>
         {issuedInvite?<div className="mt-3">
          <p className="sr-only">Davet kodu: {issuedInvite}</p>
-         <div aria-hidden="true" className="flex flex-wrap gap-1.5 font-mono text-base font-black tracking-wider sm:text-lg">
-          {groupedCode(issuedInvite).map((part,i)=><span key={i} className="rounded-lg bg-[#0b1d35] px-2.5 py-2">{part}</span>)}
+         <div aria-hidden="true" className="flex flex-wrap items-center gap-1 font-mono text-base font-black tracking-wider sm:text-lg">
+          {groupedCode(issuedInvite).map((part,i)=><span key={i} className="contents">
+           {i>0&&<span className="text-slate-500">-</span>}<span className="rounded-lg bg-[#0b1d35] px-2.5 py-2">{part}</span></span>)}
          </div>
-         <button type="button" onClick={()=>{void navigator.clipboard?.writeText(issuedInvite).then(()=>setCopied(true)).catch(()=>setCopied(false));}}
+         <button type="button" onClick={()=>{setCopyFailed(false);
+          const copy=navigator.clipboard?.writeText(issuedInvite);
+          if(!copy){setCopyFailed(true);return;}
+          void copy.then(()=>setCopied(true)).catch(()=>{setCopied(false);setCopyFailed(true);});}}
           className={`${secondary} mt-3`}>{copied?'✓ Kopyalandı':'📋 Kodu Kopyala'}</button>
+         {copyFailed&&<p role="status" className="mt-2 text-xs leading-relaxed text-amber-100">Bu tarayıcı kopyalamaya izin vermedi. Kodu seçip kopyalayabilir ya da sesli okuyabilirsiniz; veliler tireleri yazmasa da kod kabul edilir.</p>}
         </div>:
         <button type="button" disabled={!activeClass||busy}
          onClick={()=>void run(async()=>{setCopied(false);setIssuedInvite(await issueClassInvite(activeClass));},'Yeni davet kodu hazır.')}
@@ -319,9 +332,11 @@ export default function SchoolPortal(){
        </div>}
       </li>)}</ul>
      </section>}
-     <form aria-labelledby="parent-step-2" onSubmit={e=>{e.preventDefault();void run(async()=>{
+     <form aria-labelledby="parent-step-2" onSubmit={e=>{e.preventDefault();
+       const nickname=children.find(c=>c.id===chosenChild)?.nickname??'Çocuğunuz';
+       void run(async()=>{
        await enrollChild(chosenChild,typedCode);setInviteCode('');
-      },'Çocuğunuz sınıfa katıldı.');}} className={card}>
+      },`${nickname} sınıfa katıldı. Öğretmen artık İngilizce görev özetini görebilir.`);}} className={card}>
       <p className="text-xs font-black uppercase tracking-[.16em] text-lime-200">{localCandidates.length>0?'Adım 2':'Adım 1'} · Sınıfa katıl</p>
       <h2 id="parent-step-2" className="mt-1 text-xl font-black">Öğretmenin davet kodu</h2>
       {children.length===0?<p role="status" className="mt-3 rounded-2xl border border-sky-300/30 bg-sky-950/40 p-4 text-sm leading-relaxed text-slate-200">
@@ -335,10 +350,14 @@ export default function SchoolPortal(){
        </label>
        <label className="mt-4 block text-sm font-bold">Davet kodu
         <input required value={inviteCode} onChange={e=>setInviteCode(normaliseInviteCode(e.target.value))}
-         minLength={36} maxLength={36} autoComplete="off" autoCapitalize="off" spellCheck={false}
-         placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" className={`${field} font-mono text-sm`}/>
+         autoComplete="off" autoCapitalize="off" spellCheck={false} aria-describedby="invite-code-help"
+         placeholder="XXXXXXXX-XXXX-XXXX-XXXX-XXXXXXXXXXXX" className={`${field} font-mono text-sm uppercase`}/>
        </label>
-       <p className="mt-2 text-xs leading-relaxed text-sky-200">Öğretmenin verdiği 36 karakterli kodu yapıştırın. E-postanıza gelen giriş kodu bu değildir.</p>
+       <p id="invite-code-help" className={`mt-2 text-xs leading-relaxed ${typedCode.length===36?'font-bold text-lime-200':'text-sky-200'}`}>
+        {!typedCode?'Öğretmenin verdiği kodu yapıştırın ya da yazın; büyük-küçük harf, boşluk ve tireler önemli değil. E-postanıza gelen giriş kodu bu değildir.':
+         typedCode.length===36?'✓ Kod tamam.':typedHex>32?'Kod fazla uzun görünüyor; yalnızca öğretmenin verdiği kodu yapıştırın.':
+         `Kod eksik görünüyor: ${typedHex}/32 harf ve rakam.`}
+       </p>
        <button disabled={!chosenChild||typedCode.length!==36||busy} className={`${primary} mt-5`}>Çocuğumun Sınıfa Katılmasını Onaylıyorum</button>
        <p className="mt-3 text-xs leading-relaxed text-slate-400">Öğretmen yalnızca takma adı, sınıf düzeyini ve İngilizce görev özetini görür. Bağlantıyı istediğiniz zaman kaldırabilirsiniz.</p>
       </>}
@@ -346,13 +365,25 @@ export default function SchoolPortal(){
      <section aria-labelledby="parent-joined" className={card}>
       <h2 id="parent-joined" className="text-xl font-black">Bağlı sınıflar</h2>
       {joined.length===0?<p className="mt-2 text-sm text-slate-300">Henüz sınıfa bağlı çocuk yok.</p>:
-      <ul className="mt-4 space-y-2">{joined.map(x=><li key={`${x.classroom_id}:${x.profile_id}`}
-       className="flex flex-wrap items-center justify-between gap-3 rounded-2xl border border-white/12 bg-white/[.05] p-3">
-       <span className="text-sm font-black">{x.school_name} · {x.class_name}
-        <span className="block text-xs font-normal text-slate-300">{children.find(c=>c.id===x.profile_id)?.nickname??'Çocuk profili'}</span></span>
-       <button type="button" disabled={busy} className="min-h-11 rounded-xl border border-rose-300/50 px-4 text-sm font-black text-rose-100 hover:bg-rose-500/10"
-        onClick={()=>void run(async()=>{await leaveClassroom(x.profile_id,x.classroom_id);},'Sınıf bağlantısı kaldırıldı.')}>Bağlantıyı Kaldır</button>
-      </li>)}</ul>}
+      <ul className="mt-4 space-y-2">{joined.map(x=>{
+       const key=`${x.classroom_id}:${x.profile_id}`;
+       const nickname=children.find(c=>c.id===x.profile_id)?.nickname??'Çocuk profili';
+       return <li key={key} className={`rounded-2xl border p-3 ${pendingLeave===key?'border-rose-300/45 bg-rose-950/30':'border-white/12 bg-white/[.05]'}`}>
+        <div className="flex flex-wrap items-center justify-between gap-3">
+         <span className="text-sm font-black">{x.school_name} · {x.class_name}
+          <span className="block text-xs font-normal text-slate-300">{nickname}</span></span>
+         {pendingLeave!==key&&<button type="button" disabled={busy} onClick={()=>setPendingLeave(key)}
+          className="min-h-11 rounded-xl border border-rose-300/50 px-4 text-sm font-black text-rose-100 hover:bg-rose-500/10">Bağlantıyı Kaldır</button>}
+        </div>
+        {pendingLeave===key&&<div role="group" aria-label={`${nickname} sınıftan ayrılsın mı?`} className="mt-3 rounded-xl border border-rose-300/35 bg-rose-950/40 p-3">
+         <p className="text-sm leading-relaxed"><strong>{nickname}</strong>, {x.school_name} · {x.class_name} sınıfından ayrılsın mı? Öğretmen artık görev özetini görmez; oyun ilerlemesi silinmez. Yeniden katılmak için öğretmenden yeni bir davet kodu gerekir.</p>
+         <div className="mt-3 flex flex-wrap gap-2">
+          <button type="button" disabled={busy} onClick={()=>{setPendingLeave('');void run(async()=>{await leaveClassroom(x.profile_id,x.classroom_id);},`${nickname} sınıftan ayrıldı.`);}}
+           className="min-h-11 rounded-xl bg-rose-600 px-4 text-sm font-black text-white disabled:opacity-45">Evet, ayrılsın</button>
+          <button type="button" onClick={()=>setPendingLeave('')} className={secondary}>Vazgeç</button>
+         </div>
+        </div>}
+       </li>;})}</ul>}
      </section>
     </div>}
    </div>}
