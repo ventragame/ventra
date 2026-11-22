@@ -20,8 +20,8 @@ import type {
   RecordGameCompletedResult,
   CreateProfileInput
 } from './types.ts';
-import { buildLevelProgressMap, levelRecordPrefix } from './levelProgressMap.ts';
-import { gameActivityLabel } from './activityTitles.ts';
+import { buildLevelProgressMap, levelRecordKey, levelRecordPrefix } from './levelProgressMap.ts';
+import { newActivityId, planGameCompletion } from './gameCompletionPlan.ts';
 
 interface StoredSession {
   sessionId: string;
@@ -193,6 +193,9 @@ export class MemoryProgressRepository implements IProgressRepository {
   public async recordLearningSession(result: LearningSessionResult, targetProfileId?: string): Promise<RecordLearningSessionResult> {
     const profileId = await this.ensureActiveProfileId(targetProfileId || result.profileId);
     const sessionId = result.sessionId || `learning_${Date.now()}`;
+    if (this.deletedProfileIds.has(profileId)) {
+      throw new Error('Deleted player profile cannot record progress');
+    }
 
     // Idempotency: Aynı session daha önce işlendi mi?
     if (this.sessions.has(sessionId)) {
@@ -256,7 +259,8 @@ export class MemoryProgressRepository implements IProgressRepository {
       throw new Error('Deleted player profile cannot record progress');
     }
 
-    // Idempotency kontrolü
+    // Idempotency kontrolü (check and writes below run without an await in
+    // between, so they are atomic in this single-threaded store).
     if (this.sessions.has(sessionId)) {
       const currentStars = await this.getTotalStars(profileId);
       return {
@@ -271,70 +275,22 @@ export class MemoryProgressRepository implements IProgressRepository {
     }
 
     const completedAt = payload.completedAt || new Date().toISOString();
-
-    this.sessions.set(sessionId, {
-      sessionId,
+    const levelKey = levelRecordKey(profileId, payload.gameId, payload.levelId);
+    const plan = planGameCompletion({
+      payload,
       profileId,
-      type: 'game',
-      data: payload,
-      timestamp: completedAt,
-      isCloudSynced: false
+      sessionId,
+      completedAt,
+      previous: this.levels.get(levelKey) ?? null,
+      profile: this.profiles.get(profileId) ?? null,
+      activityId: newActivityId()
     });
 
-    const prof = this.profiles.get(profileId);
-    if (prof) {
-      prof.lastPlayedAt = completedAt;
-      prof.updatedAt = completedAt;
-    }
-
-    // Seviye kaydını güncelle
-    const levelKey = `${profileId}:${payload.gameId}:${payload.levelId}`;
-    const existing = this.levels.get(levelKey);
-
-    const oldBestStars = existing ? existing.bestStars : 0;
-    const newBestStars = Math.max(oldBestStars, Math.min(3, Math.max(0, payload.starsEarned)));
-    const starsAdded = newBestStars - oldBestStars;
-
-    const levelRecord: LevelProgressRecord = {
-      gameId: payload.gameId,
-      levelId: payload.levelId,
-      bestStars: newBestStars,
-      bestScore: Math.max(existing ? existing.bestScore : 0, payload.score),
-      bestAccuracy: Math.max(existing ? existing.bestAccuracy : 0, payload.metrics.accuracyRate),
-      attemptsCount: (existing ? existing.attemptsCount : 0) + (payload.metrics.attemptsCount || 1),
-      completedCount: (existing ? existing.completedCount : 0) + (payload.success ? 1 : 0),
-      firstCompletedAt: existing ? existing.firstCompletedAt : completedAt,
-      lastCompletedAt: completedAt
-    };
-    this.levels.set(levelKey, levelRecord);
-
-    if (payload.skillId) {
-      this.gameAttempts.push({
-        profileId,
-        levelId: payload.levelId,
-        skillId: payload.skillId,
-        success: payload.success,
-        accuracyRate: payload.metrics.accuracyRate,
-        timestamp: completedAt
-      });
-    }
-
-    const gameTitle = gameActivityLabel(payload.gameId);
-    const logEntry: ActivityLogEntry & { profileId: string } = {
-      id: `act_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-      profileId,
-      type: 'game',
-      title: `${gameTitle} — Bölüm ${payload.levelId}`,
-      subtitle: `${payload.starsEarned} Yıldız • Skor: ${payload.score} (%${Math.round(payload.metrics.accuracyRate * 100)})`,
-      timestamp: completedAt,
-      score: payload.score,
-      starsEarned: payload.starsEarned,
-      accuracyRate: payload.metrics.accuracyRate,
-      status: payload.success ? 'success' : 'needs_practice',
-      skillId: payload.skillId,
-      levelId: payload.levelId
-    };
-    this.activities.unshift(logEntry);
+    this.sessions.set(sessionId, plan.session);
+    if (plan.profile) this.profiles.set(profileId, plan.profile);
+    this.levels.set(levelKey, plan.level);
+    if (plan.gameAttempt) this.gameAttempts.push(plan.gameAttempt);
+    this.activities.unshift(plan.activity);
 
     const totalStarsBalance = await this.getTotalStars(profileId);
 
@@ -342,9 +298,9 @@ export class MemoryProgressRepository implements IProgressRepository {
       isDuplicate: false,
       sessionId,
       profileId,
-      previousBestStars: oldBestStars,
-      newBestStars,
-      starsAddedToBalance: starsAdded,
+      previousBestStars: plan.previousBestStars,
+      newBestStars: plan.newBestStars,
+      starsAddedToBalance: plan.starsAdded,
       totalStarsBalance
     };
   }

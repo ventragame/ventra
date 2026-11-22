@@ -1,6 +1,6 @@
 'use client';
 
-import React,{useCallback,useEffect,useState} from 'react';
+import React,{useCallback,useEffect,useRef,useState} from 'react';
 import {
   VENTRA_AVATARS,VENTRA_STARTER_AVATARS,AVATAR_COLLECTIONS,getAvatarById,
   type PlayerProfile
@@ -12,6 +12,7 @@ import {soundService} from '@/lib/audio/SoundService';
 import {AvatarPortrait} from './AvatarPortrait';
 import './avatar-collection.css';
 import {StarterPlacementCheck} from './StarterPlacementCheck';
+import {ParentalGateModal} from './ParentalGateModal';
 
 interface ProfileSelectorModalProps{
  isOpen:boolean;
@@ -38,6 +39,10 @@ export const ProfileSelectorModal:React.FC<ProfileSelectorModalProps>=({
  const [collection,setCollection]=useState<Collection>('all');
  const [search,setSearch]=useState('');
  const [confirmId,setConfirmId]=useState<string|null>(null);
+ // Deleting a child erases their progress on this device: an adult confirms
+ // through the parental gate (a sibling cannot do it with one tap).
+ const [deleteCandidate,setDeleteCandidate]=useState<PlayerProfile|null>(null);
+ const deleteTrigger=useRef<HTMLElement|null>(null);
  const [creating,setCreating]=useState(false);
  const [nickname,setNickname]=useState('');
  const [newAvatar,setNewAvatar]=useState(VENTRA_STARTER_AVATARS[0].id);
@@ -118,7 +123,11 @@ export const ProfileSelectorModal:React.FC<ProfileSelectorModalProps>=({
   if(busy)return;
   if (p.userId){setError('Aileye bağlı profili yalnızca ebeveyn alanından silebilirsin.');onOpenParentGate?.();return;}
   if(profiles.length<=1){setError('En az bir oyuncu profili bulunmalı.');return;}
-  if(!window.confirm('“'+p.nickname+'” profilini ve bu profile ait oyun ilerlemesini silmek istediğine emin misin?'))return;
+  deleteTrigger.current=document.activeElement instanceof HTMLElement?document.activeElement:null;
+  setError('');setDeleteCandidate(p);
+ }
+ async function deleteConfirmedProfile(p:PlayerProfile){
+  if(busy)return;
   setBusy(true);setError('');
   try{
    const repo=getProgressRepository();
@@ -173,7 +182,7 @@ export const ProfileSelectorModal:React.FC<ProfileSelectorModalProps>=({
   :shop&&shop.balance>=selected.price?'Coin ile Kilidi Aç':'Coin Biriktir';
  const affordable=Boolean(shop&&shop.balance>=selected.price);
  return <div className="fixed inset-0 z-[120] flex items-center justify-center bg-[#030c20]/90 p-2 backdrop-blur-xl sm:p-4"
-  onKeyDown={e=>{if(e.key==='Escape'&&!busy){e.stopPropagation();onClose();}}}>
+  onKeyDown={e=>{if(e.key==='Escape'&&!busy&&!deleteCandidate){e.stopPropagation();onClose();}}}>
   <div role="dialog" aria-modal="true" aria-label="Oyuncular ve avatar koleksiyonu"
    className="avatar-v2 relative flex max-h-[96dvh] w-full max-w-6xl flex-col overflow-y-auto rounded-[28px] border-2 border-sky-200/35 bg-gradient-to-br from-[#143c69] via-[#151b55] to-[#25134f] text-white shadow-[0_24px_85px_#010a29b8] sm:rounded-[35px]">
    <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden rounded-[28px]">
@@ -229,7 +238,7 @@ export const ProfileSelectorModal:React.FC<ProfileSelectorModalProps>=({
           </span>
          </button>
          {profiles.length>1&&<button type="button" disabled={busy} onClick={()=>void removeProfile(p)}
-          title="Profili Sil" aria-label={p.nickname+' profilini sil'} className="min-h-11 min-w-9 text-xs text-rose-200/75 hover:text-rose-100">✕</button>}
+          title="Profili Sil" aria-label={p.nickname+' profilini sil'} className="min-h-11 min-w-11 text-xs text-rose-200/75 hover:text-rose-100">✕</button>}
         </div>;
        })}
        </div>
@@ -347,5 +356,11 @@ export const ProfileSelectorModal:React.FC<ProfileSelectorModalProps>=({
      </section>
    </div>}
   </div>
+  {deleteCandidate&&<ParentalGateModal isOpen zIndex={140} tone="danger"
+   title={'“'+deleteCandidate.nickname+'” profilini sil'}
+   confirmLabel="Profili sil"
+   description={'Bu profil, bu cihazdaki oyun ilerlemesi ve yıldızlarıyla birlikte kalıcı olarak silinir; geri alınamaz. Devam etmek için bir yetişkin işlemi çözmeli:'}
+   onClose={()=>{setDeleteCandidate(null);requestAnimationFrame(()=>deleteTrigger.current?.focus());}}
+   onSuccess={()=>{const target=deleteCandidate;setDeleteCandidate(null);void deleteConfirmedProfile(target);}}/>}
  </div>;
 };

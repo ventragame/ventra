@@ -8,6 +8,12 @@ interface ParentalGateModalProps {
   onSuccess: () => void;
   /** Optional copy for a parent-only operation other than cloud backups. */
   description?: string;
+  /** Heading override, e.g. for a destructive parent-only action. */
+  title?: string;
+  /** Submit label; defaults to "Onayla". */
+  confirmLabel?: string;
+  /** "danger" styles the confirm button for irreversible actions. */
+  tone?: 'default' | 'danger';
   zIndex?: number;
 }
 
@@ -16,6 +22,9 @@ export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
   onClose,
   onSuccess,
   description,
+  title = 'Ebeveyn Doğrulaması',
+  confirmLabel = 'Onayla',
+  tone = 'default',
   zIndex = 70
 }) => {
   const [numA, setNumA] = useState<number>(7);
@@ -53,7 +62,9 @@ export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
   };
 
   return (
-    <div role="dialog" aria-modal="true" aria-labelledby="ventra-parent-gate-title" style={{
+    <div role="dialog" aria-modal="true" aria-labelledby="ventra-parent-gate-title" aria-describedby="ventra-parent-gate-description"
+      onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); onClose(); } }}
+      style={{
       position: 'fixed',
       inset: 0,
       backgroundColor: 'rgba(5, 9, 20, 0.88)',
@@ -81,9 +92,9 @@ export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
 
         <div>
           <h3 id="ventra-parent-gate-title" style={{ fontSize: '18px', fontWeight: 800, color: '#f8fafc', margin: '0 0 6px 0' }}>
-            Ebeveyn Doğrulaması
+            {title}
           </h3>
-          <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>
+          <p id="ventra-parent-gate-description" style={{ fontSize: '12px', color: '#94a3b8', margin: 0, lineHeight: 1.5 }}>
             {description ?? 'Bu alan yalnızca yetişkinlerin bulut yedekleme ve hesap işlemlerini yönetmesi içindir. Devam etmek için lütfen işlemi çözün:'}
           </p>
         </div>
@@ -138,6 +149,7 @@ export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
                 background: 'transparent',
                 color: '#94a3b8',
                 fontSize: '13px',
+                minHeight: '44px',
                 cursor: 'pointer'
               }}
             >
@@ -150,14 +162,17 @@ export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
                 padding: '10px',
                 borderRadius: '8px',
                 border: 'none',
-                background: 'linear-gradient(135deg, #0284c7 0%, #2563eb 100%)',
+                background: tone === 'danger'
+                  ? 'linear-gradient(135deg, #e11d48 0%, #be123c 100%)'
+                  : 'linear-gradient(135deg, #0284c7 0%, #2563eb 100%)',
+                minHeight: '44px',
                 color: '#ffffff',
                 fontSize: '13px',
                 fontWeight: 700,
                 cursor: 'pointer'
               }}
             >
-              Onayla
+              {confirmLabel}
             </button>
           </div>
         </form>

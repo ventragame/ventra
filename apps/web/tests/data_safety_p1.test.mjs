@@ -25,7 +25,7 @@ test('A deleted child profile can never receive new progress; the UI switches to
  assert.equal(ok.isDuplicate,false,'other children keep saving normally');
  const modal=src('components/profile/ProfileSelectorModal.tsx');
  assert.match(modal,/if\(p\.id===activeProfile\?\.id\)\{\n\s*const replacement=await repo\.getActiveProfile\(\);\n\s*if\(replacement\)onProfileSwitched\(replacement\);/);
- assert.match(src('lib/progress/IndexedDBProgressRepository.ts'),/getRecord\(db, 'meta', `tombstone:\$\{profileId\}`\)/);
+ assert.match(src('lib/progress/IndexedDBProgressRepository.ts'),/tombstone: \['meta', `tombstone:\$\{profileId\}`\]/);
 });
 
 test('Every English game logs its own title, and daily-quest labels match exactly',()=>{
@@ -36,9 +36,10 @@ test('Every English game logs its own title, and daily-quest labels match exactl
   assert.notEqual(label,'Ventra İngilizce',surface.gameId+' needs an explicit title');
  }
  assert.equal(gameActivityLabel('kesir_koprusu'),'Kesir Köprüsü','historical records keep their titles');
+ assert.match(src('lib/progress/gameCompletionPlan.ts'),/title: `\$\{gameActivityLabel\(payload\.gameId\)\} — Bölüm \$\{payload\.levelId\}`/);
  for(const repo of ['IndexedDBProgressRepository.ts','MemoryProgressRepository.ts']){
   const code=src('lib/progress/'+repo);
-  assert.match(code,/const gameTitle = gameActivityLabel\(payload\.gameId\);/);
+  assert.match(code,/planGameCompletion\(\{/,repo+' uses the shared completion plan');
   assert.doesNotMatch(code,/payload\.gameId === 'island_language_academy_atlas' \?/);
  }
 });
@@ -112,4 +113,20 @@ test('Functional labels measured at 11px on 320px phones have readable floors',(
  assert.match(src('components/learning/writing/writing-workshop.css'),/\.writing-root \.writing-learning-tools button\{font-size:13px;min-height:44px\}/);
  assert.match(src('components/learning/academy/academy-adventure.css'),/\.academy-root \.academy-zone-text>span:last-child\{font-size:12px\}/);
  assert.match(src('components/learning/sentence/sentence-plaza-v2.css'),/\.sp-v2-details>summary\{min-height:44px;/);
+});
+
+test('Deleting a child profile needs the parental gate; Escape and cancel never delete',()=>{
+ const modal=src('components/profile/ProfileSelectorModal.tsx');
+ assert.doesNotMatch(modal,/window\.confirm/,'no one-tap browser confirm');
+ assert.match(modal,/setError\(''\);setDeleteCandidate\(p\);/);
+ assert.match(modal,/<ParentalGateModal isOpen zIndex=\{140\} tone="danger"/);
+ assert.match(modal,/onSuccess=\{\(\)=>\{const target=deleteCandidate;setDeleteCandidate\(null\);void deleteConfirmedProfile\(target\);\}\}/);
+ assert.equal(modal.match(/repo\.deleteProfile\(/g).length,1,'deletion has a single entry point');
+ assert.match(modal.slice(modal.indexOf('async function deleteConfirmedProfile')),/^async function deleteConfirmedProfile\(p:PlayerProfile\)\{\n\s*if\(busy\)return;/);
+ assert.match(modal,/e\.key==='Escape'&&!busy&&!deleteCandidate/,'Escape closes the gate first, not the whole selector');
+ const gate=src('components/profile/ParentalGateModal.tsx');
+ assert.match(gate,/title = 'Ebeveyn Doğrulaması'/);
+ assert.match(gate,/confirmLabel = 'Onayla'/);
+ assert.match(gate,/if \(e\.key === 'Escape'\) \{ e\.stopPropagation\(\); onClose\(\); \}/);
+ assert.equal(gate.match(/minHeight: '44px'/g).length,2,'both gate buttons are 44px touch targets');
 });

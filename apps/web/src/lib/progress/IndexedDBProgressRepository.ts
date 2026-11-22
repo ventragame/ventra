@@ -20,8 +20,8 @@ import type {
   RecordGameCompletedResult,
   CreateProfileInput
 } from './types.ts';
-import { buildLevelProgressMap, levelRecordPrefix } from './levelProgressMap.ts';
-import { gameActivityLabel } from './activityTitles.ts';
+import { buildLevelProgressMap, levelRecordKey, levelRecordPrefix } from './levelProgressMap.ts';
+import { newActivityId, planGameCompletion } from './gameCompletionPlan.ts';
 
 const DB_NAME = 'VentraProgressDB';
 const DB_VERSION = 2; // Phase 3.4: v1 -> v2 (Oyuncu Profilleri desteği)
@@ -388,78 +388,100 @@ export class IndexedDBProgressRepository implements IProgressRepository {
     const db = await this.getDB();
     const profileId = await this.ensureActiveProfileId(targetProfileId || result.profileId);
     const sessionId = result.sessionId || `learning_${Date.now()}`;
-
-    const existing = await this.getRecord<any>(db, 'sessions', sessionId);
-    if (existing) {
-      return { isDuplicate: true, sessionId, profileId };
-    }
-
     const completedAt = result.completedAt || new Date().toISOString();
-    const p = await this.getRecord<PlayerProfile>(db, 'profiles', profileId);
-    const tx = db.transaction(['sessions', 'learning_attempts', 'activities', 'profiles'], 'readwrite');
 
-    tx.objectStore('sessions').put({
-      sessionId,
-      profileId,
-      type: 'learning',
-      data: result,
-      timestamp: completedAt,
-      isCloudSynced: false
+    // Same atomic check-and-write contract as recordGameCompleted.
+    const tx = db.transaction(['meta', 'sessions', 'learning_attempts', 'activities', 'profiles'], 'readwrite');
+    const written = await this.readThenWrite(tx, {
+      tombstone: ['meta', `tombstone:${profileId}`],
+      session: ['sessions', sessionId],
+      profile: ['profiles', profileId]
+    }, ({ tombstone, session, profile }) => {
+      if (tombstone) throw new Error('Deleted player profile cannot record progress');
+      if (session) return false;
+
+      tx.objectStore('sessions').put({
+        sessionId,
+        profileId,
+        type: 'learning',
+        data: result,
+        timestamp: completedAt,
+        isCloudSynced: false
+      });
+
+      // Profil son oynama tarihini güncelle
+      if (profile) {
+        tx.objectStore('profiles').put({ ...profile, lastPlayedAt: completedAt, updatedAt: completedAt });
+      }
+
+      if (Array.isArray(result.attempts)) {
+        const attemptsStore = tx.objectStore('learning_attempts');
+        for (const att of result.attempts) {
+          attemptsStore.add({
+            profileId,
+            questionId: att.questionId,
+            skillId: att.skillId,
+            isCorrect: att.isCorrect,
+            accuracyRate: att.isCorrect ? 1.0 : 0.0,
+            timestamp: completedAt
+          });
+        }
+      }
+
+      const isSuccess = result.accuracyRate >= 0.6;
+      const logEntry: ActivityLogEntry & { profileId: string } = {
+        id: newActivityId(),
+        profileId,
+        type: 'learning',
+        title: 'Öğrenme Merkezi Alıştırması',
+        subtitle: `${result.topicTitle} • ${result.correctCount}/${result.totalQuestions} Doğru (%${Math.round(result.accuracyRate * 100)})`,
+        timestamp: completedAt,
+        score: result.score,
+        accuracyRate: result.accuracyRate,
+        status: isSuccess ? 'success' : 'needs_practice'
+      };
+      tx.objectStore('activities').put(logEntry);
+      return true;
     });
 
-    // Profil son oynama tarihini güncelle
-    if (p) {
-      p.lastPlayedAt = completedAt;
-      p.updatedAt = completedAt;
-      tx.objectStore('profiles').put(p);
-    }
-
-    if (Array.isArray(result.attempts)) {
-      const attemptsStore = tx.objectStore('learning_attempts');
-      for (const att of result.attempts) {
-        attemptsStore.add({
-          profileId,
-          questionId: att.questionId,
-          skillId: att.skillId,
-          isCorrect: att.isCorrect,
-          accuracyRate: att.isCorrect ? 1.0 : 0.0,
-          timestamp: completedAt
-        });
-      }
-    }
-
-    const isSuccess = result.accuracyRate >= 0.6;
-    const logEntry: ActivityLogEntry & { profileId: string } = {
-      id: `act_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-      profileId,
-      type: 'learning',
-      title: 'Öğrenme Merkezi Alıştırması',
-      subtitle: `${result.topicTitle} • ${result.correctCount}/${result.totalQuestions} Doğru (%${Math.round(result.accuracyRate * 100)})`,
-      timestamp: completedAt,
-      score: result.score,
-      accuracyRate: result.accuracyRate,
-      status: isSuccess ? 'success' : 'needs_practice'
-    };
-    tx.objectStore('activities').put(logEntry);
-
-    await this.waitForTx(tx);
-    return { isDuplicate: false, sessionId, profileId };
+    return { isDuplicate: !written, sessionId, profileId };
   }
 
   public async recordGameCompleted(payload: GameCompletedPayload, targetProfileId?: string): Promise<RecordGameCompletedResult> {
     const db = await this.getDB();
     const profileId = await this.ensureActiveProfileId(targetProfileId || payload.profileId);
     const sessionId = payload.sessionId || `game_${payload.levelId}_${Date.now()}`;
-    // A deleted child's ID must never receive new progress (it would be orphaned
-    // and vanish on restart). The UI switches to the replacement profile; this
-    // is the storage-level guarantee.
-    if (await this.getRecord(db, 'meta', `tombstone:${profileId}`)) {
-      throw new Error('Deleted player profile cannot record progress');
-    }
+    const completedAt = payload.completedAt || new Date().toISOString();
+    const gameKey = levelRecordKey(profileId, payload.gameId, payload.levelId);
 
-    const existing = await this.getRecord<any>(db, 'sessions', sessionId);
-    if (existing) {
-      const currentStars = await this.getTotalStars(profileId);
+    // One readwrite transaction holds the deleted-profile check, the session
+    // idempotency check, the previous level record and every write. IndexedDB
+    // serialises readwrite transactions on overlapping stores (across tabs
+    // too), so a double tap or two open tabs can no longer both pass the
+    // duplicate check and log the same checkpoint twice or lose an attempt.
+    const tx = db.transaction(['meta', 'sessions', 'levels', 'game_attempts', 'activities', 'profiles'], 'readwrite');
+    const plan = await this.readThenWrite(tx, {
+      tombstone: ['meta', `tombstone:${profileId}`],
+      session: ['sessions', sessionId],
+      previous: ['levels', gameKey],
+      profile: ['profiles', profileId]
+    }, ({ tombstone, session, previous, profile }) => {
+      // A deleted child's ID must never receive new progress (it would be
+      // orphaned and vanish on restart). The UI switches to the replacement
+      // profile; this is the storage-level guarantee.
+      if (tombstone) throw new Error('Deleted player profile cannot record progress');
+      if (session) return null;
+      const next = planGameCompletion({ payload, profileId, sessionId, completedAt, previous, profile, activityId: newActivityId() });
+      tx.objectStore('sessions').put(next.session);
+      tx.objectStore('levels').put({ id: gameKey, profileId, ...next.level });
+      if (next.profile) tx.objectStore('profiles').put(next.profile);
+      if (next.gameAttempt) tx.objectStore('game_attempts').add(next.gameAttempt);
+      tx.objectStore('activities').put(next.activity);
+      return next;
+    });
+
+    const totalStarsBalance = await this.getTotalStars(profileId);
+    if (!plan) {
       return {
         isDuplicate: true,
         sessionId,
@@ -467,87 +489,16 @@ export class IndexedDBProgressRepository implements IProgressRepository {
         previousBestStars: 0,
         newBestStars: 0,
         starsAddedToBalance: 0,
-        totalStarsBalance: currentStars
+        totalStarsBalance
       };
     }
-
-    const completedAt = payload.completedAt || new Date().toISOString();
-    const gameKey = `${profileId}:${payload.gameId}:${payload.levelId}`;
-    const prevLevel = await this.getRecord<LevelProgressRecord>(db, 'levels', gameKey);
-
-    const p = await this.getRecord<PlayerProfile>(db, 'profiles', profileId);
-    const oldBestStars = prevLevel ? prevLevel.bestStars : 0;
-    const newBestStars = Math.max(oldBestStars, Math.min(3, Math.max(0, payload.starsEarned)));
-    const starsAdded = newBestStars - oldBestStars;
-
-    const levelRecord: LevelProgressRecord = {
-      gameId: payload.gameId,
-      levelId: payload.levelId,
-      bestStars: newBestStars,
-      bestScore: Math.max(prevLevel ? prevLevel.bestScore : 0, payload.score),
-      bestAccuracy: Math.max(prevLevel ? prevLevel.bestAccuracy : 0, payload.metrics.accuracyRate),
-      attemptsCount: (prevLevel ? prevLevel.attemptsCount : 0) + (payload.metrics.attemptsCount || 1),
-      completedCount: (prevLevel ? prevLevel.completedCount : 0) + (payload.success ? 1 : 0),
-      firstCompletedAt: prevLevel ? prevLevel.firstCompletedAt : completedAt,
-      lastCompletedAt: completedAt
-    };
-
-    const tx = db.transaction(['sessions', 'levels', 'game_attempts', 'activities', 'profiles'], 'readwrite');
-    tx.objectStore('sessions').put({
-      sessionId,
-      profileId,
-      type: 'game',
-      data: payload,
-      timestamp: completedAt,
-      isCloudSynced: false
-    });
-
-    tx.objectStore('levels').put({ id: gameKey, profileId, ...levelRecord });
-
-    if (p) {
-      p.lastPlayedAt = completedAt;
-      p.updatedAt = completedAt;
-      tx.objectStore('profiles').put(p);
-    }
-
-    if (payload.skillId) {
-      tx.objectStore('game_attempts').add({
-        profileId,
-        levelId: payload.levelId,
-        skillId: payload.skillId,
-        success: payload.success,
-        accuracyRate: payload.metrics.accuracyRate,
-        timestamp: completedAt
-      });
-    }
-
-    const gameTitle = gameActivityLabel(payload.gameId);
-    const logEntry: ActivityLogEntry & { profileId: string } = {
-      id: `act_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
-      profileId,
-      type: 'game',
-      title: `${gameTitle} — Bölüm ${payload.levelId}`,
-      subtitle: `${payload.starsEarned} Yıldız • Skor: ${payload.score} (%${Math.round(payload.metrics.accuracyRate * 100)})`,
-      timestamp: completedAt,
-      score: payload.score,
-      starsEarned: payload.starsEarned,
-      accuracyRate: payload.metrics.accuracyRate,
-      status: payload.success ? 'success' : 'needs_practice',
-      skillId: payload.skillId,
-      levelId: payload.levelId
-    };
-    tx.objectStore('activities').put(logEntry);
-
-    await this.waitForTx(tx);
-    const totalStarsBalance = await this.getTotalStars(profileId);
-
     return {
       isDuplicate: false,
       sessionId,
       profileId,
-      previousBestStars: oldBestStars,
-      newBestStars,
-      starsAddedToBalance: starsAdded,
+      previousBestStars: plan.previousBestStars,
+      newBestStars: plan.newBestStars,
+      starsAddedToBalance: plan.starsAdded,
       totalStarsBalance
     };
   }
@@ -907,44 +858,46 @@ export class IndexedDBProgressRepository implements IProgressRepository {
         throw new Error('Etkinlik başka bir çocuk profiline ait; birleştirme reddedildi.');
       }
       const sessionId = ev.event_id || ev.eventId;
-      const existing = await this.getRecord<any>(await this.getDB(), 'sessions', sessionId);
-      if (!existing) {
-        if (ev.event_type === 'learning_session' || ev.eventType === 'learning_session') {
-          await this.recordLearningSession({
-            sessionId,
-            profileId,
-            moduleId: 'fractions-g4-m1',
-            topicTitle: '4. Sınıf Kesirler',
-            startedAt: ev.client_timestamp || ev.clientTimestamp,
-            completedAt: ev.client_timestamp || ev.clientTimestamp,
-            totalQuestions: ev.metrics?.totalQuestions || 4,
-            correctCount: ev.metrics?.correctCount || 3,
-            accuracyRate: Number(ev.accuracy_rate ?? ev.accuracyRate ?? 0.75),
-            score: ev.score || 0,
-            skillMastery: {},
-            attempts: ev.metrics?.attempts || [],
-            isPersistedToBackend: true
-          }, profileId);
-        } else {
-          await this.recordGameCompleted({
-            sessionId,
-            profileId,
-            gameId: ev.game_id || ev.gameId || 'kesir_atolyesi',
-            levelId: ev.level_id || ev.levelId || 1,
-            outcomeId: 'MATH.G4.FRAC.01',
-            skillId: ev.skill_id || ev.skillId,
-            score: ev.score || 0,
-            success: (ev.stars_earned || ev.starsEarned || 0) > 0,
-            starsEarned: ev.stars_earned || ev.starsEarned || 0,
-            metrics: {
-              ...(ev.metrics && typeof ev.metrics === 'object' ? ev.metrics : {}),
-              durationSeconds: Number(ev.metrics?.durationSeconds ?? 0),
-              attemptsCount: Number(ev.metrics?.attemptsCount ?? 1),
-              accuracyRate: Number(ev.accuracy_rate ?? ev.accuracyRate ?? ev.metrics?.accuracyRate ?? 0)
-            },
-            completedAt: ev.client_timestamp || ev.clientTimestamp
-          }, profileId);
-        }
+      // The record functions check the session ID atomically; a duplicate is
+      // reported instead of written twice.
+      let duplicate: boolean;
+      if (ev.event_type === 'learning_session' || ev.eventType === 'learning_session') {
+        duplicate = (await this.recordLearningSession({
+          sessionId,
+          profileId,
+          moduleId: 'fractions-g4-m1',
+          topicTitle: '4. Sınıf Kesirler',
+          startedAt: ev.client_timestamp || ev.clientTimestamp,
+          completedAt: ev.client_timestamp || ev.clientTimestamp,
+          totalQuestions: ev.metrics?.totalQuestions || 4,
+          correctCount: ev.metrics?.correctCount || 3,
+          accuracyRate: Number(ev.accuracy_rate ?? ev.accuracyRate ?? 0.75),
+          score: ev.score || 0,
+          skillMastery: {},
+          attempts: ev.metrics?.attempts || [],
+          isPersistedToBackend: true
+        }, profileId)).isDuplicate;
+      } else {
+        duplicate = (await this.recordGameCompleted({
+          sessionId,
+          profileId,
+          gameId: ev.game_id || ev.gameId || 'kesir_atolyesi',
+          levelId: ev.level_id || ev.levelId || 1,
+          outcomeId: 'MATH.G4.FRAC.01',
+          skillId: ev.skill_id || ev.skillId,
+          score: ev.score || 0,
+          success: (ev.stars_earned || ev.starsEarned || 0) > 0,
+          starsEarned: ev.stars_earned || ev.starsEarned || 0,
+          metrics: {
+            ...(ev.metrics && typeof ev.metrics === 'object' ? ev.metrics : {}),
+            durationSeconds: Number(ev.metrics?.durationSeconds ?? 0),
+            attemptsCount: Number(ev.metrics?.attemptsCount ?? 1),
+            accuracyRate: Number(ev.accuracy_rate ?? ev.accuracyRate ?? ev.metrics?.accuracyRate ?? 0)
+          },
+          completedAt: ev.client_timestamp || ev.clientTimestamp
+        }, profileId)).isDuplicate;
+      }
+      if (!duplicate) {
         await this.markEventsSynced([sessionId]);
         mergedCount++;
       }
@@ -1002,6 +955,45 @@ export class IndexedDBProgressRepository implements IProgressRepository {
       const req = store.getAll(IDBKeyRange.bound(prefix, prefix + '\uffff'));
       req.onsuccess = () => resolve(req.result || []);
       req.onerror = () => reject(req.error);
+    });
+  }
+
+  /**
+   * Reads every `[store, key]` inside `tx`, then runs `apply` in the same
+   * transaction once all values are known (IndexedDB answers requests of one
+   * transaction in order). `apply` may queue writes on `tx`; throwing aborts
+   * the transaction so nothing it queued is kept. Resolves with `apply`'s
+   * result only after the transaction has committed.
+   */
+  private readThenWrite<K extends string, T>(
+    tx: IDBTransaction,
+    reads: Record<K, [string, IDBValidKey]>,
+    apply: (values: Record<K, any>) => T
+  ): Promise<T> {
+    return new Promise((resolve, reject) => {
+      const values = {} as Record<K, any>;
+      const names = Object.keys(reads) as K[];
+      let remaining = names.length;
+      let outcome: T;
+      let failure: unknown = null;
+      tx.oncomplete = () => resolve(outcome);
+      tx.onerror = () => reject(failure ?? tx.error);
+      tx.onabort = () => reject(failure ?? tx.error ?? new Error('Progress transaction aborted'));
+      for (const name of names) {
+        const [store, key] = reads[name];
+        const request = tx.objectStore(store).get(key);
+        request.onsuccess = () => {
+          values[name] = request.result ?? null;
+          remaining -= 1;
+          if (remaining > 0) return;
+          try {
+            outcome = apply(values);
+          } catch (error) {
+            failure = error;
+            tx.abort();
+          }
+        };
+      }
     });
   }
 
