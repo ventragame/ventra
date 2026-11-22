@@ -2,8 +2,8 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {
- GATE_LOCK_SECONDS,GATE_MAX_WRONG,GATE_STORAGE_KEY,createGateChallenge,emptyGuard,formatLock,lockDurationMs,
- readGuard,registerWrong,remainingLockMs,turkishNumberWords,writeGuard
+ GATE_HARD_TRIES,GATE_LOCK_SECONDS,GATE_MAX_WRONG,GATE_STORAGE_KEY,canTryHard,createGateChallenge,createHardChallenge,emptyGuard,
+ formatLock,lockDurationMs,readGuard,registerHardWrong,registerWrong,remainingLockMs,turkishNumberWords,writeGuard
 } from '../src/lib/profile/parentGate.ts';
 
 const src=path=>fs.readFileSync(new URL('../src/'+path,import.meta.url),'utf8').replace(/\r\n/g,'\n');
@@ -55,7 +55,7 @@ test('Three wrong answers lock the gate for 1, then 3, then 10 minutes; a lock i
  assert.deepEqual([...GATE_LOCK_SECONDS],[60,180,600]);
  let g=emptyGuard(),t=1_000_000;
  g=registerWrong(g,t);g=registerWrong(g,t);
- assert.deepEqual(g,{wrong:2,lockouts:0,lockedUntil:0});
+ assert.deepEqual(g,{wrong:2,lockouts:0,lockedUntil:0,hardLeft:0});
  g=registerWrong(g,t);
  assert.equal(remainingLockMs(g,t),60_000);assert.equal(g.wrong,0);assert.equal(lockDurationMs(g),60_000);
  assert.deepEqual(registerWrong(g,t+1000),g,'guessing during a lock changes nothing');
@@ -72,7 +72,7 @@ test('Three wrong answers lock the gate for 1, then 3, then 10 minutes; a lock i
 test('The lock is stored on this device, survives reopening, and cannot be stretched or bypassed',()=>{
  const store=()=>{const m=new Map();return {getItem:k=>m.get(k)??null,setItem:(k,v)=>m.set(k,String(v)),removeItem:k=>m.delete(k),m};};
  const s=store();writeGuard(emptyGuard(),s);
- const locked={wrong:0,lockouts:1,lockedUntil:5_000_000};
+ const locked={wrong:0,lockouts:1,lockedUntil:5_000_000,hardLeft:1};
  writeGuard(locked,s);
  assert.deepEqual(readGuard(s,4_990_000),locked,'reopening the gate keeps the lock');
  writeGuard(emptyGuard(),s);
@@ -95,13 +95,48 @@ test('The gate shows the question in words, never the answer, and locks visibly'
  assert.match(gate,/\{challenge\.prompt\}/);
  assert.doesNotMatch(gate,/\{numA\}|\{numB\}|× \{|\{challenge\.answer\}/,'no digits question, no answer in the page');
  assert.equal(gate.match(/challenge\.answer/g).length,1,'the answer is only compared');
- assert.match(gate,/if \(Number\(userAnswer\) === challenge\.answer\) \{\n\s*writeGuard\(emptyGuard\(\)\);\n\s*onSuccess\(\);/);
+ assert.match(gate,/if \(Number\(userAnswer\) === challenge\.answer\) \{\n\s*if \(resetAfterQuestion\) clearPinRecord\(\);\n\s*writeGuard\(emptyGuard\(\)\);\n\s*onSuccess\(\);/);
  assert.match(gate,/const next = registerWrong\(guard, current\);\n\s*writeGuard\(next\);/);
  assert.match(gate,/setGuard\(readGuard\(\)\);/,'every opening reads the stored lock');
  assert.match(gate,/requestAnimationFrame\(\(\) => closeRef\.current\?\.focus\(\)\);/,'focus is not lost when the field disappears');
- assert.match(gate,/Bu bekleme, kapının tahminle açılmasını önler\./);
+ assert.match(gate,/Kapı \{lockDuration \/ 60000\} dakika kilitlendi\. Bu, tahminle açılmasını önler\./);
  assert.match(gate,/Cevabı rakamla yaz\./);
  assert.match(src('components/profile/parent-gate.css'),/@media\(prefers-reduced-motion:reduce\)\{\.pg-question--wrong\{animation:none\}/);
  for(const file of ['app/progress/page.tsx','components/learning/harbor/HarborSpeechAdventure.tsx','components/profile/ProfileSelectorModal.tsx'])
   assert.doesNotMatch(src(file),/işlemi çöz/,file+' asks for the question, not a sum in digits');
+});
+
+test('Nobody waits: during a lock a harder parent question opens the gate, two tries per lock, never more',()=>{
+ const random=seeded(77);
+ for(let i=0;i<2000;i++){
+  const c=createHardChallenge(random);
+  assert.equal(c.kind,'hard');
+  assert.doesNotMatch(c.prompt,/\d/);
+  const {a,b,op,value}=solve(c.prompt);
+  assert.equal(op,'çarpı');assert.equal(value,c.answer,c.prompt);
+  assert.ok(a>=13&&a<=39&&b>=12&&b<=19,'two-digit × teen: '+c.prompt);
+  assert.ok(c.answer<1000,'fits the three-digit field');
+ }
+ assert.equal(GATE_HARD_TRIES,2);
+ let g=emptyGuard(),t=5_000_000;
+ assert.equal(canTryHard(g,t),false,'not without a lock');
+ for(let i=0;i<GATE_MAX_WRONG;i++)g=registerWrong(g,t);
+ assert.equal(g.hardLeft,2);assert.ok(canTryHard(g,t));
+ g=registerHardWrong(g,t);assert.equal(g.hardLeft,1);
+ assert.equal(remainingLockMs(g,t),60_000,'a wrong parent answer does not stretch the lock');
+ g=registerHardWrong(g,t);assert.equal(canTryHard(g,t),false,'tries used up');
+ assert.deepEqual(registerHardWrong(g,t),g,'no third try during this lock');
+ assert.equal(canTryHard(g,t+60_000),false,'and none once the lock is over');
+ for(let i=0;i<GATE_MAX_WRONG;i++)g=registerWrong(g,t+60_000);
+ assert.equal(g.hardLeft,2,'a later lock brings two new tries');
+ // a reload keeps the used tries
+ const m=new Map();const st={getItem:k=>m.get(k)??null,setItem:(k,v)=>m.set(k,String(v)),removeItem:k=>m.delete(k)};
+ writeGuard(emptyGuard(),st);
+ const used=registerHardWrong(g,t+60_000);writeGuard(used,st);
+ assert.equal(readGuard(st,t+61_000).hardLeft,1);
+ writeGuard(emptyGuard(),st);
+ const gate=src('components/profile/ParentalGateModal.tsx');
+ assert.match(gate,/const hardOpen = !pinRecord && canTryHard\(guard, now\);/,'with a PIN the sum is never a way in');
+ assert.match(gate,/if \(Number\(userAnswer\) === hardChallenge\.answer\) \{ pass\(\); return; \}/);
+ assert.match(gate,/const canSkipWait = Boolean\(owner\) \|\| hasRecovery \|\| hardOpen;/);
 });

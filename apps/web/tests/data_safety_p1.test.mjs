@@ -130,5 +130,5 @@ test('Deleting a child profile needs the parental gate; Escape and cancel never 
  assert.match(gate,/if \(e\.key === 'Escape'\) \{ e\.stopPropagation\(\); onClose\(\); \}/);
  const buttons=[...gate.matchAll(/<button[\s\S]*?className=\{?['"]([^'"]*)/g)].map(m=>m[1]);
  assert.ok(buttons.length>=6,'question, PIN, e-mail and lock controls');
- for(const cls of buttons)assert.match(cls,/min-h-1[12](?![0-9])/,'every gate button is a 44px+ touch target: '+cls.slice(0,40));
+ for(const cls of buttons)assert.match(cls,/min-h-1[1-6](?![0-9])/,'every gate button is a 44px+ touch target: '+cls.slice(0,40));
 });

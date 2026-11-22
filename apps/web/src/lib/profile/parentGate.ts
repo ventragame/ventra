@@ -10,6 +10,9 @@
  * - every wrong answer brings a new question; after three wrong answers the
  *   gate locks for 1, then 3, then 10 minutes, and the lock survives closing
  *   the window or reloading the page (it is stored on this device);
+ * - nobody has to wait: during a lock a parent can answer one harder
+ *   "parent question" (two tries per lock, never more), or use a PIN's
+ *   recovery key or the family e-mail (see parentPin);
  * - the answer is never placed in the page.
  */
 
@@ -24,7 +27,7 @@ export function turkishNumberWords(value:number):string{
  return [hundreds===0?'':hundreds===1?'yüz':ONES[hundreds]+' yüz',TENS[tens],ONES[ones]].filter(Boolean).join(' ');
 }
 
-export type GateChallenge={kind:'multiply'|'subtract';prompt:string;answer:number};
+export type GateChallenge={kind:'multiply'|'subtract'|'hard';prompt:string;answer:number};
 
 const between=(random:()=>number,min:number,max:number)=>min+Math.floor(random()*(max-min+1));
 const sentence=(text:string)=>text.charAt(0).toLocaleUpperCase('tr-TR')+text.slice(1);
@@ -40,12 +43,23 @@ export function createGateChallenge(random:()=>number=Math.random):GateChallenge
  return {kind:'subtract',prompt:sentence(`${turkishNumberWords(a)} eksi ${turkishNumberWords(b)} kaç eder?`),answer:a-b};
 }
 
-export type GateGuard={wrong:number;lockouts:number;lockedUntil:number};
+/** The way past a lock without waiting: two-digit × two-digit (13–39 ×
+ * 12–19), still in words. Adults manage it in their head or with a
+ * calculator; a child who just failed three easier sums is guessing among
+ * ~600 possible answers with two tries. */
+export function createHardChallenge(random:()=>number=Math.random):GateChallenge{
+ const a=between(random,13,39),b=between(random,12,19);
+ return {kind:'hard',prompt:sentence(`${turkishNumberWords(a)} çarpı ${turkishNumberWords(b)} kaç eder?`),answer:a*b};
+}
+
+export type GateGuard={wrong:number;lockouts:number;lockedUntil:number;hardLeft:number};
 export const GATE_MAX_WRONG=3;
+/** Parent-question tries per lock. */
+export const GATE_HARD_TRIES=2;
 export const GATE_LOCK_SECONDS=[60,180,600] as const;
 export const GATE_STORAGE_KEY='ventra:parent-gate';
 
-export const emptyGuard=():GateGuard=>({wrong:0,lockouts:0,lockedUntil:0});
+export const emptyGuard=():GateGuard=>({wrong:0,lockouts:0,lockedUntil:0,hardLeft:0});
 
 export function remainingLockMs(guard:GateGuard,now:number):number{
  return Math.max(0,guard.lockedUntil-now);
@@ -58,7 +72,19 @@ export function registerWrong(guard:GateGuard,now:number):GateGuard{
  if(wrong<GATE_MAX_WRONG)return {...guard,wrong};
  const lockouts=guard.lockouts+1;
  const seconds=GATE_LOCK_SECONDS[Math.min(lockouts,GATE_LOCK_SECONDS.length)-1];
- return {wrong:0,lockouts,lockedUntil:now+seconds*1000};
+ return {wrong:0,lockouts,lockedUntil:now+seconds*1000,hardLeft:GATE_HARD_TRIES};
+}
+
+/** Can the parent question still be tried during this lock? */
+export function canTryHard(guard:GateGuard,now:number):boolean{
+ return remainingLockMs(guard,now)>0&&guard.hardLeft>0;
+}
+
+/** A wrong parent-question answer uses up a try; the lock itself is unchanged
+ * and no new tries appear until a later lock (no path for guessing). */
+export function registerHardWrong(guard:GateGuard,now:number):GateGuard{
+ if(!canTryHard(guard,now))return guard;
+ return {...guard,hardLeft:guard.hardLeft-1};
 }
 
 /** Length of the current (or last) lock: 1, 3, then 10 minutes. */
@@ -88,12 +114,16 @@ export function readGuard(storage:GuardStorage|null=browserStorage(),now=Date.no
    const number=(x:unknown,max:number)=>typeof x==='number'&&Number.isFinite(x)&&x>=0?Math.min(Math.floor(x),max):0;
    // A damaged or edited value can never lock the gate for longer than the longest lock.
    stored={wrong:number(value.wrong,GATE_MAX_WRONG-1),lockouts:number(value.lockouts,99),
-    lockedUntil:number(value.lockedUntil,now+GATE_LOCK_SECONDS[GATE_LOCK_SECONDS.length-1]*1000)};
+    lockedUntil:number(value.lockedUntil,now+GATE_LOCK_SECONDS[GATE_LOCK_SECONDS.length-1]*1000),
+    hardLeft:number(value.hardLeft,GATE_HARD_TRIES)};
   }
  }catch{/* unreadable: the in-memory copy below still applies */}
  // The stricter copy wins: a write the browser refused must not open the gate.
- return {wrong:Math.max(stored.wrong,memoryGuard.wrong),lockouts:Math.max(stored.lockouts,memoryGuard.lockouts),
-  lockedUntil:Math.max(stored.lockedUntil,memoryGuard.lockedUntil)};
+ // For the lock, the later one counts (with the fewer tries left if equal).
+ const m=memoryGuard;
+ const lock=stored.lockedUntil===m.lockedUntil?{lockedUntil:m.lockedUntil,hardLeft:Math.min(stored.hardLeft,m.hardLeft)}
+  :stored.lockedUntil>m.lockedUntil?{lockedUntil:stored.lockedUntil,hardLeft:stored.hardLeft}:{lockedUntil:m.lockedUntil,hardLeft:m.hardLeft};
+ return {wrong:Math.max(stored.wrong,m.wrong),lockouts:Math.max(stored.lockouts,m.lockouts),...lock};
 }
 
 export function writeGuard(guard:GateGuard,storage:GuardStorage|null=browserStorage()):void{
