@@ -1,5 +1,6 @@
 'use client';
 import React,{useCallback,useEffect,useRef,useState} from 'react';
+import {useQuestionFocus} from './useQuestionFocus';
 import type {FoodAnswerEvidence} from '@ventra/shared';
 import {getProgressRepository} from '@/lib/progress';
 import {type EnglishPlacement} from '@/lib/learning/gradeAwareLearningPolicy';
@@ -81,6 +82,7 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
  const [wrong,setWrong]=useState(0);
  const [roundWrong,setRoundWrong]=useState(0);
  const [q,setQ]=useState(0);
+ const questionPrompt=useQuestionFocus<HTMLDivElement>(`${stage}:${q}`);
  const [hint,setHint]=useState(false);
  const [heard,setHeard]=useState(false);
  const [speaking,setSpeaking]=useState(false);
@@ -88,6 +90,8 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
  const [wrongIds,setWrongIds]=useState<string[]>([]);
  const [success,setSuccess]=useState(false);
  const [finished,setFinished]=useState(false);
+ // Same rule for the end-of-mission panel: the last answer is gone with it.
+ const doneHeading=useQuestionFocus<HTMLHeadingElement>(finished?'done':'play');
  const [busy,setBusy]=useState(false);
  const [saveError,setSaveError]=useState('');
  const [feedback,setFeedback]=useState('');
@@ -284,7 +288,7 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
        <button onClick={()=>changeStage(stage)}>Tekrar Dene</button></div>:
      !current?<div className="fm-loading" role="status">Pazar sokağı hazırlanıyor…</div>:
      finished?<div className="fm-win fm4-win">
-       <div className="fm-win-icon">🏆</div><h2>Fantastic! Great shopping!</h2>
+       <div className="fm-win-icon">🏆</div><h2 ref={doneHeading} tabIndex={-1}>Fantastic! Great shopping!</h2>
        <p>Bu görevdeki ilerlemen kaydedildi. Tekrar oynamak kelimeleri pekiştirir.</p>
        <p className="fm-gained" aria-label={`${marketMissionStars(wrong,answers)} yıldız kazanıldı`}>{'⭐'.repeat(marketMissionStars(wrong,answers))} · {answers.length} kelime alıştırması</p>
        <button className="fm-cta" onClick={()=>{
@@ -308,7 +312,7 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
             'Ürünlere dokun, İngilizce isimlerini keşfet. Son üründen sonra görev tamamlanır.'}
         </p>
       </>:task?<>
-       <div className="fm-command fm4-command">
+       <div ref={questionPrompt} tabIndex={-1} className="fm-command fm4-command">
           <span aria-hidden="true">{stage===2?'🔤':stage===3?'🎧':stage===4?'💬':'🛒'}</span>
           <div>
            {stage===2?<><strong>What is this in English?</strong><small>Görsele bak; aşağıdaki İngilizce kelimelerden birini seç.</small></>:

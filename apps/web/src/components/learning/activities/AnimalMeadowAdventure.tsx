@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import {useQuestionFocus} from './useQuestionFocus';
 import type { AnimalAnswerEvidence } from '@ventra/shared';
 import { soundService } from '@/lib/audio/SoundService';
 import {useAutoQuestionAdvance} from '@/lib/learning/useAutoQuestionAdvance';
@@ -63,6 +64,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
   const [discovered,setDiscovered] = useState<AnimalId[]>([]);
   const [answered,setAnswered] = useState<AnimalAnswerEvidence[]>([]);
   const [questionIndex,setQuestionIndex] = useState(0);
+  const questionHeading = useQuestionFocus<HTMLHeadingElement>(`${stage}:${questionIndex}`);
   const [wrongCount,setWrongCount] = useState(0);
   const [questionWrong,setQuestionWrong] = useState(0);
   const [correctCount,setCorrectCount] = useState(0);
@@ -78,6 +80,8 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
   const [showAlbum,setShowAlbum] = useState(false);
   const [seenAnimals,setSeenAnimals] = useState<AnimalId[]>([]);
   const [completed,setCompleted] = useState(false);
+  // Same rule for the end-of-mission panel: the last answer is gone with it.
+  const doneHeading = useQuestionFocus<HTMLHeadingElement>(completed?'done':'play');
   const [saving,setSaving] = useState(false);
   const [saveError,setSaveError] = useState<string|null>(null);
   const startedAt = useRef(Date.now());
@@ -335,7 +339,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
         </div>}
         {!loadError && completed && <section className="mx-auto max-w-3xl rounded-3xl border border-lime-300/50 bg-emerald-950/75 p-5 text-center shadow-2xl">
           <MeadowPlayStage mode="complete" animals={[]}/>
-          <h2 className="mt-2 text-2xl font-black">Görev Tamamlandı!</h2>
+          <h2 ref={doneHeading} tabIndex={-1} className="mt-2 text-2xl font-black">Görev Tamamlandı!</h2>
           <p className="mt-2 text-sm text-lime-100">Bu görevdeki en iyi ödülün: ⭐ {localProgress.starsByLevel[stage]??0}/3</p>
           <p className="mt-1 text-xs text-white/75">{correctCount || discovered.length} doğru/keşif · {wrongCount} yanlış deneme</p>
           <button onClick={()=>{if(stage===5)onAllCompleted();else reset((stage+1) as Stage)}} className="am-cta mt-5 w-full">
@@ -369,7 +373,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
             </div>
             <div className="am-task">
               <div className="min-w-0 flex-1">
-                <h2 className="am-task-title" tabIndex={-1}>
+                <h2 ref={questionHeading} className="am-task-title" tabIndex={-1}>
                   {stage===3?(noAudioMode?'Read: '+target.id.toUpperCase():'🔊 Listen and find!'):
                     stage===4?animalCommandFor(target,englishLevel,gradeLevel):
                     stage===5?animalRescueCommandFor(target,englishLevel,gradeLevel):

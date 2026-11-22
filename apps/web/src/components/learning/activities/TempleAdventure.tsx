@@ -1,5 +1,6 @@
 'use client';
 import React,{useCallback,useEffect,useRef,useState} from 'react';
+import {useQuestionFocus} from './useQuestionFocus';
 import type {TempleAnswerEvidence} from '@ventra/shared';
 import type {EnglishPlacement} from '@/lib/learning/gradeAwareLearningPolicy';
 import {getProgressRepository} from '@/lib/progress';
@@ -69,11 +70,14 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
  const [mistakes,setMistakes]=useState(0);
  const [roundMistakes,setRoundMistakes]=useState(0);
  const [question,setQuestion]=useState(0);
+ const questionPrompt=useQuestionFocus<HTMLDivElement>(`${stage}:${question}`);
  const [chosenTokens,setChosenTokens]=useState<number[]>([]);
  const [selected,setSelected]=useState<string|null>(null);
  const [wrongIds,setWrongIds]=useState<string[]>([]);
  const [correct,setCorrect]=useState(false);
  const [finished,setFinished]=useState(false);
+ // Same rule for the end-of-mission panel: the last answer is gone with it.
+ const doneHeading=useQuestionFocus<HTMLHeadingElement>(finished?'done':'play');
  const [busy,setBusy]=useState(false);
  const [saveError,setSaveError]=useState('');
  const [hint,setHint]=useState(false);
@@ -285,7 +289,7 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
      !current?<p className="tp-loading" role="status">Tapınağın kristalleri hazırlanıyor…</p>:
      finished?<div className="tp-finished tp6-finished">
       <div className="tp-trophy">{chamber==='crown'&&stage===5?'👑':'🏆'}</div>
-      <h2>{chamber==='crown'&&stage===5?'The English Temple is yours!':'Crystal unlocked!'}</h2>
+      <h2 ref={doneHeading} tabIndex={-1}>{chamber==='crown'&&stage===5?'The English Temple is yours!':'Crystal unlocked!'}</h2>
       <p>{chamber==='crown'&&stage===5?
        'İngilizce maceranın büyük finalini tamamladın! Eski kelimelerini yeni görevlerde tekrar kullanabilirsin.':
        'İngilizce mührü açtın; kazanımların ve yıldızların kaydedildi.'}</p>
@@ -314,7 +318,7 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
          'Tüm rünler keşfedildi. Telaffuzdan sonra otomatik kaydedilecek.':
          'Her sembole dokun. Dinle, öğren; son sembolden sonra görev kendiliğinden tamamlanır.'}
        </p>
-      </>:task?<><div className="tp-command tp6-command"><span>{stageInfo.icon}</span><div>
+      </>:task?<><div ref={questionPrompt} tabIndex={-1} className="tp-command tp6-command"><span>{stageInfo.icon}</span><div>
        {stage===2?<><strong>Gizemli Kelimeyi Bul!</strong>
         <small>Türkçe: <b>{task.prompt}</b> — İngilizce kelimeyi seç.</small></>:
        stage===3?<><strong>Yankı Kristalini Dinle!</strong>

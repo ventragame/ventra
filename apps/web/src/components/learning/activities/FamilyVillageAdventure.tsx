@@ -1,5 +1,6 @@
 'use client';
 import React,{useCallback,useEffect,useRef,useState} from 'react';
+import {useQuestionFocus} from './useQuestionFocus';
 import type {FamilyAnswerEvidence} from '@ventra/shared';
 import {getProgressRepository} from '@/lib/progress';
 import type {EnglishPlacement} from '@/lib/learning/gradeAwareLearningPolicy';
@@ -66,6 +67,7 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
  const [mistakes,setMistakes]=useState(0);
  const [roundMistakes,setRoundMistakes]=useState(0);
  const [question,setQuestion]=useState(0);
+ const questionPrompt=useQuestionFocus<HTMLDivElement>(`${stage}:${question}`);
  const [hint,setHint]=useState(false);
  const [heard,setHeard]=useState(false);
  const [speaking,setSpeaking]=useState(false);
@@ -73,6 +75,8 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
  const [wrongIds,setWrongIds]=useState<string[]>([]);
  const [answered,setAnswered]=useState(false);
  const [saved,setSaved]=useState(false);
+ // Same rule for the end-of-mission panel: the last answer is gone with it.
+ const doneHeading=useQuestionFocus<HTMLHeadingElement>(saved?'done':'play');
  const [busy,setBusy]=useState(false);
  const [saveError,setSaveError]=useState('');
  const [notice,setNotice]=useState('');
@@ -297,7 +301,7 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
         saved?<div className="fv-celebrate fv3-celebrate">
           <div className="fv-guide-reward">
             <CharacterGuide character="village-fox" mood="celebrate" cueKey={'saved-'+revision}/>
-          </div><h2>Well done! Great English!</h2>
+          </div><h2 ref={doneHeading} tabIndex={-1}>Well done! Great English!</h2>
           <p>Görev ilerlemen kaydedildi. Yeniden oynayarak öğrendiklerini pekiştirebilirsin.</p>
           <p className="fv-result" aria-label={`${villageMissionStars(mistakes,answers)} yıldız kazanıldı`}>
             {'⭐'.repeat(villageMissionStars(mistakes,answers))}
@@ -330,7 +334,7 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
                'Tüm kelimeler keşfedildi! Bölüm otomatik kaydediliyor…':
                'Çizimlere dokun, İngilizcesini dinle. Son karttan sonra bölüm tamamlanır.'}
              </p></>:
-          task?<><div className="fv-prompt fv3-prompt fv5-prompt">
+          task?<><div ref={questionPrompt} tabIndex={-1} className="fv-prompt fv3-prompt fv5-prompt">
             <span className="fv-guide-portrait">
               <CharacterGuide character="village-fox" mood={guideMood} cueKey={guideCue}/>
             </span>

@@ -1,6 +1,7 @@
 'use client';
 
 import React, { useEffect, useRef, useState } from 'react';
+import {useQuestionFocus} from './useQuestionFocus';
 import { COLOR_GROVE_WORDS, type ColorGroveProgress } from '@/lib/progress/colorGroveProgress';
 import { planColorMission, getColorInstruction, getActiveColorQuestion, type PlannedColorMission, type EnglishPlacement } from '@/lib/learning/colorMissionEngine';
 import type { ColorAnswerEvidence } from '@ventra/shared';
@@ -59,12 +60,15 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
   const [questionMistakes, setQuestionMistakes] = useState(0);
   const [discovered, setDiscovered] = useState<string[]>([]);
   const [question, setQuestion] = useState(0);
+  const questionHeading = useQuestionFocus<HTMLHeadingElement>(`${step}:${question}`);
   const [mistakes, setMistakes] = useState(0);
   const [correct, setCorrect] = useState(0);
   const [feedback, setFeedback] = useState<string | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [complete, setComplete] = useState(false);
+  // Same rule for the end-of-mission panel: the last answer is gone with it.
+  const doneHeading = useQuestionFocus<HTMLHeadingElement>(complete ? 'done' : 'play');
   const startTime = useRef(Date.now());
   const locked = useRef(false);
   const answerLocked = useRef(false);
@@ -340,7 +344,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
             /></div>
             <div className="cg-mobile-view"><MobileColorGroveWorld mode="complete" paintedIds={paintedIds}/></div>
             <div className="mt-4 text-6xl" aria-hidden="true">🌟</div>
-            <h2 className="mt-3 text-2xl font-black">Koru Canlandı!</h2>
+            <h2 ref={doneHeading} tabIndex={-1} className="mt-3 text-2xl font-black">Koru Canlandı!</h2>
             <p className="mt-2 text-sm text-emerald-100">Görev başarıyla kaydedildi.</p>
             <p className="mt-2 text-sm">Doğru: {correct} · Hatalı deneme: {mistakes}</p>
             <p className="mt-3 rounded-xl bg-lime-300/15 px-4 py-3 text-sm font-bold text-lime-100">
@@ -423,7 +427,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
             /></div>
             <div className="cg-mission-prompt my-4 rounded-2xl border border-white/20 bg-[#103b47]/90 p-3 text-center sm:p-4">
               <div className="cg-prompt-copy">
-              <h2 className="text-xl font-black tracking-wide sm:text-2xl">
+              <h2 ref={questionHeading} tabIndex={-1} className="text-xl font-black tracking-wide sm:text-2xl">
                 {getColorInstruction(currentQuestion.target, step, englishLevel).title}
               </h2>
               <p className="sr-only">

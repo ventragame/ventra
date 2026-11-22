@@ -1,6 +1,7 @@
 'use client';
 
 import React, {useEffect,useMemo,useRef,useState} from 'react';
+import {useQuestionFocus} from './useQuestionFocus';
 import type {NumberAnswerEvidence} from '@ventra/shared';
 import {EventBus} from '@/lib/game/EventBus';
 import {soundService} from '@/lib/audio/SoundService';
@@ -53,6 +54,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
   const [visited,setVisited]=useState<number[]>([]);
   const [answers,setAnswers]=useState<NumberAnswerEvidence[]>([]);
   const [question,setQuestion]=useState(0);
+  const questionHeading=useQuestionFocus<HTMLHeadingElement>(`${stage}:${question}`);
   const [selectedWordTiles,setSelectedWordTiles]=useState<number[]>([]);
   const [selectedPortalTokens,setSelectedPortalTokens]=useState<number[]>([]);
   const [portalPhase,setPortalPhase]=useState<'collect'|'decode'|'seal'>('collect');
@@ -69,6 +71,8 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
   const [saving,setSaving]=useState(false);
   const [saveError,setSaveError]=useState('');
   const [completed,setCompleted]=useState(false);
+  // Same rule for the end-of-mission panel: the last answer is gone with it.
+  const doneHeading=useQuestionFocus<HTMLHeadingElement>(completed?'done':'play');
   const [speechAvailable,setSpeechAvailable]=useState(false);
   const [heardAudio,setHeardAudio]=useState(false);
   const [speaking,setSpeaking]=useState(false);
@@ -388,7 +392,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
             </div>}
             {stage!==1&&current&&<div className="nv5-question relative z-10 mx-auto max-w-3xl text-center">
               <p className="sr-only">Soru {question+1}/{total}</p>
-              <h2 className="nv5-scene-title">
+              <h2 ref={questionHeading} tabIndex={-1} className="nv5-scene-title">
                 {stage===2?'İngilizcesini bul!':stage===3?'Yıldız kelimesini oluştur!':
                   stage===4?'Dinle ve seç!':'Portalın şifresini çöz!'}
               </h2>
@@ -527,7 +531,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
            <NumberValleyScenery stage={stage}/>
            <span className="nv5-finale-medal" aria-hidden="true">🏆</span>
          </div>
-         <h2>{CHAPTERS[stage-1].title} tamamlandı!</h2>
+         <h2 ref={doneHeading} tabIndex={-1}>{CHAPTERS[stage-1].title} tamamlandı!</h2>
          <p className="mt-2 text-sky-100">İlerleme çocuk profiline kaydedildi.</p>
          <p className="nv5-finale-stars mt-3 text-3xl font-black" aria-label="Bu görevde kazanılan yıldızlar">
            {'⭐'.repeat(mistakes===0?3:mistakes<=2?2:1)}
