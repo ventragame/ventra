@@ -10,7 +10,7 @@ import { EventBus } from '@/lib/game/EventBus';
 import { getProgressRepository } from '@/lib/progress';
 import type { WordGardenProgressSnapshot } from '@/lib/progress/wordGardenProgress';
 import {
-  ANIMAL_MEADOW_WORDS, findAnimal, planAnimalMission, animalCommandFor, animalRescueCommandFor,
+  ANIMAL_MEADOW_WORDS, findAnimal, planAnimalMission, animalCommandFor, animalRescueCommandFor, animalRescueSuccessFor,
   type AnimalMission, type AnimalWord, type AnimalId, type PlannedAnimalMission
 } from '@/lib/learning/animalMissionEngine';
 import {MeadowPlayStage} from './MeadowPlayStage';
@@ -31,7 +31,7 @@ const STAGES = [
   { name:'Kurtarma',icon:'💛',desc:'Hayvana yardım et',story:'İngilizce yönergeyi dinle, kayıp hayvanı bul! Hayvanın eve dönüşünü izlemek için tek doğru seçim yeterli.' }
 ] as const;
 type Stage = 1|2|3|4|5;
-type Feedback = { text: string; good: boolean } | null;
+type Feedback = { text: string; good: boolean; detail?: string; lang?: 'en' } | null;
 type Telemetry = {
   wrongAttempts:number;
   correctAnswers:number;
@@ -151,6 +151,13 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
     );
     if(!accepted&&voiceAvailable)setVoiceAvailable(false);
   }
+  /** Reward line after a rescue. Exposure only: if the voice is missing it is
+   * simply skipped (no help banner, no assisted mark). */
+  function speakLine(text:string){
+    if(muted)return;
+    soundService.speakEnglish(text,{rate:0.87,onStart:()=>setSpeaking(true),
+      onEnd:()=>setSpeaking(false),onError:()=>setSpeaking(false)});
+  }
   const canSpeak = (word:AnimalWord|null) => !muted && Boolean(word && (word.audio || voiceAvailable));
   function toggleMute(){
     const next=soundService.toggleMute();
@@ -200,7 +207,12 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
     };
     setAnswered(old=>[...old,result]);setCorrectCount(x=>x+1);
     setWrongChoice(null);setAwaiting(true);
-    setFeedback({text:stage===5?`💛 ${target.id.toUpperCase()} güvende!`:`✨ ${target.id.toUpperCase()}!`,good:true});
+    if(stage===5){
+      // The rescued animal goes home and the child hears it in English.
+      const line=animalRescueSuccessFor(target,englishLevel,gradeLevel);
+      setFeedback({text:'💛 '+line,good:true,lang:'en',detail:`${target.tr} güvende!`});
+      speakLine(line);
+    }else setFeedback({text:`✨ ${target.id.toUpperCase()}!`,good:true});
     if(stage===2)speak(target);
   }
   function advance(){
@@ -430,8 +442,8 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
               noAudioMode={noAudioMode}
               canSpeak={canSpeak(target)} speaking={speaking}
               onListen={()=>speak(target,stage===4||stage===5)}
-              toast={feedback?{text:feedback.text,good:feedback.good,
-                detail:feedback.good&&awaiting&&!saveError&&questionIndex+1===activePlan.questions.length?'Bölüm kaydediliyor…':undefined}:null}
+              toast={feedback?{text:feedback.text,good:feedback.good,lang:feedback.lang,
+                detail:feedback.good&&awaiting&&!saveError&&questionIndex+1===activePlan.questions.length?'Bölüm kaydediliyor…':feedback.detail}:null}
               onSelect={choose}/>
           </section>
         ):null)}

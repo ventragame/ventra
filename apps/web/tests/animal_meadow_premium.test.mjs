@@ -43,14 +43,14 @@ test('A tiny collection of birds is topped up with starter animals instead of am
 
 test('Feedback lives in the scene and the celebration never covers words or answers',()=>{
  const stage=src('components/learning/activities/MeadowPlayStage.tsx');
- assert.match(stage,/toast\?:\{text:string;good:boolean;detail\?:string\}\|null;/);
+ assert.match(stage,/toast\?:\{text:string;good:boolean;detail\?:string;lang\?:'en'\}\|null;/);
  assert.match(stage,/<p className="am3-toast" data-good=\{toast\.good\} role="status" aria-live="polite">/);
  const ui=src('components/learning/activities/AnimalMeadowAdventure.tsx');
  assert.match(ui,/toast=\{feedback\?\{text:feedback\.text,good:feedback\.good,/);
  assert.doesNotMatch(ui,/am3-feedback|Sıradaki hayvan keşfediliyor/,'one in-scene status, not two bars below the scene');
  const css=src('components/learning/activities/animal-meadow-premium.css');
  assert.match(css,/\.am-shell \.am3-stage \.am3-motion-layer\{z-index:0\}/);
- assert.match(css,/\.am-shell \.am3-victory,\.am-shell \.am3-rescue-success\{position:relative;z-index:2\}/);
+ assert.match(css,/\.am-shell \.am3-victory\{position:relative;z-index:2\}/);
  assert.match(css,/\.am-shell \.am3-choice\[data-correct=true\]\{animation:am3-pop/);
  assert.match(css,/\.am-shell \.am3-choice\[data-wrong=true\]\{[^}]*animation:am3-shake/);
  // The legibility floor stays the last stylesheet.
@@ -101,4 +101,31 @@ test('English words keep English capitals on a Turkish page (BIRD, FIVE, not Bİ
  assert.match(src('components/learning/alphabet/AlphabetGroveAdventure.tsx'),/<span lang="en">\{wordTiles\[i\]\?\?'·'\}<\/span>/);
  assert.match(src('components/learning/activities/FamilyVillageAdventure.tsx'),/lang=\{mode==='english'\|\|mode==='phrase'\?'en':undefined\}/);
  assert.match(src('components/profile/StarterPlacementCheck.tsx'),/<span lang="en">\{choice\}<\/span>/);
+});
+
+test('Rescue is hide-and-seek by ear: animals peek from meadow hiding places, the found one goes home',async()=>{
+ const {animalRescueSuccessFor,findAnimal}=await import('../src/lib/learning/animalMissionEngine.ts');
+ const cow=findAnimal('cow');
+ assert.equal(animalRescueSuccessFor(cow,'Pre-A1',1),'The cow is safe!');
+ assert.equal(animalRescueSuccessFor(cow,'A1',4),'The cow is safe now.');
+ assert.equal(animalRescueSuccessFor(cow,'A2',2),'The cow is safe now.','grade 1-2 keeps the shorter sentence');
+ assert.equal(animalRescueSuccessFor(cow,'A2',6),'The cow is safe at home.');
+ const stage=src('components/learning/activities/MeadowPlayStage.tsx');
+ assert.match(stage,/const COVERS:readonly CoverKind\[\]=\['bush','hay','log'\];/);
+ assert.match(stage,/\{isRescue&&<span className="am3-cover" data-kind=\{COVERS\[i%COVERS\.length\]\}><RescueCover kind=\{COVERS\[i%COVERS\.length\]\}\/><\/span>\}/,
+  'hiding places only in the rescue mission');
+ assert.match(stage,/const id='am3c'\+useId\(\)/,'unique SVG gradient ids per card');
+ assert.match(stage,/<span className="am3-trail">/);
+ assert.match(stage,/<img className="am3-homecoming-animal" src=\{target\.image\}/);
+ assert.match(stage,/<span lang=\{toast\.lang\}>\{toast\.text\}<\/span>/);
+ const ui=src('components/learning/activities/AnimalMeadowAdventure.tsx');
+ // The reward line is heard in English, but it is exposure: never assessed, no help banner.
+ assert.match(ui,/setFeedback\(\{text:'💛 '\+line,good:true,lang:'en',detail:`\$\{target\.tr\} güvende!`\}\);\n\s*speakLine\(line\);/);
+ const speakLine=ui.slice(ui.indexOf('function speakLine'),ui.indexOf('const canSpeak'));
+ assert.doesNotMatch(speakLine,/setAssisted|setAudioHelp|setAudioFailed/);
+ const css=src('components/learning/activities/animal-meadow-premium.css');
+ assert.match(css,/\.am-shell \.am3-cover\{position:absolute;left:-5%;right:-5%;bottom:-3px;height:44%;/,'only the lower part is hidden');
+ assert.match(css,/\.am-shell \.am3-choice\[data-rescued=true\] \.am3-cover\{transform:translateY\(85%\) scale\(\.92\);opacity:0\}/);
+ // Reduced motion: the stage-wide rule stops peeking, rustling and hopping.
+ assert.match(src('components/learning/activities/animal-meadow-v3.css'),/@media\(prefers-reduced-motion:reduce\)\{\s*\.am3-stage \*, \.am3-stage \*::before,\.am3-stage \*::after\{\s*animation:none!important;transition:none!important\}/);
 });

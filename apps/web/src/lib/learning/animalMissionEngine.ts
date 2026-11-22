@@ -230,3 +230,11 @@ export function animalRescueCommandFor(word:AnimalWord,level:EnglishPlacement,gr
   return 'Can you help the '+word.id+'?';
  return 'Please help the '+word.id+' get home!';
 }
+
+/** What the child hears once the animal is found: an English line at the
+ * same level as the command. Listening exposure only, never assessed. */
+export function animalRescueSuccessFor(word:AnimalWord,level:EnglishPlacement,grade:number|null|undefined):string{
+ if(level==='Pre-A1')return 'The '+word.id+' is safe!';
+ if(level==='A1'||(grade!==null&&grade!==undefined&&grade<=2))return 'The '+word.id+' is safe now.';
+ return 'The '+word.id+' is safe at home.';
+}

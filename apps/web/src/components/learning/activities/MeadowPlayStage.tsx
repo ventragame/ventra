@@ -1,6 +1,6 @@
 'use client';
 
-import React from 'react';
+import React,{useId} from 'react';
 import type {AnimalId,AnimalWord} from '@/lib/learning/animalMissionEngine';
 import './animal-meadow-v3.css';
 import {LearningMotion} from '@/components/learning/motion/LearningMotion';
@@ -24,7 +24,7 @@ export interface MeadowPlayStageProps {
  onSelect?:(id:AnimalId)=>void;
  onListen?:()=>void;
  /** In-scene answer feedback: stays visible on phones (a bar below the scene did not). */
- toast?:{text:string;good:boolean;detail?:string}|null;
+ toast?:{text:string;good:boolean;detail?:string;lang?:'en'}|null;
 }
 const labels:Record<MeadowMode,string>={
  discover:'Hayvanları Keşfet',match:'Kelimeyi Bul',listen:'Dinle ve Bul',
@@ -40,6 +40,43 @@ const destinationIcons:Record<string,string>={
 };
 function safeDestination(word:AnimalWord|null|undefined):string{
  return word?destinationIcons[word.place]??'🏡':'🏡';
+}
+
+type CoverKind='bush'|'hay'|'log';
+const COVERS:readonly CoverKind[]=['bush','hay','log'];
+/** Rescue hiding places drawn in the meadow scene's own palette (leaves,
+ * hay, wood). They hide only the lower part of the animal: eyes, ears and
+ * head stay visible, so finding it is still about the English it heard. */
+function RescueCover({kind}:{kind:CoverKind}){
+ const id='am3c'+useId().replace(/[^a-zA-Z0-9]/g,'');
+ if(kind==='hay')return <svg viewBox="0 0 200 84" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+  <defs><linearGradient id={id} x2="0" y2="1"><stop stopColor="#ffe58f"/><stop offset=".55" stopColor="#f5b862"/><stop offset="1" stopColor="#c98a3c"/></linearGradient></defs>
+  <rect x="12" y="14" width="176" height="68" rx="24" fill={`url(#${id})`} stroke="#8f5c2c" strokeWidth="4"/>
+  {[34,62,92,122,152].map(x=><path key={x} d={`M${x} 22q-7 28 0 54`} stroke="#d99a45" strokeWidth="3" fill="none" strokeLinecap="round"/>)}
+  <rect x="50" y="15" width="11" height="66" fill="#b17a41"/><rect x="139" y="15" width="11" height="66" fill="#b17a41"/>
+  <path d="M24 22q32-11 62 0q30-9 60 0q20-6 32 3" stroke="#fff6c4" strokeWidth="4" fill="none" strokeLinecap="round" opacity=".85"/>
+ </svg>;
+ if(kind==='log')return <svg viewBox="0 0 200 84" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+  <defs><linearGradient id={id} x2="0" y2="1"><stop stopColor="#e4b878"/><stop offset=".45" stopColor="#b17a41"/><stop offset="1" stopColor="#815732"/></linearGradient>
+   <radialGradient id={id+'r'}><stop stopColor="#f8e2b0"/><stop offset=".7" stopColor="#e2b471"/><stop offset="1" stopColor="#a8723c"/></radialGradient></defs>
+  <rect x="10" y="26" width="158" height="56" rx="28" fill={`url(#${id})`} stroke="#6e4524" strokeWidth="4"/>
+  <path d="M34 42h58M50 58h70M30 70h42" stroke="#8a5a30" strokeWidth="3" strokeLinecap="round" opacity=".55"/>
+  <ellipse cx="166" cy="54" rx="23" ry="28" fill={`url(#${id}r)`} stroke="#6e4524" strokeWidth="4"/>
+  <ellipse cx="166" cy="54" rx="13" ry="16" fill="none" stroke="#b9854a" strokeWidth="2.5"/>
+  <ellipse cx="166" cy="54" rx="5" ry="6.5" fill="#b9854a"/>
+  <path d="M58 30q9-19 26-14q-7 12-26 14z" fill="#70cf75" stroke="#2e9466" strokeWidth="2.5" strokeLinejoin="round"/>
+ </svg>;
+ // Bush: a clean outline of the union of three leaf clusters, then flowers.
+ const leaves=<><circle cx="46" cy="58" r="33"/><circle cx="100" cy="45" r="41"/><circle cx="154" cy="58" r="33"/><rect x="16" y="58" width="168" height="30" rx="10"/></>;
+ return <svg viewBox="0 0 200 84" preserveAspectRatio="xMidYMax meet" aria-hidden="true">
+  <defs><radialGradient id={id} cx=".4" cy=".3" r=".8"><stop stopColor="#aaf59e"/><stop offset=".45" stopColor="#70cf75"/><stop offset="1" stopColor="#2e9466"/></radialGradient></defs>
+  <g fill="#24704d" stroke="#24704d" strokeWidth="8">{leaves}</g>
+  <g fill={`url(#${id})`}>{leaves}</g>
+  <path d="M70 30q12-10 26-6M118 26q12-4 22 4" stroke="#c8f7b5" strokeWidth="4" fill="none" strokeLinecap="round"/>
+  <g fill="#ffd1da"><circle cx="68" cy="46" r="6"/><circle cx="134" cy="40" r="6"/></g>
+  <g fill="#f8d6ff"><circle cx="104" cy="66" r="6"/><circle cx="38" cy="66" r="5"/><circle cx="162" cy="66" r="5"/></g>
+  <g fill="#ffeb8c"><circle cx="68" cy="46" r="2.4"/><circle cx="134" cy="40" r="2.4"/><circle cx="104" cy="66" r="2.4"/></g>
+ </svg>;
 }
 
 /**
@@ -78,7 +115,7 @@ export function MeadowPlayStage({
    </div>
   </div>
   {toast&&!isComplete&&<p className="am3-toast" data-good={toast.good} role="status" aria-live="polite">
-   <span>{toast.text}</span>{toast.detail&&<small>{toast.detail}</small>}
+   <span lang={toast.lang}>{toast.text}</span>{toast.detail&&<small>{toast.detail}</small>}
   </p>}
   {isComplete?(
    <div className="am3-victory" role="img" aria-label={stars+' yıldız ile görev tamamlandı'}>
@@ -104,10 +141,12 @@ export function MeadowPlayStage({
      {noAudioMode&&target&&<span className="am3-written-assist" lang="en"
        aria-label="Yazılı yardım açık">{target.id.toUpperCase()}</span>}
     </div>}
-   {isRescue&&<div className="am3-rescue-zone" aria-label="Kurtarma görevi">
-     <span aria-hidden="true">🐾</span><span aria-hidden="true">💛</span>
-     {correctId&&<span className="am3-home-icon" aria-label="Hayvan güvenli yerine döndü">
-      {safeDestination(target)}</span>}
+   {isRescue&&<div className="am3-rescue-zone" aria-hidden="true">
+     {correctId&&target?<span className="am3-homecoming">
+       <img className="am3-homecoming-animal" src={target.image} alt="" width={64} height={64} draggable={false}/>
+       <span className="am3-home-icon">{safeDestination(target)}</span>
+      </span>:
+      <span className="am3-trail"><span>🐾</span><span>🐾</span><span>🐾</span></span>}
     </div>}
    <div className={'am3-choices'+(isDiscovery?' am3-choices--discover':'')+
      (isMatch?' am3-choices--words':'')}
@@ -130,6 +169,7 @@ export function MeadowPlayStage({
        <span className="am3-portrait" aria-hidden="true">
         <img src={animal.image} alt="" width={256} height={256}
          decoding="async" draggable={false} loading={i>5?'lazy':'eager'}/>
+        {isRescue&&<span className="am3-cover" data-kind={COVERS[i%COVERS.length]}><RescueCover kind={COVERS[i%COVERS.length]}/></span>}
        </span>:
        <span className="am3-word-choice" lang="en">{animal.id.toUpperCase()}</span>}
       {imageChoices&&<span className="am3-caption" lang={showName?'en':undefined}>
@@ -142,10 +182,6 @@ export function MeadowPlayStage({
      </button>;
     })}
    </div>
-   {isRescue&&correctId&&<p className="am3-rescue-success" role="status">
-    <span aria-hidden="true">💛</span> <span lang="en">{target?.id.toUpperCase()}</span>
-    <span aria-hidden="true"> {safeDestination(target)}</span>
-   </p>}
   </>}
  </section>;
 }
