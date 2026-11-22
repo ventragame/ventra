@@ -14,6 +14,7 @@ import {SentenceAnimalArtwork,type SentenceAnimalSpecies} from './SentenceAnimal
 import {sentenceStart,visibleRepairWord} from './sentencePresentation';
 import {SentenceQuestBuilder,SentenceQuestProgress,SentenceQuestSuccess,SentenceQuestReward} from './SentenceQuestComponents';
 import {sentenceQuestHint,sentenceQuestCorrect} from './sentence-quest-language';
+import {advanceAfterSpokenSentence} from './sentenceAutoAdvance';
 import './sentence-quest-unified.css';
 import {MovementMagicAdventure} from './MovementMagicAdventure';
 import {WishFestivalAdventure} from './WishFestivalAdventure';
@@ -217,17 +218,26 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
   const rows=[...answers,evidence];
   setPicked(nextPicked);setAnswers(rows);completedAnswers.current=rows;
   soundService.playSfx('correct',.85);
-  soundService.speakEnglish(task.sentence,{rate:.86});
-  // Allow intelligible full-sentence playback and the actual world transformation
-  // to complete before automatically advancing. No additional "next" click.
-  const duration=Math.max(1950,Math.min(5100,1100+task.tokens.length*230));
-  nextTimer.current=setTimeout(()=>{
-   nextTimer.current=null;awaitingTransition.current=false;
-   if(step+1>=deck.questions.length){void finish(rows);return;}
-   soundService.cancelSpeech();
-   setStep(n=>n+1);setPicked([]);setSelectedScene(null);setRepairMarked(false);setWrongSlot(-1);setRoundMistakes(0);setHintUsed(false);
-   setModelHeard(false);setAwakened(false);setFeedback('');setFeedbackError(false);
-  },duration);
+  // Let the full English sentence finish (a fixed timer cut long A2 sentences
+  // off) and the world transformation play before automatically advancing.
+  // No additional "next" click; without a voice the old reading time applies.
+  advanceAfterSpokenSentence({
+   speak:events=>soundService.speakEnglish(task.sentence,{rate:.86,...events}),
+   wordCount:task.tokens.length,minDwellMs:1950,
+   silentDelayMs:Math.max(1950,Math.min(5100,1100+task.tokens.length*230)),
+   setTimer:(run,delay)=>{
+    clearTimer();
+    nextTimer.current=setTimeout(()=>{nextTimer.current=null;run();},delay);
+   },
+   stillWaiting:()=>awaitingTransition.current,
+   advance:()=>{
+    awaitingTransition.current=false;
+    if(step+1>=deck.questions.length){void finish(rows);return;}
+    soundService.cancelSpeech();
+    setStep(n=>n+1);setPicked([]);setSelectedScene(null);setRepairMarked(false);setWrongSlot(-1);setRoundMistakes(0);setHintUsed(false);
+    setModelHeard(false);setAwakened(false);setFeedback('');setFeedbackError(false);
+   }
+  });
  }
  function pickWord(id:string){
   if(!task||!deck||screen!=='play'||awaitingTransition.current||busy||saveError||!taskReady)return;

@@ -4,7 +4,7 @@ import React,{useEffect,useRef,useState} from 'react';
 import type {ForestActorId,ForestEpisode,ForestPlacement,ForestScene} from '@/lib/learning/storyForestEngine';
 import {FOREST_EPISODES,FOREST_ACTOR_NAMES} from '@/lib/learning/storyForestEngine';
 import {
- JOURNEY_ROUTES,planJourneyStory,narrativeFor,journeyStars,
+ JOURNEY_ROUTES,planJourneyStory,narrativeFor,journeyStars,journeyPlaceLabel,
  type JourneyObject,type JourneyPlan,type JourneyPhase,type JourneyRecord,
  type JourneyChallengeAnswer
 } from '@/lib/learning/storyForestJourneyEngine';
@@ -14,6 +14,7 @@ import {soundService} from '@/lib/audio/SoundService';
 import {StoryForestActor,StoryForestScenery,STORY_FOREST_PREMIUM_COVER} from './StoryForestArt';
 import {LearningMotion} from '@/components/learning/motion/LearningMotion';
 import {StoryNarrationPanel,StorySceneGuide,storyDecisionFeedback} from './StorySceneStandard';
+import {useQuestionFocus} from '@/components/learning/activities/useQuestionFocus';
 import './story-forest-journey.css';
 import './story-forest-object-staging.css';
 import './story-forest-mobile-cast.css';
@@ -99,6 +100,7 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
  const [screen,setScreen]=useState<Screen>('chapters');
  const [loading,setLoading]=useState(true);
  const [loadError,setLoadError]=useState('');
+ const [loadAttempt,setLoadAttempt]=useState(0);
  const [saveError,setSaveError]=useState('');
  const [progress,setProgress]=useState<ForestProgress>(INITIAL);
  const [history,setHistory]=useState<JourneyRecord[]>([]);
@@ -127,10 +129,15 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
  const runId=useRef('');
  const startedAt=useRef(0);
  const resultRef=useRef<JourneyRecord|null>(null);
+ // ▶ and the chosen card disappear between story beats; keyboard and
+ // screen-reader focus then moves to the scene instead of falling to <body>.
+ const sceneFocus=useQuestionFocus<HTMLDivElement>(screen==='playing'?'play:'+phase:screen);
+ const rewardHeading=useQuestionFocus<HTMLHeadingElement>(screen==='reward'?'done':'play');
  function clearTimer(){if(timer.current!==null){clearTimeout(timer.current);timer.current=null;}}
  function stopAudio(){generation.current++;clearTimer();soundService.cancelSpeech();}
  useEffect(()=>{
   alive.current=true;let active=true;const repo=getProgressRepository();
+  setLoading(true);setLoadError('');
   Promise.all([getStoryForestProgress(repo,profileId),repo.getStoryJourneyHistory(profileId)])
    .then(([p,h])=>{
     if(!active)return;
@@ -143,7 +150,7 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
     if(active){setLoadError('Hikâye ilerlemesi okunamadı.');setLoading(false);}
    });
   return()=>{active=false;alive.current=false;stopAudio();};
- },[profileId]);
+ },[profileId,loadAttempt]);
  async function finishStory(nextPlan:JourneyPlan,record:JourneyRecord){
   if(savingRef.current)return;
   savingRef.current=true;setBusy(true);setSaveError('');
@@ -323,7 +330,9 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
     </div>
     <div className="sj-guide">🎭 4 farklı macera yolu &nbsp; · &nbsp; 🌿 2 farklı hikâye sonu</div>
     {loading&&<div className="sj-status" role="status">Hikâyeler yükleniyor…</div>}
-    {loadError&&<div className="sj-status" role="alert">{loadError}</div>}
+    {loadError&&<div className="sj-status" role="alert">{loadError}{' '}
+     <button type="button" className="sj-secondary" onClick={()=>setLoadAttempt(n=>n+1)}>↻ Tekrar dene</button>
+    </div>}
     {!loading&&!loadError&&<section className="sj-episode-grid" aria-label="Altı hikâye dünyası">
       {FOREST_EPISODES.map(chapter=>{
        const enabled=chapter.id<=progress.completedLevels+1;
@@ -353,7 +362,8 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
     </div>
    </header>
    <main className="sj-play">
-    <div className="sj-scene" aria-label="Resimli, etkileşimli hikâye sahnesi">
+    <div className="sj-scene" role="group" aria-label="Resimli, etkileşimli hikâye sahnesi"
+     ref={sceneFocus} tabIndex={-1}>
      <StoryScene plan={plan} phase={phase} location={destination}/>
      <LearningMotion variant={phase==='ending'?'victory':'success'}
       trigger={phase==='ending'?'story-ending':correct?'story-'+phase: null}
@@ -387,7 +397,7 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
         className={'sj-level-place '+(wrong===place?'sj-wrong ':'')+
          (highlight&&place===destination?'sj-hint-glow ':'')+
          (correct&&place===destination?'sj-correct':'')}
-        aria-label={place}>
+        aria-label={journeyPlaceLabel(place as ForestScene)}>
         <StoryForestScenery scene={place as ForestScene}/>
        </button>)}
      </div>}
@@ -447,7 +457,7 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
      onClick={exitToChapters} aria-label="Bölümlere dön">←</button><strong>Macera tamamlandı</strong><span/></header>
    <main className="sj-reward">
     <div className="sj-reward-scene"><StoryScene plan={plan} phase="ending" location={destination}/></div>
-    <h1>Bir Hikâye Daha!</h1>
+    <h1 ref={rewardHeading} tabIndex={-1}>Bir Hikâye Daha!</h1>
     <div className="sj-earned-stars" aria-label={earnedStars+' yıldız'}>
      {[1,2,3].map(n=><span key={n} className={n<=earnedStars?'earned':''}>★</span>)}
     </div>

@@ -164,6 +164,53 @@ const V2_FOODS:readonly (Lex & {trBare:string})[]=[
  {en:'pears',tr:'armutları',trBare:'armut',icon:'🍐'},{en:'grapes',tr:'üzümleri',trBare:'üzüm',icon:'🍇'},
  {en:'strawberries',tr:'çilekleri',trBare:'çilek',icon:'🍓'},{en:'peaches',tr:'şeftalileri',trBare:'şeftali',icon:'🍑'}
 ];
+/**
+ * Meaning-related decoy families. A decoy swaps one meaningful word for
+ * another of the same kind AND form (colour→colour, plural animal→plural
+ * animal, -ing verb→-ing verb), so the sentence it would build is still
+ * grammatical English and is rejected only by comparing it with the Turkish
+ * goal. Near-synonyms stay apart: "next (to)" has no family, so "near" is
+ * never offered against "next to the fountain".
+ */
+const DECOY_FAMILIES:readonly (readonly string[])[]=[
+ V2_COLORS.map(c=>c.en),
+ ['cat','dog','bird','rabbit'],['cats','dogs','birds','rabbits'],
+ ['lantern','flower','house','balloon'],
+ ['under','behind','near'],['tree','house','fountain'],
+ ['fly','jump','run','sleep'],['flying','jumping','running','sleeping'],
+ V2_FOODS.map(f=>f.en)
+];
+/** Grammar decoys (word order / agreement); one per question keeps form practice. */
+const DECOY_STOCK=['are','is','can','not','in','on','want','wants','but','because','has','do','does','where','the','a'];
+const startsWithVowel=(word:string)=>/^[aeiou]/i.test(word);
+/**
+ * Three wrong tiles for a sentence: up to two meaning swaps plus one grammar
+ * word, drawn with `random` so replays of the same sentence differ. A swap
+ * after "a"/"an" must keep the article correct ("a red" never offers
+ * "orange"). Decoys never repeat a target word, in any letter case.
+ */
+export function plazaDecoys(tokens:readonly string[],random:()=>number):string[]{
+ const related:string[]=[];
+ tokens.forEach((token,i)=>{
+  const word=token.toLowerCase(),before=tokens[i-1]?.toLowerCase();
+  for(const family of DECOY_FAMILIES){
+   if(!family.includes(word))continue;
+   for(const swap of family){
+    if(swap===word||before==='a'&&startsWithVowel(swap)||before==='an'&&!startsWithVowel(swap))continue;
+    related.push(swap);
+   }
+  }
+ });
+ const meaning=shuffle([...new Set(decoysOutsideSentence(related,tokens))],random).slice(0,2);
+ const grammar=shuffle(decoysOutsideSentence(DECOY_STOCK,tokens),random)
+  .filter(word=>!meaning.includes(word)).slice(0,3-meaning.length);
+ return [...meaning,...grammar];
+}
+const textSeed=(text:string)=>{
+ let hash=2166136261;
+ for(let i=0;i<text.length;i++){hash^=text.charCodeAt(i);hash=Math.imul(hash,16777619);}
+ return hash>>>0;
+};
 type NewSentence={key:string;sentence:string;cue:string;kind:PlazaSentenceKind;scene:PlazaSceneEffect;
  explanation:string;vocabulary:{en:string;tr:string}[];mode?:PlazaChallengeMode;
  choices?:{id:string;label:string;icon:string}[];choice?:string};
@@ -171,9 +218,9 @@ function buildV2(mission:PlazaMission,level:EnglishPlacement):PlazaQuestion[]{
  const results:PlazaQuestion[]=[];
  const a1=level!=='Pre-A1',a2=level==='A2';
  const push=(d:NewSentence)=>{
-  const tokens=split(d.sentence),words=new Set(tokens);
-  const stock=['are','is','can','not','in','on','want','wants','but','because','has','do','does','where','the','a'];
-  const decoys=decoysOutsideSentence(stock,tokens).slice(0,3);
+  const tokens=split(d.sentence);
+  // Pool default; planPlazaMission re-draws them per deck so replays differ.
+  const decoys=plazaDecoys(tokens,seeded(textSeed(mission+':'+level+':'+d.key)));
   const mode=d.mode??'construct';
   // Replace ONE meaningful word, not an arbitrary grammar token.
   // The child compares a valid English sentence against the displayed Turkish goal:
@@ -201,7 +248,8 @@ function buildV2(mission:PlazaMission,level:EnglishPlacement):PlazaQuestion[]{
   const replacementIndex=priority[mission]
     .map(w=>tokens.findIndex(t=>t===w)).find(i=>i>=1)??-1;
   const wrongAt=replacementIndex>=0?replacementIndex:Math.max(1,Math.floor(tokens.length/2));
-  const wrong=alternatives[tokens[wrongAt]]??decoys.find(word=>word!==tokens[wrongAt])??'are';
+  const wrong=alternatives[tokens[wrongAt]]??
+   decoysOutsideSentence(DECOY_STOCK,tokens).find(word=>word!==tokens[wrongAt])??'are';
   const corrupted=tokens.map((w,i)=>i===wrongAt?wrong:w).join(' ')+(d.sentence.endsWith('?')?'?':'.');
   results.push({id:'plaza:v2:'+mission+':'+level+':'+d.key,mission,
    skill:SENTENCE_PLAZA_MISSIONS[mission-1].skill,englishLevel:level,
@@ -430,9 +478,15 @@ export function planPlazaMission(input:{mission:PlazaMission;grade:number|null;e
   if(!found)break;
  }
  if(questions.length!==plazaQuestionsForGrade(grade))throw Error('Insufficient English curriculum diversity');
+ // Wrong tiles are re-drawn for every deck from their own stream (the question
+ // choice and picture order above/below are unchanged by it), so replaying a
+ // sentence brings different, meaning-related decoys.
+ const decoyRandom=seeded((seed^Math.imul(mission,0x9e3779b1)^0x2545f491)>>>0);
  // Picture-choice answers are authored target-first; never leave the answer in slot 1.
- const sampled=shuffle(questions,random).map(q=>q.sceneChoices?
-  {...q,sceneChoices:shuffle(q.sceneChoices,random)}:q);
+ const sampled=shuffle(questions,random).map(q=>{
+  const redrawn={...q,decoys:plazaDecoys(q.tokens,decoyRandom)};
+  return q.sceneChoices?{...redrawn,sceneChoices:shuffle(q.sceneChoices,random)}:redrawn;
+ });
  return {mission,grade,englishLevel,seed,questions:sampled};
 }
 /** Duplicate words are independent physical tiles. */

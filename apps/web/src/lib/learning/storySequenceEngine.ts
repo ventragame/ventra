@@ -131,33 +131,83 @@ export function shuffleSequence<T>(items:readonly T[],seed:number):T[]{
  }
  return result;
 }
+/**
+ * Explicit per-story causal mapping (index into the full story): the event
+ * immediately preceding the ending is not always its reason. Episode 4
+ * depends on noticing flowers, not merely watching a butterfly. Every mapped
+ * frame is narrated first.
+ */
+const CAUSE_ORDER:Readonly<Record<ForestEpisode,number>>={
+ 1:3,2:3,3:3,4:1,5:3,6:3
+};
+/**
+ * Authored middle beats per story length (indices into the full story; the
+ * beginning and the ending are always kept). The first entry is the original
+ * excerpt; the others are hand-checked alternatives that introduce the
+ * ending's characters at least as well as the original, so a replay tells a
+ * different coherent version instead of a random, causally broken excerpt.
+ * Episode 4 has no such four-scene alternative. Five-scene decks always use
+ * the whole story.
+ */
+const MIDDLE_BEATS:Readonly<Record<ForestEpisode,{
+ 3:readonly (readonly number[])[];4:readonly (readonly number[])[];
+}>>={
+ 1:{3:[[2],[1]],4:[[1,3],[1,2]]},
+ 2:{3:[[2],[3]],4:[[1,3],[2,3]]},
+ 3:{3:[[2],[3]],4:[[1,3],[2,3]]},
+ 4:{3:[[2],[1]],4:[[1,3]]},
+ 5:{3:[[2],[3]],4:[[1,3],[2,3]]},
+ 6:{3:[[2],[3]],4:[[1,3],[2,3]]}
+};
+/** The authored scene excerpts a deck of this size may use (A2 v2 keeps the causal scene). */
+export function sequenceExcerpts(episode:ForestEpisode,count:3|4|5,
+ requireCause=false):readonly (readonly number[])[]{
+ if(count===5)return [[0,1,2,3,4]];
+ const all=MIDDLE_BEATS[episode][count].map(middle=>[0,...middle,4]);
+ const usable=requireCause?all.filter(indices=>indices.includes(CAUSE_ORDER[episode])):all;
+ return usable.length?usable:all;
+}
 function assessmentChoices(frames:readonly SequenceFrame[],target:string,
  reference:string,seed:number):string[]{
  const pool=shuffleSequence(frames.map(frame=>frame.id)
   .filter(id=>id!==target&&id!==reference),seed+41);
- // A minimum of 3 distinct illustrated frames exists in every deck.
- return shuffleSequence([target,...pool.slice(0,2)],seed+67);
+ // Every check offers 3 pictures. A 3-scene deck (grades 1–2) has only one
+ // other heard scene, so the reference scene itself is the third card: it is
+ // never the event after/before itself, and it turns pure picture matching
+ // into a wrong answer instead of a free one. Unheard frames are never used —
+ // they sit between heard events and would make "just after" ambiguous.
+ const others=pool.length>=2?pool.slice(0,2):[...pool,reference];
+ return shuffleSequence([target,...others],seed+67);
+}
+/** One saved ordering answer from an earlier play (the progress store's shape). */
+export type SequenceHistoryAnswer=Pick<SequenceAnswer,'frameId'|'slot'>;
+/** Completed plays of a story: every saved play answers slot 0 with its first frame. */
+export function sequencePlayCount(history:readonly SequenceHistoryAnswer[]|undefined,
+ episode:ForestEpisode):number{
+ const opening='seq-'+episode+'-1';
+ return (history??[]).filter(answer=>answer.slot===0&&answer.frameId===opening).length;
 }
 export function buildSequenceComprehensionChecks(
- deck:Pick<SequenceDeck,'episode'|'englishLevel'|'seed'|'frames'>
+ deck:Pick<SequenceDeck,'episode'|'englishLevel'|'seed'|'frames'>,
+ playCount=0
 ):readonly SequenceComprehensionCheck[]{
  if(deck.englishLevel==='Pre-A1')return [];
  const frames=deck.frames;
  if(frames.length<3)throw Error('Not enough illustrated scenes');
- const first=frames[0],second=frames[1],last=frames[frames.length-1];
- if(deck.englishLevel==='A1')return [{
-  id:'sequence-check-'+deck.episode+'-next',kind:'next',
-  referenceFrameId:first.id,targetFrameId:second.id,
-  choiceIds:assessmentChoices(frames,second.id,first.id,deck.seed+11)
- }];
- // Explicit per-story causal mapping: the event immediately preceding the
- // ending is not always its reason. Episode 4 depends on noticing flowers,
- // not merely watching a butterfly. Every mapped frame is narrated first.
- const causeOrder:Readonly<Record<ForestEpisode,number>>={
-  1:3,2:3,3:3,4:1,5:3,6:3
- };
+ const last=frames[frames.length-1];
+ if(deck.englishLevel==='A1'){
+  // Replays ask about a different heard transition (first→second, then
+  // second→third…), so the check target is not the same picture every time.
+  const step=Math.max(0,Math.floor(playCount))%(frames.length-1);
+  const reference=frames[step],target=frames[step+1];
+  return [{
+   id:'sequence-check-'+deck.episode+'-next',kind:'next',
+   referenceFrameId:reference.id,targetFrameId:target.id,
+   choiceIds:assessmentChoices(frames,target.id,reference.id,deck.seed+11)
+  }];
+ }
  const full=SEQUENCE_STORIES.find(story=>story.episode===deck.episode);
- const cause=full?.frames[causeOrder[deck.episode]];
+ const cause=full?.frames[CAUSE_ORDER[deck.episode]];
  if(!cause||!frames.some(frame=>frame.id===cause.id))
   throw Error('Causal story frame is missing from the listening deck.');
  return [
@@ -208,19 +258,26 @@ export function sequenceComprehensionPrompt(kind:SequenceCheckKind,
 }
 export function planSequenceStory(input:{
  episode:ForestEpisode;gradeLevel:number|null;englishLevel:ForestPlacement;
- seed:number;assessmentVersion?:2
+ seed:number;assessmentVersion?:2;
+ /** Saved ordering answers; replays rotate the excerpt and the A1 check. */
+ history?:readonly SequenceHistoryAnswer[];
 }):SequenceDeck{
  const story=SEQUENCE_STORIES.find(s=>s.episode===input.episode);
  if(!story||!['Pre-A1','A1','A2'].includes(input.englishLevel))throw Error('Geçersiz hikâye.');
  // A2 should have an actual story cause to reason about. Even in a lower
  // school grade, include the penultimate event rather than ask about a
  // scene the child never heard.
- const count=input.assessmentVersion===2&&input.englishLevel==='A2'?
-  Math.max(4,sequenceLengthForGrade(input.gradeLevel)):
+ const assessedA2=input.assessmentVersion===2&&input.englishLevel==='A2';
+ const count=assessedA2?
+  Math.max(4,sequenceLengthForGrade(input.gradeLevel)) as 4|5:
   sequenceLengthForGrade(input.gradeLevel);
  // Keep the beginning, an actual middle, and the conclusion. Higher grades
  // see more connecting events; this is NOT a random, causally broken excerpt.
- const indices=count===3?[0,2,4]:count===4?[0,1,3,4]:[0,1,2,3,4];
+ // The first play uses the original excerpt; each completed replay moves on
+ // to the next authored version of the same story.
+ const plays=sequencePlayCount(input.history,input.episode);
+ const excerpts=sequenceExcerpts(input.episode,count,assessedA2);
+ const indices=excerpts[plays%excerpts.length];
  const frames=indices.map(index=>story.frames[index]);
  const seed=Number.isFinite(input.seed)?input.seed>>>0:0;
  let shuffled=shuffleSequence(frames.map(f=>f.id),seed+input.episode*211);
@@ -232,7 +289,7 @@ export function planSequenceStory(input:{
  };
  if(input.assessmentVersion===2){
   result.assessmentVersion=2;
-  result.comprehensionChecks=buildSequenceComprehensionChecks(result);
+  result.comprehensionChecks=buildSequenceComprehensionChecks(result,plays);
  }
  return result;
 }

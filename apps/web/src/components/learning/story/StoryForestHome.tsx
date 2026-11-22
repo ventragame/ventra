@@ -34,6 +34,7 @@ export function StoryForestHome({profileId,gradeLevel,englishLevel,onBack,onSave
  const [sequence,setSequence]=useState<SequenceProgress>(EMPTY);
  const [detective,setDetective]=useState<DetectiveProgress>(DETECTIVE_EMPTY);
  const [loadError,setLoadError]=useState('');
+ const [loadAttempt,setLoadAttempt]=useState(0);
  const refresh=useCallback(async()=>{
   const [d,s,x]=await Promise.all([
    getStoryForestProgress(getProgressRepository(),profileId),
@@ -43,7 +44,7 @@ export function StoryForestHome({profileId,gradeLevel,englishLevel,onBack,onSave
   setDiscover(d);setSequence(s);setDetective(x);setLoadError('');
  },[profileId]);
  useEffect(()=>{
-  let active=true;
+  let active=true;setLoadError('');
   Promise.all([
    getStoryForestProgress(getProgressRepository(),profileId),
    getSequenceProgress(getProgressRepository(),profileId),
@@ -52,7 +53,7 @@ export function StoryForestHome({profileId,gradeLevel,englishLevel,onBack,onSave
   .catch(error=>{console.error('[StoryForestHome] progress',error);
    if(active)setLoadError('İlerleme okunamadı.');});
   return()=>{active=false;};
- },[profileId]);
+ },[profileId,loadAttempt]);
  const back=()=>{soundService.cancelSpeech();setGame('home');void refresh().catch(()=>setLoadError('İlerleme okunamadı.'));};
  const saved=()=>{void refresh().catch(()=>setLoadError('İlerleme okunamadı.'));onSaved();};
  if(game==='discover')return <StoryForestAdventure profileId={profileId} gradeLevel={gradeLevel}
@@ -120,7 +121,9 @@ export function StoryForestHome({profileId,gradeLevel,englishLevel,onBack,onSave
       <span className="sfh-card-go">Oyuna Gir <span aria-hidden="true">→</span></span>
      </button>
     </div>
-    {loadError&&<p className="ss-status" role="alert">{loadError}</p>}
+    {loadError&&<div className="ss-status" role="alert">{loadError}{' '}
+     <button type="button" className="ss-secondary" onClick={()=>setLoadAttempt(n=>n+1)}>↻ Tekrar dene</button>
+    </div>}
     <p className="sfh-next" aria-label="Gelecek oyunlar hazırlanıyor">
      ✨ Yeni maceralar hazırlanıyor
     </p>

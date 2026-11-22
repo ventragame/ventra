@@ -15,6 +15,7 @@ import {soundService} from '@/lib/audio/SoundService';
 import {StorySequenceFrame} from './StorySequenceFrame';
 import {LearningMotion} from '@/components/learning/motion/LearningMotion';
 import {StoryNarrationPanel,StorySceneGuide,storyDecisionFeedback} from './StorySceneStandard';
+import {useQuestionFocus} from '@/components/learning/activities/useQuestionFocus';
 import './story-sequence.css';
 import './story-sequence-comprehension.css';
 import './story-character-motion.css';
@@ -41,6 +42,7 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
  const [history,setHistory]=useState<SequenceAnswer[]>([]);
  const [loading,setLoading]=useState(true);
  const [loadError,setLoadError]=useState('');
+ const [loadAttempt,setLoadAttempt]=useState(0);
  const [deck,setDeck]=useState<SequenceDeck|null>(null);
  const [episode,setEpisode]=useState<ForestEpisode>(1);
  const [watchIndex,setWatchIndex]=useState(0);
@@ -74,6 +76,11 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
   * a slot that was missed or hinted once is never re-saved as independent.
   */
  const carried=useRef<Record<number,{mistakes:number;hint:boolean}>>({});
+ // A chosen card (or the "next scene" button) disappears with each step; keyboard
+ // and screen-reader focus then moves to the new step instead of <body>.
+ const stepFocus=useQuestionFocus<HTMLDivElement>(
+  page==='order'?'order:'+slot:page==='check'?'check:'+checkIndex:page);
+ const rewardHeading=useQuestionFocus<HTMLHeadingElement>(page==='reward'?'done':'play');
  // Gentle speaking-speed changes preserve natural prosody rather than
  // stretching short beginner words into synthetic slow motion.
  const voiceRate=Math.max(.87,Math.min(1.02,
@@ -99,7 +106,7 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
    if(active){setLoadError('İlerleme yüklenemedi.');setLoading(false);}
   });
   return()=>{active=false;alive.current=false;clearNext();soundService.cancelSpeech();};
- },[profileId]);
+ },[profileId,loadAttempt]);
  function narrate(frame:SequenceFrame){
   soundService.unlockAudio();
   setVoiceUnavailable(false);
@@ -113,7 +120,9 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
   if(loading||loadError||busy||saving.current||id>progress.completedLevels+1)return;
   clearNext();soundService.cancelSpeech();
   const seed=(Date.now()^Math.floor(Math.random()*0xffffffff))>>>0;
-  const next=planSequenceStory({episode:id,gradeLevel,englishLevel,seed,assessmentVersion:2});
+  // Saved answers make each completed replay a different authored version
+  // of the story and a different A1 "what happened next?" check.
+  const next=planSequenceStory({episode:id,gradeLevel,englishLevel,seed,assessmentVersion:2,history});
   sessionId.current='seq:'+profileId+':'+id+':'+Date.now()+':'+Math.random().toString(36).slice(2);
   startedAt.current=Date.now();
   locked.current=false;saving.current=false;carried.current={};
@@ -302,6 +311,7 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
    </div>
    {loading&&<div className="ss-status" role="status">Hikâyeler hazırlanıyor…</div>}
    {loadError&&<div className="ss-status" role="alert">{loadError}
+    <button type="button" className="ss-secondary" onClick={()=>setLoadAttempt(n=>n+1)}>↻ Tekrar dene</button>
     <button type="button" className="ss-secondary" onClick={onBack}>Geri</button>
    </div>}
    {!loading&&!loadError&&<section className="ss-episodes" aria-label="Altı sıralama hikâyesi">
@@ -317,7 +327,7 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
        </div>
        <div className="ss-episode-bottom">
         <strong>{story.episode}. {story.title}</strong>
-        <span>{star?'★'.repeat(star):open?'Oyna':'Yakında'}</span>
+        <span>{star?'★'.repeat(star):open?'Oyna':'Kilitli'}</span>
        </div>
       </button>;
      })}
@@ -330,7 +340,7 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
       {deck.frames.map((frame,i)=><span key={frame.id}
         className={'ss-pip '+(i<watchIndex?'done':i===watchIndex?'active':'')}/>)}
     </div>
-    <div className="ss-screen" aria-label="Hikâye resmi">
+    <div className="ss-screen" aria-label="Hikâye resmi" ref={stepFocus} tabIndex={-1}>
      <StorySequenceFrame frame={watchFrame} scene={scene}
       characterMotion={watchFrame.action==='help'||watchFrame.action==='share'?'cheer':'listen'}/>
     </div>
@@ -361,7 +371,8 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
        {selectedIds[i]?<StorySequenceFrame frame={frame} scene={scene}/>:i===slot?'?':'·'}
      </div>)}
     </div>
-    <div className="ss-cards" role="group" aria-label="Olay resimlerini doğru sırayla seç">
+    <div className="ss-cards" role="group" aria-label="Olay resimlerini doğru sırayla seç"
+     ref={stepFocus} tabIndex={-1}>
      {deck.shuffledIds.filter(id=>!selectedIds.includes(id)).map(id=>{
       const frame=deck.frames.find(f=>f.id===id);
       if(!frame)return null;
@@ -410,7 +421,8 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
       frame={deck.frames.find(frame=>frame.id===activeCheck.referenceFrameId)!}
       scene={scene}/>}
    </div>
-   <div className="ss-check-cards" role="group" aria-label="Resimlerden doğru olayı seç">
+   <div className="ss-check-cards" role="group" aria-label="Resimlerden doğru olayı seç"
+    ref={stepFocus} tabIndex={-1}>
     {activeCheck.choiceIds.map(id=>{
      const frame=deck.frames.find(f=>f.id===id);if(!frame)return null;
      return <button type="button" key={id} className={'ss-check-card '+
@@ -442,7 +454,7 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
        characterMotion="cheer"/>
      </div>
      <p>HİKÂYE TAMAMLANDI</p>
-     <h2>{currentStory.title}</h2>
+     <h2 ref={rewardHeading} tabIndex={-1}>{currentStory.title}</h2>
      <div className="ss-reward-stars" aria-label={earnedStars+' yıldız'}>
        {[1,2,3].map(i=><span key={i} className={earnedStars>=i?'earned':''}>★</span>)}
      </div>

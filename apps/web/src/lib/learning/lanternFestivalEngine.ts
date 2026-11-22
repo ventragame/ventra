@@ -17,11 +17,16 @@ export const LANTERN_COLORS:readonly {id:LanternColor;tr:string;hex:string}[]=[
  {id:'red',tr:'kırmızı',hex:'#f47f97'},{id:'blue',tr:'mavi',hex:'#75d7fa'},
  {id:'green',tr:'yeşil',hex:'#83e5aa'},{id:'yellow',tr:'sarı',hex:'#ffdb7b'},
  {id:'purple',tr:'mor',hex:'#c0a4f4'},{id:'orange',tr:'turuncu',hex:'#ffaf79'}];
-export const LANTERN_PLACES:readonly {id:LanternPlace;tr:string;label:string;icon:string}[]=[
- {id:'tree',tr:'ağacın',label:'Fener Ağacı',icon:'🌳'},
- {id:'bridge',tr:'köprünün',label:'Ay Köprüsü',icon:'🌉'},
- {id:'tower',tr:'kulenin',label:'Yıldız Kulesi',icon:'🏰'},
- {id:'fountain',tr:'çeşmenin',label:'Işık Çeşmesi',icon:'⛲'}];
+/**
+ * `label` is what the map pins and the place picker show: the English place
+ * word, so the child maps the Turkish cue ("ağacın yakınında") to English
+ * ("tree") instead of matching Turkish to Turkish. `trName` is the Turkish noun.
+ */
+export const LANTERN_PLACES:readonly {id:LanternPlace;tr:string;trName:string;label:string;icon:string}[]=[
+ {id:'tree',tr:'ağacın',trName:'ağaç',label:'tree',icon:'🌳'},
+ {id:'bridge',tr:'köprünün',trName:'köprü',label:'bridge',icon:'🌉'},
+ {id:'tower',tr:'kulenin',trName:'kule',label:'tower',icon:'🏰'},
+ {id:'fountain',tr:'çeşmenin',trName:'çeşme',label:'fountain',icon:'⛲'}];
 export const LANTERN_ANIMALS:readonly {id:LanternAnimal;tr:string;verb:string;ing:string;actionTr:string;emotion:string;emotionTr:string;icon:string}[]=[
  {id:'bird',tr:'kuş',verb:'fly',ing:'flying',actionTr:'uçuyor',emotion:'free',emotionTr:'özgür',icon:'🐦'},
  {id:'rabbit',tr:'tavşan',verb:'jump',ing:'jumping',actionTr:'zıplıyor',emotion:'happy',emotionTr:'mutlu',icon:'🐰'},
@@ -136,7 +141,7 @@ function create(chapter:LanternChapter,color:LanternColor,place:LanternPlace,
   sentence,cue,tokens,scene,
   decoys:decoysOutsideSentence(['are','is','can','not','the','near','and','because','please'],tokens)
    .slice(0,3),
-  explanation,vocabulary:[{en:color,tr:col.tr},{en:animal,tr:who.tr},{en:place,tr:where.label},
+  explanation,vocabulary:[{en:color,tr:col.tr},{en:animal,tr:who.tr},{en:place,tr:where.trName},
    {en:who.verb,tr:who.actionTr}],
   ...(chapter===3?{brokenSentence:broken.join(' ')+'.'}:{})
  };

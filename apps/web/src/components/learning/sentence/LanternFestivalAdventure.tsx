@@ -183,7 +183,7 @@ export function LanternFestivalAdventure({profileId,gradeLevel,englishLevel,hist
  function pickColor(color:LanternColor){
   if(!trial||!requiresColor||selectedColor||lock.current||saving)return;
   if(!checkLanternColor(trial,color)){
-   wrong('Fenerin rengini yeniden düşün. Yönergede belirtilen İngilizce renk kelimesine dikkat et.');return;
+   wrong('Bu renk yönergedeki renk değil. Yönergedeki rengin İngilizce adını seç.');return;
   }
   setSelectedColor(color);soundService.playSfx('tap',.45);
   setFeedbackError(false);setFeedback('Rengi doğru eşleştirdin. '+(requiresAnimal?'Karakteri ve yeri de seç.':'İngilizce cümleyi kur.'));
@@ -191,7 +191,7 @@ export function LanternFestivalAdventure({profileId,gradeLevel,englishLevel,hist
  function pickAnimal(animal:LanternAnimal){
   if(!trial||!requiresAnimal||selectedAnimal||!selectedColor||lock.current||saving)return;
   if(!checkLanternAnimal(trial,animal)){
-   wrong('Yönergedeki karakter farklı. Bird, rabbit, dog, cat kelimelerini karşılaştır.');return;
+   wrong('Yönergedeki karakter farklı. Yönergedeki hayvanın İngilizce adını seç.');return;
   }
   setSelectedAnimal(animal);soundService.playSfx('tap',.42);
   setFeedbackError(false);setFeedback('Karakter doğru. Şimdi doğru konumu sahnede göster.');
@@ -200,7 +200,7 @@ export function LanternFestivalAdventure({profileId,gradeLevel,englishLevel,hist
   if(!trial||!requiresPlace||selectedPlace||lock.current||saving||
    requiresColor&&!selectedColor||requiresAnimal&&!selectedAnimal)return;
   if(!checkLanternPlace(trial,place)){
-   wrong('Bu konum yönergedeki yer değil. Tree, bridge, tower ve fountain yerlerini tekrar incele.');return;
+   wrong('Bu konum yönergedeki yer değil. Yönergedeki yerin İngilizce adını seç.');return;
   }
   setSelectedPlace(place);soundService.playSfx('tap',.47);
   setFeedbackError(false);setFeedback('Doğru yere dokundun. Bu anlamı İngilizce cümleyle tamamla.');
@@ -382,17 +382,17 @@ export function LanternFestivalAdventure({profileId,gradeLevel,englishLevel,hist
        <div className="lf-colors">{LANTERN_COLORS.map(c=><button type="button" key={c.id}
         className="lf-color-choice" style={{'--color':c.hex} as React.CSSProperties}
         disabled={lit||saving} onClick={()=>pickColor(c.id)}
-        aria-label={c.tr+' renk'}><span>✦</span><small>{c.tr}</small></button>)}</div></div>}
+        lang="en"><span aria-hidden="true">✦</span><small>{c.id}</small></button>)}</div></div>}
       {showAnimals&&<div className="lf-choice-block" role="group" aria-label="Festival karakterini seç">
        <strong>🐾 Doğru karakter kim?</strong>
        <div className="lf-animals">{LANTERN_ANIMALS.map(a=><button type="button" key={a.id}
-        className="lf-animal-choice" onClick={()=>pickAnimal(a.id)} disabled={lit||saving}>
-        <span aria-hidden="true">{a.icon}</span><strong>{a.id}</strong><small>{a.tr}</small></button>)}</div></div>}
+        className="lf-animal-choice" onClick={()=>pickAnimal(a.id)} disabled={lit||saving}
+        lang="en"><span aria-hidden="true">{a.icon}</span><strong>{a.id}</strong></button>)}</div></div>}
       {requiresPlace&&<div className="lf-instruction">
        {selectedPlace?'✓ Konumu doğru seçtin.':
          requiresAnimal&&!selectedAnimal?'Önce renk ve karakteri seç; sonra sahnedeki yerler açılacak.':
          requiresColor&&!selectedColor?'Önce rengi seç.':
-         '👆 Ağaç, köprü, kule veya çeşme etiketine sahnede dokun.'}
+         '👆 Yönergedeki yerin İngilizce adına dokun.'}
       </div>}
       {showRepair&&trial.brokenWords&&<div className="lf-choice-block">
        <strong>🔎 İngilizce cümlede bir dil bilgisi hatası var. Yanlış kelimeyi seç.</strong>

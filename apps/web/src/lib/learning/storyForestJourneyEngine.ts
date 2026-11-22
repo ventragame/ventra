@@ -67,6 +67,10 @@ export const JOURNEY_ROUTES:readonly JourneyRoute[]=Object.freeze(FOREST_EPISODE
    destinations:Object.freeze(destinations) as unknown as readonly [JourneyLocation,JourneyLocation]});
  })
 ));
+/** Child-facing Turkish name of a forest place (place cards and screen readers). */
+export function journeyPlaceLabel(scene:ForestScene):string{
+ return LOCATIONS[scene]?.label??'Orman yeri';
+}
 export function journeyRoutesForEpisode(episode:ForestEpisode):readonly JourneyRoute[]{
  return JOURNEY_ROUTES.filter(route=>route.episode===episode);
 }

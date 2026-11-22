@@ -10,6 +10,7 @@ import {MovementMagicStage} from './MovementMagicStage';
 import {sentenceStart,visibleRepairWord} from './sentencePresentation';
 import {SentenceQuestBuilder,SentenceQuestProgress,SentenceQuestSuccess,SentenceQuestReward} from './SentenceQuestComponents';
 import {sentenceQuestHint,sentenceQuestCorrect} from './sentence-quest-language';
+import {advanceAfterSpokenSentence} from './sentenceAutoAdvance';
 import {firstSentenceMismatch} from '@/lib/learning/sentenceTokens';
 import './sentence-quest-unified.css';
 import {MAGIC_VERBS,MOVEMENT_CHAPTERS,checkMagicAction,checkMagicPlace,
@@ -109,11 +110,12 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
  const isComplete=Boolean(trial&&picked.length===trial.question.tokens.length);
  const percent=plan?100*(index+(activated?1:0))/plan.trials.length:0;
  const clearPending=()=>{if(pending.current!==null){clearTimeout(pending.current);pending.current=null;}};
- const speak=(text:string,fullAnswer=false)=>{
+ const speak=(text:string,fullAnswer=false,events?:{onEnd:()=>void;onError:()=>void}):boolean=>{
   soundService.unlockAudio();
-  const played=soundService.speakEnglish(text,{rate:gradeLevel!==null&&gradeLevel<=2?.75:.86});
+  const played=soundService.speakEnglish(text,{rate:gradeLevel!==null&&gradeLevel<=2?.75:.86,...events});
   if(played&&fullAnswer)setHeardModel(true);
   if(!played)setFeedback('Bu cihazda İngilizce seslendirme kullanılamıyor. Yazılı açıklama ve ipucu kullanılabilir.');
+  return played;
  };
  useEffect(()=>{
   soundService.setMusicScene('movement');
@@ -296,16 +298,26 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
   setStreak(nextStreak);setBestStreak(p=>Math.max(p,nextStreak));
   if(row.firstTryCorrect)setIndependentCount(n=>n+1);
   soundService.playSfx('correct',.82);
-  speak(question.sentence,false);
-  const duration=Math.min(5200,Math.max(2600,1400+question.tokens.length*235));
-  clearPending();pending.current=setTimeout(()=>{
-   pending.current=null;advancing.current=false;
-   soundService.cancelSpeech();
-   if(index+1>=plan.trials.length){void finish(rows);return;}
-   const newChapter=plan.trials[index+1].chapter!==trial.chapter;
-   setIndex(n=>n+1);resetRound();
-   if(newChapter){setPhase('chapter');soundService.playSfx('whoosh',.54);}
-  },duration);
+  // Move on only after the spoken sentence has finished (a fixed timer cut
+  // 13-word A2 sentences off); without a voice the old reading time applies.
+  advanceAfterSpokenSentence({
+   speak:events=>speak(question.sentence,false,events),
+   wordCount:question.tokens.length,minDwellMs:2600,
+   silentDelayMs:Math.min(5200,Math.max(2600,1400+question.tokens.length*235)),
+   setTimer:(run,delay)=>{
+    clearPending();
+    pending.current=setTimeout(()=>{pending.current=null;run();},delay);
+   },
+   stillWaiting:()=>advancing.current,
+   advance:()=>{
+    advancing.current=false;
+    soundService.cancelSpeech();
+    if(index+1>=plan.trials.length){void finish(rows);return;}
+    const newChapter=plan.trials[index+1].chapter!==trial.chapter;
+    setIndex(n=>n+1);resetRound();
+    if(newChapter){setPhase('chapter');soundService.playSfx('whoosh',.54);}
+   }
+  });
  }
  const chapterCards=MOVEMENT_CHAPTERS.map(c=><div className="mm-chapter-pill" key={c.id}
    data-active={phase!=='welcome'&&c.id===stage} data-complete={phase!=='welcome'&&c.id<stage}>

@@ -22,6 +22,7 @@ import {StoryForestActor,StoryForestScenery} from './StoryForestArt';
 import {DetectiveClueArt,DetectiveLostItem} from './StoryDetectiveArt';
 import {LearningMotion} from '@/components/learning/motion/LearningMotion';
 import {StoryNarrationPanel,StorySceneGuide,storyDecisionFeedback} from './StorySceneStandard';
+import {useQuestionFocus} from '@/components/learning/activities/useQuestionFocus';
 import './story-detective.css';
 import './story-detective-adventure.css';
 import './story-character-motion.css';
@@ -93,6 +94,7 @@ export function StoryDetectiveAdventure({profileId,gradeLevel,englishLevel,onBac
  const [progress,setProgress]=useState<DetectiveProgress>(EMPTY);
  const [loading,setLoading]=useState(true);
  const [loadError,setLoadError]=useState('');
+ const [loadAttempt,setLoadAttempt]=useState(0);
  const [plan,setPlan]=useState<DetectiveAdventurePlan|null>(null);
  const [phase,setPhase]=useState<DetectiveStoryPhase>('opening');
  const [stepIndex,setStepIndex]=useState(0);
@@ -118,6 +120,11 @@ export function StoryDetectiveAdventure({profileId,gradeLevel,englishLevel,onBac
  const completed=useRef<DetectiveRecord|null>(null);
  const sessionId=useRef('');
  const startedAt=useRef(0);
+ // The chosen clue card and ▶ disappear between steps; keyboard and
+ // screen-reader focus then moves to the new step title instead of <body>.
+ const stepHeading=useQuestionFocus<HTMLHeadingElement>(
+  view==='playing'?phase+':'+stepIndex:view);
+ const rewardHeading=useQuestionFocus<HTMLHeadingElement>(view==='reward'?'done':'play');
 
  const step=plan?.steps[stepIndex]??null;
  const currentScene:ForestScene|undefined=plan?
@@ -151,7 +158,7 @@ export function StoryDetectiveAdventure({profileId,gradeLevel,englishLevel,onBac
   return()=>{active=false;alive.current=false;generation.current++;
    if(timer.current!==null)clearTimeout(timer.current);
    soundService.cancelSpeech();};
- },[profileId]);
+ },[profileId,loadAttempt]);
 
  async function finish(currentPlan:DetectiveAdventurePlan,record:DetectiveRecord){
   if(saving.current)return;
@@ -339,7 +346,9 @@ export function StoryDetectiveAdventure({profileId,gradeLevel,englishLevel,onBac
     <div className="sd-cover-glass" aria-hidden="true">⌕</div>
    </section>
    {loading&&<p className="sd-status" role="status">Macera dünyaları açılıyor…</p>}
-   {loadError&&<p className="sd-status" role="alert">{loadError}</p>}
+   {loadError&&<div className="sd-status" role="alert">{loadError}{' '}
+    <button type="button" className="sd-secondary" onClick={()=>setLoadAttempt(n=>n+1)}>↻ Tekrar dene</button>
+   </div>}
    {!loading&&!loadError&&<>
     <div className="sd-available">🔍 6 bölüm · Her seferinde yeni bir macera yolu</div>
     <section className="sd-chapter-grid" aria-label="Dedektif bölümleri">
@@ -408,7 +417,7 @@ export function StoryDetectiveAdventure({profileId,gradeLevel,englishLevel,onBac
         step?.kind==='evidence'?'🔗':step?.kind==='destination'?'🧭':
         step?.kind==='recover'?'🎁':'🔎'}
       </span>
-      <h2>{phase==='opening'?DETECTIVE_THEME_NAMES[plan.setup.theme]:
+      <h2 ref={stepHeading} tabIndex={-1}>{phase==='opening'?DETECTIVE_THEME_NAMES[plan.setup.theme]:
        phase==='ending'?'Gizemi Çözdün!':
        step?.kind==='friend'?'Arkadaşını Bul':
        step?.kind==='crossroads'?'Yolunu Seç':
@@ -494,7 +503,7 @@ export function StoryDetectiveAdventure({profileId,gradeLevel,englishLevel,onBac
     <div className="sd-reward-helper"><StoryForestActor id={plan.setup.friend} motion="cheer"/></div>
     <div className="sd-reward-item"><DetectiveLostItem id={plan.setup.item}/></div>
    </div>
-   <h2>Gizem Çözüldü!</h2>
+   <h2 ref={rewardHeading} tabIndex={-1}>Gizem Çözüldü!</h2>
    <div className="sd-reward-stars" aria-label={stars+' yıldız'}>
     {[1,2,3].map(n=><span className={n<=stars?'earned':''} key={n}>★</span>)}
    </div>
