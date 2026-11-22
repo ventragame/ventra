@@ -1,88 +1,138 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useCallback, useEffect, useRef, useState } from 'react';
+import Link from 'next/link';
 import { getSupabaseClient, isSupabaseConfigured } from '../../lib/supabase/client';
 import { sendAdultOtpEmail, verifyAdultOtp, getAdultAccount, signOutAdult, deleteAdultAccount } from '../../lib/supabase/auth';
 import { CloudSyncService } from '../../lib/supabase/sync';
 import { getProgressRepository } from '../../lib/progress';
-import type { AdultAccountInfo, PlayerProfile, SyncResult } from '@ventra/shared';
-import {PLANNED_COIN_PACKS,PAID_COINS_ENABLED} from '../../lib/rewards/economyEngine';
+import type { AdultAccountInfo, PlayerProfile } from '@ventra/shared';
+import { useDialogFocus } from '@/lib/a11y/useDialogFocus';
+import { useFocusRescue } from '@/lib/a11y/useFocusRescue';
+import { AvatarPortrait } from './AvatarPortrait';
+import { cleanOtpCode, cloudState, friendlyAccountError, isEmailLike, lastSyncLabel, playerDetail } from '@/lib/profile/profileHub';
 
 interface AdultAccountModalProps {
   isOpen: boolean;
   onClose: () => void;
   onSyncCompleted?: () => void;
+  /** The family panel opens this window itself, so it hides the link to it. */
+  showReportLink?: boolean;
 }
 
+type Notice = { type: 'success' | 'error'; text: string };
+/** One inline confirmation at a time: no browser confirm() dialogs. */
+type Pending = { kind: 'link' | 'delete'; profileId: string } | null;
+const RESEND_SECONDS = 30;
+
+/** Parent-only window (behind the parental gate): sign in with an e-mail
+ * code, back up chosen children, sync, delete a child or the account. */
 export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
   isOpen,
   onClose,
-  onSyncCompleted
+  onSyncCompleted,
+  showReportLink = true
 }) => {
   const [account, setAccount] = useState<AdultAccountInfo | null>(null);
+  const [checked, setChecked] = useState(false);
   const [profiles, setProfiles] = useState<PlayerProfile[]>([]);
-  const [email, setEmail] = useState<string>('');
-  const [otpToken, setOtpToken] = useState<string>('');
-  const [isOtpSent, setIsOtpSent] = useState<boolean>(false);
-  const [isLoading, setIsLoading] = useState<boolean>(false);
+  const [email, setEmail] = useState('');
+  const [otpToken, setOtpToken] = useState('');
+  const [isOtpSent, setIsOtpSent] = useState(false);
+  const [cooldown, setCooldown] = useState(0);
+  const [isLoading, setIsLoading] = useState(false);
   const [syncStatus, setSyncStatus] = useState<string | null>(null);
-  const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [message, setMessage] = useState<Notice | null>(null);
+  const [pending, setPending] = useState<Pending>(null);
+  const [deleteAccountOpen, setDeleteAccountOpen] = useState(false);
+  const [deleteEmail, setDeleteEmail] = useState('');
+  const dialogRef = useRef<HTMLDivElement>(null);
+  useDialogFocus(dialogRef, isOpen);
+  useFocusRescue(dialogRef, isOpen, [account, checked, isOtpSent, pending, deleteAccountOpen, message, profiles, isLoading]);
 
   const configured = isSupabaseConfigured();
 
-  const loadData = async () => {
+  const loadData = useCallback(async () => {
     try {
-      const acc = await getAdultAccount();
-      setAccount(acc);
-      const repo = getProgressRepository();
-      const profs = await repo.getAllProfiles();
-      setProfiles(profs);
+      setAccount(await getAdultAccount());
+      setProfiles(await getProgressRepository().getAllProfiles());
     } catch (e) {
       console.error('Yetişkin hesabı yükleme hatası:', e);
+    } finally {
+      setChecked(true);
     }
-  };
+  }, []);
 
   useEffect(() => {
-    if (isOpen) {
-      loadData();
-      setMessage(null);
-      setSyncStatus(null);
-    }
-  }, [isOpen]);
+    if (!isOpen) return;
+    void loadData();
+    setMessage(null);
+    setSyncStatus(null);
+    setPending(null);
+    setDeleteAccountOpen(false);
+    setDeleteEmail('');
+  }, [isOpen, loadData]);
+
+  useEffect(() => {
+    if (cooldown <= 0) return;
+    const timer = window.setTimeout(() => setCooldown(seconds => seconds - 1), 1000);
+    return () => window.clearTimeout(timer);
+  }, [cooldown]);
 
   if (!isOpen) return null;
 
-  const handleSendOtp = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const fail = (where: string, error: unknown, fallback: string) => {
+    console.error('[Yetişkin hesabı] ' + where, error);
+    setMessage({ type: 'error', text: friendlyAccountError(error, fallback) });
+  };
+
+  const handleSendOtp = async (e?: React.FormEvent) => {
+    e?.preventDefault();
+    if (isLoading) return;
+    const clean = email.trim().toLowerCase();
+    if (!isEmailLike(clean)) {
+      setMessage({ type: 'error', text: 'E-posta adresini kontrol et.' });
+      return;
+    }
     setMessage(null);
     setIsLoading(true);
-
-    const res = await sendAdultOtpEmail(email);
-    setIsLoading(false);
-
-    if (res.success) {
+    try {
+      const res = await sendAdultOtpEmail(clean);
+      if (!res.success) {
+        fail('kod gönderilemedi', res.error, 'Kod gönderilemedi. Biraz sonra yeniden dene.');
+        return;
+      }
+      setEmail(clean);
       setIsOtpSent(true);
-      setMessage({ type: 'success', text: `Doğrulama kodu ${email} adresine gönderildi. Lütfen gelen 6 haneli kodu giriniz.` });
-    } else {
-      setMessage({ type: 'error', text: res.error || 'Kod gönderilemedi.' });
+      setOtpToken('');
+      setCooldown(RESEND_SECONDS);
+      setMessage({ type: 'success', text: `Kodu ${clean} adresine gönderdik. Gelen kutunu ve gereksiz klasörünü kontrol et.` });
+    } catch (error) {
+      fail('kod gönderilemedi', error, 'Kod gönderilemedi. Biraz sonra yeniden dene.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (isLoading || otpToken.length < 6) return;
     setMessage(null);
     setIsLoading(true);
-
-    const res = await verifyAdultOtp(email, otpToken);
-    setIsLoading(false);
-
-    if (res.success) {
-      setMessage({ type: 'success', text: 'Giriş başarılı! Hesabınız bağlandı.' });
+    try {
+      const res = await verifyAdultOtp(email, otpToken);
+      if (!res.success) {
+        fail('kod doğrulanamadı', res.error, 'Kod doğrulanamadı. Yeni bir kod isteyip yeniden dene.');
+        return;
+      }
       setIsOtpSent(false);
       setOtpToken('');
       await loadData();
-    } else {
-      setMessage({ type: 'error', text: res.error || 'Doğrulama kodu geçersiz.' });
+      setMessage({ type: 'success', text: 'Giriş yapıldı. Yedeklemek istediğin çocuk profillerini aşağıdan ekleyebilirsin.' });
+    } catch (error) {
+      fail('kod doğrulanamadı', error, 'Kod doğrulanamadı. Yeni bir kod isteyip yeniden dene.');
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -92,10 +142,13 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
     setAccount(current => current?.userId === userId ? { ...current, lastSyncedAt: now } : current);
   };
 
+  // One action both ways: this device's progress goes up, children backed up
+  // on another device come down, deletions travel as tombstones.
   const handleSyncNow = async () => {
     if (!account || isLoading) return;
     setIsLoading(true);
-    setSyncStatus('Bulut ve bu cihaz çift yönlü eşitleniyor...');
+    setPending(null);
+    setSyncStatus('Eşitleniyor…');
     setMessage(null);
     try {
       // Includes existing cloud children and local deletion tombstones.
@@ -107,11 +160,11 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
       recordSuccess(account.userId);
       onSyncCompleted?.();
       setMessage({ type: 'success', text:
-        `Bulut eşitlemesi tamamlandı: ${updated.length} bağlı profil kontrol edildi.` +
-        (guests ? ` ${guests} yalnızca yerel profil henüz aileye bağlanmadığı için yedeklenmedi.` : '')
+        (updated.length ? `Eşitlendi: ${updated.length} aile profili güncel.` : 'Eşitlendi. Aile hesabında henüz yedeklenmiş profil yok.') +
+        (guests ? ` ${guests} profil yalnızca bu cihazda; yedeklemek için “Yedeklemeye ekle” düğmesine dokun.` : '')
       });
     } catch (error) {
-      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Eşitleme başarısız oldu.' });
+      fail('eşitleme', error, 'Eşitleme tamamlanamadı. Bu cihazdaki ilerleme korunuyor; biraz sonra yeniden dene.');
     } finally {
       setIsLoading(false);
       setSyncStatus(null);
@@ -120,42 +173,19 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
 
   const handleLinkProfile = async (profile: PlayerProfile) => {
     if (!account || profile.userId || isLoading) return;
-    if (!window.confirm(`"${profile.nickname}" profilini ${account.email} aile hesabına bağlamak istediğine emin misin? Bu sürümde bağlantıyı kaldırmak henüz desteklenmiyor.`)) return;
     setIsLoading(true);
-    setSyncStatus('Profil bağlanıyor...');
+    setPending(null);
+    setSyncStatus(`${profile.nickname} yedeklemeye ekleniyor…`);
     setMessage(null);
     try {
       const result = await CloudSyncService.getInstance().syncProfile(profile.id, { allowLink: true });
       if (!result.success) throw new Error(result.errorMessage || 'Bağlantı başarısız.');
       await loadData();
       recordSuccess(account.userId);
-      setMessage({ type: 'success', text: `${profile.nickname} profili bağlandı. ${result.uploadedEventsCount} kayıt gönderildi, ${result.downloadedEventsCount} kayıt indirildi.` });
+      setMessage({ type: 'success', text: `${profile.nickname} artık aile hesabında yedekleniyor. ${result.uploadedEventsCount} oyun kaydı buluta gönderildi.` });
       onSyncCompleted?.();
     } catch (error) {
-      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Profil bağlanamadı. Yerel ilerleme korunuyor.' });
-    } finally {
-      setIsLoading(false);
-      setSyncStatus(null);
-    }
-  };
-
-  const handleRestoreFromCloud = async () => {
-    if (!account || isLoading) return;
-    setIsLoading(true);
-    setSyncStatus('Bulut profilleri getiriliyor...');
-    setMessage(null);
-    try {
-      const restored = await CloudSyncService.getInstance().pullAllCloudProfiles();
-      await loadData();
-      recordSuccess(account.userId);
-      if (restored.length > 0) {
-        onSyncCompleted?.();
-        setMessage({ type: 'success', text: `${restored.length} profil kontrol edildi. İlerlemeler birleştirildi; oyuncu seçicisinden istediğiniz profile geçebilirsiniz.` });
-      } else {
-        setMessage({ type: 'success', text: 'Bu aile hesabında geri getirilecek profil yok. Önce bireysel profil oluşturup aile hesabına bağlayın.' });
-      }
-    } catch (error) {
-      setMessage({ type: 'error', text: error instanceof Error ? error.message : 'Bulut profilleri getirilemedi. Yerel kayıtlar korunuyor.' });
+      fail('profil bağlanamadı', error, 'Profil yedeklemeye eklenemedi. Bu cihazdaki ilerleme korunuyor.');
     } finally {
       setIsLoading(false);
       setSyncStatus(null);
@@ -164,8 +194,9 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
 
   const handleDeleteLinkedChild = async (profile: PlayerProfile) => {
     if (!account || isLoading || profile.userId !== account.userId) return;
-    if (!window.confirm('Bu çocuk profili ve öğrenme kayıtları kalıcı olarak silinsin mi?')) return;
     setIsLoading(true);
+    setPending(null);
+    setSyncStatus(`${profile.nickname} siliniyor…`);
     setMessage(null);
     try {
       const client = getSupabaseClient();
@@ -175,401 +206,325 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
       const { data, error } = await client.rpc('delete_child_profile', {
         p_profile_id: profile.id
       });
-      if (error) throw new Error('Güvenli profil silme başarısız. SQL migration gerekli olabilir: ' + error.message);
+      if (error) {
+        console.error('[Yetişkin hesabı] delete_child_profile', error);
+        throw new Error('Profil buluttan silinemedi.');
+      }
       if (data !== profile.id) throw new Error('Sunucu çocuk profilinin silindiğini doğrulamadı.');
       await getProgressRepository().deleteProfile(profile.id);
       await loadData();
       onSyncCompleted?.();
-      setMessage({type:'success',text:'Çocuk profili buluttan ve cihazdan silindi.'});
+      setMessage({ type: 'success', text: `${profile.nickname} profili ve öğrenme kayıtları buluttan ve bu cihazdan silindi.` });
     } catch (err) {
-      setMessage({type:'error',text:err instanceof Error ? err.message : 'Silme başarısız.'});
-    } finally { setIsLoading(false); }
-  };
-
-  const handleSignOut = async () => {
-    await signOutAdult();
-    setAccount(null);
-    setMessage({ type: 'success', text: 'Oturum kapatıldı. Yerel profiller cihazınızda güvende kalmaya devam eder.' });
-    await loadData();
-  };
-
-  const handleDeleteAccount = async () => {
-    const confirmed = window.confirm('Bulut hesabınızı ve sunucudaki tüm yedekleri silmek istediğinize emin misiniz? (Yerel cihazınızdaki profiller silinmez).');
-    if (!confirmed) return;
-
-    setIsLoading(true);
-    const res = await deleteAdultAccount();
-    setIsLoading(false);
-
-    if (res.success) {
-      setAccount(null);
-      setMessage({ type: 'success', text: 'Bulut hesabı ve sunucudaki veriler başarıyla silindi.' });
-      await loadData();
-    } else {
-      setMessage({ type: 'error', text: res.error || 'Hesap silinemedi.' });
+      fail('profil silinemedi', err, 'Profil silinemedi. Bu cihazdaki profil korunuyor; yeniden dene.');
+    } finally {
+      setIsLoading(false);
+      setSyncStatus(null);
     }
   };
 
+  const handleSignOut = async () => {
+    if (isLoading) return;
+    setIsLoading(true);
+    try { await signOutAdult(); } catch (error) { console.error('[Yetişkin hesabı] oturum kapatma', error); }
+    finally { setIsLoading(false); }
+    setAccount(null);
+    setPending(null);
+    setDeleteAccountOpen(false);
+    setMessage({ type: 'success', text: 'Oturum kapatıldı. Profiller ve ilerleme bu cihazda kalmaya devam ediyor.' });
+    await loadData();
+  };
+
+  const emailMatches = Boolean(account && deleteEmail.trim().toLowerCase() === account.email.toLowerCase());
+
+  const handleDeleteAccount = async () => {
+    if (!account || isLoading || !emailMatches) return;
+    const accountId = account.userId;
+    setIsLoading(true);
+    setMessage(null);
+    try {
+      const res = await deleteAdultAccount();
+      if (!res.success) {
+        fail('hesap silinemedi', res.error, 'Hesap silinemedi. Biraz sonra yeniden dene.');
+        return;
+      }
+      // The cloud copy is gone. Children on this device stay playable and
+      // become local profiles again (not tied to a deleted account), with every
+      // game queued so a future family link uploads the whole history.
+      const repo = getProgressRepository();
+      for (const profile of await repo.getAllProfiles()) {
+        if (profile.userId === accountId) await repo.releaseProfileFromCloud(profile.id);
+      }
+      try { window.localStorage.removeItem('ventra-last-sync:' + accountId); } catch {}
+      setAccount(null);
+      setDeleteAccountOpen(false);
+      setDeleteEmail('');
+      onSyncCompleted?.();
+      setMessage({ type: 'success', text: 'Aile hesabı ve buluttaki tüm yedekler silindi. Bu cihazdaki profiller ve ilerleme yerinde duruyor.' });
+      await loadData();
+    } catch (error) {
+      fail('hesap silinemedi', error, 'Hesap silinemedi. Biraz sonra yeniden dene.');
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
+  const linkedCount = account ? profiles.filter(p => p.userId === account.userId).length : 0;
+  const localCount = profiles.filter(p => !p.userId).length;
+  const subtitle = !configured
+    ? 'Bu kurulumda profiller yalnızca bu cihazda saklanıyor.'
+    : account
+      ? 'Çocukların ilerlemesini aile hesabına yedekle, başka cihazda kaldığı yerden devam etsin.'
+      : 'Şifre yok: her girişte e-postana tek kullanımlık bir kod gelir.';
+
   return (
-    <div style={{
-      position: 'fixed',
-      inset: 0,
-      backgroundColor: 'rgba(5, 9, 20, 0.88)',
-      backdropFilter: 'blur(10px)',
-      display: 'flex',
-      alignItems: 'center',
-      justifyContent: 'center',
-      zIndex: 65,
-      padding: '16px'
-    }}>
-      <div style={{
-        maxWidth: '540px',
-        width: '100%',
-        backgroundColor: '#091122',
-        border: '1px solid rgba(56, 189, 248, 0.35)',
-        borderRadius: '24px',
-        padding: '24px',
-        boxShadow: '0 25px 50px -12px rgba(0, 0, 0, 0.75)',
-        display: 'flex',
-        flexDirection: 'column',
-        gap: '20px',
-        maxHeight: '90vh',
-        overflowY: 'auto'
-      }}>
-        {/* Üst Başlık & Kapat Butonu */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-          <div>
-            <h2 style={{ fontSize: '20px', fontWeight: 800, color: '#f8fafc', margin: 0 }}>
-              Ebeveyn Alanı & Bulut Yedekleme
-            </h2>
-            <p style={{ fontSize: '12px', color: '#94a3b8', margin: '4px 0 0 0' }}>
-              Her çocuk profilini açık onayla bağlayın; başka cihazdan geri getirin ve eşitleyin.
+    <div className="fixed inset-0 z-[65] flex items-center justify-center bg-[#030817]/90 p-2 backdrop-blur-xl sm:p-4"
+      onKeyDown={e => { if (e.key === 'Escape' && !isLoading) { e.stopPropagation(); onClose(); } }}>
+      <div ref={dialogRef} role="dialog" aria-modal="true" aria-labelledby="adult-account-title" aria-describedby="adult-account-subtitle"
+        className="acct-panel relative flex max-h-[96dvh] outline-none w-full max-w-[640px] flex-col overflow-hidden rounded-[28px] border border-sky-200/25 bg-gradient-to-b from-[#0f2146] via-[#0b1734] to-[#09122a] text-white shadow-[0_30px_90px_#000b]">
+        <div aria-hidden="true" className="pointer-events-none absolute -right-24 -top-28 h-72 w-72 rounded-full bg-amber-300/10 blur-3xl" />
+        <div aria-hidden="true" className="pointer-events-none absolute -left-24 top-40 h-72 w-72 rounded-full bg-sky-400/10 blur-3xl" />
+
+        <header className="relative flex items-start justify-between gap-3 border-b border-white/10 px-5 pb-4 pt-5 sm:px-7 sm:pt-6">
+          <div className="min-w-0">
+            <p className="text-xs font-black uppercase tracking-[0.22em] text-amber-200">🛡️ Ebeveyn alanı</p>
+            <h2 id="adult-account-title" className="mt-1 text-2xl font-black tracking-tight sm:text-[1.7rem]">Yedekleme ve hesap</h2>
+            <p id="adult-account-subtitle" className="mt-1 text-sm leading-relaxed text-sky-100/80">{subtitle}</p>
+          </div>
+          <button type="button" onClick={onClose} disabled={isLoading} aria-label="Pencereyi kapat"
+            className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl border border-white/20 bg-white/10 text-lg font-black hover:bg-white/20 focus-visible:outline focus-visible:outline-4 focus-visible:outline-lime-300 disabled:opacity-50">✕</button>
+        </header>
+
+        <div className="acct-body relative flex-1 space-y-4 overflow-y-auto px-5 py-5 sm:px-7">
+          {message && (
+            <p role={message.type === 'error' ? 'alert' : 'status'}
+              className={'rounded-2xl border px-4 py-3 text-sm font-semibold leading-relaxed ' + (message.type === 'success'
+                ? 'border-emerald-300/40 bg-emerald-500/15 text-emerald-50'
+                : 'border-rose-300/45 bg-rose-950/60 text-rose-50')}>
+              {message.type === 'success' ? '✓ ' : '⚠️ '}{message.text}
             </p>
-          </div>
+          )}
 
-          <button
-            onClick={onClose}
-            style={{
-              background: 'rgba(255, 255, 255, 0.08)',
-              border: 'none',
-              color: '#94a3b8',
-              borderRadius: '8px',
-              width: '32px',
-              height: '32px',
-              fontSize: '16px',
-              cursor: 'pointer'
-            }}
-          >
-            ✕
-          </button>
-        </div>
-
-        {/* Bilgilendirme ve Uyarı Kutuları */}
-        {message && (
-          <div style={{
-            background: message.type === 'success' ? 'rgba(16, 185, 129, 0.15)' : 'rgba(239, 68, 68, 0.15)',
-            border: `1px solid ${message.type === 'success' ? 'rgba(16, 185, 129, 0.4)' : 'rgba(239, 68, 68, 0.4)'}`,
-            color: message.type === 'success' ? '#34d399' : '#f87171',
-            padding: '12px 14px',
-            borderRadius: '10px',
-            fontSize: '13px',
-            lineHeight: 1.5
-          }}>
-            {message.text}
-          </div>
-        )}
-
-        {/* Supabase Yapılandırma Durumu Bilgisi */}
-        {!configured && (
-          <div style={{
-            background: 'rgba(245, 158, 11, 0.12)',
-            border: '1px solid rgba(245, 158, 11, 0.35)',
-            padding: '14px',
-            borderRadius: '12px',
-            fontSize: '12px',
-            color: '#fbbf24',
-            lineHeight: 1.5
-          }}>
-            <div style={{ fontWeight: 800, marginBottom: '4px' }}>ℹ️ Çevrimdışı / Yerel Profil Modu Aktif</div>
-            Uygulama %100 çevrimdışı ve yerel olarak çalışmaktadır. Bulut yedeklemesini bağlamak için <code>NEXT_PUBLIC_SUPABASE_URL</code> ve <code>NEXT_PUBLIC_SUPABASE_ANON_KEY</code> ortam değişkenlerinin ayarlanması gerekir. Yerel profilleriniz cihazınızda kalıcıdır ve internet bağlantısı gerektirmez.
-          </div>
-        )}
-
-        {/* 1. GİRİŞ YAPILMIŞ DURUM */}
-        {account ? (
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-            <div style={{
-              background: '#040711',
-              padding: '16px',
-              borderRadius: '14px',
-              border: '1px solid rgba(56, 189, 248, 0.2)',
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '8px'
-            }}>
-              <div style={{ fontSize: '11px', color: '#64748b', fontWeight: 700, textTransform: 'uppercase' }}>
-                Bağlı Yetişkin Hesabı
-              </div>
-              <div style={{ fontSize: '15px', fontWeight: 800, color: '#38bdf8' }}>
-                {account.email}
-              </div>
-              <div style={{ fontSize: '12px', color: '#94a3b8' }}>
-                Bu cihazda {profiles.length} profil var; {profiles.filter(p => p.userId === account.userId).length} tanesi aile hesabına bağlı.
-              </div>
-              <div style={{ fontSize: '11px', color: '#bfdbfe' }}>
-                {account.lastSyncedAt
-                  ? `Bu cihazda son başarılı eşitleme: ${new Date(account.lastSyncedAt).toLocaleString('tr-TR')}`
-                  : 'Bu cihazda henüz doğrulanmış bir bulut eşitlemesi yok.'}
-              </div>
-            </div>
-
-            <section aria-label="Planlanan ebeveyn coin satın alma sistemi"
-              style={{background:'linear-gradient(150deg,#122c4c,#1d2452)',border:'1px solid #64748b',
-                borderRadius:'14px',padding:'14px',display:'flex',flexDirection:'column',gap:'10px'}}>
-              <strong style={{color:'#fff',fontSize:'14px'}}>🪙 Ventra Coin — Ebeveyn Satın Alma Planı</strong>
-              <p style={{fontSize:'12px',color:'#cbd5e1',lineHeight:1.6}}>
-                Çocuğun öğrendikçe kazandığı coin sistemi çalışıyor. Gerçek para ile coin paketleri ise
-                mağaza içi ödeme, makbuz doğrulama, iade ve merkezi bakiye korumaları bitmeden açılmayacak.
-                Eğitim içerikleri coin ile kilitlenmez.
-              </p>
-              <div style={{display:'grid',gridTemplateColumns:'repeat(3,minmax(0,1fr))',gap:'6px'}}>
-                {PLANNED_COIN_PACKS.map(pack=><div key={pack.id}
-                  style={{border:'1px solid #475569',borderRadius:'10px',padding:'10px 5px',textAlign:'center',
-                    background:'#0a1930',fontSize:'11px',color:'#e2e8f0'}}>
-                  <div style={{fontSize:'19px'}}>🪙</div>
-                  <strong style={{display:'block',fontSize:'17px',color:'#fde68a'}}>{pack.coins}</strong>
-                  <span>{pack.label}</span>
-                </div>)}
-              </div>
-              <p role="status" style={{fontSize:'11px',color:'#fde68a',lineHeight:1.5}}>
-                {PAID_COINS_ENABLED?'Ödeme sistemi hazır':'Henüz satışta değil · Kart bilgisi alınmıyor · Fiyatlandırma belirlenmedi'}
+          {!configured && (
+            <section aria-labelledby="acct-offline-title" className="rounded-3xl border border-amber-200/30 bg-amber-300/10 p-5">
+              <h3 id="acct-offline-title" className="text-base font-black text-amber-100">☁️ Bulut yedekleme bu kurulumda kapalı</h3>
+              <p className="mt-2 text-sm leading-relaxed text-amber-50/90">
+                Ventra internet olmadan tam çalışır. {profiles.length ? `Bu cihazdaki ${profiles.length} profil ve ilerlemesi` : 'Profiller ve ilerleme'} yalnızca bu cihazda saklanır;
+                tarayıcı verileri silinirse ya da cihaz değişirse geri getirilemez.
               </p>
             </section>
+          )}
 
-            <section aria-label="Çocuk profillerini aileye bağlama" style={{ display: 'flex', flexDirection: 'column', gap: '10px', border: '1px solid #334155', padding: '12px', borderRadius: '12px' }}>
-              <strong style={{ fontSize: '13px', color: '#f8fafc' }}>Çocuk Profilleri</strong>
-              {profiles.length === 0 && <p style={{ fontSize: '12px', color: '#cbd5e1' }}>Bu cihazda profil yok. Buluttan getirin veya bir profil oluşturun.</p>}
-              {profiles.map(profile => {
-                const linked = profile.userId === account.userId;
-                const foreign = Boolean(profile.userId && !linked);
-                return (
-                  <div key={profile.id} style={{ padding: '10px', background: '#0f172a', borderRadius: '10px', display: 'flex', gap: '12px', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap' }}>
-                    <div>
-                      <div style={{ color: '#f8fafc', fontWeight: 800, fontSize: '13px' }}>{profile.nickname}</div>
-                      <div style={{ color: linked ? '#86efac' : foreign ? '#fca5a5' : '#cbd5e1', fontSize: '11px' }}>
-                        {linked ? 'Bu aileye bağlı' : foreign ? 'Başka yetişkin hesabına bağlı' : 'Yalnızca bu cihazda'}
-                      </div>
-                    </div>
-                    {!linked && !foreign && <button disabled={isLoading} onClick={() => void handleLinkProfile(profile)}
-                      style={{ borderRadius: '10px', padding: '10px', border: '1px solid #4ade80', background: '#14532d', color: '#fff', fontWeight: 800, fontSize: '12px', cursor: 'pointer' }}>Aileye Bağla</button>}
-                    {linked && <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <span style={{ color: '#86efac', fontSize: '12px', fontWeight: 700 }}>✓ Bağlı</span>
-                      <button disabled={isLoading} onClick={() => void handleDeleteLinkedChild(profile)}
-                        aria-label={`${profile.nickname} çocuk profilini sil`}
-                        style={{ border: '1px solid #f87171', borderRadius: '8px', padding: '9px', background: '#450a0a', color: '#fecaca', fontWeight: 700, fontSize: '11px' }}>
-                        Profili Sil
+          {configured && !account && !checked && (
+            <p role="status" className="rounded-2xl border border-white/10 bg-white/5 p-4 text-sm text-sky-100">Hesap bilgisi okunuyor…</p>
+          )}
+
+          {configured && !account && checked && (
+            <>
+              <ul className="grid gap-2 sm:grid-cols-3" aria-label="Aile hesabı ne sağlar?">
+                {[
+                  ['☁️', 'İlerleme güvende', 'Tarayıcı verisi silinse de yıldızlar ve görevler korunur.'],
+                  ['📱', 'Her cihazda aynı kaşif', 'Tablette başlayan macera telefonda kaldığı yerden sürer.'],
+                  ['🔐', 'Şifre gerekmez', 'Her girişte e-postana tek kullanımlık bir kod gelir.']
+                ].map(([icon, title, text]) => (
+                  <li key={title} className="rounded-2xl border border-white/10 bg-white/[0.06] p-3">
+                    <span aria-hidden="true" className="text-2xl">{icon}</span>
+                    <strong className="mt-1 block text-sm font-black">{title}</strong>
+                    <span className="mt-0.5 block text-xs leading-relaxed text-sky-100/80">{text}</span>
+                  </li>
+                ))}
+              </ul>
+
+              <section aria-labelledby="acct-signin-title" className="rounded-3xl border border-sky-200/20 bg-[#071229]/70 p-5">
+                <ol className="flex items-center gap-2 text-xs font-black" aria-label="Giriş adımları">
+                  <li className={'rounded-full px-3 py-1 ' + (!isOtpSent ? 'bg-sky-300 text-slate-950' : 'bg-emerald-400/20 text-emerald-100')} aria-current={!isOtpSent ? 'step' : undefined}>{isOtpSent ? '✓' : '1'} E-posta</li>
+                  <li aria-hidden="true" className="h-px flex-1 bg-white/15" />
+                  <li className={'rounded-full px-3 py-1 ' + (isOtpSent ? 'bg-sky-300 text-slate-950' : 'bg-white/10 text-sky-100/80')} aria-current={isOtpSent ? 'step' : undefined}>2 Kod</li>
+                </ol>
+                <h3 id="acct-signin-title" className="mt-4 text-lg font-black">{isOtpSent ? 'E-postana gelen kodu yaz' : 'Aile hesabına giriş yap'}</h3>
+                {!isOtpSent ? (
+                  <form onSubmit={handleSendOtp} className="mt-3 space-y-3">
+                    <label htmlFor="acct-email" className="block text-sm font-bold text-sky-100">E-posta adresin</label>
+                    <input id="acct-email" type="email" inputMode="email" autoComplete="email" required value={email}
+                      onChange={e => setEmail(e.target.value)} placeholder="ornek@eposta.com"
+                      className="min-h-14 w-full rounded-2xl border border-sky-200/30 bg-[#040a1a] px-4 text-base text-white outline-none placeholder:text-slate-500 focus-visible:border-lime-300 focus-visible:ring-4 focus-visible:ring-lime-300/20" />
+                    <button type="submit" disabled={isLoading || !email.trim()}
+                      className="min-h-14 w-full rounded-2xl bg-gradient-to-r from-sky-400 to-blue-500 px-5 text-base font-black text-slate-950 shadow-lg shadow-sky-950/40 transition hover:brightness-110 focus-visible:outline focus-visible:outline-4 focus-visible:outline-lime-300 disabled:cursor-not-allowed disabled:opacity-60">
+                      {isLoading ? 'Gönderiliyor…' : 'Kodu gönder →'}
+                    </button>
+                    <p className="text-xs leading-relaxed text-sky-100/70">Hesabın yoksa bu adresle yeni bir aile hesabı açılır.</p>
+                  </form>
+                ) : (
+                  <form onSubmit={handleVerifyOtp} className="mt-3 space-y-3">
+                    <p className="text-sm leading-relaxed text-sky-100/85">Kod <strong className="break-all text-white">{email}</strong> adresine gitti.</p>
+                    <label htmlFor="acct-otp" className="sr-only">E-postadaki doğrulama kodu</label>
+                    <input id="acct-otp" type="text" inputMode="numeric" autoComplete="one-time-code" pattern="[0-9]*" maxLength={10}
+                      required value={otpToken} onChange={e => setOtpToken(cleanOtpCode(e.target.value))} placeholder="••••••" autoFocus
+                      className="min-h-16 w-full rounded-2xl border border-sky-200/30 bg-[#040a1a] px-4 text-center text-2xl font-black tracking-[0.4em] tabular-nums text-white outline-none placeholder:text-slate-600 focus-visible:border-lime-300 focus-visible:ring-4 focus-visible:ring-lime-300/20" />
+                    <button type="submit" disabled={isLoading || otpToken.length < 6}
+                      className="min-h-14 w-full rounded-2xl bg-gradient-to-r from-lime-300 to-emerald-300 px-5 text-base font-black text-emerald-950 shadow-lg shadow-emerald-950/40 transition hover:brightness-110 focus-visible:outline focus-visible:outline-4 focus-visible:outline-sky-300 disabled:cursor-not-allowed disabled:opacity-60">
+                      {isLoading ? 'Doğrulanıyor…' : 'Giriş yap'}
+                    </button>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button type="button" disabled={isLoading || cooldown > 0} onClick={() => void handleSendOtp()}
+                        className="min-h-12 rounded-2xl border border-white/20 bg-white/5 px-3 text-sm font-bold text-sky-100 hover:bg-white/10 disabled:cursor-not-allowed disabled:opacity-60">
+                        {cooldown > 0 ? `Yeni kod (${cooldown} sn)` : 'Kodu yeniden gönder'}
                       </button>
-                    </div>}
+                      <button type="button" disabled={isLoading} onClick={() => { setIsOtpSent(false); setOtpToken(''); setMessage(null); }}
+                        className="min-h-12 rounded-2xl border border-white/20 bg-white/5 px-3 text-sm font-bold text-sky-100 hover:bg-white/10">
+                        E-postayı değiştir
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </section>
+            </>
+          )}
+
+          {account && (
+            <>
+              <section aria-labelledby="acct-family-title" className="rounded-3xl border border-sky-200/25 bg-gradient-to-br from-sky-400/15 via-indigo-500/10 to-transparent p-5">
+                <div className="flex items-start gap-3">
+                  <span aria-hidden="true" className="grid h-12 w-12 shrink-0 place-items-center rounded-2xl bg-sky-300/20 text-2xl">👨‍👩‍👧</span>
+                  <div className="min-w-0">
+                    <h3 id="acct-family-title" className="text-xs font-black uppercase tracking-[0.18em] text-sky-200">Aile hesabı</h3>
+                    <p className="mt-0.5 break-all text-base font-black text-white">{account.email}</p>
+                    <p className="mt-1 text-sm text-sky-100/85">
+                      {linkedCount ? `${linkedCount} profil yedekleniyor` : 'Henüz yedeklenen profil yok'}{localCount ? ` · ${localCount} profil yalnızca bu cihazda` : ''}
+                    </p>
+                    <p className="mt-0.5 text-xs font-semibold text-sky-100/70">{lastSyncLabel(account.lastSyncedAt)}</p>
                   </div>
-                );
-              })}
-              <p style={{ color: '#cbd5e1', fontSize: '11px', lineHeight: 1.6, margin: 0 }}>Bağlamak yıldızları sıfırlamaz. Bir çocuğu başka aile hesabına aktarma henüz desteklenmez.</p>
-            </section>
-            <button onClick={() => void handleRestoreFromCloud()} disabled={isLoading}
-              style={{ padding: '14px', borderRadius: '12px', border: '1px solid #60a5fa', background: '#1e40af', color: '#fff', fontWeight: 800, fontSize: '13px', cursor: 'pointer', opacity: isLoading ? 0.5 : 1 }}>
-              ⬇️ Başka Cihazdaki Profilleri Buluttan Getir
-            </button>
-
-            {/* Eşitleme Butonu */}
-            <button
-              onClick={handleSyncNow}
-              disabled={isLoading}
-              style={{
-                padding: '14px',
-                borderRadius: '12px',
-                border: 'none',
-                background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                color: '#ffffff',
-                fontSize: '14px',
-                fontWeight: 800,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                gap: '8px',
-                boxShadow: '0 4px 14px rgba(16, 185, 129, 0.4)'
-              }}
-            >
-              <span>☁️</span>
-              <span>{isLoading ? (syncStatus || 'İşleniyor...') : 'Bağlı Profilleri Eşitle'}</span>
-            </button>
-
-            {/* Oturum ve Hesap İşlemleri */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '10px' }}>
-              <button
-                onClick={handleSignOut}
-                style={{
-                  background: 'transparent',
-                  border: '1px solid #334155',
-                  color: '#94a3b8',
-                  padding: '8px 14px',
-                  borderRadius: '8px',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
-              >
-                Oturumu Kapat
-              </button>
-
-              <button
-                onClick={handleDeleteAccount}
-                style={{
-                  background: 'transparent',
-                  border: '1px solid rgba(239, 68, 68, 0.3)',
-                  color: '#f87171',
-                  padding: '8px 14px',
-                  borderRadius: '8px',
-                  fontSize: '12px',
-                  fontWeight: 600,
-                  cursor: 'pointer'
-                }}
-              >
-                Bulut Hesabını Sil
-              </button>
-            </div>
-          </div>
-        ) : configured ? (
-          /* 2. GİRİŞ YAPILMAMIŞ DURUM (OTP Formu) */
-          <div>
-            {!isOtpSent ? (
-              <form onSubmit={handleSendOtp} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <div>
-                  <label style={{ fontSize: '13px', fontWeight: 700, color: '#cbd5e1', display: 'block', marginBottom: '6px' }}>
-                    Yetişkin E-posta Adresi
-                  </label>
-                  <input
-                    type="email"
-                    value={email}
-                    onChange={(e) => setEmail(e.target.value)}
-                    placeholder="veli@ornek.com"
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '12px 14px',
-                      borderRadius: '10px',
-                      background: '#050914',
-                      border: '1px solid rgba(56, 189, 248, 0.3)',
-                      color: '#ffffff',
-                      fontSize: '14px',
-                      outline: 'none',
-                      boxSizing: 'border-box'
-                    }}
-                  />
-                  <span style={{ fontSize: '11px', color: '#64748b', display: 'block', marginTop: '4px' }}>
-                    Şifresiz, tek kullanımlık e-posta doğrulama kodu (OTP) gönderilecektir.
-                  </span>
                 </div>
-
-                <button
-                  type="submit"
-                  disabled={isLoading}
-                  style={{
-                    padding: '12px',
-                    borderRadius: '10px',
-                    border: 'none',
-                    background: 'linear-gradient(135deg, #0284c7 0%, #2563eb 100%)',
-                    color: '#ffffff',
-                    fontSize: '13px',
-                    fontWeight: 800,
-                    cursor: 'pointer'
-                  }}
-                >
-                  {isLoading ? 'Gönderiliyor...' : 'Doğrulama Kodu Gönder'}
+                <button type="button" onClick={() => void handleSyncNow()} disabled={isLoading}
+                  className="mt-4 flex min-h-14 w-full items-center justify-center gap-2 rounded-2xl bg-gradient-to-r from-emerald-300 to-teal-300 px-5 text-base font-black text-emerald-950 shadow-lg shadow-emerald-950/40 transition hover:brightness-110 focus-visible:outline focus-visible:outline-4 focus-visible:outline-sky-300 disabled:cursor-wait disabled:opacity-70">
+                  <span aria-hidden="true">☁️</span>{isLoading && syncStatus ? syncStatus : 'Şimdi eşitle'}
                 </button>
-              </form>
-            ) : (
-              <form onSubmit={handleVerifyOtp} style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
-                <div>
-                  <label style={{ fontSize: '13px', fontWeight: 700, color: '#cbd5e1', display: 'block', marginBottom: '6px' }}>
-                    6 Haneli Doğrulama Kodu
-                  </label>
-                  <input
-                    type="text"
-                    value={otpToken}
-                    onChange={(e) => setOtpToken(e.target.value)}
-                    placeholder="123456"
-                    maxLength={10}
-                    required
-                    style={{
-                      width: '100%',
-                      padding: '12px 14px',
-                      borderRadius: '10px',
-                      background: '#050914',
-                      border: '1px solid rgba(56, 189, 248, 0.3)',
-                      color: '#ffffff',
-                      fontSize: '18px',
-                      letterSpacing: '4px',
-                      textAlign: 'center',
-                      outline: 'none',
-                      boxSizing: 'border-box'
-                    }}
-                  />
-                </div>
+                <p className="mt-2 text-xs leading-relaxed text-sky-100/70">Bu cihazdaki ilerleme buluta gider; başka cihazda yedeklenen profiller buraya gelir.</p>
+              </section>
 
-                <div style={{ display: 'flex', gap: '8px' }}>
-                  <button
-                    type="button"
-                    onClick={() => setIsOtpSent(false)}
-                    style={{
-                      flex: 1,
-                      padding: '10px',
-                      borderRadius: '8px',
-                      border: '1px solid #334155',
-                      background: 'transparent',
-                      color: '#94a3b8',
-                      fontSize: '12px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Farklı E-posta
-                  </button>
+              <section aria-labelledby="acct-children-title" className="rounded-3xl border border-white/10 bg-[#071229]/60 p-4 sm:p-5">
+                <h3 id="acct-children-title" className="text-base font-black">Çocuk profilleri</h3>
+                {profiles.length === 0 && (
+                  <p className="mt-2 text-sm leading-relaxed text-sky-100/80">Bu cihazda henüz profil yok. “Şimdi eşitle” ile aile hesabındaki profilleri getirebilirsin.</p>
+                )}
+                <ul className="mt-3 space-y-2">
+                  {profiles.map(profile => {
+                    const state = cloudState(profile, account.userId);
+                    const open = pending?.profileId === profile.id ? pending.kind : null;
+                    return (
+                      <li key={profile.id} className={'rounded-2xl border p-3 ' + (open === 'delete' ? 'border-rose-300/45 bg-rose-950/30' : 'border-white/10 bg-white/[0.05]')}>
+                        <div className="flex flex-wrap items-center gap-3">
+                          <AvatarPortrait id={profile.avatarId} size={48} className="h-12 w-12 shrink-0 rounded-xl" />
+                          <div className="min-w-0 flex-1">
+                            <p className="truncate text-sm font-black">{profile.nickname}</p>
+                            <p className="truncate text-xs text-sky-100/75">{playerDetail(profile)}</p>
+                            <span className={'mt-1 inline-flex whitespace-nowrap rounded-full px-2 py-0.5 text-xs font-bold ' + (state === 'linked'
+                              ? 'bg-emerald-400/15 text-emerald-100' : state === 'foreign' ? 'bg-rose-400/15 text-rose-100' : 'bg-amber-300/15 text-amber-100')}>
+                              {state === 'linked' ? '☁️ Yedekleniyor' : state === 'foreign' ? '🔒 Başka bir aile hesabında' : '📱 Yalnızca bu cihazda'}
+                            </span>
+                          </div>
+                          {state === 'local' && !open && (
+                            <button type="button" disabled={isLoading} onClick={() => setPending({ kind: 'link', profileId: profile.id })}
+                              className="min-h-11 w-full rounded-xl border border-emerald-300/60 bg-emerald-500/20 px-3 text-sm font-black text-emerald-50 hover:bg-emerald-500/30 disabled:opacity-60 sm:w-auto">
+                              Yedeklemeye ekle
+                            </button>
+                          )}
+                          {state === 'linked' && !open && (
+                            <button type="button" disabled={isLoading} onClick={() => setPending({ kind: 'delete', profileId: profile.id })}
+                              aria-label={`${profile.nickname} çocuk profilini sil`}
+                              className="min-h-11 w-full rounded-xl border border-rose-300/45 bg-transparent px-3 text-sm font-bold text-rose-100 hover:bg-rose-500/15 disabled:opacity-60 sm:w-auto">
+                              Profili sil
+                            </button>
+                          )}
+                        </div>
+                        {state === 'foreign' && (
+                          <p className="mt-2 text-xs leading-relaxed text-sky-100/75">Bu profil başka bir yetişkin hesabıyla yedekleniyor. Güvenlik için bu oturumla değiştirilemez.</p>
+                        )}
+                        {open === 'link' && (
+                          <div role="group" aria-label={`${profile.nickname} yedeklemeye eklensin mi?`} className="mt-3 rounded-xl border border-emerald-300/30 bg-emerald-500/10 p-3">
+                            <p className="text-sm leading-relaxed">
+                              <strong>{profile.nickname}</strong> aile hesabına yedeklensin mi? Takma ad, avatar, seviye tercihi ve oyun sonuçları buluta gider.
+                              Bu sürümde yedekleme bağlantısı sonradan kaldırılamaz.
+                            </p>
+                            <div className="mt-3 grid grid-cols-2 gap-2">
+                              <button type="button" onClick={() => setPending(null)} className="min-h-11 rounded-xl border border-white/25 bg-white/5 px-3 text-sm font-bold">Vazgeç</button>
+                              <button type="button" disabled={isLoading} onClick={() => void handleLinkProfile(profile)}
+                                className="min-h-11 rounded-xl bg-emerald-300 px-3 text-sm font-black text-emerald-950 disabled:opacity-60">Evet, yedekle</button>
+                            </div>
+                          </div>
+                        )}
+                        {open === 'delete' && (
+                          <div role="group" aria-label={`${profile.nickname} kalıcı olarak silinsin mi?`} className="mt-3 rounded-xl border border-rose-300/35 bg-rose-950/40 p-3">
+                            <p className="text-sm leading-relaxed">
+                              <strong>{profile.nickname}</strong> ve tüm öğrenme kayıtları <strong>hem buluttan hem bu cihazdan</strong> kalıcı olarak silinir.
+                              Aileye bağlı diğer cihazlardan da kalkar. Bu işlem geri alınamaz.
+                            </p>
+                            <div className="mt-3 grid grid-cols-2 gap-2">
+                              <button type="button" onClick={() => setPending(null)} className="min-h-11 rounded-xl border border-white/25 bg-white/5 px-3 text-sm font-bold">Vazgeç</button>
+                              <button type="button" disabled={isLoading} onClick={() => void handleDeleteLinkedChild(profile)}
+                                className="min-h-11 rounded-xl bg-rose-600 px-3 text-sm font-black text-white disabled:opacity-60">Kalıcı olarak sil</button>
+                            </div>
+                          </div>
+                        )}
+                      </li>
+                    );
+                  })}
+                </ul>
+              </section>
 
-                  <button
-                    type="submit"
-                    disabled={isLoading}
-                    style={{
-                      flex: 1,
-                      padding: '10px',
-                      borderRadius: '8px',
-                      border: 'none',
-                      background: 'linear-gradient(135deg, #10b981 0%, #059669 100%)',
-                      color: '#ffffff',
-                      fontSize: '13px',
-                      fontWeight: 700,
-                      cursor: 'pointer'
-                    }}
-                  >
-                    {isLoading ? 'Doğrulanıyor...' : 'Giriş Yap'}
-                  </button>
-                </div>
-              </form>
-            )}
-          </div>
-        ) : null}
+              <section aria-labelledby="acct-session-title" className="rounded-3xl border border-white/10 bg-[#071229]/60 p-4 sm:p-5">
+                <h3 id="acct-session-title" className="text-base font-black">Hesap</h3>
+                {!deleteAccountOpen ? (
+                  <div className="mt-3 grid gap-2 sm:grid-cols-2">
+                    <button type="button" onClick={() => void handleSignOut()} disabled={isLoading}
+                      className="min-h-12 rounded-2xl border border-white/20 bg-white/5 px-4 text-sm font-bold text-sky-50 hover:bg-white/10 disabled:opacity-60">
+                      Oturumu kapat
+                    </button>
+                    <button type="button" onClick={() => { setDeleteAccountOpen(true); setPending(null); }} disabled={isLoading}
+                      className="min-h-12 rounded-2xl border border-rose-300/40 px-4 text-sm font-bold text-rose-100 hover:bg-rose-500/15 disabled:opacity-60">
+                      Aile hesabını sil
+                    </button>
+                  </div>
+                ) : (
+                  <div role="group" aria-labelledby="acct-delete-title" className="mt-3 rounded-2xl border border-rose-300/40 bg-rose-950/40 p-4">
+                    <h4 id="acct-delete-title" className="text-sm font-black text-rose-100">Aile hesabı kalıcı olarak silinsin mi?</h4>
+                    <ul className="mt-2 list-disc space-y-1 pl-5 text-sm leading-relaxed text-rose-50/90">
+                      <li>Buluttaki tüm profil yedekleri ve öğrenme kayıtları silinir.</li>
+                      <li>Bu cihazdaki profiller ve ilerleme <strong>silinmez</strong>; yalnızca bu cihazda kalır.</li>
+                      <li>Bu işlem geri alınamaz.</li>
+                    </ul>
+                    <label htmlFor="acct-delete-email" className="mt-3 block text-sm font-bold">Onaylamak için <span className="break-all">{account.email}</span> adresini yaz</label>
+                    <input id="acct-delete-email" type="email" autoComplete="off" value={deleteEmail} onChange={e => setDeleteEmail(e.target.value)}
+                      className="mt-1 min-h-12 w-full rounded-xl border border-rose-200/30 bg-[#12060c] px-3 text-base text-white outline-none placeholder:text-rose-200/40 focus-visible:border-rose-200" />
+                    <div className="mt-3 grid grid-cols-2 gap-2">
+                      <button type="button" onClick={() => { setDeleteAccountOpen(false); setDeleteEmail(''); }} disabled={isLoading}
+                        className="min-h-12 rounded-xl border border-white/25 bg-white/5 px-3 text-sm font-bold">Vazgeç</button>
+                      <button type="button" onClick={() => void handleDeleteAccount()} disabled={isLoading || !emailMatches}
+                        className="min-h-12 rounded-xl bg-rose-600 px-3 text-sm font-black text-white disabled:cursor-not-allowed disabled:opacity-50">
+                        {isLoading ? 'Siliniyor…' : 'Hesabı kalıcı olarak sil'}
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </section>
+            </>
+          )}
 
-        {/* Gizlilik & KVKK İlkesi */}
-        <div style={{
-          borderTop: '1px solid rgba(56, 189, 248, 0.12)',
-          paddingTop: '14px',
-          fontSize: '11px',
-          color: '#64748b',
-          lineHeight: 1.5
-        }}>
-          🛡️ <strong>Çocuk Gizliliği İlkesi:</strong> Ventra, çocuk profillerinde hiçbir kişisel veri toplamaz. İsteğe bağlı bulut hesabı yalnızca ilerlemenin aile tarafından yedeklenmesini ve birden çok cihazda korunmasını sağlar.
+          {showReportLink && (
+            <Link href="/progress" className="flex min-h-14 items-center gap-3 rounded-2xl border border-amber-200/30 bg-amber-300/10 px-4 text-sm font-bold text-amber-50 hover:bg-amber-300/20 focus-visible:outline focus-visible:outline-4 focus-visible:outline-lime-300">
+              <span aria-hidden="true" className="text-2xl">📊</span>
+              <span className="min-w-0 flex-1"><strong className="block font-black">Aile Paneli</strong><span className="block text-xs font-semibold text-amber-50/80">İngilizce karnesi: kelimeler, tekrar listesi, beceriler</span></span>
+              <span aria-hidden="true">→</span>
+            </Link>
+          )}
+
+          <p className="flex gap-2 rounded-2xl border border-white/10 bg-white/[0.04] p-3 text-xs leading-relaxed text-sky-100/75">
+            <span aria-hidden="true">🛡️</span>
+            <span>Buluta yalnızca takma ad, avatar, seviye tercihi ve oyun sonuçları (yıldız, görev, doğru/yanlış) gider.
+              Gerçek ad, ses kaydı, konuşma dökümü ya da çocuğun yazdığı metin gönderilmez.</span>
+          </p>
         </div>
       </div>
     </div>
   );
 };
-

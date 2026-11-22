@@ -7,6 +7,8 @@ import { VENTRA_STARTER_AVATARS, type PlayerProfile } from '@ventra/shared';
 import { AvatarPortrait } from '../profile/AvatarPortrait';
 import { soundService } from '@/lib/audio/SoundService';
 import type { CreateProfileInput } from '@/lib/progress';
+import { ENGLISH_LEVEL_CHOICES, GRADE_CHOICES, nicknameProblem } from '@/lib/profile/profileHub';
+import '../profile/profile-hub.css';
 
 type Screen = 'choose' | 'individual' | 'family' | 'school';
 
@@ -30,8 +32,9 @@ export function KidsWelcomeGate({ onCreateProfile, onOpenParent, existingProfile
     event.preventDefault();
     if (isSaving) return;
     const trimmed = nickname.trim();
-    if (trimmed.length < 2 || trimmed.length > 15) {
-      setError('Takma ad 2–15 karakter arasında olmalı.');
+    const problem = nicknameProblem(trimmed);
+    if (problem) {
+      setError(problem);
       return;
     }
     if (!VENTRA_STARTER_AVATARS.some((item) => item.id === avatar)) {
@@ -125,35 +128,38 @@ export function KidsWelcomeGate({ onCreateProfile, onOpenParent, existingProfile
 
         {screen === 'individual' && (
           <form onSubmit={handleSubmit} className="mx-auto max-w-2xl rounded-[2rem] border border-white/20 bg-slate-950/65 p-5 shadow-2xl backdrop-blur-xl sm:p-8">
-            <button type="button" disabled={isSaving} onClick={() => setScreen('choose')} className="mb-5 flex min-h-10 items-center gap-2 text-sm font-semibold text-sky-100 hover:text-white"><ArrowLeft size={16} /> Seçeneklere Dön</button>
+            <button type="button" disabled={isSaving} onClick={() => setScreen('choose')} className="mb-5 flex min-h-11 items-center gap-2 text-sm font-semibold text-sky-100 hover:text-white"><ArrowLeft size={16} /> Seçeneklere Dön</button>
             <label htmlFor="kid-nickname" className="block text-sm font-bold text-white">Kaşifinin takma adı</label>
             <input id="kid-nickname" required minLength={2} maxLength={15} autoComplete="off" value={nickname} onChange={(e) => setNickname(e.target.value)} placeholder="Örnek: Minik Kaşif" className="mt-2 w-full rounded-2xl border border-white/25 bg-slate-900 p-4 text-base text-white placeholder-slate-400 outline-none focus-visible:border-sky-300" />
             <fieldset className="mt-6">
               <legend className="text-sm font-bold">İlk macera arkadaşını seç · 5 ücretsiz kahraman</legend>
-              <div className="mt-3 grid grid-cols-3 gap-3">
+              <div className="mt-3 grid grid-cols-3 gap-3 sm:grid-cols-5">
                 {VENTRA_STARTER_AVATARS.map((item) => (
                   <button type="button" key={item.id} aria-pressed={avatar === item.id} onClick={() => { setAvatar(item.id); soundService.playSfx('tap', 0.4); }}
                     className={`group flex min-h-32 flex-col items-center justify-center gap-2 rounded-2xl border-2 p-2 transition hover:-translate-y-1 focus-visible:outline focus-visible:outline-2 focus-visible:outline-lime-300 ${avatar === item.id ? 'border-lime-300 bg-emerald-500/20 shadow-[0_0_26px_#9ef1bc60]' : 'border-white/20 bg-white/5 hover:border-sky-300'}`}>
-                    <AvatarPortrait id={item.id} size={90} className="h-[68px] w-[68px] max-w-full transition-transform group-hover:scale-105" /><span className="text-[11px] font-bold">{item.name}</span>
+                    <AvatarPortrait id={item.id} size={90} className="h-[68px] w-[68px] max-w-full transition-transform group-hover:scale-105" /><span className="text-xs font-bold">{item.name}</span>
                   </button>
                 ))}
               </div>
             </fieldset>
-            <div className="mt-6 grid gap-4 sm:grid-cols-2">
-              <label htmlFor="kid-grade" className="block text-sm font-bold">Sınıf <span className="font-normal text-slate-400">(isteğe bağlı)</span>
-                <select id="kid-grade" value={grade} onChange={(e) => setGrade(e.target.value)} className="mt-2 w-full rounded-xl border border-white/25 bg-slate-900 p-3 text-white">
-                  <option value="">Şimdilik seçme</option>
-                  {Array.from({ length: 8 }, (_, i) => i + 1).map((n) => <option key={n} value={n}>{n}. sınıf</option>)}
-                </select>
-              </label>
-              <label htmlFor="kid-english" className="block text-sm font-bold">İngilizce başlangıç seviyesi
-                <select id="kid-english" value={englishLevel} onChange={(e) => setEnglishLevel(e.target.value as 'Pre-A1' | 'A1' | 'A2')} className="mt-2 w-full rounded-xl border border-white/25 bg-slate-900 p-3 text-white">
-                  <option value="Pre-A1">Yeni başlıyorum (Pre-A1)</option>
-                  <option value="A1">Biraz biliyorum (A1)</option>
-                  <option value="A2">Temel biliyorum (A2)</option>
-                </select>
-              </label>
-            </div>
+            <fieldset className="mt-6">
+              <legend className="text-sm font-bold">İngilizcede nerede?</legend>
+              <div className="mt-3 grid gap-2 sm:grid-cols-3">
+                {ENGLISH_LEVEL_CHOICES.map((choice) => (
+                  <button type="button" key={choice.id} aria-pressed={englishLevel === choice.id} onClick={() => setEnglishLevel(choice.id)}
+                    className={'ph-option' + (englishLevel === choice.id ? ' ph-option--on' : '')}>
+                    <span aria-hidden="true" className="text-2xl">{choice.icon}</span>
+                    <span className="min-w-0"><strong className="block text-sm">{choice.title}</strong><span className="block text-xs text-sky-100/80">{choice.hint}</span></span>
+                  </button>
+                ))}
+              </div>
+            </fieldset>
+            <label htmlFor="kid-grade" className="mt-6 block text-sm font-bold">Sınıf <span className="font-normal text-slate-400">(isteğe bağlı)</span>
+              <select id="kid-grade" value={grade} onChange={(e) => setGrade(e.target.value)} className="mt-2 block min-h-12 w-full rounded-xl border border-white/25 bg-slate-900 p-3 text-white sm:max-w-xs">
+                <option value="">Şimdilik seçme</option>
+                {GRADE_CHOICES.map((n) => <option key={n} value={n}>{n}. sınıf</option>)}
+              </select>
+            </label>
             <p className="mt-3 flex items-start gap-2 text-xs leading-relaxed text-slate-300"><BookOpen size={16} className="mt-0.5 shrink-0" /> Bu seçim seviye sınavı değildir; oyunlar sana göre gelişirken değiştirilebilir.</p>
             <p className="mt-3 flex items-start gap-2 text-xs leading-relaxed text-amber-100/85"><CloudOff size={16} className="mt-0.5 shrink-0" /> İlerleme bu cihazda saklanır; tarayıcı verileri temizlenirse kaybolabilir. Bir yetişkin, Aile Paneli'nden ilerlemeyi aile hesabına yedekleyebilir.</p>
             {error && <p role="alert" className="mt-4 rounded-xl border border-rose-400/50 bg-rose-950/70 px-4 py-3 text-sm text-rose-100">{error}</p>}

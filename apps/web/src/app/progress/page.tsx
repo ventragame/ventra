@@ -101,7 +101,7 @@ export default function FamilyPanelPage(){
    confirmLabel="Paneli Aç"
    onClose={()=>router.push('/kids')}
    onSuccess={()=>{rememberGate();setGate('open');}}/>}
-  {cloudOpen&&<AdultAccountModal isOpen onClose={()=>setCloudOpen(false)}
+  {cloudOpen&&<AdultAccountModal isOpen showReportLink={false} onClose={()=>setCloudOpen(false)}
    onSyncCompleted={()=>{void loadProfiles();}}/>}
  </div>;
 }

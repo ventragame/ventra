@@ -71,6 +71,10 @@ export interface IProgressRepository {
   // --- Bulut Eşitleme Desteği (Cloud Sync) ---
   getPendingEvents(profileId: string): Promise<any[]>;
   markEventsSynced(eventIds: string[]): Promise<void>;
+  /** The family account behind this child was deleted: keep the child on this
+   * device as a local profile and queue every session again, so a later link
+   * to a new family uploads the whole history. */
+  releaseProfileFromCloud(profileId: string): Promise<PlayerProfile>;
   mergeRemoteEvents(remoteEvents: any[], profileId: string): Promise<number>;
 
   // --- Test & Bakım ---

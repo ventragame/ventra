@@ -30,9 +30,15 @@ export function useDialogFocus(ref:RefObject<HTMLElement|null>,active=true){
   opener.current=current instanceof HTMLElement&&current!==document.body?current:lastFocusedElement();
  }
  wasActive.current=active;
+ // Each activation gets a number; a restore scheduled by an earlier cleanup is
+ // dropped when the same dialog was activated again in between (React Strict
+ // Mode runs effects twice in development, which used to pull focus out of a
+ // freshly opened nested dialog and back onto its opener).
+ const generation=useRef(0);
  useEffect(()=>{
   const dialog=ref.current;
   if(!active||!dialog)return;
+  const run=++generation.current;
   const openedFrom=opener.current;
   if(!dialog.contains(document.activeElement)){
    if(!dialog.hasAttribute('tabindex'))dialog.tabIndex=-1;
@@ -55,6 +61,7 @@ export function useDialogFocus(ref:RefObject<HTMLElement|null>,active=true){
    if(!openedFrom)return;
    let frames=0;
    const restore=()=>{
+    if(generation.current!==run)return;
     const now=document.activeElement;
     const lost=!now||now===document.body||!now.isConnected||dialog.contains(now);
     if(!lost||!openedFrom.isConnected)return;

@@ -607,6 +607,13 @@ export class MemoryProgressRepository implements IProgressRepository {
       }));
   }
 
+  public async releaseProfileFromCloud(profileId: string): Promise<PlayerProfile> {
+    for (const session of this.sessions.values()) {
+      if (session.profileId === profileId) session.isCloudSynced = false;
+    }
+    return this.updateProfile(profileId, { userId: null, isCloudSynced: false });
+  }
+
   public async markEventsSynced(eventIds: string[]): Promise<void> {
     for (const eid of eventIds) {
       const s = this.sessions.get(eid);

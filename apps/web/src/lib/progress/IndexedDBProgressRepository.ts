@@ -833,6 +833,20 @@ export class IndexedDBProgressRepository implements IProgressRepository {
       }));
   }
 
+  public async releaseProfileFromCloud(profileId: string): Promise<PlayerProfile> {
+    const db = await this.getDB();
+    const tx = db.transaction('sessions', 'readwrite');
+    const store = tx.objectStore('sessions');
+    const request = store.index('profileId').getAll(profileId);
+    request.onsuccess = () => {
+      for (const session of request.result) {
+        if (session.isCloudSynced) store.put({ ...session, isCloudSynced: false });
+      }
+    };
+    await this.waitForTx(tx);
+    return this.updateProfile(profileId, { userId: null, isCloudSynced: false });
+  }
+
   public async markEventsSynced(eventIds: string[]): Promise<void> {
     if (eventIds.length === 0) return;
     const db = await this.getDB();

@@ -128,5 +128,5 @@ test('Deleting a child profile needs the parental gate; Escape and cancel never 
  assert.match(gate,/title = 'Ebeveyn Doğrulaması'/);
  assert.match(gate,/confirmLabel = 'Onayla'/);
  assert.match(gate,/if \(e\.key === 'Escape'\) \{ e\.stopPropagation\(\); onClose\(\); \}/);
- assert.equal(gate.match(/minHeight: '44px'/g).length,2,'both gate buttons are 44px touch targets');
+ assert.equal(gate.match(/min-h-12 rounded-2xl/g).length,2,'both gate buttons are 48px touch targets');
 });

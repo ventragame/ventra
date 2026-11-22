@@ -579,8 +579,8 @@ export class WorldScene extends Phaser.Scene {
       // Make the illustrated label a touch/click target too; not only the island sprite.
       const badgeHit=this.add.zone(0,4,254,94).setInteractive({useHandCursor:true});
       badgeContainer.add(badgeHit);
-      badgeHit.on('pointerup',()=>{
-        if(this.isInputLocked||this.hasDragged||this.isTransitioning)return;
+      badgeHit.on('pointerup',(pointer:Phaser.Input.Pointer)=>{
+        if(this.isInputLocked||this.hasDragged||this.isTransitioning||!this.isCanvasPress(pointer))return;
         this.handleSelectIsland(def.id);
       });
       badgeHit.on('pointerover',()=>this.setIslandHoverState(entity,true));
@@ -633,8 +633,8 @@ export class WorldScene extends Phaser.Scene {
       });
 
       // Tıklama / Dokunma
-      hitZone.on('pointerup', () => {
-        if (this.isInputLocked || this.hasDragged || this.isTransitioning) return;
+      hitZone.on('pointerup', (pointer: Phaser.Input.Pointer) => {
+        if (this.isInputLocked || this.hasDragged || this.isTransitioning || !this.isCanvasPress(pointer)) return;
         this.handleSelectIsland(def.id);
       });
 
@@ -752,6 +752,19 @@ export class WorldScene extends Phaser.Scene {
     }
 
     this.renderIslandBadgeProgress(entity);
+  }
+
+  /**
+   * Phaser also reads presses made on the page outside the canvas (window
+   * events) and hit-tests them by position. A tap on a DOM control drawn over
+   * the world (the phone tools menu, the island card) used to select the
+   * island underneath — it opened as soon as the menu's window closed — and a
+   * swipe on a DOM panel panned the camera. Only a press that starts and ends
+   * on the game canvas is a world gesture.
+   */
+  private isCanvasPress(pointer: Phaser.Input.Pointer): boolean {
+    const canvas = this.game.canvas;
+    return pointer.downElement === canvas && (pointer.isDown || pointer.upElement === canvas);
   }
 
   // TÜM DÜNYA GİRİŞİNİ GÜVENLİ ŞEKİLDE KİLİTLEME / AÇMA (ÖĞRENME ETKİNLİĞİ & MODALLAR İÇİN)
@@ -1021,7 +1034,7 @@ export class WorldScene extends Phaser.Scene {
   // --- 10. KAMERA SÜRÜKLEME / PAN / WHEEL KONTROLLERİ ---
   private setupCameraControls(): void {
     this.input.on('pointerdown', (pointer: Phaser.Input.Pointer) => {
-      if (this.isInputLocked) return;
+      if (this.isInputLocked || !this.isCanvasPress(pointer)) return;
       this.isPointerDown = true;
       this.hasDragged = false;
       this.dragStartX = pointer.x;
