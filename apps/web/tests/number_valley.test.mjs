@@ -2,6 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { NUMBER_WORDS,englishNumber,planNumberMission,weakNumberValues,unlockedNumberBands,bandNumberPool } from '../src/lib/learning/numberValleyEngine.ts';
+import {portalTiles,portalWords} from '../src/lib/learning/numberWordQuest.ts';
 
 const discovery=(value)=>({value,kind:'discovery',mistakes:0,firstTryCorrect:false,timestamp:'2026-11-01T10:00:00.000Z'});
 test('NV0 English numbers 1–20 are correct and zero is not a quiz objective',()=>{
@@ -136,14 +137,19 @@ test('tens and hundreds missions are grade-gated, deterministic, and require dis
 
 test('Number portal varies tile order and answer position, and listening to the answer is assisted',()=>{
  const ui=fs.readFileSync(new URL('../src/components/learning/activities/NumberValleyAdventure.tsx',import.meta.url),'utf8');
- const orders=JSON.parse(ui.match(/PORTAL_TILE_ORDERS:readonly \(readonly number\[\]\)\[\]=(\[\[.*?\]\]);/)[1]);
- assert.ok(orders.length>=4);
- for(const order of orders){
-  assert.deepEqual([...order].sort(),[0,1,2,3]);
-  assert.notDeepEqual(order,[0,1,2,3],'tiles are never in reading order');
+ const numberAt=new Set();
+ for(const value of [1,4,7,12,25,99,125,1000])for(let seed=0;seed<40;seed++){
+  const tiles=portalTiles(value,value===1?2:value-1,seed);
+  assert.equal(tiles.length,5,'four sentence words and one decoy number word');
+  assert.notDeepEqual(tiles.map(t=>t.id),[0,1,2,3,4],'tiles are never in reading order');
+  assert.deepEqual(tiles.filter(t=>t.slot!==null).sort((a,b)=>a.slot-b.slot).map(t=>t.word),portalWords(value));
+  assert.deepEqual(tiles.filter(t=>t.slot===null).map(t=>t.word),[englishNumber(value===1?2:value-1)]);
+  assert.deepEqual(portalTiles(value,value===1?2:value-1,seed),tiles,'deterministic per question');
+  numberAt.add(tiles.findIndex(t=>t.slot===2));
  }
- assert.match(ui,/portalSeed%2===0\?\[current\.target,other\]:\[other,current\.target\]/);
- assert.match(ui,/\$\{current\.target\} yıldız için doğru İngilizce cümleyi seç\./,'the seal shows which number to express');
+ assert.ok(numberAt.size>=4,'the number word does not sit in one place');
+ assert.match(ui,/const portalDecoy=current\?current\.choices\.find\(n=>n!==current\.target\)/,'the decoy is a discovered number');
+ assert.doesNotMatch(ui,/PORTAL_TILE_ORDERS|sealOptions|choosePortalSentence/,'the seal repeated the first question');
  assert.match(ui,/onClick=\{\(\)=>\{setAnswerAudioUsed\(true\);speak\(current\.target,true\);\}\}/);
  assert.match(ui,/hintUsed:hintUsed \|\| answerAudioUsed/);
  assert.match(ui,/if\(now-lastMistakeAt\.current<280\)return;/);

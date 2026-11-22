@@ -7,23 +7,29 @@ import {EventBus} from '@/lib/game/EventBus';
 import {soundService} from '@/lib/audio/SoundService';
 import {getProgressRepository} from '@/lib/progress';
 import {englishNumber,planNumberMission,NUMBER_BANDS,unlockedNumberBands,type NumberBand,type NumberMissionPlan,type NumberStage} from '@/lib/learning/numberValleyEngine';
-import {numberWordParts,numberWordTiles,portalSentence} from '@/lib/learning/numberWordQuest';
+import {numberWordParts,numberWordTiles,numberWordDecoy,teenTyPartner,portalSentence,portalWords,portalTiles} from '@/lib/learning/numberWordQuest';
 import type {NumberValleyProgress} from '@/lib/progress/numberValleyProgress';
 import {resolveGradeAwarePolicy} from '@/lib/learning/gradeAwareLearningPolicy';
 import {NumberValleyScenery,ValleyMilestone} from './NumberValleyScenery';
 import './garden-game-foundation.css';
 import './number-valley.css';
 import './number-valley-v5.css';
+import './number-valley-premium.css';
 import {useAutoQuestionAdvance} from '@/lib/learning/useAutoQuestionAdvance';
 import {GardenHelp} from '../GardenHelp';
 import {LearningMotion} from '@/components/learning/motion/LearningMotion';
 
 const CHAPTERS=[
-  {icon:'💎',title:'Kristal Keşfi',caption:'Kayıp sayı kristallerini keşfet'},
-  {icon:'🌉',title:'Işık Köprüsü',caption:'Doğru kelimeyle köprü kur'},
-  {icon:'⭐',title:'Yıldız Kelime Avı',caption:'Yıldız harfleriyle İngilizce sayı kelimesini oluştur'},
-  {icon:'🔊',title:'Yankı Kanyonu',caption:'Duyduğun sayıyı bul'},
-  {icon:'🌀',title:'Portalın Şifresi',caption:'İngilizce sözcükleri kullanarak cümle kur'}
+  {icon:'💎',title:'Kristal Keşfi',caption:'Kayıp sayı kristallerini keşfet',
+    how:'Kristallere dokun ve her sayının İngilizcesini dinle. Son kristalden sonra bölüm kendiliğinden tamamlanır.'},
+  {icon:'🌉',title:'Işık Köprüsü',caption:'Doğru kelimeyle köprü kur',
+    how:'Büyük kristaldeki sayıya bak ve İngilizce adını seç. Her doğru taş köprüyü uzatır.'},
+  {icon:'⭐',title:'Yıldız Kelime Avı',caption:'Yıldız harfleriyle İngilizce sayı kelimesini oluştur',
+    how:'Sayının İngilizcesini parça parça kur. Bazı kelimelerde bir parça fazladır: -teen mi, -ty mi?'},
+  {icon:'🔊',title:'Yankı Kanyonu',caption:'Duyduğun sayıyı bul',
+    how:'Sesi dinle ve duyduğun sayıya dokun. Ses yoksa yazılı yardımı kullanabilirsin.'},
+  {icon:'🌀',title:'Portalın Şifresi',caption:'İngilizce sözcükleri kullanarak cümle kur',
+    how:'Sayıya bak ve “I see … stars.” cümlesini kur. Doğru sayı kelimesini seç; bir kelime fazla!'}
 ] as const;
 interface Props {
   profileId:string;
@@ -33,6 +39,7 @@ interface Props {
   onBack:()=>void;
   onSave:(mission:number,mistakes:number,correct:number,duration:number,answers:NumberAnswerEvidence[],sessionId:string,band:NumberBand)=>Promise<void>;
 }
+type Feedback={text:string;good:boolean;detail?:string;lang?:'en'};
 function newSession(profileId:string,stage:number):string{
   return `nv_${profileId}_${stage}_${Date.now()}_${Math.random().toString(36).slice(2)}`;
 }
@@ -41,8 +48,7 @@ function Gem({number,discovered=false}:{number:number;discovered?:boolean}){
     <span className="nv-gem-facet"/><span className="nv-gem-number">{number}</span>
   </span>;
 }
-/** Every order puts at least one word out of reading order ("I see seven stars"). */
-const PORTAL_TILE_ORDERS:readonly (readonly number[])[]=[[2,0,3,1],[3,1,0,2],[1,3,2,0],[2,3,1,0],[3,2,0,1],[1,0,3,2]];
+const upperTr=(text:string)=>text.toLocaleUpperCase('tr-TR');
 export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,progress,onBack,onSave}:Props){
   const [band,setBand]=useState<NumberBand>('ones');
   const [unlockedBands,setUnlockedBands]=useState<NumberBand[]>(['ones']);
@@ -56,16 +62,18 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
   const [question,setQuestion]=useState(0);
   const questionHeading=useQuestionFocus<HTMLHeadingElement>(`${stage}:${question}`);
   const [selectedWordTiles,setSelectedWordTiles]=useState<number[]>([]);
+  /** Portal: sentence slots already filled, in English word order. */
   const [selectedPortalTokens,setSelectedPortalTokens]=useState<number[]>([]);
-  const [portalPhase,setPortalPhase]=useState<'collect'|'decode'|'seal'>('collect');
+  /** The tile that was just tapped wrongly (shakes; cleared on the next tap). */
+  const [wrongTile,setWrongTile]=useState<number|null>(null);
   const [mistakes,setMistakes]=useState(0);
   const [perQuestionMistakes,setPerQuestionMistakes]=useState(0);
   const [hintUsed,setHintUsed]=useState(false);
-  /** Stage 5 "collect" assesses reading the number word; its listen button says
-   * the answer ("I see seven stars"), so using it makes the answer assisted. */
+  /** The portal's listen button reads the finished sentence ("I see seven
+   * stars."), so using it makes the answer assisted. */
   const [answerAudioUsed,setAnswerAudioUsed]=useState(false);
   const lastMistakeAt=useRef(0);
-  const [feedback,setFeedback]=useState<{text:string;good:boolean}|null>(null);
+  const [feedback,setFeedback]=useState<Feedback|null>(null);
   const [lastChoice,setLastChoice]=useState<number|null>(null);
   const [awaitingNext,setAwaitingNext]=useState(false);
   const [saving,setSaving]=useState(false);
@@ -95,15 +103,13 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
   const current=stage===1?null:activePlan?.questions[question]??null;
   const wordTiles=useMemo(()=>current&&stage===3?numberWordTiles(current.target,(activePlan?.seed??0)+question):[],
     [current?.target,stage,activePlan?.seed,question]);
-  const portalWords=current?['I','see',englishNumber(current.target),'stars']:[];
-  // Tile order and answer position vary per question/replay; a constant order
-  // let children memorise tap positions instead of English word order.
+  const wordDecoy=current&&stage===3?numberWordDecoy(current.target):null;
+  // Tile order varies per question/replay; a constant order let children
+  // memorise tap positions instead of English word order.
   const portalSeed=((activePlan?.seed??0)>>>0)+question*7;
-  const portalOrder=PORTAL_TILE_ORDERS[portalSeed%PORTAL_TILE_ORDERS.length];
-  const sealOptions=current?(()=>{
-    const other=current.choices.find(n=>n!==current.target)??current.target+1;
-    return portalSeed%2===0?[current.target,other]:[other,current.target];
-  })():[];
+  const portalDecoy=current?current.choices.find(n=>n!==current.target)??current.target:0;
+  const portal=useMemo(()=>current&&stage===5?portalTiles(current.target,portalDecoy,portalSeed):[],
+    [current?.target,stage,portalDecoy,portalSeed]);
 
   useEffect(()=>{
     let alive=true;
@@ -162,7 +168,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
     session.current=newSession(profileId,next);
     setBand(nextBand);setStage(next);setNonce(v=>v+1);setPlan(null);setPlanKey('');setLoadError(false);
     audioRequest.current++;soundService.cancelSpeech();setHeardAudio(false);setSpeaking(false);
-    setVisited([]);setAnswers([]);setQuestion(0);setLastChoice(null);setSelectedWordTiles([]);setSelectedPortalTokens([]);setPortalPhase('collect');
+    setVisited([]);setAnswers([]);setQuestion(0);setLastChoice(null);setSelectedWordTiles([]);setSelectedPortalTokens([]);setWrongTile(null);
     setMistakes(0);setPerQuestionMistakes(0);setHintUsed(false);setAnswerAudioUsed(false);setFeedback(null);
     setAwaitingNext(false);setSaving(false);setSaveError('');setCompleted(false);
   }
@@ -182,19 +188,20 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
   function discover(value:number){
     if(!activePlan||stage!==1||saving||completed)return;
     speak(value);soundService.playSfx('tap');
-    if(visited.includes(value))return;
+    const fresh=!visited.includes(value);
+    setFeedback({good:true,text:englishNumber(value).toUpperCase()+'!',lang:'en',detail:fresh?`${value} · Yeni kristal!`:String(value)});
+    if(!fresh)return;
     setVisited(old=>[...old,value]);
-    setFeedback({good:true,text:`${value} — ${englishNumber(value).toUpperCase()}! Kristal keşfedildi.`});
     setAnswers(old=>[...old,{value,kind:'discovery',mistakes:0,firstTryCorrect:false,timestamp:new Date().toISOString()}]);
   }
-  function mistake(message:string){
+  function mistake(detail:string){
     if(saving||awaitingNext)return;
     // A double tap is one mistake: the second one would also reveal the written answer.
     const now=Date.now();
     if(now-lastMistakeAt.current<280)return;
     lastMistakeAt.current=now;
     setMistakes(v=>v+1);setPerQuestionMistakes(v=>v+1);
-    setFeedback({text:message,good:false});soundService.playSfx('gentle_retry');
+    setFeedback({text:'Bir daha dene! 💎',good:false,detail});soundService.playSfx('gentle_retry');
     if(perQuestionMistakes>=1)setHintUsed(true);
   }
   function correctAnswer(){
@@ -207,51 +214,62 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
       timestamp:new Date().toISOString()
     };
     setAnswers(old=>[...old,row]);
-    setFeedback({good:true,text:`Harika! ${current.target} = ${englishNumber(current.target).toUpperCase()}`});
+    setWrongTile(null);
+    setFeedback(stage===5
+      ?{good:true,text:'✨ '+portalSentence(current.target),lang:'en',detail:`${current.target} yıldız görüyorum.`}
+      :{good:true,text:'✨ '+englishNumber(current.target).toUpperCase()+'!',lang:'en',detail:`${current.target} · Harika!`});
     setAwaitingNext(true);
   }
   /** Spelling stars: the child builds an English word, not a numeric quantity. */
   function chooseWordTile(index:number){
     if(stage!==3||!current||buttonsDisabled)return;
     if(selectedWordTiles.includes(index))return;
-    const needed=numberWordParts(current.target)[selectedWordTiles.length];
+    const parts=numberWordParts(current.target);
+    const needed=parts[selectedWordTiles.length];
     const chosen=wordTiles[index];
-    if(chosen?.part!==needed){mistake('Bu parça henüz sırada değil. Parlayan ipucunu deneyebilirsin.');return;}
+    if(chosen?.part!==needed){
+      setWrongTile(chosen?.id??null);
+      const partner=teenTyPartner(current.target);
+      if(chosen?.decoy&&partner!==null&&(chosen.part==='ty'||chosen.part==='teen'))
+        mistake(`${englishNumber(partner).toUpperCase()} = ${partner}. ${current.target} için -${needed==='teen'||parts.includes('teen')?'teen':'ty'} gerekir.`);
+      else if(chosen?.decoy)mistake(`Bu parça ${current.target} sayısında yok. Dinle ve yeniden dene.`);
+      else mistake('Bu parça henüz sırada değil. Dinle ve yeniden dene.');
+      return;
+    }
+    setWrongTile(null);
     setSelectedWordTiles(old=>[...old,index]);
     soundService.playSfx('tap',0.45);
-    if(selectedWordTiles.length+1===wordTiles.length)correctAnswer();
+    if(selectedWordTiles.length+1===parts.length)correctAnswer();
   }
+  /** Portal: pick the right number word and put "I see … stars." in English order. */
   function choosePortalToken(index:number){
-    if(stage!==5||portalPhase!=='decode'||!current||buttonsDisabled)return;
-    const token=portalOrder[index];
-    if(selectedPortalTokens.includes(token))return;
-    if(token!==selectedPortalTokens.length){
-      mistake('İngilizce cümledeki kelimelerin sırasını yeniden dene.');return;
+    if(stage!==5||!current||buttonsDisabled)return;
+    const tile=portal[index];
+    if(!tile||(tile.slot!==null&&selectedPortalTokens.includes(tile.slot)))return;
+    if(tile.slot===null){
+      setWrongTile(tile.id);
+      mistake(`${tile.word.toUpperCase()} = ${portalDecoy}. Portal ${current.target} sayısını istiyor.`);return;
     }
-    setSelectedPortalTokens(old=>[...old,token]);
+    if(tile.slot!==selectedPortalTokens.length){
+      setWrongTile(tile.id);
+      mistake(`Kelime sırası: ${portalWords(current.target).map((_,i)=>i===2?'…':_).join(' ')}.`);return;
+    }
+    setWrongTile(null);
+    setSelectedPortalTokens(old=>[...old,tile.slot!]);
     soundService.playSfx('tap',0.5);
-    if(selectedPortalTokens.length+1===4){
-      setPortalPhase('seal');
-      setFeedback({good:true,text:'I see … stars! Cümle tamamlandı. Son mühürü seç.'});
-    }
+    if(selectedPortalTokens.length+1===portalWords(current.target).length)correctAnswer();
   }
   function choose(value:number){
     if(!current||awaitingNext||saving||completed)return;
     if(stage===4&&!heardAudio&&!hintUsed&&!muted&&speechAvailable){
-      setFeedback({text:'Önce yankıyı dinle veya yazılı yardım seç.',good:false});return;
+      setFeedback({text:'Önce dinle! 🔊',good:false,detail:'Sayıyı dinle ya da yazılı yardımı aç.'});return;
     }
-    if(value!==current.target){setLastChoice(value);mistake('Sayı kelimesine dikkat et ve tekrar dene.');return;}
-    setLastChoice(value);
-    if(stage===5&&portalPhase==='collect'){
-      setPortalPhase('decode');
-      setFeedback({text:'Doğru! Şimdi “I see … stars” cümlesini kur.',good:true});
-      soundService.playSfx('correct');return;
+    if(value!==current.target){
+      setLastChoice(value);
+      // Recognition: say what the wrong word means. Listening: never reveal the answer.
+      mistake(stage===2?`${englishNumber(value).toUpperCase()} = ${value}. ${current.target} sayısını bul.`:'Yeniden dinle ve tekrar dene.');
+      return;
     }
-    if(stage!==5)correctAnswer();
-  }
-  function choosePortalSentence(value:number){
-    if(stage!==5||portalPhase!=='seal'||buttonsDisabled||!current)return;
-    if(value!==current.target){setLastChoice(value);mistake('Cümledeki sayı kelimesini yeniden kontrol et.');return;}
     setLastChoice(value);
     correctAnswer();
   }
@@ -261,7 +279,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
     if(last){void finish(answers,answers.length);return;}
     audioRequest.current++;setHeardAudio(false);setSpeaking(false);
     soundService.cancelSpeech();
-    setQuestion(v=>v+1);setLastChoice(null);setSelectedWordTiles([]);setSelectedPortalTokens([]);setPortalPhase('collect');setPerQuestionMistakes(0);
+    setQuestion(v=>v+1);setLastChoice(null);setSelectedWordTiles([]);setSelectedPortalTokens([]);setWrongTile(null);setPerQuestionMistakes(0);
     setFeedback(null);setHintUsed(false);setAnswerAudioUsed(false);setAwaitingNext(false);
   }
   // Visibility-aware one-shot transition, canceled on unmount and error.
@@ -286,11 +304,19 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
   const nextPath=NUMBER_BANDS.slice(NUMBER_BANDS.findIndex(x=>x.id===band)+1)
     .find(path=>bandOpen(path.id,unlockedBands)&&progress.completedByBand[path.id]<5);
   const buttonsDisabled=saving||awaitingNext||completed;
+  // The last answer of a chapter says the chapter is being saved.
+  const finishing=(stage===1?Boolean(completeEnabled):awaitingNext&&question+1===total)&&!saveError;
+  const toast=feedback?{...feedback,detail:feedback.good&&finishing?'Bölüm kaydediliyor…':feedback.detail}:null;
+  const longChoices=Boolean(current?.choices.some(n=>englishNumber(n).length>13));
+  const stars=mistakes===0?3:mistakes<=2?2:1;
+  // The numbers this chapter practised, for the tap-to-hear recap.
+  const recap=activePlan?[...new Set(stage===1?activePlan.discoveries:activePlan.questions.map(q=>q.target))].sort((a,b)=>a-b):[];
+  const writtenHelp=hintUsed||muted||!speechAvailable;
 
   return <div ref={dialog} role="dialog" aria-modal="true" aria-label="Sayı Vadisi macerası"
       onPointerDown={e=>e.stopPropagation()} onPointerMove={e=>e.stopPropagation()}
       onPointerUp={e=>e.stopPropagation()} onWheel={e=>e.stopPropagation()}
-      className="nv-root nv5-root gg-game-shell fixed inset-0 z-50 overflow-y-auto overscroll-contain text-white">
+      className="nv-root nv5-root nv6-root gg-game-shell fixed inset-0 z-50 overflow-y-auto overscroll-contain text-white">
     <div className="nv-sky" aria-hidden="true"><span className="nv-orb nv-orb-one"/><span className="nv-orb nv-orb-two"/>
       <span className="nv-orb nv-orb-three"/><span className="nv-sky-stars">✦ · ✧ · ✦ · ✧ · ✦</span></div>
     <main className="nv5-main relative mx-auto max-w-6xl px-3 pb-12 pt-4 sm:px-7 sm:pt-6"
@@ -304,9 +330,13 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
             ⭐ {Object.entries(progress.starsByLevel).filter(([id])=>Number(id)<=
               (policy.maxNumber>=1000?15:policy.maxNumber>=100?10:5)).reduce((s,[,n])=>s+n,0)}/{policy.maxNumber>=1000?45:policy.maxNumber>=100?30:15}
           </span>
-          <span className="nv-control hidden rounded-xl px-3 py-3 text-xs font-bold sm:inline-block">
+          <span className="nv-control nv5-level hidden rounded-xl px-3 py-3 text-xs font-bold sm:inline-block">
             {gradeLevel?gradeLevel+'. Sınıf':'Keşif'} · {englishLevel}
           </span>
+          <GardenHelp label="Sayı Vadisi nasıl oynanır?">
+            <p>{CHAPTERS[stage-1].how}</p>
+            <p>Ses açılmasa da bütün bölümler yazılı olarak oynanabilir. Yanlışlar daha sonra tekrar sorulur; yıldızlar bölüm kaydedilince verilir.</p>
+          </GardenHelp>
           <button onClick={()=>{const value=soundService.toggleMute();setMuted(value);
             if(value){audioRequest.current++;setHeardAudio(false);setSpeaking(false);soundService.cancelSpeech();}}}
             aria-label={muted?'Sesi aç':'Sesi kapat'} aria-pressed={muted}
@@ -314,11 +344,10 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
         </div>
       </header>
       <div className="nv-stage-intro nv5-intro py-6 text-center sm:py-9">
-        <p className="nv5-eyebrow">SAYI VADİSİ · {bandLabel.toUpperCase()} · BÖLÜM {stage}/5</p>
+        <p className="nv5-eyebrow">{upperTr(`Sayı Vadisi · ${bandLabel} · Bölüm ${stage}/5`)}</p>
         <h1 ref={heading} tabIndex={-1} className="nv5-title mt-3 text-3xl font-black tracking-tight outline-none sm:text-5xl">
           <span className="nv5-title-icon" aria-hidden="true">{CHAPTERS[stage-1].icon}</span>{CHAPTERS[stage-1].title}
         </h1>
-        <GardenHelp label="Sayı Vadisi görev yardımı">{CHAPTERS[stage-1].caption} · {bandLabel}</GardenHelp>
       </div>
       <nav aria-label="Sayı Vadisi sayı yolları" className="nv-bands nv5-bands mb-4 grid grid-cols-3 gap-2 sm:gap-3">
         {NUMBER_BANDS.map((path,i)=>{
@@ -344,11 +373,11 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
             aria-current={stage===i+1?'step':undefined}
             aria-label={`${i+1}. ${part.title}${unlocked?'':' (kilitli)'}`}
             data-current={stage===i+1}
-             className={`nv-chapter nv5-chapter gg-game-control rounded-xl px-1.5 py-3 text-center text-[10px] font-bold sm:px-3 sm:text-sm
+             className={`nv-chapter nv5-chapter gg-game-control rounded-xl px-1.5 py-3 text-center font-bold sm:px-3
               ${stage===i+1?'nv-chapter-current':''} disabled:opacity-35`}>
             <span className="nv5-chapter-icon" aria-hidden="true">{unlocked?part.icon:'🔒'}</span>
-            <span className="nv5-chapter-index">{i+1}/5</span>
-            <span className="nv5-chapter-name">{part.title}</span>
+            <span className="nv5-chapter-text"><span className="nv5-chapter-index">{i+1}/5</span>
+              <span className="nv5-chapter-name">{part.title}</span></span>
           </button>;
         })}
       </nav>
@@ -359,24 +388,24 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
       {!loadError&&!activePlan&&!completed&&<div role="status" className="nv-panel rounded-2xl p-10 text-center">Kristaller hazırlanıyor…</div>}
       {!loadError&&activePlan&&!completed&&(
         <div className="nv-panel nv5-panel overflow-hidden rounded-[28px] p-3 shadow-2xl sm:p-6">
-          <div className="nv5-progress-row">
-            <span>✨ {stage===1?'Keşfedilen kristaller':'Görev ilerlemesi'}</span>
-            <span className="nv5-progress-counter">{done}/{total}</span>
-          </div>
-          <div className="nv5-progress-line mb-5 h-2 overflow-hidden rounded-full bg-white/15" aria-hidden="true">
+          <div className="nv5-progress-line h-2 overflow-hidden rounded-full bg-white/15" aria-hidden="true">
             <div className="nv-progress h-full rounded-full" style={{width:`${total?100*done/total:0}%`}}/>
           </div>
           <section aria-label="Sayı Vadisi oyun sahnesi"
-            className={`nv-landscape nv5-landscape gg-game-scene nv-world-${stage} relative min-h-[270px] overflow-hidden rounded-[22px] px-3 py-7 sm:min-h-[355px] sm:p-8`}>
+            className={`nv-landscape nv5-landscape gg-game-scene nv-world-${stage} nv6-stage relative min-h-[270px] overflow-hidden rounded-[22px] px-3 py-7 sm:min-h-[355px] sm:p-8`}>
             <NumberValleyScenery stage={stage}/>
             <LearningMotion variant="success"
              trigger={awaitingNext?'valley-'+band+'-'+stage+'-'+question:null}/>
             <div className="nv5-scene-top">
               <span className="nv5-scene-kicker">{['KRİSTALLER','IŞIK KÖPRÜSÜ','YILDIZ ATÖLYESİ','YANKI KANYONU','PORTAL'][stage-1]}</span>
-              <span className="nv5-scene-level">{bandLabel}</span>
+              <span className="nv5-scene-count" aria-label={`${stage===1?'Keşfedilen kristal':'Soru'} ${done} / ${total}`}>{done}/{total}</span>
             </div>
-            {stage===1&&<div className="relative z-10">
+            {toast&&<p className="nv5-toast" data-good={toast.good} role="status" aria-live="polite">
+              <span lang={toast.lang}>{toast.text}</span>{toast.detail&&<small>{toast.detail}</small>}
+            </p>}
+            {stage===1&&<div className="nv5-play nv5-discover relative z-10">
               <h2 className="nv5-scene-title mb-3 text-center text-xl font-black text-white drop-shadow-lg sm:text-2xl">Dokun, dinle, keşfet!</h2>
+              <p className="nv5-scene-instruction">Kristallere dokun ve her sayının İngilizcesini dinle.</p>
               <div className="nv5-crystals mx-auto grid max-w-3xl grid-cols-3 gap-3 sm:grid-cols-4 sm:gap-5">
                 {activePlan.discoveries.map((value,i)=><button key={value} type="button"
                   onClick={()=>discover(value)} aria-pressed={visited.includes(value)}
@@ -385,12 +414,13 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
                    className={`nv-crystal-tile nv5-crystal-tile gg-game-control group rounded-2xl p-2 text-center ${visited.includes(value)?'nv-discovered':''}`}
                   style={{animationDelay:`${i*80}ms`}}>
                     <Gem number={value} discovered={visited.includes(value)}/>
-                    <span className="nv5-crystal-word">{visited.includes(value)?englishNumber(value).toUpperCase():'✦'}</span>
-                    <span className="nv5-crystal-status" aria-hidden="true">{visited.includes(value)?'✓':'♪'}</span>
+                    {visited.includes(value)
+                      ?<span className="nv5-crystal-word" lang="en">{englishNumber(value).toUpperCase()}</span>
+                      :<span className="nv5-crystal-listen" aria-hidden="true">♪</span>}
                   </button>)}
               </div>
             </div>}
-            {stage!==1&&current&&<div className="nv5-question relative z-10 mx-auto max-w-3xl text-center">
+            {stage!==1&&current&&<div className="nv5-play nv5-question relative z-10 mx-auto max-w-3xl text-center">
               <p className="sr-only">Soru {question+1}/{total}</p>
               <h2 ref={questionHeading} tabIndex={-1} className="nv5-scene-title">
                 {stage===2?'İngilizcesini bul!':stage===3?'Yıldız kelimesini oluştur!':
@@ -398,31 +428,29 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
               </h2>
               <p className="nv5-scene-instruction">
                 {stage===2?`${current.target} sayısının İngilizcesini seç.`:
-                  stage===3?`${current.target} sayısının kelime parçalarını sırala.`:
-                  stage===4?'Sesi dinle ve duyduğun rakama dokun.':
-                  portalPhase==='collect'?`${current.target} için doğru İngilizce kelimeyi bul.`:
-                  portalPhase==='decode'?'I see … stars. Cümleyi oluştur.':
-                  `${current.target} yıldız için doğru İngilizce cümleyi seç.`}
+                  stage===3?(wordDecoy?`${current.target} sayısının İngilizcesini kur. Bir parça fazla!`:`${current.target} sayısının İngilizcesini parça parça kur.`):
+                  stage===4?'Sesi dinle ve duyduğun sayıya dokun.':
+                  `Cümleyi kur: “${current.target} yıldız görüyorum.” Bir kelime fazla!`}
               </p>
+              {(stage===2||stage===5)&&<div className="nv5-target" aria-hidden="true"><Gem number={current.target} discovered/></div>}
               <ValleyMilestone stage={stage} completed={question+Number(awaitingNext)}
                 total={total} active={speaking&&!muted}/>
               {stage===3&&<div className="nv-word-forge nv5-word-forge mt-5 rounded-[22px] p-4 sm:p-6">
-                <div className="mx-auto flex max-w-lg flex-col items-center gap-2">
-                  <span className="text-xs font-black uppercase tracking-[.16em] text-lime-100">Yıldızların gizli İngilizce sözcüğü</span>
+                <div className="nv5-forge-head">
                   <span className="nv-forge-number rounded-2xl px-8 py-2 text-5xl font-black tabular-nums text-white">{current.target}</span>
-                  <button type="button" onClick={()=>speak(current.target)}
-                    disabled={muted||!speechAvailable||buttonsDisabled}
-                    className="nv-control nv5-listen gg-game-control min-h-12 rounded-full px-6 py-2 text-sm font-black disabled:opacity-45">
-                    {muted||!speechAvailable?'🔇 Yazılı ipucu kullan':'🔊 İngilizceyi Dinle'}
-                  </button>
-                  {(muted||!speechAvailable||hintUsed)&&<p className="text-sm font-black text-lime-100">
-                    Yazılı destek: {englishNumber(current.target).toUpperCase()}
-                  </p>}
-                  {!muted&&speechAvailable&&<button type="button" onClick={()=>{
-                    setHintUsed(true);setFeedback({good:true,text:'Yazılı destek açıldı; bu soru destekli çözüm olarak işaretlendi.'});
-                  }} className="min-h-10 text-xs font-bold text-sky-100 underline underline-offset-4">Yazılı ipucu göster</button>}
+                  <div className="nv5-forge-tools">
+                    <button type="button" onClick={()=>speak(current.target)}
+                      disabled={muted||!speechAvailable||buttonsDisabled}
+                      className="nv-control nv5-listen gg-game-control min-h-12 rounded-full px-6 py-2 text-sm font-black disabled:opacity-45">
+                      {muted?'🔇 Ses kapalı':speechAvailable?'🔊 İngilizceyi Dinle':'🔇 Ses yok'}
+                    </button>
+                    {writtenHelp?<p className="nv5-written-help">Yazılı destek: <span lang="en">{englishNumber(current.target).toUpperCase()}</span></p>
+                      :<button type="button" onClick={()=>{
+                        setHintUsed(true);setFeedback({good:true,text:'Yazılı ipucu açıldı',detail:'Bu soru destekli sayılır.'});
+                      }} className="nv5-hint-link gg-game-control">Yazılı ipucu göster</button>}
+                  </div>
                 </div>
-                <div aria-label="Oluşturulan İngilizce sayı kelimesi" aria-live="polite"
+                <div aria-label="Oluşturulan İngilizce sayı kelimesi" aria-live="polite" lang="en"
                   className="nv-forge-output nv5-forge-output mt-5 flex min-h-16 flex-wrap items-center justify-center gap-2 rounded-2xl p-3">
                   {numberWordParts(current.target).map((part,i)=>{
                     const chosenIndex=selectedWordTiles[i];
@@ -431,93 +459,61 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
                     </span>;
                   })}
                 </div>
-                <p className="mt-3 text-center text-xs font-extrabold text-sky-100">Parçaları doğru sırayla seç. Yıldız kelimesini tamamla!</p>
-                <div role="group" aria-label="Hareketli yıldız kelime parçaları"
+                <div role="group" aria-label="İngilizce kelime parçaları"
                   className="nv-forge-choices nv5-forge-tiles mt-4 flex flex-wrap justify-center gap-3">
                   {wordTiles.map((tile,i)=><button key={tile.id} type="button"
                     disabled={buttonsDisabled||selectedWordTiles.includes(i)}
                     aria-label={`${tile.part} İngilizce kelime parçasını seç`}
-                    onClick={()=>chooseWordTile(i)}
-                    className="nv-forge-tile nv5-forge-tile gg-game-control min-h-16 min-w-16 rounded-2xl px-4 py-3 text-xl font-black uppercase disabled:opacity-30"
+                    onClick={()=>chooseWordTile(i)} data-wrong={wrongTile===tile.id||undefined}
+                    className="nv-forge-tile nv5-forge-tile gg-game-control min-h-16 min-w-16 rounded-2xl px-4 py-3 text-xl font-black uppercase"
                     style={{animationDelay:`${i*95}ms`}}>
-                    <span aria-hidden="true" className="block text-2xl text-amber-200">✦</span>
+                    <span aria-hidden="true" className="nv5-tile-star">✦</span>
                     <span lang="en">{tile.part}</span>
                   </button>)}
                 </div>
               </div>}
-              {stage===5&&portalPhase==='collect'&&<div className="nv-portal-language nv5-portal mx-auto mt-5 max-w-xl rounded-2xl p-4">
-                <p className="mb-3 font-extrabold text-amber-100">🔮 {current.target} · İngilizce anahtar kelime hangisi?</p>
-                <button type="button" onClick={()=>{setAnswerAudioUsed(true);speak(current.target,true);}} disabled={muted||!speechAvailable||buttonsDisabled}
-                  className="nv-control nv5-listen gg-game-control mb-4 min-h-11 rounded-xl px-4 text-sm font-bold disabled:opacity-45">🔊 İngilizce Cümleyi Dinle</button>
-                <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
-                  {current.choices.map(value=><button key={value} type="button" onClick={()=>choose(value)}
-                    disabled={buttonsDisabled} className="nv-choice gg-game-control min-h-20 rounded-2xl p-3 text-base font-black uppercase disabled:opacity-50">
-                    <span lang="en">{englishNumber(value)}</span>
-                  </button>)}
+              {stage===5&&<div className="nv-portal-language nv5-portal mx-auto mt-5 max-w-xl rounded-2xl p-4">
+                <div aria-live="polite" aria-label="Oluşturulan İngilizce cümle" lang="en" className="nv-forge-output nv5-sentence">
+                  {portalWords(current.target).map((word,i)=><span key={i} className={`nv-forge-slot ${selectedPortalTokens.includes(i)?'nv-forge-filled':''}`}>
+                    {selectedPortalTokens.includes(i)?word:'✧'}
+                  </span>)}<span className="nv5-sentence-dot" aria-hidden="true">.</span>
+                </div>
+                <div role="group" aria-label="Cümle kelimeleri" className="nv5-portal-tiles">
+                  {portal.map((tile,i)=><button type="button" key={tile.id}
+                    disabled={buttonsDisabled||(tile.slot!==null&&selectedPortalTokens.includes(tile.slot))}
+                    data-wrong={wrongTile===tile.id||undefined}
+                    className="nv-forge-tile nv5-forge-tile nv5-word-tile gg-game-control"
+                    onClick={()=>choosePortalToken(i)}><span lang="en">{tile.word}</span></button>)}
+                </div>
+                <div className="nv5-portal-tools">
+                  <button type="button" onClick={()=>{setAnswerAudioUsed(true);speak(current.target,true);}} disabled={muted||!speechAvailable||buttonsDisabled}
+                    className="nv-control nv5-listen gg-game-control min-h-11 rounded-xl px-4 text-sm font-bold disabled:opacity-45">🔊 Cümleyi dinle</button>
+                  {hintUsed&&<p className="nv5-written-help">Yazılı destek: <span lang="en">{portalSentence(current.target)}</span></p>}
                 </div>
               </div>}
-              {stage===5&&portalPhase==='decode'&&<div className="nv-portal-language nv5-portal mx-auto mt-5 max-w-xl rounded-2xl p-4">
-                <p className="mb-3 text-base font-extrabold text-lime-100">✨ “I see … stars.” cümlesini tamamla</p>
-                <div aria-live="polite" aria-label="Oluşturulan İngilizce cümle" className="nv-forge-output flex min-h-16 flex-wrap justify-center gap-2 rounded-xl p-3">
-                  {portalWords.map((_,i)=><span key={i} className="nv-forge-slot">
-                    {selectedPortalTokens.includes(i)?portalWords[i]:'✧'}
-                  </span>)}
-                </div>
-                <div role="group" aria-label="Cümle kelimeleri" className="mt-4 grid grid-cols-2 gap-3">
-                  {portalOrder.map((order,i)=><button type="button" key={order}
-                    disabled={buttonsDisabled||selectedPortalTokens.includes(order)}
-                    className="nv-forge-tile gg-game-control min-h-16 rounded-xl p-3 text-lg font-black disabled:opacity-25"
-                    onClick={()=>choosePortalToken(i)}>{portalWords[order]}</button>)}
-                </div>
-              </div>}
-              {stage===5&&portalPhase==='seal'&&<div className="nv-portal-language nv5-portal mx-auto mt-5 max-w-xl rounded-2xl p-4">
-                <p className="mb-4 text-base font-extrabold text-lime-100">🌀 Son adım: Doğru İngilizce cümleyi seç</p>
-                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-                  {sealOptions.map((value,i)=>
-                    <button type="button" key={i} disabled={buttonsDisabled}
-                      onClick={()=>choosePortalSentence(value)}
-                      className="nv-choice gg-game-control min-h-24 rounded-2xl p-4 text-base font-black disabled:opacity-50">
-                      {portalSentence(value)}
-                    </button>)}
-                </div>
-              </div>}
-                            {stage===4&&<div className="mt-4 flex flex-col items-center gap-2">
+              {stage===4&&<div className="nv5-listen-row">
                 <button onClick={()=>speak(current.target)} disabled={muted||!speechAvailable||buttonsDisabled}
-                  className="nv-control nv5-listen gg-game-control min-h-12 rounded-full px-6 text-sm font-bold disabled:opacity-45">
+                  className="nv-control nv5-listen nv5-listen-main gg-game-control min-h-12 rounded-full px-6 text-sm font-bold disabled:opacity-45">
                   {muted?'🔇 Ses Kapalı':speechAvailable?'🔊 Sayıyı Dinle':'🔇 Ses Kullanılamıyor'}
                 </button>
-                <button onClick={()=>{setHintUsed(true);setFeedback({good:true,text:`Yazılı destek: ${englishNumber(current.target).toUpperCase()}`});}}
-                  disabled={buttonsDisabled} className="min-h-11 rounded-xl px-4 text-xs font-bold underline underline-offset-4">
-                  {muted||!speechAvailable?'Yazılı yönergeyi göster':'Yazılı yardım al'}
-                </button>
-                {(hintUsed||muted||!speechAvailable)&&<p role="status" className="text-sm font-black text-lime-100">
-                  {englishNumber(current.target).toUpperCase()} · Bu tur yazılı desteklidir.
-                </p>}
+                {writtenHelp?<p role="status" className="nv5-written-help">
+                  <span lang="en">{englishNumber(current.target).toUpperCase()}</span> · Bu tur yazılı desteklidir.
+                </p>:<button onClick={()=>setHintUsed(true)}
+                  disabled={buttonsDisabled} className="nv5-hint-link gg-game-control">Yazılı yardım al</button>}
               </div>}
               {(stage===2||stage===4)&&
-                <div className="nv5-answer-grid mx-auto mt-6 grid max-w-xl grid-cols-2 gap-3 sm:grid-cols-3">
-                  {current.choices.map((value,i)=><button key={value} onClick={()=>choose(value)} disabled={buttonsDisabled}
+                <div className="nv5-answer-grid mx-auto mt-6 grid max-w-xl gap-3"
+                  data-count={current.choices.length} data-long={longChoices||undefined}>
+                  {current.choices.map(value=><button key={value} onClick={()=>choose(value)} disabled={buttonsDisabled}
                     aria-label={stage===2?`${englishNumber(value)} kelimesini seç`:`${value} sayısını seç`}
                     data-result={awaitingNext&&value===current.target?'correct':lastChoice===value&&value!==current.target?'wrong':undefined}
-                     className="nv-choice nv5-answer gg-game-control group min-h-24 rounded-2xl px-3 py-5 text-center disabled:opacity-60 sm:min-h-32">
+                     className="nv-choice nv5-answer gg-game-control group min-h-24 rounded-2xl px-3 py-5 text-center sm:min-h-32">
                     <span className="nv5-answer-icon" aria-hidden="true">{stage===4?'◈':'✦'}</span>
-                    <span className="nv5-answer-main">{stage===4?value:englishNumber(value).toUpperCase()}</span>
-                    <span className="nv5-answer-sub">{stage===4?'Sayı kristali':'Işık taşı'} {i+1}</span>
+                    <span className="nv5-answer-main" lang={stage===2?'en':undefined}>{stage===4?value:englishNumber(value).toUpperCase()}</span>
                   </button>)}
                 </div>}
             </div>}
           </section>
-          {feedback&&<p role="status" aria-live="polite"
-            className={`nv5-feedback mt-4 rounded-xl border px-4 py-3 text-center text-sm font-bold ${feedback.good?
-            'border-lime-300/30 bg-emerald-800/45 text-lime-100':'border-amber-300/35 bg-amber-950/60 text-amber-100'}`}>
-            {feedback.good?'✨ ':'🔁 '}{feedback.text}
-          </p>}
-           {stage===1?<p role="status" aria-live="polite" className="nv5-discovery-auto">
-             {saving?'Keşif kaydediliyor…':completeEnabled?'Tüm kristaller keşfedildi! Görev otomatik tamamlanıyor…':
-               'Kristallere dokun, İngilizce isimlerini keşfet. Son kristalden sonra görev tamamlanır.'}
-           </p>:awaitingNext&&<p role="status" aria-live="polite" className="nv-auto-next mt-5 rounded-xl px-4 py-3 text-center text-sm font-black">
-             ✨ {question+1===total?'Bölüm sonucu kaydediliyor…':'Yeni sayı geliyor…'}
-           </p>}
            {stage!==1&&!current&&<p role="alert" className="mt-5 text-center text-amber-100">Soru oluşturulamadı. Önce Kristal Keşfi görevini tekrar oyna.</p>}
           {saveError&&<p role="alert" className="mt-4 rounded-xl bg-rose-950/80 px-4 py-3 text-center text-sm">
             {saveError} <button onClick={()=>void finish(answers,answers.length)}
@@ -532,11 +528,18 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
            <span className="nv5-finale-medal" aria-hidden="true">🏆</span>
          </div>
          <h2 ref={doneHeading} tabIndex={-1}>{CHAPTERS[stage-1].title} tamamlandı!</h2>
-         <p className="mt-2 text-sky-100">İlerleme çocuk profiline kaydedildi.</p>
-         <p className="nv5-finale-stars mt-3 text-3xl font-black" aria-label="Bu görevde kazanılan yıldızlar">
-           {'⭐'.repeat(mistakes===0?3:mistakes<=2?2:1)}
+         <p className="nv5-finale-stars mt-3 text-3xl font-black" aria-label={`Bu bölümde ${stars} yıldız kazandın`}>
+           {'⭐'.repeat(stars)}
          </p>
-         <div className="nv5-finale-stats"><span>✓ {answers.length} doğru</span><span>↻ {mistakes} hata</span></div>
+         <p className="nv5-finale-stats">{stage===1?`${answers.length} sayının İngilizcesini dinledin`:`${answers.length} doğru · ${mistakes} yanlış deneme`}</p>
+         {recap.length>0&&<div className="nv5-recap" role="group" aria-label="Bu bölümün İngilizce sayıları">
+           <p className="nv5-recap-title">Bu bölümün sayıları · {stage===5?'dokun, cümleyi dinle':'dokun ve dinle'}</p>
+           <div className="nv5-recap-list">{recap.map(value=><button key={value} type="button" className="nv5-recap-word gg-game-control"
+             onClick={()=>speak(value,stage===5)} disabled={muted||!speechAvailable}
+             aria-label={`${value}, İngilizce ${stage===5?portalSentence(value):englishNumber(value)}, dinle`}>
+             <span className="nv5-recap-number" aria-hidden="true">{value}</span>
+             <span lang="en">{englishNumber(value)}</span></button>)}</div>
+         </div>}
          <button className="nv-primary nv5-next mt-6 min-h-14 w-full rounded-xl px-6 py-4 font-black" onClick={()=>{
            if(stage<5)restart((stage+1) as NumberStage);
            else if(nextPath)restart(resumeStage(nextPath.id),nextPath.id);
@@ -546,9 +549,6 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
            ↻ Farklı Sayılarla Tekrar Oyna
          </button>
        </section>}
-       <footer className="nv5-footer mt-6 text-center text-xs text-sky-100/75">
-        Sayı Vadisi · Sınıf düzeyine uygun görevler · Yanlışlar daha sonra tekrar sorulur · İlerleme kaybolmadan kaydedilir
-      </footer>
     </main>
   </div>;
 }

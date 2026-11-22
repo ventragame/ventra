@@ -3,6 +3,7 @@ import React,{useEffect,useMemo,useRef,useState} from 'react';
 import {TutorialReplayContext,type TutorialReplay} from './tutorialReplay';
 import {FIRST_PLAY_LESSONS,tutorialSeenKey,type TutorialWorld} from '@/lib/learning/firstPlayTutorial';
 import {soundService} from '@/lib/audio/SoundService';
+import './first-play-guide.css';
 
 // A storage fallback protects children when a browser blocks localStorage.
 const sessionSeen=new Set<string>();
@@ -120,7 +121,7 @@ export function FirstPlayGuide({world,profileId,ready,hasPlayed,floating=true,re
                 const target=lesson.steps[step].choiceId===choice.id;
                 return <button key={choice.id} type="button" disabled={used} onClick={()=>choose(choice.id)}
                   aria-label={choice.label+' seç'}
-                  className={`flex min-h-[110px] flex-col items-center justify-center gap-2 rounded-2xl border-[3px] bg-[#f8f0dd] p-2 text-center text-slate-900 transition-transform active:scale-95 focus-visible:outline focus-visible:outline-4 focus-visible:outline-lime-300 disabled:opacity-40 ${target?'border-lime-300 shadow-[0_0_20px_#c6ff8c88] motion-safe:animate-pulse':'border-sky-100'}`}>
+                  className={`flex min-h-[110px] flex-col items-center justify-center gap-2 rounded-2xl border-[3px] bg-[#f8f0dd] p-2 text-center text-slate-900 transition-transform active:scale-95 focus-visible:outline focus-visible:outline-4 focus-visible:outline-lime-300 disabled:opacity-40 ${target?'first-play-target border-lime-300':'border-sky-100'}`}>
                   {choice.image?<img src={choice.image} alt="" className="h-14 w-16 object-contain" />:
                     choice.color?<span aria-hidden="true" className="h-14 w-14 rounded-full border-4 border-white shadow-md" style={{backgroundColor:choice.color}}/>:
                     <span aria-hidden="true" className="text-4xl leading-none">{choice.icon||choice.label}</span>}

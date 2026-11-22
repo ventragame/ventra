@@ -2,7 +2,7 @@ import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import {englishNumber,planNumberMission} from '../src/lib/learning/numberValleyEngine.ts';
-import {numberWordParts,numberWordTiles,portalSentence} from '../src/lib/learning/numberWordQuest.ts';
+import {numberWordParts,numberWordTiles,numberWordDecoy,portalSentence} from '../src/lib/learning/numberWordQuest.ts';
 import {REWARD_NOTES,rewardDuration} from '../src/lib/audio/RewardSounds.ts';
 
 const read=(relative)=>fs.readFileSync(new URL(relative,import.meta.url),'utf8');
@@ -17,12 +17,16 @@ test('All English number word puzzles reconstruct accurately in every difficulty
   for(const part of parts)assert.ok(words.some(w=>w.includes(part.replace(/-$/,''))),n+': '+part);
   assert.ok(parts.length>=1&&parts.length<=10,'accessible taps '+n);
   const tiles=numberWordTiles(n,n*13);
-  assert.equal(tiles.length,parts.length);
-  assert.equal(new Set(tiles.map(t=>t.id)).size,parts.length);
+  // At most one extra piece (thir|teen + ty), never one the word needs.
+  const decoy=numberWordDecoy(n);
+  assert.equal(tiles.length,parts.length+(decoy?1:0));
+  assert.equal(new Set(tiles.map(t=>t.id)).size,tiles.length);
   assert.deepEqual(tiles,numberWordTiles(n,n*13));
-  assert.deepEqual(tiles.map(t=>t.part).sort(),[...parts].sort());
+  assert.deepEqual(tiles.filter(t=>!t.decoy).map(t=>t.part).sort(),[...parts].sort());
+  if(decoy)assert.ok(!parts.includes(decoy),n+': the decoy must be wrong');
  }
  assert.equal(portalSentence(5),'I see five stars.');
+ assert.equal(portalSentence(1),'I see one star.','was "I see one stars."');
  assert.equal(portalSentence(125),'I see one hundred twenty-five stars.');
 });
 test('Number stage 3 now practices written English vocabulary, not arithmetic or item counting',()=>{
@@ -40,9 +44,9 @@ test('Number stage 3 now practices written English vocabulary, not arithmetic or
 test('Portal is now an English sentence adventure without prices, arithmetic or shopping',()=>{
  assert.match(ui,/portalSentence\(value\)/);
  assert.match(ui,/choosePortalToken/);
- assert.match(ui,/choosePortalSentence/);
+ assert.match(ui,/portalTiles\(current\.target,portalDecoy,portalSeed\)/);
  assert.doesNotMatch(ui,/Which costs less|marketPrices|chooseMarket|jeton|ucuz olanı seç/);
- assert.match(ui,/\['I','see',englishNumber\(current.target\),'stars'\]/);
+ assert.match(ui,/portalWords\(current\.target\)/);
 });
 test('Correct answers automatically advance, but keep chapter success and retry safely',()=>{
  assert.match(ui,/useAutoQuestionAdvance\(/);
@@ -106,7 +110,7 @@ test('NV5 keeps grade-aware language engine and safe touch-first play',()=>{
  assert.match(ui,/nv5-band/);
  assert.match(ui,/nv5-answer-grid/);
  assert.match(ui,/nv5-finale/);
- assert.match(ui,/nv5-discovery-auto/);
+ assert.match(ui,/nv5-toast/);
  assert.match(ui,/soundService\.hasEnglishSpeech\(\)/);
  assert.match(ui,/soundService\.cancelSpeech\(\)/);
  assert.match(ui,/data-result=\{awaitingNext/);

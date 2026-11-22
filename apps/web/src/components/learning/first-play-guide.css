@@ -1,0 +1,5 @@
+/* First-play tutorial: the choice to tap glows. It used to pulse down to half
+   opacity (animate-pulse), which made the one card to tap look disabled. */
+.first-play-target{box-shadow:0 0 0 3px #d9ff9c,0 0 22px 4px #c6ff8caa;animation:first-play-glow 1.6s ease-in-out infinite}
+@keyframes first-play-glow{50%{box-shadow:0 0 0 6px #efffc8,0 0 34px 12px #c6ff8cdd}}
+@media(prefers-reduced-motion:reduce){.first-play-target{animation:none}}
