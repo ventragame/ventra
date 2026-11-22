@@ -483,7 +483,7 @@ export const ProfileSelectorModal:React.FC<ProfileSelectorModalProps>=({
   {deleteCandidate&&<ParentalGateModal isOpen zIndex={140} tone="danger"
    title={'“'+deleteCandidate.nickname+'” profilini sil'}
    confirmLabel="Profili sil"
-   description={'Bu profil, bu cihazdaki oyun ilerlemesi ve yıldızlarıyla birlikte kalıcı olarak silinir; geri alınamaz. Devam etmek için bir yetişkin işlemi çözmeli:'}
+   description={'Bu profil, bu cihazdaki oyun ilerlemesi ve yıldızlarıyla birlikte kalıcı olarak silinir; geri alınamaz. Devam etmek için bir yetişkin soruyu yanıtlamalı.'}
    onClose={()=>{setDeleteCandidate(null);requestAnimationFrame(()=>deleteTrigger.current?.focus());}}
    onSuccess={()=>{const target=deleteCandidate;setDeleteCandidate(null);void deleteConfirmedProfile(target);}}/>}
  </div>;

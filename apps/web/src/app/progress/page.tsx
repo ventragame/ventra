@@ -97,7 +97,7 @@ export default function FamilyPanelPage(){
   </main>
   {gate==='ask'&&<ParentalGateModal isOpen
    title="Aile Paneli"
-   description="Bu sayfa ebeveynler içindir: çocuğunuzun İngilizce karnesi ve hesap ayarları. Devam etmek için işlemi çözün."
+   description="Bu sayfa ebeveynler içindir: çocuğunuzun İngilizce karnesi ve hesap ayarları. Devam etmek için soruyu yanıtlayın."
    confirmLabel="Paneli Aç"
    onClose={()=>router.push('/kids')}
    onSuccess={()=>{rememberGate();setGate('open');}}/>}

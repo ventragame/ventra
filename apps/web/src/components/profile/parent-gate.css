@@ -1,0 +1,16 @@
+/* Parental gate: the written question, a gentle shake on a wrong answer and
+   a countdown ring while the gate is locked. */
+.pg-question{transition:border-color .2s}
+.pg-question--wrong{animation:pg-shake .42s ease-in-out}
+@keyframes pg-shake{
+ 0%,100%{transform:translateX(0)}
+ 20%{transform:translateX(-7px)}
+ 40%{transform:translateX(6px)}
+ 60%{transform:translateX(-4px)}
+ 80%{transform:translateX(3px)}
+}
+.pg-lock{--pg-progress:1;position:relative;display:grid;place-items:center;width:112px;height:112px;border-radius:50%;
+ background:conic-gradient(#fcd34d calc(var(--pg-progress) * 360deg),#ffffff1f 0);transition:background .9s linear}
+.pg-lock::before{content:'';position:absolute;inset:9px;border-radius:50%;background:#0b1530}
+.pg-lock-time{position:relative;font-size:26px;font-weight:900;color:#fef3c7;letter-spacing:.02em}
+@media(prefers-reduced-motion:reduce){.pg-question--wrong{animation:none}.pg-lock{transition:none}}
