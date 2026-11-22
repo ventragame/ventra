@@ -125,3 +125,17 @@
 @media(prefers-reduced-motion:reduce){
  .sj-root .sj-level-place,.sj-root .sj-level-outcome{transition:none!important}
 }
+
+/* A2 consequence: written results that do not name the found object, so the
+   question is answered by reading, not by matching the object's picture. */
+.sj-root .sj-level-outcome.sj-outcome-card{
+ display:flex;flex-direction:column;align-items:center;justify-content:center;gap:6px;
+ height:auto;min-height:clamp(84px,16vh,140px);padding:10px 8px;
+ background:linear-gradient(160deg,#fffdf3,#eef6df);color:#173f42;text-align:center
+}
+.sj-root .sj-outcome-icon{font-size:clamp(22px,3.4vw,34px);line-height:1}
+.sj-root .sj-outcome-text{font-size:clamp(14px,1.6vw,18px);font-weight:850;line-height:1.25;overflow-wrap:anywhere}
+@media(max-width:640px){
+ .sj-root .sj-level-outcome-choices{grid-template-columns:repeat(2,minmax(0,1fr))}
+ .sj-root .sj-level-outcome.sj-outcome-card{min-height:76px;padding:8px 6px}
+}

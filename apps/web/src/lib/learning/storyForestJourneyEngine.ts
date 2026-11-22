@@ -7,6 +7,16 @@ import type {ForestEpisode,ForestPlacement,ForestScene,ForestActorId} from './st
 import {FOREST_EPISODES} from './storyForestEngine.ts';
 
 export type JourneyObject='key'|'apple'|'bird'|'crystal';
+/** A2 "what happened because of the discovery?" choices are READ, not
+ * matched: no result names its object (the old picture cards showed the key,
+ * apple, bird or crystal, so the question was solved by object matching).
+ * Each line restates the authored ending of that route. */
+export const JOURNEY_OUTCOMES:Readonly<Record<JourneyObject,{en:string;tr:string;icon:string}>>={
+ key:{en:'A locked box opens.',tr:'Kilitli bir kutu açılır.',icon:'📦'},
+ apple:{en:'A hungry friend smiles.',tr:'Aç bir arkadaş gülümser.',icon:'😊'},
+ bird:{en:'A family is together again.',tr:'Bir aile yeniden bir araya gelir.',icon:'🏡'},
+ crystal:{en:'The dark forest becomes bright.',tr:'Karanlık orman aydınlanır.',icon:'✨'}
+};
 export type JourneyPhase='opening'|'discover'|'meet'|'choose'|'result'|'friend'|'place'|'consequence'|'ending';
 export type JourneyChallengeKind='place'|'consequence';
 export interface JourneyChallenge{
@@ -183,7 +193,7 @@ export function narrativeFor(plan:JourneyPlan,phase:JourneyPhase,branchScene?:Fo
   friend:'Think back to the beginning of the adventure. Which friend joined the '+hero+' on the way?',
   place:'Think back to the journey. Which pictured location did the two friends actually explore?',
   consequence:'What is the most logical result of finding the '+object+
-   '? Choose the picture showing the consequence of their discovery.',
+   '? Read the results and choose the one that happens because of their discovery.',
   ending:route.object==='key'?'At last they find a little locked box and use the golden key to open it. Their discovery is complete.':
    route.object==='apple'?'Instead of keeping the apple, the two friends decide to share it with someone who is hungry.':
    route.object==='bird'?'The lost little blue bird finally returns to its family, and the friends feel proud of helping.':

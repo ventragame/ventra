@@ -4,7 +4,7 @@ import React,{useEffect,useRef,useState} from 'react';
 import type {ForestActorId,ForestEpisode,ForestPlacement,ForestScene} from '@/lib/learning/storyForestEngine';
 import {FOREST_EPISODES,FOREST_ACTOR_NAMES} from '@/lib/learning/storyForestEngine';
 import {
- JOURNEY_ROUTES,planJourneyStory,narrativeFor,journeyStars,journeyPlaceLabel,
+ JOURNEY_ROUTES,JOURNEY_OUTCOMES,planJourneyStory,narrativeFor,journeyStars,journeyPlaceLabel,
  type JourneyObject,type JourneyPlan,type JourneyPhase,type JourneyRecord,
  type JourneyChallengeAnswer
 } from '@/lib/learning/storyForestJourneyEngine';
@@ -42,20 +42,6 @@ function JourneyObjectArt({object}:{object:JourneyObject}){
 }
 function Actor({id,motion}:{id:ForestActorId;motion?:'idle'|'listen'|'search'|'cheer'}){
  return <StoryForestActor id={id} motion={motion}/>;
-}
-function StoryConsequenceArt({object}:{object:JourneyObject}){
- return <div className={'sj-outcome-art sj-outcome-'+object} aria-hidden="true">
-  <StoryForestScenery scene={object==='bird'?'treehouse':object==='crystal'?'camp':
-   object==='key'?'path':'meadow'}/>
-  {object==='key'&&<div className="sj-outcome-chest"><span>✦</span></div>}
-  {object==='apple'&&<><div className="sj-outcome-pet left"><Actor id="rabbit"/></div>
-   <div className="sj-outcome-pet right"><Actor id="hedgehog"/></div></>}
-  {object==='bird'&&<><div className="sj-outcome-pet left"><Actor id="bird"/></div>
-   <div className="sj-outcome-pet right"><Actor id="bird_flying"/></div></>}
-  {object==='crystal'&&<span className="sj-outcome-glow"/>}
-  {object!=='bird'&&<div className="sj-outcome-item">
-   <JourneyObjectArt object={object}/></div>}
- </div>;
 }
 function StoryScene({plan,phase,location}:{
  plan:JourneyPlan;phase:JourneyPhase;location?:ForestScene|null;
@@ -406,13 +392,11 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
       {(plan.learningChallenges?.find(c=>c.kind==='consequence')?.choices??[]).map(value=>
        <button type="button" key={value} onClick={()=>tapChallenge(value)}
         disabled={busy||actionLock.current}
-        className={'sj-level-outcome '+(wrong===value?'sj-wrong ':'')+
+        className={'sj-level-outcome sj-outcome-card '+(wrong===value?'sj-wrong ':'')+
          (highlight&&value===plan.route.object?'sj-hint-glow ':'')+
-         (correct&&value===plan.route.object?'sj-correct':'')}
-        aria-label={value==='key'?'Anahtar sandığı açar':value==='apple'?
-         'Arkadaşlar elmayı paylaşır':value==='bird'?'Kuş ailesine kavuşur':
-         'Kristal ormanı aydınlatır'}>
-        <StoryConsequenceArt object={value as JourneyObject}/>
+         (correct&&value===plan.route.object?'sj-correct':'')}>
+        <span className="sj-outcome-icon" aria-hidden="true">{JOURNEY_OUTCOMES[value as JourneyObject].icon}</span>
+        <span className="sj-outcome-text" lang="en">{JOURNEY_OUTCOMES[value as JourneyObject].en}</span>
        </button>)}
      </div>}
      {phase==='friend'&&<div className="sj-friend-choices" role="group" aria-label="Hikâyede sana yardım eden arkadaşı bul">

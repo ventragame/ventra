@@ -169,7 +169,9 @@ test('Scene UI displays real visual interactions instead of extra text-only quiz
  ];
  const contents=files.map(name=>fs.readFileSync(new URL(name,base),'utf8'));
  assert.ok(contents[0].includes("assessmentVersion:2"));
- assert.ok(contents[0].includes('StoryConsequenceArt'));
+ // A2 consequence cards are written results (JOURNEY_OUTCOMES), not object pictures.
+ assert.ok(contents[0].includes('JOURNEY_OUTCOMES[value as JourneyObject].en'));
+ assert.ok(!contents[0].includes('StoryConsequenceArt'));
  assert.ok(contents[0].includes('sj-level-place-choices'));
  assert.ok(contents[0].includes('sj-level-outcome-choices'));
  assert.ok(contents[1].includes('beginCheck'));

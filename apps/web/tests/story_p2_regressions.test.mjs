@@ -161,3 +161,28 @@ test('P2 Story accessibility: Turkish place names, honest lock text and focus th
   for(const pattern of patterns)assert.match(ui,pattern,file);
  }
 });
+
+test('A2 consequence choices are read, not solved by matching the found object',async()=>{
+ const {JOURNEY_OUTCOMES,planJourneyStory}=await import('../src/lib/learning/storyForestJourneyEngine.ts');
+ const objects=['key','apple','bird','crystal'];
+ const texts=objects.map(o=>JOURNEY_OUTCOMES[o].en);
+ assert.equal(new Set(texts).size,4);
+ for(const text of texts){
+  assert.match(text,/^[A-Z][^.]*\.$/,'one capitalised sentence');
+  for(const object of objects)assert.ok(!new RegExp('\b'+object+'\b','i').test(text),text+' must not name '+object);
+ }
+ const ui=fs.readFileSync(new URL('../src/components/learning/story/StoryForestAdventure.tsx',import.meta.url),'utf8');
+ assert.ok(!/Anahtar sandığı açar|Kuş ailesine kavuşur/.test(ui),'no Turkish label that names the object');
+ assert.match(ui,/<span className="sj-outcome-text" lang="en">\{JOURNEY_OUTCOMES\[value as JourneyObject\]\.en\}<\/span>/);
+ let checked=0;
+ for(let episode=1;episode<=12;episode++)for(const gradeLevel of [3,5])for(let seed=1;seed<=3;seed++){
+  let plan;
+  try{plan=planJourneyStory({episode,englishLevel:'A2',gradeLevel,seed:seed*17+episode,assessmentVersion:2});}catch{continue;}
+  const challenge=plan.learningChallenges?.find(c=>c.kind==='consequence');
+  if(!challenge)continue;
+  assert.ok(challenge.choices.includes(challenge.target));
+  for(const choice of challenge.choices)assert.ok(JOURNEY_OUTCOMES[choice],'every choice has a written result');
+  checked++;
+ }
+ assert.ok(checked>0,'A2 plans ask the consequence question');
+});
