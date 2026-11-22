@@ -58,8 +58,18 @@
 .academy-choices button:hover:not(:disabled){background:#ebf0ff;border-color:#738ad5}
 .academy-choices button:last-child:nth-child(odd){grid-column:1/-1}
 .academy-voice{display:flex;gap:12px;align-items:center;flex-wrap:wrap;margin-top:14px}
-.academy-voice small{flex:1;min-width:180px;line-height:1.4;color:#6b7797;font-size:11px}
+.academy-voice small{flex:1;min-width:180px;line-height:1.4;color:#5f6a8a;font-size:12px}
 .academy-mic{background:#e6ddfc;color:#49357d;border-radius:13px;padding:12px 17px;font-weight:850;font-size:13px;border:1px solid #b4a0e8}
+/* Microphone phases: preparing (with one-time model download progress), listening, processing. */
+.academy-mic-stop{min-width:44px;min-height:44px;border-radius:13px;padding:10px 14px;font-weight:850;font-size:13px;background:#fff;color:#7c2d4f;border:1px solid #e7b6c9}
+.academy-mic-stop:focus-visible{outline:3px solid #7c5bd6;outline-offset:2px}
+.academy-mic-live{flex-basis:100%;display:grid;gap:6px;padding:10px 12px;border-radius:13px;background:#f4f0ff;border:1px solid #d9cdfa;color:#3f2f72;font-size:14px;font-weight:750;line-height:1.35}
+.academy-mic-live small{font-size:12px;font-weight:600;color:#5d5488;min-width:0}
+.academy-model-progress{appearance:none;-webkit-appearance:none;width:100%;height:10px;border:0;border-radius:999px;background:#e2d9fb;overflow:hidden}
+.academy-model-progress::-webkit-progress-bar{background:#e2d9fb;border-radius:999px}
+.academy-model-progress::-webkit-progress-value{background:linear-gradient(90deg,#7c5bd6,#4fb3e8);border-radius:999px;transition:width .25s ease}
+.academy-model-progress::-moz-progress-bar{background:linear-gradient(90deg,#7c5bd6,#4fb3e8);border-radius:999px}
+@media (prefers-reduced-motion:reduce){.academy-model-progress::-webkit-progress-value{transition:none}}
 .academy-build,.academy-writing{margin-top:16px}
 .academy-built,.academy-tiles{min-height:64px;display:flex;align-content:center;flex-wrap:wrap;gap:9px;padding:12px;border-radius:14px;background:#e9ecf8}
 .academy-built span{font-size:13px;color:#647397;align-self:center}

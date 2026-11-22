@@ -3,7 +3,8 @@
 import {Capacitor,registerPlugin} from '@capacitor/core';
 import {beginWebLocalRecognition,beginWebBrowserRecognition,type WebSpeechConstructor,type WebSpeechStatus} from './webLocalRecognition';
 import {beginIndependentTranscription} from './independentTranscription';
-import {beginLocalSherpaRecognition,localSherpaAvailable,localSherpaReadiness} from './localSherpa';
+import {beginLocalSherpaRecognition,localSherpaAvailable,localSherpaReadiness,type ModelProgressListener} from './localSherpa';
+export type {ModelProgressListener};
 
 export type SpeechMode='native-local'|'web-local'|'web-browser'|'sherpa-local'|'server-stt'|'practice'|'none';
 export type SpeechCaptureStatus=WebSpeechStatus|'testing'|'model-loading';
@@ -165,18 +166,20 @@ async function nativeRecognition(timeoutMs:number):Promise<SpeechAttempt>{
     alternatives:[],mode:'native-local'};
  }finally{currentCancel=null;}
 }
-/** Only a user initiated button can call this. No transcript is persisted. */
+/** Only a user initiated button can call this. No transcript is persisted.
+ * onModelProgress (0..1) reports the one-time local model download, if any. */
 export async function listenToChild(
  capability:SpeechCapability,timeoutMs=8000,
  onStatus?:(status:SpeechCaptureStatus)=>void,
- contextPhrases:readonly string[]=[]
+ contextPhrases:readonly string[]=[],
+ onModelProgress?:ModelProgressListener
 ):Promise<SpeechAttempt>{
  stopSpeechCapture();
  const epoch=++captureEpoch;
  const ms=Math.min(12000,Math.max(3000,timeoutMs));
  if(capability.mode==='native-local')return nativeRecognition(ms);
  if(capability.mode==='sherpa-local'){
-  const session=beginLocalSherpaRecognition(ms,onStatus);
+  const session=beginLocalSherpaRecognition(ms,onStatus,onModelProgress);
   currentCancel=session.cancel;
   try{return await session.result;}
   finally{if(currentCancel===session.cancel)currentCancel=null;}

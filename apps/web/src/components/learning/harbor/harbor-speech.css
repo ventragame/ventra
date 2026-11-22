@@ -58,6 +58,14 @@
 .harbor-mic-live{position:relative;text-align:center;max-width:590px;
  margin:12px auto 0;padding:12px 14px;font-size:13px;font-weight:900;
  border-radius:16px;color:#143c56;background:#d0faf0;border:2px solid #a6e5e8}
+/* One-time local speech model download (shown only while it is loading). */
+.harbor-model-progress{display:grid;gap:6px;max-width:590px;margin:8px auto 0;text-align:center}
+.harbor-model-progress progress{appearance:none;-webkit-appearance:none;width:100%;height:10px;border:0;
+ border-radius:999px;background:#bfeee6;overflow:hidden}
+.harbor-model-progress progress::-webkit-progress-bar{background:#bfeee6;border-radius:999px}
+.harbor-model-progress progress::-webkit-progress-value{background:linear-gradient(90deg,#14718c,#2fb59a);border-radius:999px}
+.harbor-model-progress progress::-moz-progress-bar{background:linear-gradient(90deg,#14718c,#2fb59a);border-radius:999px}
+.harbor-model-progress small{font-size:12px;font-weight:700;color:#e9fbff;line-height:1.35}
 .harbor-mic-test:focus-visible,.harbor-recheck:focus-visible{
  outline:3px solid #fff1ae;outline-offset:2px}
 @media(max-width:560px){.harbor-microphone{flex-direction:column}

@@ -132,7 +132,8 @@ test('Short-word capture uses small AudioWorklet chunks and no false transcript 
  assert.doesNotMatch(worklet,/Float32Array\(4096\)/);
  assert.match(capture,/advanceShortVoice\(voiceState,chunk,rate\)/);
  assert.match(capture,/voiceState\.detected/);
- assert.match(ui,/matchesExpectedSpeech\(result\.alternatives,prompt\.accept\)/);
+ // Accepted phrases only; the explicit 'name' frame is the single personal exception.
+ assert.match(ui,/matchesExpectedSpeech\(result\.alternatives,prompt\.accept,prompt\.personal\)/);
 });
 
 test('44.1k and 48k streaming resampling is invariant to arbitrary worklet frame cuts',()=>{

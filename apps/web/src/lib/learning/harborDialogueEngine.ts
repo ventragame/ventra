@@ -75,9 +75,14 @@ export const HARBOR_EPISODES:readonly HarborEpisode[]=[
 export function normalizeSpeech(text:string):string{
  return canonicalEnglishAnswer(text);
 }
-export function matchesExpectedSpeech(alternatives:readonly string[],expected:readonly string[]):boolean{
+/** The target structure followed by a name, optionally after a greeting or with
+ * more words after it ("Hi Captain, my name is Ece and I am eight"), like the
+ * other prompts. Only checked, never stored or shown. */
+const SPOKEN_NAME_INTRODUCTION=/(^| )my name(s| is) [a-z0-9]/;
+export function matchesExpectedSpeech(alternatives:readonly string[],expected:readonly string[],personal?:'name'):boolean{
  return alternatives.some(actual=>{
   const normalized=normalizeSpeech(actual);
+  if(personal==='name'&&SPOKEN_NAME_INTRODUCTION.test(normalized))return true;
   return expected.some(answer=>{
    const phrase=normalizeSpeech(answer);
    return normalized===phrase||normalized.startsWith(phrase+' ')||normalized.endsWith(' '+phrase);

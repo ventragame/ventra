@@ -212,3 +212,22 @@ test('Child microphone status text is friendly; browser processing is disclosed 
  assert.ok(!game.includes('İngilizce tanıma modeli hazırlanıyor'));
  assert.ok(!game.includes('Ses algılandı, kelimeler bekleniyor'));
 });
+
+test('"What is your name?" accepts the child\'s own name in the target structure, nothing else',async()=>{
+ const {parseHarborStep,HARBOR_QUESTS,getHarborQuestSteps}=await import('../src/lib/learning/harborMissionEngine.ts');
+ const step=parseHarborStep('What is your name?|My name is Alex.|I am nine years old.|I live here.');
+ assert.equal(step.personal,'name');
+ assert.deepEqual(step.accept,['My name is Alex.'],'the authored reply stays the tap answer and model');
+ const ok=said=>matchesExpectedSpeech([said],step.accept,step.personal);
+ for(const said of ['My name is Deniz.','my name is Ece Nur','Hi Captain, my name\'s Göktuğ','My name is Alex','hello my name is Ali Can Yıldız','My name is Deniz and I am nine years old'])
+  assert.ok(ok(said),said);
+ for(const said of ['I am nine years old.','I live here','my name is','Alex','name is Deniz','I am Deniz, my name'])
+  assert.ok(!ok(said),said);
+ assert.ok(!matchesExpectedSpeech(['My name is Deniz.'],step.accept),'other prompts keep exact phrases');
+ const personal=HARBOR_QUESTS.flatMap(q=>['Pre-A1','A1','A2'].flatMap(level=>getHarborQuestSteps(q,level))).filter(s=>s.personal);
+ assert.ok(personal.length>=1);
+ for(const s of personal)assert.match(s.reply,/^My name is [A-Z][a-z]+\.$/);
+ const ui=read('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
+ assert.match(ui,/matchesExpectedSpeech\(result\.alternatives,prompt\.accept,prompt\.personal\)/);
+ assert.match(ui,/Kendi adınla söyle: “My name is …”/);
+});

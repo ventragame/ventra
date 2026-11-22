@@ -40,6 +40,8 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  const [listening,setListening]=useState(false);
  const [narrating,setNarrating]=useState(false);
  const [micStatus,setMicStatus]=useState<SpeechCaptureStatus|'idle'>('idle');
+ // One-time local model download share (0..1); null when nothing is downloading.
+ const [modelProgress,setModelProgress]=useState<number|null>(null);
  const [busy,setBusy]=useState(false);
  const [feedback,setFeedback]=useState('');
  const [mistakes,setMistakes]=useState(0);
@@ -255,7 +257,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  const mic=async()=>{
   if(locked.current||busy||listening||!canAnswer)return;
   const run=++generation.current;
-  setListening(true);setMicStatus('starting');setFeedback('');setSpeechNeedsHelp(false);
+  setListening(true);setMicStatus('starting');setModelProgress(null);setFeedback('');setSpeechNeedsHelp(false);
   narrationRun.current++;setNarrating(false);soundService.cancelSpeech();
   soundService.setCaptureActive(true);
   let result;
@@ -265,7 +267,8 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
    };
    result=independentEnabled
     ?await listenToIndependentSpeech(profileId,10000,onStatus)
-    :await listenToChild(activeCapability,10000,onStatus,prompt.choices);
+    :await listenToChild(activeCapability,10000,onStatus,prompt.choices,
+      fraction=>{if(run===generation.current)setModelProgress(fraction<1?fraction:null);});
   }catch{
    // Browser/OS failures are not evidence that the child spoke incorrectly.
    if(run===generation.current){
@@ -290,7 +293,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
    ''
   );
   if(result.kind==='recognized'){
-   if(matchesExpectedSpeech(result.alternatives,prompt.accept)){ 
+   if(matchesExpectedSpeech(result.alternatives,prompt.accept,prompt.personal)){
     // State setters are async: don't lose the last spoken response on completion.
     const recognizedCount=voiceRecognized+1;
     setVoiceRecognized(recognizedCount);
@@ -511,7 +514,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
       'Sahnedeki doğru nesneye dokunarak işe başla.'}</small>
     </div>
     <div className="harbor-talk">
-     <div className="harbor-talk-title"><strong>Sen ne dersin?</strong><span>Doğru ifadeyi söyle veya seç!</span></div>
+     <div className="harbor-talk-title"><strong>Sen ne dersin?</strong><span>{prompt.personal==='name'?'Kendi adınla söyle: “My name is …” ya da seç!':'Doğru ifadeyi söyle veya seç!'}</span></div>
      {canAnswer?<div className="harbor-answer-grid">
       {options.map((option,i)=><button type="button" key={option}
         data-level={englishLevel}
@@ -537,13 +540,17 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
        Sesli cevap burada çalışmıyor. Seçeneklerden birine dokunarak devam et.
       </p>}
      {listening&&<p className="harbor-mic-live" role="status" aria-live="polite">{
-      micStatus==='model-loading'?'⏳ Mikrofon hazırlanıyor…':
+      micStatus==='model-loading'?(modelProgress!==null?'⏳ Konuşma modeli hazırlanıyor…':'⏳ Mikrofon hazırlanıyor…'):
       micStatus==='starting'?'🎤 Hazırlanıyorum…':
       micStatus==='microphone-ready'?'🟢 Seni dinliyorum! Şimdi söyle.':
       micStatus==='speech-detected'?'🎤 Sesini duydum, devam edebilirsin!':
       micStatus==='processing'?'⏳ Cevabına bakıyorum…':
       '🎤 Seni dinliyorum…'
      }</p>}
+     {listening&&micStatus==='model-loading'&&modelProgress!==null&&<div className="harbor-model-progress">
+      <progress max={100} value={Math.round(modelProgress*100)} aria-label="Konuşma modeli indirme ilerlemesi"/>
+      <small aria-hidden="true">%{Math.round(modelProgress*100)} · İlk kullanımda bir kez iner, sonra çok daha hızlı açılır.</small>
+     </div>}
      {(speechNeedsHelp||!speechAvailable)&&!listening&&<button type="button" className="harbor-adult-help"
       onClick={openAdultSettings} disabled={busy||locked.current}>Bir yetişkinden yardım iste</button>}
      <p role="status" aria-live="polite" className="harbor-feedback">{feedback}</p>

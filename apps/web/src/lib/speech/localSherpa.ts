@@ -9,12 +9,16 @@ const MODEL='/speech/sherpa-english-2023-06-26/manifest.json';
 const VERSION='sherpa-onnx-zipformer-en-2023-06-26-int8-6037ea0';
 type WorkerReply=
  | {type:'ready'}
- | {type:'progress';file:string;index:number;total:number}
+ | {type:'progress';file:string;index:number;total:number;loaded:number;bytes:number}
  | {type:'partial';id:number;text:string}
  | {type:'result';id:number;text:string}
  | {type:'error';id?:number;reason:string};
 
-type Pool={worker:Worker;ready:Promise<void>;idle:ReturnType<typeof setTimeout>|null};
+/** progress: 0..1 share of model bytes loaded; 1 once the recognizer is ready. */
+type Pool={worker:Worker;ready:Promise<void>;idle:ReturnType<typeof setTimeout>|null;
+ progress:number;listeners:Set<(fraction:number)=>void>};
+/** Model download progress for one attempt (0..1). Only byte counts: no audio. */
+export type ModelProgressListener=(fraction:number)=>void;
 let pool:Pool|null=null;
 let sessionCounter=0;
 const OUT_RATE=16000;
@@ -62,11 +66,18 @@ function acquireWorker():Pool{
  let settled=false;
  let resolve!:()=>void,reject!:(error:Error)=>void;
  const ready=new Promise<void>((yes,no)=>{resolve=yes;reject=no;});
- const p:Pool={worker,ready,idle:null};
+ const p:Pool={worker,ready,idle:null,progress:0,listeners:new Set()};
+ const report=(fraction:number)=>{
+  p.progress=Math.max(p.progress,Math.min(1,fraction));
+  p.listeners.forEach(listener=>listener(p.progress));
+ };
  const initial=(event:MessageEvent<WorkerReply>)=>{
   const message=event.data;
-  if(message.type==='ready'){
-   settled=true;worker.removeEventListener('message',initial);resolve();
+  if(message.type==='progress'){
+   // Bytes fill 0..95%; the last step is building the recognizer in WASM.
+   if(message.bytes>0)report(0.95*message.loaded/message.bytes);
+  }else if(message.type==='ready'){
+   settled=true;worker.removeEventListener('message',initial);report(1);resolve();
   }else if(message.type==='error'&&message.id===undefined){
    settled=true;worker.removeEventListener('message',initial);
    reject(new Error(message.reason));
@@ -137,7 +148,7 @@ export function resampleTo16k(source:Float32Array,sampleRate:number):Float32Arra
  * result cannot earn points; ASR text is checked against accepted phrases
  * by the existing Harbor learning engine. */
 export function beginLocalSherpaRecognition(
- timeoutMs=10000,onStatus?:(s:SpeechCaptureStatus)=>void
+ timeoutMs=10000,onStatus?:(s:SpeechCaptureStatus)=>void,onModelProgress?:ModelProgressListener
 ):LocalSession{
  const id=++sessionCounter;
  const controller=new AbortController();
@@ -170,9 +181,10 @@ export function beginLocalSherpaRecognition(
   if(context){void context.close().catch(()=>{});context=null;}
  };
  let listener:((event:MessageEvent<WorkerReply>)=>void)|null=null;
+ let unsubscribeProgress=()=>{};
  const finish=(outcome:SpeechAttempt)=>{
   if(done)return;
-  done=true;controller.abort();stopAudio();
+  done=true;controller.abort();stopAudio();unsubscribeProgress();
   if(poolForRun){
    if(listener)poolForRun.worker.removeEventListener('message',listener);
    if(startedOnWorker)poolForRun.worker.postMessage({type:'cancel',id});
@@ -235,6 +247,13 @@ export function beginLocalSherpaRecognition(
   }
   const engine=acquireWorker();
   poolForRun=engine;
+  if(onModelProgress){
+   // Only the wait for the model is reported; a warm worker reports 1 at once.
+   const progressListener=onModelProgress;
+   engine.listeners.add(progressListener);
+   unsubscribeProgress=()=>engine.listeners.delete(progressListener);
+   progressListener(engine.progress);
+  }
   try{stream=await mic;}catch(error){
    if(done)return;
    const denied=error instanceof Error&&/denied|notallowed|permission/i.test(error.name+' '+error.message);
@@ -246,6 +265,7 @@ export function beginLocalSherpaRecognition(
    if(!done)finish(failed(error instanceof Error?error.message:'model-load-failed'));
    return;
   }
+  unsubscribeProgress();
   if(done)return;
   try{
   // Same loaded module is reused between answers until idle to avoid model

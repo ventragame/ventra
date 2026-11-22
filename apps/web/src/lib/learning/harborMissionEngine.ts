@@ -4,7 +4,11 @@ import {QUESTS_C} from './harborQuestContentC.ts';
 export type {HarborQuest,HarborLevel,HarborAction};
 export type HarborStep={
  line:string;reply:string;choices:readonly [string,string,string];accept:readonly string[];
+ /** 'name': the reply introduces the child. Speech accepts "My name is …" with
+  * the child's own name (the authored name is only the model answer). */
+ personal?:'name';
 };
+const NAME_INTRODUCTION=/^My name is [A-Z][a-z]+\.$/;
 export const HARBOR_QUESTS:readonly HarborQuest[]=[...QUESTS_A,...QUESTS_B,...QUESTS_C];
 export const HARBOR_TOTAL_MISSIONS=15;
 export const HARBOR_STEPS_PER_EPISODE=9;
@@ -15,7 +19,9 @@ export function parseHarborStep(row:string):HarborStep{
  const [line,reply,wrong1,wrong2]=bits;
  if(new Set([reply,wrong1,wrong2].map(s=>s.toLowerCase())).size!==3)
   throw new Error('Duplicated speech choices');
- return {line,reply,choices:[reply,wrong1,wrong2],accept:[reply]};
+ return NAME_INTRODUCTION.test(reply)
+  ?{line,reply,choices:[reply,wrong1,wrong2],accept:[reply],personal:'name'}
+  :{line,reply,choices:[reply,wrong1,wrong2],accept:[reply]};
 }
 export function getHarborEpisodeQuests(episode:number):readonly HarborQuest[]{
  return HARBOR_QUESTS.filter(q=>q.episode===episode);

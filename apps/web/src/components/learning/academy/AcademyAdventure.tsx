@@ -7,7 +7,7 @@ import {soundService} from '@/lib/audio/SoundService';
 import {CharacterGuide} from '@/components/learning/motion/CharacterGuide';
 import {Lightbulb} from 'lucide-react';
 import {AcademySkillJourney,AcademyTaskIdentity,AcademyTaskStatus} from './AcademySkillSystem';
-import {listenToChild,speechCapability,stopSpeechCapture,type SpeechCapability} from '@/lib/speech/childSpeech';
+import {listenToChild,speechCapability,stopSpeechCapture,type SpeechCapability,type SpeechCaptureStatus} from '@/lib/speech/childSpeech';
 import {
  ACADEMY_GAME_ID,ACADEMY_REVIEW_GAME_ID,ACADEMY_ZONES,buildAcademyPlan,buildAcademyFocusPlan,nextAcademyVariant,
  academyWords,academyShuffle,matchesAcademyAnswer,isAcademyTaskAnswerCorrect,academySkillReview,
@@ -19,6 +19,12 @@ import {
 } from '@/lib/learning/academyCheckpoint';
 import './academy-adventure.css';
 import './academy-skill-system.css';
+
+type AcademyMicPhase='idle'|'preparing'|'listening'|'heard'|'processing';
+function academyMicPhase(status:SpeechCaptureStatus):AcademyMicPhase{
+ return status==='microphone-ready'?'listening':status==='speech-detected'?'heard':
+  status==='processing'?'processing':'preparing';
+}
 
 type Props={profileId:string;englishLevel:AcademyLevel;gradeLevel:number|null;
  onBack:()=>void;onSaved:()=>void};
@@ -60,6 +66,10 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
  const [message,setMessage]=useState('');
  const [resolved,setResolved]=useState(false);
  const [busy,setBusy]=useState(false);
+ // What the microphone is doing right now, so a ~73 MB first-time model
+ // download is never presented as "listening" (P1 audit).
+ const [micPhase,setMicPhase]=useState<AcademyMicPhase>('idle');
+ const [modelProgress,setModelProgress]=useState<number|null>(null);
  const [loading,setLoading]=useState(true);
  const [saveError,setSaveError]=useState('');
  const [levels,setLevels]=useState<Record<number,{completedCount:number;bestStars:number}>>({});
@@ -266,13 +276,16 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
  }
  async function speak(){
   if(busy||!hasSpeech||!capability)return;
-  stop();setBusy(true);setMessage('Dinliyorum…');soundService.unlockAudio();
+  stop();setBusy(true);setMessage('');setMicPhase('preparing');setModelProgress(null);soundService.unlockAudio();
   const epoch=audioEpoch.current;
   soundService.setCaptureActive(true);
   try{
-   const result=await listenToChild(capability,9000,undefined,[task.answer]);
+   const result=await listenToChild(capability,9000,
+    status=>{if(epoch===audioEpoch.current)setMicPhase(academyMicPhase(status));},
+    [task.answer],
+    fraction=>{if(epoch===audioEpoch.current)setModelProgress(fraction<1?fraction:null);});
    if(epoch!==audioEpoch.current||!alive.current)return;
-   soundService.setCaptureActive(false);
+   soundService.setCaptureActive(false);setMicPhase('idle');setModelProgress(null);
    if(result.kind==='recognized'&&result.alternatives.some(s=>matchesAcademyAnswer(s,task.answer))){
     setBusy(false);pending.current=false;
     // Speech is evaluated only when the recognizer produces the expected words.
@@ -301,8 +314,14 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
    }
   }catch{
    if(alive.current)setMessage('Mikrofon bu cihazda kullanılamadı. Dokunarak devam edebilirsin.');
-   setBusy(false);
+   setBusy(false);setMicPhase('idle');setModelProgress(null);
   }finally{soundService.setCaptureActive(false);}
+ }
+ /** The child can always stop waiting (a slow first download included). */
+ function cancelListening(){
+  if(micPhase==='idle')return;
+  stop();setMicPhase('idle');setModelProgress(null);setBusy(false);
+  setMessage('Dinleme durduruldu. İstersen yeniden dene ya da dokunarak devam et.');
  }
  function exit(){cancelAdvance();stop();onBack();}
  const review=academySkillReview(answers,Date.now(),englishLevel);
@@ -399,7 +418,20 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
      </div>}
      {task.kind==='talk'&&<div className="academy-voice">
       <button type="button" className="academy-mic" onClick={()=>void speak()} disabled={!hasSpeech||inputLocked}>
-       🎙️ {busy?'Dinleniyor…':'Sesinle Cevap Ver'}</button>
+       🎙️ {micPhase==='idle'?'Sesinle Cevap Ver':micPhase==='preparing'?'Hazırlanıyor…':'Dinleniyor…'}</button>
+      {micPhase!=='idle'&&<button type="button" className="academy-mic-stop" onClick={cancelListening}>Dur ✕</button>}
+      {micPhase!=='idle'&&<div className="academy-mic-live">
+       <span role="status" aria-live="polite">{
+        micPhase==='preparing'?(modelProgress!==null?'⏳ Konuşma modeli hazırlanıyor…':'⏳ Mikrofon hazırlanıyor…'):
+        micPhase==='listening'?'🟢 Seni dinliyorum! Şimdi söyle.':
+        micPhase==='heard'?'🎤 Sesini duydum, devam edebilirsin!':
+        '⏳ Cevabına bakıyorum…'}</span>
+       {micPhase==='preparing'&&modelProgress!==null&&<>
+        <progress className="academy-model-progress" max={100} value={Math.round(modelProgress*100)}
+         aria-label="Konuşma modeli indirme ilerlemesi"/>
+        <small aria-hidden="true">%{Math.round(modelProgress*100)} · İlk kullanımda bir kez iner, sonra çok daha hızlı açılır.</small>
+       </>}
+      </div>}
       <small>{hasSpeech?'Mikrofon isteğe bağlıdır; dokunarak da ilerleyebilirsin.':'Cihaz içi konuşma tanıma kullanılamıyor. Dokunarak devam et.'}</small>
      </div>}
      {(task.kind==='build'||task.kind==='write')&&

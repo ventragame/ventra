@@ -4,6 +4,7 @@
  * k2-fsa/sherpa-onnx via @sherpaw/asr, int8 English Zipformer (20M).
  * No speech samples, transcripts or personal identifiers leave the browser.
  */
+import {readExactly} from './modelDownload.ts';
 // The bundled initASRModule() computes its own WASM URL. In the real
 // Windows/Next.js worker it resolved to an HTML fallback (<!DOCTYPE ...) and
 // WebAssembly.instantiate failed. Load the *known* same-origin asset first,
@@ -47,7 +48,7 @@ type Message =
  | {type:'shutdown'};
 type SherpaWorkerEvent =
  | {type:'ready'}
- | {type:'progress';file:string;index:number;total:number}
+ | {type:'progress';file:string;index:number;total:number;loaded:number;bytes:number}
  | {type:'partial';id:number;text:string}
  | {type:'result';id:number;text:string}
  | {type:'error';id?:number;reason:string};
@@ -155,18 +156,24 @@ async function loadModel(){
   throw new Error('model-incomplete');
  // WASM is downloaded once. No application-level audio upload occurs.
  const {module,createOnlineRecognizer}=await loadRuntime();
+ // Byte progress across all files: the encoder alone is ~98% of the download,
+ // so a per-file counter would sit at "1/4" for almost the whole wait.
+ const totalBytes=models.reduce((sum,name)=>sum+entries.find(f=>f.name===name)!.bytes,0);
+ let doneBytes=0;
  for(let i=0;i<models.length;i++){
   const name=models[i];
   const entry=entries.find(f=>f.name===name)!;
-  post({type:'progress',file:name,index:i+1,total:models.length});
+  const progress=(loaded:number)=>post({type:'progress',file:name,index:i+1,total:models.length,loaded,bytes:totalBytes});
+  progress(doneBytes);
   const modelResponse=await fetch(MODEL_ROOT+name,{cache:'force-cache'});
   if(!modelResponse.ok)throw new Error('model-download');
-  const buffer=await modelResponse.arrayBuffer();
-  if(buffer.byteLength!==entry.bytes)throw new Error('model-integrity');
-  const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',buffer));
+  const bytes=await readExactly(modelResponse,entry.bytes,received=>progress(doneBytes+received));
+  doneBytes+=bytes.byteLength;
+  progress(doneBytes);
+  const digest=new Uint8Array(await crypto.subtle.digest('SHA-256',bytes));
   const actual=Array.from(digest,b=>b.toString(16).padStart(2,'0')).join('');
   if(actual!==entry.sha256)throw new Error('model-integrity');
-  module.FS_createDataFile('/' ,name,new Uint8Array(buffer),true,true,true);
+  module.FS_createDataFile('/' ,name,bytes,true,true,true);
  }
  recognizer=createOnlineRecognizer(module,{
   type:0,
