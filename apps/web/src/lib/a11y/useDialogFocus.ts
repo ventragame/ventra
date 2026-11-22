@@ -1,5 +1,8 @@
 'use client';
-import {useEffect,type RefObject} from 'react';
+import {useEffect,useRef,type RefObject} from 'react';
+import {installFocusMemory,lastFocusedElement} from './focusMemory.ts';
+
+installFocusMemory();
 
 const FOCUSABLE='a[href],button:not([disabled]),input:not([disabled]):not([type="hidden"]),select:not([disabled]),'+
  'textarea:not([disabled]),summary,[tabindex]:not([tabindex="-1"])';
@@ -18,11 +21,19 @@ export function dialogFocusables(dialog:ParentNode):HTMLElement[]{
  * own focus handling.
  */
 export function useDialogFocus(ref:RefObject<HTMLElement|null>,active=true){
+ // The opener is read while rendering the opening frame: by the time effects
+ // run, an autoFocus control inside the dialog has already taken focus.
+ const opener=useRef<HTMLElement|null>(null);
+ const wasActive=useRef(false);
+ if(active&&!wasActive.current&&typeof document!=='undefined'){
+  const current=document.activeElement;
+  opener.current=current instanceof HTMLElement&&current!==document.body?current:lastFocusedElement();
+ }
+ wasActive.current=active;
  useEffect(()=>{
   const dialog=ref.current;
   if(!active||!dialog)return;
-  const opener=document.activeElement instanceof HTMLElement&&!dialog.contains(document.activeElement)
-   ?document.activeElement:null;
+  const openedFrom=opener.current;
   if(!dialog.contains(document.activeElement)){
    if(!dialog.hasAttribute('tabindex'))dialog.tabIndex=-1;
    dialog.focus({preventScroll:true});
@@ -38,7 +49,19 @@ export function useDialogFocus(ref:RefObject<HTMLElement|null>,active=true){
   dialog.addEventListener('keydown',onKeyDown);
   return()=>{
    dialog.removeEventListener('keydown',onKeyDown);
-   if(opener?.isConnected)opener.focus({preventScroll:true});
+   // Give focus back only while it is still lost (never steal it). The page
+   // may need a few frames to unlock its background (inert/visibility), during
+   // which focus() is refused, so retry for up to ~0.5 s.
+   if(!openedFrom)return;
+   let frames=0;
+   const restore=()=>{
+    const now=document.activeElement;
+    const lost=!now||now===document.body||!now.isConnected||dialog.contains(now);
+    if(!lost||!openedFrom.isConnected)return;
+    if(!openedFrom.closest('[inert]'))openedFrom.focus({preventScroll:true});
+    if(document.activeElement!==openedFrom&&++frames<30)requestAnimationFrame(restore);
+   };
+   requestAnimationFrame(restore);
   };
  },[ref,active]);
 }

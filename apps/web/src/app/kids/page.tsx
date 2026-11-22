@@ -3,6 +3,8 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import dynamic from 'next/dynamic';
 import Link from 'next/link';
+// Remember the focused control before modals make the page inert (focus return).
+import '@/lib/a11y/focusMemory';
 import {
   type PlayerProfile,
   getAvatarById,

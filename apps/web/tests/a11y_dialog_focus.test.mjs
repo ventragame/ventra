@@ -8,7 +8,16 @@ test('Modal dialogs take focus on open, keep Tab inside and give focus back on c
  assert.match(hook,/if\(!dialog\.contains\(document\.activeElement\)\)\{\n\s*if\(!dialog\.hasAttribute\('tabindex'\)\)dialog\.tabIndex=-1;\n\s*dialog\.focus\(\{preventScroll:true\}\);/);
  assert.match(hook,/if\(event\.shiftKey&&\(current===first\|\|current===dialog\)\)\{event\.preventDefault\(\);last\.focus\(\);\}/);
  assert.match(hook,/else if\(!event\.shiftKey&&current===last\)\{event\.preventDefault\(\);first\.focus\(\);\}/);
- assert.match(hook,/if\(opener\?\.isConnected\)opener\.focus\(\{preventScroll:true\}\);/);
+ // The opener is captured while rendering the opening frame (autoFocus inside the
+ // dialog runs before effects) and focus is only given back if it was lost.
+ assert.match(hook,/if\(active&&!wasActive\.current&&typeof document!=='undefined'\)\{/);
+ assert.match(hook,/if\(document\.activeElement!==openedFrom&&\+\+frames<30\)requestAnimationFrame\(restore\);/,'retries while the page unlocks its background');
+ assert.match(hook,/if\(!lost\|\|!openedFrom\.isConnected\)return;/,'never steals focus that moved elsewhere');
+ // The opener survives the background becoming inert before a lazy dialog renders.
+ assert.match(hook,/opener\.current=current instanceof HTMLElement&&current!==document\.body\?current:lastFocusedElement\(\);/);
+ assert.match(src('lib/a11y/focusMemory.ts'),/document\.addEventListener\('focusin',event=>\{/);
+ assert.match(src('app/kids/page.tsx'),/import '@\/lib\/a11y\/focusMemory';/,'installed before any modal chunk loads');
+ assert.match(hook,/if\(!openedFrom\.closest\('\[inert\]'\)\)openedFrom\.focus\(\{preventScroll:true\}\);/);
  const cases={
   'components/profile/ProfileSelectorModal.tsx':[/useDialogFocus\(dialogRef,isOpen\);/,/<div ref=\{dialogRef\} role="dialog" aria-modal="true" aria-label="Oyuncular ve avatar koleksiyonu"/],
   'components/learning/alphabet/AlphabetGroveAdventure.tsx':[/useDialogFocus\(dialogRef\);/,/<div ref=\{dialogRef\} className="ag-root" role="dialog" aria-modal="true"/],
