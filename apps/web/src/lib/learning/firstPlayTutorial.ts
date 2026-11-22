@@ -19,11 +19,12 @@ export interface TutorialLesson {
 export const FIRST_PLAY_LESSONS:Record<TutorialWorld,TutorialLesson>={
   animals:{
     name:'Hayvan Çayırı',hero:'🐾',intro:'Rehber Pufi sana hayvanları nasıl keşfedeceğini gösterecek.',
-    steps:[{choiceId:'cat',prompt:'Parlayan kediye dokun. Karakterin gerçek oyunda yanına yürüyecek!',done:'Harika! CAT, İngilizce kedi demek.'}],
+    steps:[{choiceId:'cat',prompt:'Parlayan kediye dokun ve İngilizce adını dinle!',done:'Harika! CAT, İngilizce kedi demek.'}],
+    // The same 3D animals the child meets in the meadow.
     choices:[
-      {id:'dog',label:'Köpek',english:'Dog',image:'/assets/animals/premium/dog.svg'},
-      {id:'cat',label:'Kedi',english:'Cat',image:'/assets/animals/premium/cat.svg'},
-      {id:'rabbit',label:'Tavşan',english:'Rabbit',image:'/assets/animals/premium/rabbit.svg'}
+      {id:'dog',label:'Köpek',english:'Dog',image:'/assets/animals/fluent-3d/dog.png'},
+      {id:'cat',label:'Kedi',english:'Cat',image:'/assets/animals/fluent-3d/cat.png'},
+      {id:'rabbit',label:'Tavşan',english:'Rabbit',image:'/assets/animals/fluent-3d/rabbit.png'}
     ],completion:'Hazırsın! Oyunda hayvanlara dokunup İngilizce adlarını dinle.'
   },
   colors:{

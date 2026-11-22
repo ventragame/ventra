@@ -33,7 +33,7 @@ test('The hook never steals focus, never scrolls and skips the first render',()=
 
 test('All six garden games with answer rounds move focus to their own question prompt',()=>{
  const games={
-  'AnimalMeadowAdventure.tsx':[/useQuestionFocus<HTMLHeadingElement>\(`\$\{stage\}:\$\{questionIndex\}`\)/,/<h2 ref=\{questionHeading\} className="am-task-title" tabIndex=\{-1\}>/],
+  'AnimalMeadowAdventure.tsx':[/useQuestionFocus<HTMLHeadingElement>\(`\$\{stage\}:\$\{questionIndex\}`\)/,/<h2 ref=\{questionHeading\} className="am-task-title" tabIndex=\{-1\} lang="en">/],
   'ColorGroveAdventure.tsx':[/useQuestionFocus<HTMLHeadingElement>\(`\$\{step\}:\$\{question\}`\)/,/<h2 ref=\{questionHeading\} tabIndex=\{-1\}/],
   'NumberValleyAdventure.tsx':[/useQuestionFocus<HTMLHeadingElement>\(`\$\{stage\}:\$\{question\}`\)/,/<h2 ref=\{questionHeading\} tabIndex=\{-1\} className="nv5-scene-title">/],
   'FoodMarketAdventure.tsx':[/useQuestionFocus<HTMLDivElement>\(`\$\{stage\}:\$\{q\}`\)/,/<div ref=\{questionPrompt\} tabIndex=\{-1\} className="fm-command fm4-command">/],

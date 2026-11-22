@@ -1,0 +1,134 @@
+/* Animal Meadow — premium layer, loaded last by AnimalMeadowAdventure.
+   Feedback lives in the scene, celebrations never cover words or answers,
+   phones use the whole screen with answers in the thumb zone, and the reward
+   screen recaps the mission's English words. Motion obeys reduced-motion via
+   the stage rule in animal-meadow-v3.css. */
+
+/* 1. Celebration plays behind the content (above the sky), never on top of
+   "Harika!", a caption or an answer card. */
+.am-shell .am3-stage .am3-motion-layer{z-index:0}
+.am-shell .am3-victory,.am-shell .am3-rescue-success{position:relative;z-index:2}
+
+/* 2. Answer feedback inside the scene: visible on phones without scrolling. */
+.am-shell .am3-toast{
+ position:absolute;z-index:4;top:12px;left:50%;transform:translateX(-50%);
+ display:flex;flex-direction:column;align-items:center;gap:1px;
+ max-width:calc(100% - 150px);margin:0;padding:9px 20px;border-radius:999px;
+ font-size:17px;font-weight:1000;line-height:1.2;text-align:center;
+ color:#14423a;background:#fffbe2f7;border:3px solid #fff;
+ box-shadow:0 5px 0 #2f7b5ca8,0 10px 24px #0d3f3c55;
+ animation:am3-toast-in .32s cubic-bezier(.2,1.5,.45,1) both;pointer-events:none}
+.am-shell .am3-toast[data-good=false]{color:#6b2338;background:#fff0f2f7;
+ box-shadow:0 5px 0 #c0577aa0,0 10px 24px #4a1b2d40}
+.am-shell .am3-toast small{font-size:12px;font-weight:850;opacity:.78}
+@keyframes am3-toast-in{from{opacity:0;transform:translate(-50%,-8px) scale(.9)}
+ to{opacity:1;transform:translate(-50%,0) scale(1)}}
+
+/* 3. The chosen card answers back: correct pops, wrong shakes. */
+.am-shell .am3-choice[data-correct=true]{animation:am3-pop .55s cubic-bezier(.2,1.5,.4,1) both}
+.am-shell .am3-choice[data-wrong=true]{border-color:#ff6f8f;
+ background:linear-gradient(156deg,#fff1f1,#ffc9d1);animation:am3-shake .42s ease-in-out both}
+@keyframes am3-pop{0%{transform:scale(1)}40%{transform:translateY(-6px) scale(1.07)}100%{transform:scale(1)}}
+@keyframes am3-shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}
+ 40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(2px)}}
+
+/* 4. HUD: help sits with the other tools (it used to take a row of its own)
+   and icon-only buttons show their glyph at a readable size. */
+.am-shell .am-hud .am3-help,.am-shell .am-hud .am3-help[open]{
+ position:relative;width:auto;max-width:none;margin:0;padding:0;background:none;border:0}
+.am-shell .am-hud .am3-help summary{width:46px;height:46px;min-width:46px;min-height:46px;
+ border-radius:15px;border:1px solid #c4eee0a3;background:#ffffff21;box-shadow:none;
+ color:#fff8df;font-size:21px}
+.am-shell .am-hud .am3-help[open] summary{background:#ffffff3d}
+.am-shell .am3-help-panel{position:absolute;right:0;top:calc(100% + 9px);z-index:30;
+ width:min(330px,calc(100vw - 28px));padding:12px 14px;border-radius:18px;
+ border:1px solid #ffeab4;background:#17495bfa;box-shadow:0 16px 34px #031f2e9c;text-align:left}
+.am-shell .am3-help-panel p{padding:0 0 10px;font-size:14px;line-height:1.5;color:#f3fbf6}
+.am-shell .am-hud-btn[data-glyph]{font-size:21px;padding:6px}
+.am-shell .am-task-action{font-size:20px}
+
+/* 5. Quest head: the review notice is a chip, not a full-width banner;
+   12px is the floor for every label a child or parent reads. */
+.am-shell .am-quest-meta{display:inline-flex;align-items:center;gap:8px}
+.am-shell .am-review-chip{padding:3px 9px;border-radius:999px;background:#0d3a55d9;
+ border:1px solid #9fd6f0a0;color:#d9f2ff;font-size:12px;font-weight:900;white-space:nowrap}
+.am-shell .am-hud-title small,.am-shell .am-quest-head,.am-shell .am-task-hint{font-size:12px}
+
+/* 6. Discovery: one meter that fills (the count used to be shown twice). */
+.am-shell .am-discovery-progress{position:relative;overflow:hidden;isolation:isolate}
+.am-shell .am-discovery-fill{position:absolute;inset:0 auto 0 0;z-index:-1;border-radius:inherit;
+ background:linear-gradient(90deg,#3fae8ad0,#a8e86fd0);transition:width .45s cubic-bezier(.2,.9,.3,1)}
+
+/* 7. Reward screen: honest result line and a tap-to-hear word recap. */
+.am-shell .am-done-best{margin-top:8px;font-size:15px;font-weight:900;color:#e9fbd4}
+.am-shell .am-done-stats{margin-top:3px;font-size:13px;color:#d6efe6}
+.am-shell .am-recap{margin:16px auto 2px;max-width:660px}
+.am-shell .am-recap-title{margin-bottom:8px;font-size:12px;font-weight:900;letter-spacing:.04em;color:#bfeedd}
+.am-shell .am-recap-list{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.am-shell .am-recap-word{display:inline-flex;align-items:center;gap:7px;min-height:48px;
+ padding:5px 14px 5px 6px;border-radius:999px;border:2px solid #fff3c4;
+ background:linear-gradient(160deg,#fffdf1,#d7f6e1);color:#1b4a43;
+ font-size:16px;font-weight:1000;box-shadow:0 4px 0 #2b6e5bb0;touch-action:manipulation}
+.am-shell .am-recap-word img{width:36px;height:36px;object-fit:contain}
+.am-shell .am-recap-word:active:not(:disabled){transform:translateY(2px);box-shadow:0 2px 0 #2b6e5bb0}
+.am-shell .am-recap-word:disabled{opacity:.75}
+.am-shell .am-recap-word:focus-visible{outline:3px solid #fff09d;outline-offset:3px}
+
+/* 7b. Short desktop screens (e.g. 1920x910): the reward scene tightens so the
+   "Sonraki Görev" button is on screen without scrolling, recap included. */
+@media(min-width:768px) and (max-height:1000px){
+ .am-shell .am3-stage--complete{padding-top:10px;padding-bottom:12px}
+ .am-shell .am3-stage--complete .am3-topline{margin-bottom:2px}
+ .am-shell .am3-stage--complete .am3-victory{min-height:0;gap:6px}
+ .am-shell .am3-victory .am3-guide-finale{width:118px;height:118px}
+ .am-shell .am3-victory .am3-guide-finale~.am3-victory-stars{font-size:42px}
+ .am-shell .am3-victory strong{font-size:36px}
+ .am-shell .am-recap{margin-top:10px}
+ .am-shell .am-recap-word{min-height:44px;padding-block:3px}
+ .am-shell .am-recap-word img{width:32px;height:32px}
+}
+
+/* 7c. Short screens (laptops at 768/720px, small phones): the next-mission
+   button comes before the word recap so it is always on the first screen. */
+@media(max-height:820px){
+ .am-shell .am-done{display:flex;flex-direction:column}
+ .am-shell .am-done .am-recap{order:10}
+}
+
+/* 8. Album: friends not met yet are mysterious silhouettes; progress shown. */
+.am-shell .am-album .am-silhouette{filter:brightness(0) saturate(0);opacity:.3}
+.am-shell .am-album-meter{max-width:320px;height:8px;margin-top:7px;overflow:hidden;
+ border-radius:99px;background:#062b3ba8}
+.am-shell .am-album-meter span{display:block;height:100%;border-radius:inherit;
+ background:linear-gradient(90deg,#8de9bb,#fff0a5)}
+
+/* 9. Phones: the scene fills the screen and answers sit in the thumb zone. */
+@media(max-width:767px){
+ .am-shell .am3-stage{display:flex;flex-direction:column;min-height:calc(100dvh - var(--am3-chrome,258px))}
+ .am-shell .am3-stage--discover{--am3-chrome:198px}
+ .am-shell .am3-stage--complete{min-height:0}
+ .am-shell .am3-focus,.am-shell .am3-listen-zone,.am-shell .am3-rescue-zone{flex:1 1 auto}
+ .am-shell .am3-choices{margin-top:auto}
+ .am-shell .am3-choices--discover{margin-block:auto}
+ /* Picture answers are bigger on phones: the stage has the room now. */
+ .am-shell .am3-choices:not(.am3-choices--words):not(.am3-choices--discover) .am3-choice{min-height:150px}
+ .am-shell .am3-choices:not(.am3-choices--words):not(.am3-choices--discover) .am3-portrait{height:clamp(84px,25vw,112px);max-height:112px}
+ .am-shell .am3-choices--discover{grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+ .am-shell .am3-stage--discover .am3-choice{min-height:124px}
+ .am-shell .am3-choices--discover .am3-portrait{height:clamp(70px,21vw,92px);max-height:92px}
+ .am-shell .am3-caption{font-size:12px}
+ .am-shell .am3-word-choice{font-size:clamp(16px,4.8vw,21px)}
+ .am-shell .am3-choices--words .am3-choice{min-height:64px}
+ .am-shell .am3-focus-frame{width:168px;height:168px}
+ .am-shell .am3-toast{top:9px;max-width:calc(100% - 118px);padding:7px 14px;font-size:15px}
+ /* One HUD row on phones (the help button used to push the tools onto a second row). */
+ .am-shell .am-hud{flex-wrap:nowrap;gap:6px}
+ .am-shell .am-hud-icon{display:none}
+ .am-shell .am-hud-title{flex:1 1 auto;min-width:0}
+ .am-shell .am-hud-title>span{min-width:0}
+ .am-shell .am-hud-title strong,.am-shell .am-hud-title small{overflow:hidden;white-space:nowrap;text-overflow:ellipsis}
+ .am-shell .am-hud-actions{flex:0 0 auto}
+ .am-shell .am-hud-btn{min-width:44px;min-height:44px}
+ .am-shell .am-hud-btn[data-glyph],.am-shell .am-hud .am3-help summary{width:44px;height:44px;
+  min-width:44px;min-height:44px;font-size:19px;border-radius:12px}
+}

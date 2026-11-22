@@ -23,6 +23,8 @@ export interface MeadowPlayStageProps {
  speaking?:boolean;
  onSelect?:(id:AnimalId)=>void;
  onListen?:()=>void;
+ /** In-scene answer feedback: stays visible on phones (a bar below the scene did not). */
+ toast?:{text:string;good:boolean;detail?:string}|null;
 }
 const labels:Record<MeadowMode,string>={
  discover:'Hayvanları Keşfet',match:'Kelimeyi Bul',listen:'Dinle ve Bul',
@@ -48,7 +50,7 @@ function safeDestination(word:AnimalWord|null|undefined):string{
  */
 export function MeadowPlayStage({
  mode,animals,target,discovered=[],wrongId=null,correctId=null,disabled=false,stars=3,
- noAudioMode=false,canSpeak=true,speaking=false,onSelect,onListen
+ noAudioMode=false,canSpeak=true,speaking=false,onSelect,onListen,toast=null
 }:MeadowPlayStageProps){
  const seen=new Set(discovered);
  const isDiscovery=mode==='discover',isMatch=mode==='match',isListening=mode==='listen';
@@ -66,16 +68,18 @@ export function MeadowPlayStage({
     mode+':'+correctId:isDiscovery&&seen.size?'discover:'+Array.from(seen).sort().join('|'):null}
    className="am3-motion-layer"/>
   <div className="am3-topline">
-   <span className="am3-step"><span aria-hidden="true">{icons[mode]}</span>
-    <span>{labels[mode]}</span></span>
+   {/* Question modes state the task in the card above; no second label here. */}
+   {(isDiscovery||isComplete)?<span className="am3-step"><span aria-hidden="true">{icons[mode]}</span>
+    <span>{labels[mode]}</span></span>:<span/>}
    <div className="am3-topline-side">
-    {isDiscovery&&<span className="am3-discovered" aria-label={seen.size+' hayvan keşfedildi'}>
-     ✨ {seen.size}/{animals.length}</span>}
     {!isComplete&&<div className="am3-guide-inline">
      <CharacterGuide character="meadow-owl" mood={guideMood} cueKey={guideCue}/>
     </div>}
    </div>
   </div>
+  {toast&&!isComplete&&<p className="am3-toast" data-good={toast.good} role="status" aria-live="polite">
+   <span>{toast.text}</span>{toast.detail&&<small>{toast.detail}</small>}
+  </p>}
   {isComplete?(
    <div className="am3-victory" role="img" aria-label={stars+' yıldız ile görev tamamlandı'}>
     <div className="am3-guide-finale">
@@ -97,7 +101,7 @@ export function MeadowPlayStage({
       aria-label="İngilizce kelimeyi tekrar dinle" disabled={disabled||!canSpeak}>
       <span aria-hidden="true">🔊</span><strong>Dinle</strong>
      </button>
-     {noAudioMode&&target&&<span className="am3-written-assist"
+     {noAudioMode&&target&&<span className="am3-written-assist" lang="en"
        aria-label="Yazılı yardım açık">{target.id.toUpperCase()}</span>}
     </div>}
    {isRescue&&<div className="am3-rescue-zone" aria-label="Kurtarma görevi">
@@ -127,8 +131,8 @@ export function MeadowPlayStage({
         <img src={animal.image} alt="" width={256} height={256}
          decoding="async" draggable={false} loading={i>5?'lazy':'eager'}/>
        </span>:
-       <span className="am3-word-choice">{animal.id.toUpperCase()}</span>}
-      {imageChoices&&<span className="am3-caption">
+       <span className="am3-word-choice" lang="en">{animal.id.toUpperCase()}</span>}
+      {imageChoices&&<span className="am3-caption" lang={showName?'en':undefined}>
        {showName?animal.id.toUpperCase():
         isDiscovery?<span className="am3-discover-icon" aria-hidden="true">🔊</span>:
         <span className="am3-answer-placeholder" aria-hidden="true">✦</span>}
@@ -139,7 +143,7 @@ export function MeadowPlayStage({
     })}
    </div>
    {isRescue&&correctId&&<p className="am3-rescue-success" role="status">
-    <span aria-hidden="true">💛</span> {target?.id.toUpperCase()}
+    <span aria-hidden="true">💛</span> <span lang="en">{target?.id.toUpperCase()}</span>
     <span aria-hidden="true"> {safeDestination(target)}</span>
    </p>}
   </>}

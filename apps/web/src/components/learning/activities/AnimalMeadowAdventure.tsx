@@ -16,6 +16,7 @@ import {
 import {MeadowPlayStage} from './MeadowPlayStage';
 import './garden-game-foundation.css';
 import './animal-meadow.css';
+import './animal-meadow-premium.css';
 import './garden-child-legibility.css';
 import {gradeLevelLabel} from '@/lib/learning/gradeLabel';
 
@@ -257,6 +258,10 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
   const stars=Object.values(localProgress.starsByLevel).reduce((s,n)=>s+n,0);
   const valid = activePlan && (stage===1?activePlan.animals.length>0:Boolean(currentQuestion && target));
   const completedCount=stage===1?discovered.length:correctCount;
+  const albumCount=ANIMAL_MEADOW_WORDS.filter(word=>seenAnimals.includes(word.id)||discovered.includes(word.id)).length;
+  // The words this mission practised, for the tap-to-hear recap on the reward screen.
+  const recap:AnimalWord[]=(activePlan?(stage===1?activePlan.animals:Array.from(new Set(activePlan.questions.map(q=>q.target)))):[])
+    .map(id=>findAnimal(id)).filter((word):word is AnimalWord=>Boolean(word));
   return (
     <div ref={panelRef} role="dialog" aria-modal="true" aria-label="Hayvan Çayırı macerası"
       onPointerDown={e=>e.stopPropagation()} onPointerMove={e=>e.stopPropagation()} onPointerUp={e=>e.stopPropagation()}
@@ -274,13 +279,17 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
           </div>
           <div className="am-hud-actions">
             <span className="am-hud-btn" aria-label={'Toplam '+stars+' yıldız'}>⭐ {stars}</span>
+            <details className="am3-help">
+              <summary aria-label="Pufi'den oyun yardımı" title="Nasıl oynanır?">?<span className="sr-only">Yardım</span></summary>
+              <div className="am3-help-panel"><p>{STAGES[stage-1].story}</p><TutorialReplayButton/></div>
+            </details>
             <button type="button" className="am-hud-btn gg-game-control" onClick={()=>{
               // The album shows every discovered animal with its English name: looking
               // during an open question makes that answer assisted, never independent.
               if(!showAlbum&&questionOpen)setAssisted(true);
               setShowAlbum(v=>!v);}}
-              aria-expanded={showAlbum} aria-label="Keşif albümünü aç veya kapat">📖</button>
-            <button type="button" className="am-hud-btn gg-game-control" onClick={toggleMute}
+              aria-expanded={showAlbum} aria-label="Keşif albümünü aç veya kapat" data-glyph>📖</button>
+            <button type="button" className="am-hud-btn gg-game-control" onClick={toggleMute} data-glyph
               aria-label={muted?'Sesi aç':'Sesi kapat'} aria-pressed={muted}>{muted?'🔇':'🔊'}</button>
           </div>
         </header>
@@ -295,15 +304,11 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
              'Kayıp hayvanı İngilizce yönergeden tanı ve kurtar.'}
           </p>
         </div>
-        <details className="am3-help">
-          <summary aria-label="Pufi'den oyun yardımı" title="Nasıl oynanır?">?<span className="sr-only">Yardım</span></summary>
-          <p>{STAGES[stage-1].story}</p>
-          <TutorialReplayButton/>
-        </details>
         {showAlbum && <section aria-label="Keşif albümü" className="am-album mb-4 rounded-3xl border border-lime-200/40 bg-[#0b3649]/90 p-3 shadow-2xl sm:p-5">
           <div className="mb-3 flex items-center justify-between gap-3">
             <div><h2 className="text-lg font-black text-lime-100">📖 Hayvan Dostları Albümü</h2>
-            <p className="text-xs text-sky-100">Çayırı tekrar keşfederek 40 hayvanın İngilizce adını öğren.</p>
+            <p className="text-xs text-sky-100">{albumCount}/{ANIMAL_MEADOW_WORDS.length} dost keşfedildi · Çayırı tekrar keşfederek hepsinin İngilizce adını öğren.</p>
+            <div className="am-album-meter" aria-hidden="true"><span style={{width:`${Math.round(100*albumCount/ANIMAL_MEADOW_WORDS.length)}%`}}/></div>
             {questionOpen&&<p className="mt-1 text-xs font-bold text-amber-100">💡 Albüme baktığın için bu sorudaki cevabın ipuçlu sayılır.</p>}</div>
             <button onClick={()=>setShowAlbum(false)} aria-label="Albümü kapat"
               className="am-tap min-h-11 rounded-xl border border-white/25 bg-white/10 px-3 font-black">✕</button>
@@ -314,8 +319,9 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
               return <button key={word.id} disabled={!unlocked} onClick={()=>speak(word)}
                 aria-label={unlocked?`${word.tr}, İngilizce ${word.id}, telaffuzu dinle`:'Henüz keşfedilmemiş hayvan'}
                 className={`am-tap flex min-h-36 flex-col items-center justify-center rounded-2xl border p-2 text-center ${unlocked?'border-lime-200/50 bg-white/10':'border-white/10 bg-black/20 opacity-65'}`}>
-                {unlocked?<AnimalPicture word={word}/>:<div className="flex h-16 w-16 items-center justify-center rounded-full bg-white/10 text-4xl font-black text-white/40">?</div>}
-                <span className="mt-1 text-xs font-black uppercase">{unlocked?word.id:'???'}</span>
+                {unlocked?<AnimalPicture word={word}/>:<img src={word.image} alt="" loading="lazy" draggable={false}
+                  className="am-silhouette h-16 w-16 object-contain sm:h-20 sm:w-20"/>}
+                <span className="mt-1 text-xs font-black uppercase" lang={unlocked?'en':undefined}>{unlocked?word.id:'???'}</span>
                 <span className="mt-1 text-[11px] text-sky-100">{unlocked?word.tr:'Keşfedilmedi'}</span>
 
               </button>;
@@ -343,11 +349,17 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
           <p>Görev planında geçerli soru bulunamadı. Kayıtların korunuyor.</p>
           <button onClick={()=>reset(stage)} className="am-cta mt-4">Yeniden Yükle</button>
         </div>}
-        {!loadError && completed && <section className="mx-auto max-w-3xl rounded-3xl border border-lime-300/50 bg-emerald-950/75 p-5 text-center shadow-2xl">
+        {!loadError && completed && <section className="am-done mx-auto max-w-3xl rounded-3xl border border-lime-300/50 bg-emerald-950/75 p-5 text-center shadow-2xl">
           <MeadowPlayStage mode="complete" animals={[]} stars={animalRunStars(wrongCount)}/>
           <h2 ref={doneHeading} tabIndex={-1} className="mt-2 text-2xl font-black">Görev Tamamlandı!</h2>
-          <p className="mt-2 text-sm text-lime-100">Bu görevdeki en iyi ödülün: ⭐ {localProgress.starsByLevel[stage]??0}/3</p>
-          <p className="mt-1 text-xs text-white/75">{correctCount || discovered.length} doğru/keşif · {wrongCount} yanlış deneme</p>
+          <p className="am-done-best">Bu görevdeki en iyi ödülün: ⭐ {localProgress.starsByLevel[stage]??0}/3</p>
+          <p className="am-done-stats">{stage===1?`${discovered.length} hayvanın İngilizce adını dinledin`:`${correctCount} doğru · ${wrongCount} yanlış deneme`}</p>
+          {recap.length>0&&<div className="am-recap" role="group" aria-label="Bu görevin İngilizce kelimeleri">
+            <p className="am-recap-title">Bu görevin kelimeleri · dokun ve dinle</p>
+            <div className="am-recap-list">{recap.map(word=><button key={word.id} type="button" className="am-recap-word gg-game-control"
+              onClick={()=>speak(word)} disabled={!canSpeak(word)} aria-label={`${word.tr}, İngilizce ${word.id}, dinle`}>
+              <img src={word.image} alt="" width={64} height={64} draggable={false}/><span lang="en">{word.id}</span></button>)}</div>
+          </div>}
           <button onClick={()=>{if(stage===5)onAllCompleted();else reset((stage+1) as Stage)}} className="am-cta mt-5 w-full">
             {stage===5?'Kelime Bahçesine Dön →':'Sonraki Görev →'}
           </button>
@@ -365,6 +377,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
             <div className="am-discovery-progress" role="progressbar"
               aria-label="Keşfedilen hayvanlar" aria-valuemin={0}
               aria-valuemax={activePlan.animals.length} aria-valuenow={discovered.length}>
+              <span className="am-discovery-fill" aria-hidden="true" style={{width:`${Math.round(100*discovered.length/activePlan.animals.length)}%`}}/>
               <span>🐾 {discovered.length}/{activePlan.animals.length}</span>
               <span>{discovered.length===activePlan.animals.length?'✨ Kaydediliyor…':'🔊 Dokun ve dinle'}</span>
             </div>
@@ -372,14 +385,16 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
         ):target && currentQuestion?(
           <section className="am-quest-area mx-auto max-w-4xl rounded-3xl border border-white/25 bg-slate-950/20 p-3 shadow-xl sm:p-6">
             <div className="am-quest-head mb-2 flex items-center justify-between gap-3 text-xs font-extrabold text-lime-100 sm:text-sm">
-              <span>🧭 {STAGES[stage-1].desc}</span><span>Soru {questionIndex+1}/{activePlan.questions.length}</span>
+              <span>🧭 {STAGES[stage-1].desc}</span>
+              <span className="am-quest-meta">{activePlan.reviewIds.length>0&&<span className="am-review-chip">🔁 Pekiştirme<span className="sr-only">: zorlandığın kelimeler yeniden karşına çıkıyor</span></span>}
+                <span>Soru {questionIndex+1}/{activePlan.questions.length}</span></span>
             </div>
             <div className="am-quest-progress mb-4 h-2 overflow-hidden rounded-full bg-white/20" aria-hidden="true">
               <div className="h-full rounded-full bg-gradient-to-r from-emerald-300 to-sky-300 transition-all" style={{width:`${Math.round(((questionIndex+Number(awaiting))/activePlan.questions.length)*100)}%`}}/>
             </div>
             <div className="am-task">
               <div className="min-w-0 flex-1">
-                <h2 ref={questionHeading} className="am-task-title" tabIndex={-1}>
+                <h2 ref={questionHeading} className="am-task-title" tabIndex={-1} lang="en">
                   {stage===3?(noAudioMode?'Read: '+target.id.toUpperCase():'🔊 Listen and find!'):
                     stage===4?animalCommandFor(target,englishLevel,gradeLevel):
                     stage===5?animalRescueCommandFor(target,englishLevel,gradeLevel):
@@ -415,14 +430,9 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
               noAudioMode={noAudioMode}
               canSpeak={canSpeak(target)} speaking={speaking}
               onListen={()=>speak(target,stage===4||stage===5)}
+              toast={feedback?{text:feedback.text,good:feedback.good,
+                detail:feedback.good&&awaiting&&!saveError&&questionIndex+1===activePlan.questions.length?'Bölüm kaydediliyor…':undefined}:null}
               onSelect={choose}/>
-            {activePlan.reviewIds.length>0 && <p className="mt-3 rounded-xl bg-sky-950/65 p-2 text-center text-xs text-sky-100">🔁 Pekiştirme turu: zorlandığın kelimeler yeniden karşına çıkıyor.</p>}
-            <div className="am3-feedback mt-4 text-center">
-              {feedback && <p role="status" aria-live="polite" className={`rounded-xl px-3 py-3 text-sm font-semibold ${feedback.good?'bg-lime-500/15 text-lime-100':'bg-amber-500/20 text-amber-100'}`}>{feedback.text}</p>}
-              {awaiting&&!saveError&&<p role="status" aria-live="polite" className="mt-2 rounded-xl border border-lime-200/30 bg-emerald-700/20 px-4 py-3 text-sm font-bold text-lime-100">
-                ✨ {questionIndex+1===activePlan.questions.length?'Bölüm sonu kaydediliyor…':'Sıradaki hayvan keşfediliyor…'}
-              </p>}
-            </div>
           </section>
         ):null)}
         {saveError && <div role="alert" className="mx-auto mt-4 max-w-lg rounded-xl border border-rose-300/60 bg-rose-950/85 p-4 text-center">

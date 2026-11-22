@@ -79,6 +79,21 @@ export function eligibleAnimalWords(gradeLevel:number|null|undefined,englishLeve
 
 const STARTERS: AnimalId[] = ['cat', 'dog', 'bird', 'rabbit', 'cow', 'fish', 'horse', 'duck'];
 
+/** A general word and the animals a child could defend as ALSO being it:
+ * "Find the bird!" next to a duck, "fish" next to a shark or a dolphin, a
+ * tiger as a "cat", a wolf as a "dog". The general word (first) is never
+ * offered together with its members; two members (duck, owl) stay distinct words. */
+export const ANIMAL_CONFUSABLE_GROUPS:readonly (readonly AnimalId[])[]=[
+ ['bird','duck','owl','penguin','parrot'],
+ ['fish','shark','dolphin','whale'],
+ ['cat','tiger','lion'],
+ ['dog','wolf','fox']
+];
+export function animalsConfusable(a:AnimalId,b:AnimalId):boolean{
+ return a!==b&&ANIMAL_CONFUSABLE_GROUPS.some(([general,...members])=>
+  (a===general&&members.includes(b))||(b===general&&members.includes(a)));
+}
+
 export function findAnimal(id: string): AnimalWord | null {
   return ANIMAL_MEADOW_WORDS.find(item => item.id === id) ?? null;
 }
@@ -174,7 +189,14 @@ export function planAnimalMission(input: {
     sequence.splice(positions[0] ?? sequence.length,0,target);
   }
   const questions: AnimalQuestion[] = sequence.map(target => {
-    const others = shuffleWeighted(allowed.filter(id => id !== target),()=>1,rnd).slice(0,policy.choiceCount-1);
+    const clear = (id: AnimalId) => id !== target && !animalsConfusable(id, target);
+    let others = shuffleWeighted(allowed.filter(clear),()=>1,rnd).slice(0,policy.choiceCount-1);
+    if (others.length < policy.choiceCount-1) {
+      // A tiny collection (e.g. bird, duck, owl): top up with starter animals,
+      // which every child meets first, rather than offering an ambiguous pair.
+      const extra = shuffleWeighted(STARTERS.filter(id => clear(id) && !others.includes(id) && all.includes(id)),()=>1,rnd);
+      others = [...others,...extra].slice(0,policy.choiceCount-1);
+    }
     return { target, choices: shuffleWeighted([target,...others],()=>1,rnd) };
   });
   return { mission:input.mission,animals:[],questions,reviewIds:review,seed:input.seed };

@@ -48,7 +48,8 @@ test('The tutorial replay lives in the game\'s own help; the floating button is 
  assert.match(guide,/\{checked&&!open&&floating&&<button type="button" onClick=\{reopen\}/);
  assert.match(guide,/floating=\{hosts===0\} replayRef=\{replay\}/);
  assert.match(src('components/learning/GardenHelp.tsx'),/\{children\}<TutorialReplayButton\/><\/div>/);
- assert.match(src('components/learning/activities/AnimalMeadowAdventure.tsx'),/<TutorialReplayButton\/>\n\s*<\/details>/);
+ // Animal Meadow's help opens from the HUD as a panel; the replay stays inside it.
+ assert.match(src('components/learning/activities/AnimalMeadowAdventure.tsx'),/<div className=\"am3-help-panel\"><p>\{STAGES\[stage-1\]\.story\}<\/p><TutorialReplayButton\/><\/div>\n\s*<\/details>/);
  assert.match(src('components/learning/LearningPathModal.tsx'),/<FirstPlayHost key=\{profileId\+':'\+world\}/);
  assert.match(src('components/learning/tutorial-replay.css'),/min-height:44px/);
 });
