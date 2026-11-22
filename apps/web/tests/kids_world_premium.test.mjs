@@ -82,7 +82,8 @@ test('R2 independent islands use responsive labels, revised plaques and subtle f
  assert.match(scene,/archipelagoOpticalShiftPixels\(width\)\/fitZoom/);
  assert.match(scene,/const badgeContainer = this.add.container\(badgeAnchor.x,badgeAnchor.y\)/);
  assert.match(scene,/fillRoundedRect\(-127,-43,254,94/);
- assert.match(scene,/this.add.rectangle\(p.x,p.y/);
+ // The route sparkle is now a warm firefly drifting above the planks.
+ assert.match(scene,/const glint=this\.add\.circle\(first\.x,first\.y,2\.6,palette\.lamp/);
  assert.match(scene,/this.tweens.addCounter/);
  assert.match(scene,/this.isReducedMotion\(\)/);
  assert.match(map,/sentence_workshop/);
@@ -214,9 +215,10 @@ test('Child-facing loading screen and game path no longer show technical copy',(
  assert.match(panel,/ilk dokunuştan sonra çalabilir/);
 });
 
-test('Premium six-island skybridge ring uses a SINGLE continuous material on every connection',async()=>{
- const {ARCHIPELAGO_SKYBRIDGES,ARCHIPELAGO_SKYBRIDGE_MATERIAL,
-  skybridgePoint,skybridgeNormal}=await import('../src/lib/game/archipelagoBridges.ts');
+test('Premium six-island skybridge ring: one hand-built timber material on every connection',async()=>{
+ const {ARCHIPELAGO_SKYBRIDGES,ARCHIPELAGO_SKYBRIDGE_MATERIAL,SKYBRIDGE_GEOMETRY,
+  skybridgePoint,skybridgeNormal,skybridgeTangent,skybridgeLength,skybridgePlanks,skybridgePosts,skybridgeRope}=
+  await import('../src/lib/game/archipelagoBridges.ts');
  const {ARCHIPELAGO_ISLANDS_ORDERED,ARCHIPELAGO_ISLANDS_CATALOG}=
   await import('../../../packages/shared/src/archipelago.ts');
  const order=ARCHIPELAGO_ISLANDS_ORDERED.map(x=>x.id);
@@ -224,36 +226,86 @@ test('Premium six-island skybridge ring uses a SINGLE continuous material on eve
  assert.deepEqual(ARCHIPELAGO_SKYBRIDGES.map(x=>x.from),order);
  assert.deepEqual(ARCHIPELAGO_SKYBRIDGES.map(x=>x.to),[...order.slice(1),order[0]]);
  assert.equal(new Set(ARCHIPELAGO_SKYBRIDGES.map(x=>x.from)).size,6);
- assert.equal(Object.keys(ARCHIPELAGO_SKYBRIDGE_MATERIAL).length,10);
+ // One material: a fixed wood palette, festival pennants, no per-destination colours.
+ const M=ARCHIPELAGO_SKYBRIDGE_MATERIAL;
+ for(const key of ['shadow','fascia','fasciaShade','stringer','plankHighlight','plankEdge','post','postShade',
+  'postCap','rope','ropeShade','ropeLight','lamp','lampGlass','lampFrame','lampHalo'])
+  assert.equal(typeof M[key],'number',key);
+ assert.equal(M.plankTones.length,4);
+ assert.equal(M.pennants.length,5);
+ assert.ok(Object.isFrozen(M)&&Object.isFrozen(SKYBRIDGE_GEOMETRY));
+ const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
  for(const route of ARCHIPELAGO_SKYBRIDGES){
   const from=ARCHIPELAGO_ISLANDS_CATALOG[route.from].defaultWorldPos;
   const to=ARCHIPELAGO_ISLANDS_CATALOG[route.to].defaultWorldPos;
-  const startGap=Math.hypot(route.p0.x-from.x,route.p0.y-from.y);
-  const endGap=Math.hypot(route.p1.x-to.x,route.p1.y-to.y);
+  const startGap=dist(route.p0,from),endGap=dist(route.p1,to);
   assert.ok(startGap>=115&&startGap<=215,'Bridge starts inside source artwork: '+route.from);
   assert.ok(endGap>=115&&endGap<=215,'Bridge terminates inside target artwork: '+route.to);
-  assert.ok(Math.hypot(route.p1.x-route.p0.x,route.p1.y-route.p0.y)>=155,
-   'Bridge must span a visible gap: '+route.from+' -> '+route.to);
+  assert.ok(dist(route.p0,route.p1)>=155,'Bridge must span a visible gap: '+route.from+' -> '+route.to);
   assert.deepEqual(skybridgePoint(route,0),route.p0);
   assert.deepEqual(skybridgePoint(route,1),route.p1);
   for(const t of [0,0.1,0.35,0.5,0.72,0.9,1]){
-   const p=skybridgePoint(route,t),n=skybridgeNormal(route,t);
+   const p=skybridgePoint(route,t),n=skybridgeNormal(route,t),u=skybridgeTangent(route,t);
    assert.ok(Number.isFinite(p.x)&&Number.isFinite(p.y));
    assert.ok(Math.abs(Math.hypot(n.x,n.y)-1)<1e-10);
+   assert.ok(Math.abs(n.x*u.x+n.y*u.y)<1e-10,'normal is perpendicular to travel');
   }
+  // Planks are evenly spaced by arc length (not by t), deterministic and hand-cut.
+  const planks=skybridgePlanks(route);
+  assert.deepEqual(skybridgePlanks(route),planks,'same bridge on every visit');
+  assert.ok(planks.length>=Math.floor(skybridgeLength(route)/SKYBRIDGE_GEOMETRY.plankPitch)-1);
+  for(let i=1;i<planks.length;i++){
+   const gap=dist(planks[i].point,planks[i-1].point);
+   assert.ok(Math.abs(gap-SKYBRIDGE_GEOMETRY.plankPitch)<0.8,`${route.from}: plank ${i} gap ${gap.toFixed(2)}`);
+  }
+  for(const plank of planks){
+   assert.ok(Number.isInteger(plank.tone)&&plank.tone>=0&&plank.tone<M.plankTones.length);
+   assert.ok(Math.abs(plank.twist)<=0.035&&Math.abs(plank.lengthJitter)<=1.7);
+  }
+  // Posts: one at each end (just inside the island art), evenly spaced between.
+  const posts=skybridgePosts(route);
+  assert.ok(posts.length>=3,route.from);
+  const length=skybridgeLength(route),inset=SKYBRIDGE_GEOMETRY.postInset;
+  assert.ok(Math.abs(dist(posts[0].point,route.p0)-inset)<3);
+  assert.ok(Math.abs(dist(posts.at(-1).point,route.p1)-inset)<3);
+  const spans=posts.slice(1).map((p,i)=>dist(p.point,posts[i].point));
+  assert.ok(Math.max(...spans)-Math.min(...spans)<4,'posts evenly spaced: '+route.from);
+  assert.ok(Math.abs((length-2*inset)/(posts.length-1)-SKYBRIDGE_GEOMETRY.postSpacing)<SKYBRIDGE_GEOMETRY.postSpacing*0.35);
  }
+ // Rope rails hang down on screen between two posts.
+ const rope=skybridgeRope({x:0,y:0},{x:80,y:0},5);
+ assert.deepEqual(rope[0],{x:0,y:0});
+ assert.deepEqual(rope.at(-1),{x:80,y:0});
+ assert.ok(Math.abs(rope[5].y-5)<1e-9&&Math.abs(rope[5].x-40)<1e-9);
+
  const bridge=scene.slice(scene.indexOf('private createProgressionPaths(): void'),
   scene.indexOf('  // --- 3. ALTI BAĞIMSIZ ADANIN'));
  assert.match(bridge,/ARCHIPELAGO_SKYBRIDGES\.forEach/);
  assert.match(bridge,/const palette=ARCHIPELAGO_SKYBRIDGE_MATERIAL/);
- assert.match(bridge,/ribbon\.strokePath\(\)/);
- assert.match(bridge,/stroke\(3\.2,palette\.rails,1,-18\)/);
- assert.match(bridge,/stroke\(3\.2,palette\.rails,1,18\)/);
- assert.match(bridge,/Math\.atan2\(n\.y\*side,n\.x\*side\)/);
- assert.match(bridge,/this\.add\.rectangle\(px,py,6,17/);
+ for(const piece of ['skybridgePlanks(curve)','skybridgePosts(curve)','skybridgeRope(','deck.fillPoints(board,true)',
+  'palette.pennants[','palette.lampGlass','geo.shadowDrop'])assert.ok(bridge.includes(piece),piece);
+ // Every bridge layer stays below the island art (depth 20) so ends tuck under it.
+ const depths=[...bridge.matchAll(/setDepth\((\d+)\)/g)].map(m=>Number(m[1]));
+ assert.ok(depths.length>=6&&depths.every(d=>d<20),'bridge depths '+depths);
+ // Additive light turned the lanterns white on the blue sky; motion only when allowed.
+ assert.doesNotMatch(bridge,/BlendModes\.ADD/);
+ assert.match(bridge,/const animate=!this\.isReducedMotion\(\)&&!this\.isMobileDevice\(\);/);
+ assert.match(bridge,/if\(animate\)this\.tweens\.add/);
  assert.match(bridge,/this\.tweens\.addCounter/);
  assert.doesNotMatch(bridge,/isActive|gold\?|discovery_academy|0xadd8d9/);
  assert.match(scene,/this\.routeDecorations\.forEach\(\(decoration\) => decoration\.setVisible\(!spotlight\)\)/);
+ // Islands get a soft aura, not a hard outline ring crossing the bridges.
+ assert.doesNotMatch(scene,/haloStroke/);
+ assert.match(scene,/const haloAura=this\.add\.ellipse\(/);
+});
+
+test('World HUD never overlaps: compact map button replaces the title on mid-size screens',()=>{
+ assert.match(page,/className="kids-hud-icon kids-hud-map-compact" aria-label="Genel haritayı göster"/);
+ assert.doesNotMatch(page,/kids-hud-icon lg:hidden/,'a Tailwind lg:hidden lost to .kids-hud-icon{display:flex}');
+ assert.match(page,/\{isMuted\?'🔇':'🔊'\}/,'the sound button shows a speaker, not a slider glyph');
+ assert.match(style,/\.kids-hud-icon\.kids-hud-map-compact\{display:none\}/);
+ assert.match(style,/@media\(max-width:1879px\) and \(min-width:1561px\)\{\s*\.kids-world-hud\{grid-template-columns:auto minmax\(0,1fr\) auto\}/);
+ assert.match(style,/@media\(max-width:1560px\) and \(min-width:901px\)\{\s*\.kids-world-hud\{grid-template-columns:1fr auto\}\s*\.kids-hud-title\{display:none\}\s*\.kids-hud-icon\.kids-hud-map-compact\{display:flex\}/);
 });
 
 test('Profile picker uses illustrated, unlocked characters without weakening profile ownership',()=>{

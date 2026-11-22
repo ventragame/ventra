@@ -368,3 +368,18 @@
  .kids-island-heading .kids-island-emoji{width:38px;height:38px;flex-basis:38px;font-size:23px}
  .kids-island-action{min-height:46px;margin-top:10px;font-size:13px}
 }
+
+/* HUD fit: the right-hand controls are ~680px wide. The world title is centred
+   on screen only when both sides fit beside it; on mid-size screens it is
+   centred in the free space between the groups; below that a compact map
+   button replaces it. The groups never overlap (they did at 1351-1919px). */
+.kids-hud-icon.kids-hud-map-compact{display:none}
+@media(max-width:1879px) and (min-width:1561px){
+ .kids-world-hud{grid-template-columns:auto minmax(0,1fr) auto}
+ .kids-hud-title{justify-self:center}
+}
+@media(max-width:1560px) and (min-width:901px){
+ .kids-world-hud{grid-template-columns:1fr auto}
+ .kids-hud-title{display:none}
+ .kids-hud-icon.kids-hud-map-compact{display:flex}
+}

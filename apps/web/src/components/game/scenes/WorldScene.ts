@@ -2,7 +2,8 @@ import Phaser from 'phaser';
 import { EventBus, isWorldInputLocked } from '@/lib/game/EventBus';
 import { soundService } from '@/lib/audio/SoundService';
 import {archipelagoBadgeAnchor,archipelagoOpticalShiftPixels,archipelagoCameraFraming} from '@/lib/game/archipelagoPresentation';
-import {ARCHIPELAGO_SKYBRIDGES,ARCHIPELAGO_SKYBRIDGE_MATERIAL,skybridgePoint,skybridgeNormal} from '@/lib/game/archipelagoBridges';
+import {ARCHIPELAGO_SKYBRIDGES,ARCHIPELAGO_SKYBRIDGE_MATERIAL,SKYBRIDGE_GEOMETRY,skybridgePoint,skybridgeNormal,
+  skybridgePlanks,skybridgePosts,skybridgeRope} from '@/lib/game/archipelagoBridges';
 import {
   ARCHIPELAGO_ISLANDS_CATALOG,
   ARCHIPELAGO_ISLANDS_ORDERED,
@@ -45,13 +46,6 @@ interface IslandEntity {
   contentPublished: boolean;
 }
 
-interface ProgressionBubble {
-  halo: Phaser.GameObjects.Arc;
-  core: Phaser.GameObjects.Rectangle;
-  x: number;
-  y: number;
-}
-
 export class WorldScene extends Phaser.Scene {
   // Kompakt Sanal Dünya Boyutları (Merkezi Oval Takımada)
   private readonly WORLD_WIDTH = 2400;
@@ -62,8 +56,7 @@ export class WorldScene extends Phaser.Scene {
   private backgroundClouds: Phaser.GameObjects.Image[] = [];
   private foregroundClouds: Phaser.GameObjects.Image[] = [];
   private islands: Map<IslandId, IslandEntity> = new Map();
-  private progressionBubbles: ProgressionBubble[] = [];
-  private routeDecorations: Array<Phaser.GameObjects.Graphics | Phaser.GameObjects.Arc | Phaser.GameObjects.Rectangle> = [];
+  private routeDecorations: Array<Phaser.GameObjects.Graphics | Phaser.GameObjects.Arc> = [];
 
   // Durumlar
   private wordGardenStatus: 'dormant' | 'blooming' = 'dormant';
@@ -271,92 +264,181 @@ export class WorldScene extends Phaser.Scene {
     }
   }
 
-  // --- 2. TEK MİMARİ DİLDE ALTI KESİNTİSİZ MASAL KÖPRÜSÜ ---
+  // --- 2. ALTI ADAYI BİRLEŞTİREN EL YAPIMI AHŞAP GÖK KÖPRÜLERİ ---
   private createProgressionPaths(): void {
-    // All six illustrated islands are joined by the SAME warm sandstone skybridge.
-    // No pale blue placeholder links: unlock/progress affects play, not construction.
-    // Endpoints tuck behind island art at depth=20; bridges sit at depth=10.
+    // All six islands are joined by the SAME hand-built timber skybridge:
+    // honey planks over dark stringers, a visible deck thickness, oak posts
+    // with sagging hemp rope rails, warm lanterns and one pennant span.
+    // Unlock/progress affects play, never the construction (no faded links).
+    // Everything stays below the island art (depth 20): bridge ends tuck under it.
     const palette=ARCHIPELAGO_SKYBRIDGE_MATERIAL;
-    const reduced=this.isReducedMotion();
+    const geo=SKYBRIDGE_GEOMETRY;
+    const animate=!this.isReducedMotion()&&!this.isMobileDevice();
+    // Light comes from the upper left, like the painted islands.
+    const light={x:-0.6,y:-0.8};
+    const vec=(p:{x:number;y:number})=>new Phaser.Math.Vector2(p.x,p.y);
     ARCHIPELAGO_SKYBRIDGES.forEach((curve,routeIndex)=>{
-      const ribbon=this.add.graphics().setDepth(10);
-      this.routeDecorations.push(ribbon);
-
-      // One continuous sampled stroke per material layer. This avoids seams,
-      // discontinuous rails and jagged joins at panoramic/mobile camera zoom.
-      const stroke=(width:number,color:number,alpha:number,side=0,drop=0)=>{
-        ribbon.lineStyle(width,color,alpha);
-        ribbon.beginPath();
-        for(let k=0;k<=72;k++){
-          const t=k/72,p=skybridgePoint(curve,t),n=skybridgeNormal(curve,t);
-          const x=p.x+n.x*side,y=p.y+n.y*side+drop;
-          if(k===0)ribbon.moveTo(x,y);
-          else ribbon.lineTo(x,y);
-        }
-        ribbon.strokePath();
+      const edge=(t:number,side:number,offset=0,drop=0)=>{
+        const p=skybridgePoint(curve,t),n=skybridgeNormal(curve,t),d=(geo.deckHalf+offset)*side;
+        return {x:p.x+n.x*d,y:p.y+n.y*d+drop};
       };
-      // Shadow and sandstone supports, followed by a readable warm stone deck.
-      stroke(50,palette.shadow,0.21,0,9);
-      stroke(43,palette.underside,0.97,0,3);
-      stroke(36,palette.stoneEdge,1);
-      stroke(29,palette.deck,1);
-      stroke(20,palette.highlight,0.98);
-      // Both continuous guardrails use identical material even on side arches.
-      stroke(5.5,palette.underside,0.96,-18);
-      stroke(5.5,palette.underside,0.96,18);
-      stroke(3.2,palette.rails,1,-18);
-      stroke(3.2,palette.rails,1,18);
-      stroke(1.6,0xffffff,0.76,-12);
-      // Individual perspective joints: follow the local curve normal at EVERY
-      // position, so vertical side bridges are as solid as horizontal ones.
-      for(let i=1;i<33;i++){
-        const t=i/33,p=skybridgePoint(curve,t),n=skybridgeNormal(curve,t);
-        ribbon.lineStyle(2.1,palette.plankSeam,0.65);
-        ribbon.lineBetween(p.x-n.x*12,p.y-n.y*12,p.x+n.x*12,p.y+n.y*12);
+      // Closed outline of the deck band, optionally widened and dropped.
+      const band=(offset:number,drop:number)=>{
+        const outline:Phaser.Math.Vector2[]=[];
+        for(let k=0;k<=56;k++)outline.push(vec(edge(k/56,-1,offset,drop)));
+        for(let k=56;k>=0;k--)outline.push(vec(edge(k/56,1,offset,drop)));
+        return outline;
+      };
+      const trace=(g:Phaser.GameObjects.Graphics,points:{x:number;y:number}[],width:number,color:number,alpha:number)=>{
+        g.lineStyle(width,color,alpha);
+        g.strokePoints(points.map(vec),false,false);
+      };
+      const along=(side:number,offset:number,drop=0)=>
+        Array.from({length:57},(_,k)=>edge(k/56,side,offset,drop));
+
+      // 1. A soft shadow on the sky below: the bridge floats like the islands.
+      const shadow=this.add.graphics().setDepth(9);
+      const centre=Array.from({length:57},(_,k)=>{const p=skybridgePoint(curve,k/56);return {x:p.x,y:p.y+geo.shadowDrop};});
+      for(const [width,alpha] of [[74,0.03],[56,0.045],[38,0.06]] as const)trace(shadow,centre,width,palette.shadow,alpha);
+      this.routeDecorations.push(shadow);
+
+      // 2. Deck: front face, dark stringers showing through the gaps, planks.
+      const deck=this.add.graphics().setDepth(10);
+      deck.fillStyle(palette.fasciaShade,1);
+      deck.fillPoints(band(1.2,geo.thickness),true);
+      deck.fillStyle(palette.fascia,1);
+      deck.fillPoints(band(0.6,geo.thickness*0.55),true);
+      deck.fillStyle(palette.stringer,1);
+      deck.fillPoints(band(0,0),true);
+      for(const plank of skybridgePlanks(curve)){
+        const cos=Math.cos(plank.twist),sin=Math.sin(plank.twist);
+        const u={x:plank.tangent.x*cos-plank.tangent.y*sin,y:plank.tangent.x*sin+plank.tangent.y*cos};
+        const n={x:-u.y,y:u.x};
+        const c=plank.point,half=geo.plankDepth/2,len=geo.deckHalf-0.5+plank.lengthJitter;
+        const corner=(a:number,b:number)=>vec({x:c.x+u.x*a+n.x*b,y:c.y+u.y*a+n.y*b});
+        const board=[corner(-half,-len),corner(half,-len),corner(half,len),corner(-half,len)];
+        deck.fillStyle(palette.plankTones[plank.tone],1);
+        deck.fillPoints(board,true);
+        // The edge facing the light catches a bright bevel.
+        const lit=(u.x*light.x+u.y*light.y)>=0?1:-1;
+        deck.fillStyle(palette.plankHighlight,0.85);
+        deck.fillPoints([corner(lit*half,-len+1),corner(lit*(half-2.4),-len+1),corner(lit*(half-2.4),len-1),corner(lit*half,len-1)],true);
+        deck.lineStyle(1.3,palette.plankEdge,0.9);
+        deck.strokePoints(board,true,true);
+        // Two tiny pegs per board.
+        deck.fillStyle(palette.plankEdge,0.55);
+        for(const b of [-len+4,len-4]){const p=corner(0,b);deck.fillCircle(p.x,p.y,1.2);}
       }
-      // Posts rise outwards along each bridge's local normal, rather than all
-      // pointing upwards on screen (the old vertical arches looked fragmented).
-      for(const t of [0.15,0.37,0.63,0.85]){
-        const p=skybridgePoint(curve,t),n=skybridgeNormal(curve,t);
-        for(const side of [-1,1]){
-          const x=p.x+n.x*18*side,y=p.y+n.y*18*side;
-          const px=x+n.x*5*side,py=y+n.y*5*side;
-          const lx=x+n.x*13*side,ly=y+n.y*13*side;
-          const rotation=Math.atan2(n.y*side,n.x*side)-Math.PI/2;
-          const post=this.add.rectangle(px,py,6,17,palette.lampPost,1)
-            .setRotation(rotation).setDepth(11);
-          const halo=this.add.circle(lx,ly,12,palette.lampHalo,0.19).setDepth(11);
-          const light=this.add.circle(lx,ly,5.7,palette.lamp,1).setDepth(12);
-          this.routeDecorations.push(post,halo,light);
-          if(!reduced&&!this.isMobileDevice()&&side===1)this.tweens.add({
-            targets:halo,alpha:0.08,scale:1.35,duration:1950+routeIndex*135,
-            yoyo:true,repeat:-1,ease:'Sine.easeInOut'
-          });
+      // Side beams frame the deck along both edges.
+      for(const side of [-1,1]){
+        trace(deck,along(side,0.4),5,palette.stringer,1);
+        trace(deck,along(side,0.4,-1.2),1.6,palette.postCap,0.75);
+      }
+      this.routeDecorations.push(deck);
+
+      // 3. Posts and rope rails. Posts stand upright on screen (3/4 view);
+      // the far side is drawn first so the near rail overlaps it.
+      const posts=skybridgePosts(curve);
+      const last=posts.length-1;
+      const rigFar=this.add.graphics().setDepth(11);
+      const rigNear=this.add.graphics().setDepth(12);
+      this.routeDecorations.push(rigFar,rigNear);
+      const tops:Record<string,{x:number;y:number}[]>={'-1':[],'1':[]};
+      const mids:Record<string,{x:number;y:number}[]>={'-1':[],'1':[]};
+      const sideIsFar=(side:number)=>{
+        const n=skybridgeNormal(curve,0.5);
+        return n.y*side<0||(Math.abs(n.y)<0.2&&n.x*side>0);
+      };
+      for(const side of [-1,1]){
+        const g=sideIsFar(side)?rigFar:rigNear;
+        posts.forEach((post,i)=>{
+          const end=i===0||i===last;
+          const h=end?geo.endPostHeight:geo.postHeight;
+          const n=post.normal,d=(geo.deckHalf+1)*side;
+          const base={x:post.point.x+n.x*d,y:post.point.y+n.y*d};
+          const w=end?7.5:6;
+          g.fillStyle(palette.post,1);
+          g.fillRect(base.x-w/2,base.y-h,w,h+3);
+          g.fillStyle(palette.postShade,1);
+          g.fillRect(base.x+w*0.1,base.y-h,w*0.4,h+3);
+          g.fillStyle(palette.postCap,1);
+          g.fillCircle(base.x,base.y-h,w*0.62);
+          g.lineStyle(1.1,palette.plankEdge,0.8);
+          g.strokeRect(base.x-w/2,base.y-h,w,h+3);
+          tops[side].push({x:base.x,y:base.y-h+2});
+          mids[side].push({x:base.x,y:base.y-h*0.48});
+        });
+      }
+      for(const side of [-1,1]){
+        const g=sideIsFar(side)?rigFar:rigNear;
+        for(const [line,sag,alpha] of [[tops[side],geo.ropeSag,1],[mids[side],geo.ropeSag*0.7,0.85]] as const){
+          for(let i=0;i<line.length-1;i++){
+            const rope=skybridgeRope(line[i],line[i+1],sag);
+            trace(g,rope,3.6,palette.ropeShade,alpha);
+            trace(g,rope,2.1,palette.rope,alpha);
+            trace(g,rope.map(p=>({x:p.x,y:p.y-0.8})),0.8,palette.ropeLight,alpha*0.8);
+          }
         }
       }
-      // Sparkles share the same material and do not consume animation on
-      // touch devices or when the OS requests reduced motion.
-      for(let i=0;i<6;i++){
-        const p=skybridgePoint(curve,(i+0.5)/6);
-        const halo=this.add.circle(p.x,p.y,6,0xffedc3,0.17).setDepth(13);
-        const core=this.add.rectangle(p.x,p.y,3.8,3.8,palette.lamp,0.89)
-          .setAngle(45).setDepth(14);
-        this.progressionBubbles.push({halo,core,x:p.x,y:p.y});
-        this.routeDecorations.push(halo,core);
-        if(!reduced&&!this.isMobileDevice())this.tweens.add({
-          targets:halo,alpha:0.06,scale:1.45,duration:2200+i*120,
+
+      // 4. One festival span: pennants hang from the near rope at mid-bridge.
+      const near=sideIsFar(1)?-1:1;
+      const flags=this.add.graphics().setDepth(12);
+      this.routeDecorations.push(flags);
+      const middle=Math.floor(last/2);
+      for(let i=Math.max(0,middle-1);i<=Math.min(last-1,middle);i++){
+        const rope=skybridgeRope(tops[near][i],tops[near][i+1],geo.ropeSag,8);
+        rope.slice(1,-1).forEach((p,k)=>{
+          flags.fillStyle(palette.pennants[(k+i+routeIndex)%palette.pennants.length],1);
+          flags.fillTriangle(p.x-5,p.y,p.x+5,p.y,p.x,p.y+13);
+          flags.fillStyle(0xffffff,0.35);
+          flags.fillTriangle(p.x-5,p.y,p.x-1,p.y,p.x-1.6,p.y+8);
+          flags.lineStyle(1,palette.plankEdge,0.6);
+          flags.strokeTriangle(p.x-5,p.y,p.x+5,p.y,p.x,p.y+13);
+        });
+      }
+
+      // 5. Warm lanterns on both end posts and the middle post.
+      for(const side of [-1,1])for(const i of new Set([0,middle,last])){
+        if(i===middle&&side!==near)continue;
+        const top=tops[side][i];
+        const lx=top.x,ly=top.y-11;
+        // Warm glow first (normal blending stays amber on the blue sky).
+        const halo=this.add.circle(lx,ly,26,palette.lampHalo,0.2).setDepth(13);
+        const glow=this.add.circle(lx,ly,13,palette.lamp,0.42).setDepth(13);
+        const lantern=this.add.graphics().setDepth(13);
+        lantern.fillStyle(palette.lampFrame,1);
+        lantern.fillRect(lx-1,ly+7,2,5);                       // stem on the post
+        lantern.fillRect(lx-6,ly+5,12,3);                      // base
+        lantern.fillTriangle(lx-8,ly-6,lx+8,ly-6,lx,ly-13);    // roof
+        lantern.fillRect(lx-6,ly-6,12,12);                     // frame
+        lantern.fillStyle(palette.lampGlass,1);
+        lantern.fillRect(lx-4.4,ly-4.4,8.8,9);                 // amber glass
+        lantern.fillStyle(palette.lamp,1);
+        lantern.fillRect(lx-2.4,ly-3,4.8,6.4);                 // bright flame core
+        lantern.fillStyle(palette.lampFrame,1);
+        lantern.fillRect(lx-0.6,ly-6,1.2,12);                  // mullion
+        lantern.fillCircle(lx,ly-14,1.8);                      // finial
+        this.routeDecorations.push(halo,glow,lantern);
+        if(animate)this.tweens.add({
+          targets:halo,alpha:0.1,scale:1.22,duration:1700+((routeIndex*3+i)%5)*230,
           yoyo:true,repeat:-1,ease:'Sine.easeInOut'
         });
       }
-      if(!reduced&&!this.isMobileDevice()){
+
+      // 6. A warm firefly drifts along the deck (desktop, motion allowed).
+      if(animate){
         const first=skybridgePoint(curve,0);
-        const glint=this.add.circle(first.x,first.y,4,0xffffff,0.86).setDepth(14);
-        this.routeDecorations.push(glint);
-        this.tweens.addCounter({from:0,to:1,duration:6400+routeIndex*280,
-          delay:routeIndex*200,repeat:-1,
+        const aura=this.add.circle(first.x,first.y,8,palette.lampHalo,0.28).setDepth(13);
+        const glint=this.add.circle(first.x,first.y,2.6,palette.lamp,0.95).setDepth(13);
+        this.routeDecorations.push(aura,glint);
+        this.tweens.addCounter({from:0,to:1,duration:7200+routeIndex*310,
+          delay:routeIndex*260,repeat:-1,
           onUpdate:tween=>{
-            const p=skybridgePoint(curve,tween.getValue()??0);
-            glint.setPosition(p.x,p.y);
+            const t=tween.getValue()??0,p=skybridgePoint(curve,t);
+            // Hovers a little above the planks with a gentle bob.
+            const y=p.y-14-Math.sin(t*Math.PI*6)*3;
+            aura.setPosition(p.x,y);glint.setPosition(p.x,y);
           }
         });
       }
@@ -377,10 +459,10 @@ export class WorldScene extends Phaser.Scene {
       const container = this.add.container(worldX, worldY).setDepth(20);
       const focusHalo=this.add.ellipse(0,38,460,320,def.id==='word_garden'?0xfff0b4:0xd8eafb,
         def.id==='word_garden'?0.14:0.055);
-      const haloStroke=this.add.ellipse(0,38,470,330,0xffffff,0)
-        .setStrokeStyle(def.id==='word_garden'?3:2,def.id==='word_garden'?0xffefb7:0xaeddec,
-          def.id==='word_garden'?0.38:0.14);
-      container.add([focusHalo,haloStroke]);
+      // A soft two-step aura (no hard outline ring crossing the bridges).
+      const haloAura=this.add.ellipse(0,38,540,380,def.id==='word_garden'?0xfff0b4:0xd8eafb,
+        def.id==='word_garden'?0.07:0.025);
+      container.add([haloAura,focusHalo]);
 
       // Ada Altı Doğal Şelale Sisi / Bulut Halesi (Arka Katman)
       const mistColor = def.id === 'word_garden' ? 0xe0f2fe : 0xf1f5f9;
@@ -1148,11 +1230,6 @@ export class WorldScene extends Phaser.Scene {
     this.bloomDecorations = [];
     this.backgroundClouds = [];
     this.foregroundClouds = [];
-    this.progressionBubbles.forEach((b) => {
-      b.halo.destroy();
-      b.core.destroy();
-    });
-    this.progressionBubbles = [];
     this.routeDecorations = [];
     this.islands.clear();
   }

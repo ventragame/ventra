@@ -553,7 +553,7 @@ export default function VentraKidsWorldPage() {
           {/* Mobilde Genel Harita Butonu */}
           <button
             onClick={handleShowWorldOverview}
-            className="kids-hud-icon lg:hidden" aria-label="Genel haritayı göster"
+            className="kids-hud-icon kids-hud-map-compact" aria-label="Genel haritayı göster"
             title="Genel Harita"
           >
             🗺️
@@ -578,7 +578,7 @@ export default function VentraKidsWorldPage() {
             className="kids-hud-icon" aria-label="Ses ve müzik ayarlarını aç"
             title="Ses ve Müzik Ayarları"
           >
-            {isMuted?'🔇':'🎚️'}
+            <span aria-hidden="true">{isMuted?'🔇':'🔊'}</span>
           </button>
 
           <button type="button" onClick={()=>{setMobileMenuOpen(false);setIsJourneyOpen(true);soundService.playSfx('tap',0.5);}}
@@ -624,7 +624,7 @@ export default function VentraKidsWorldPage() {
             <button type="button" onClick={()=>{setMobileMenuOpen(false);setIsJourneyOpen(true);soundService.playSfx('tap',0.5);}}>📚 <span>İngilizce Yolculuğum</span></button>
             <button type="button" onClick={handleShowWorldOverview}>🗺️ <span>Genel harita</span></button>
             <button type="button" onClick={() => { setMobileMenuOpen(false); setIsPassportOpen(true); }}>🪙 <span>Pasaport ve ödüller</span></button>
-            <button type="button" onClick={() => { setMobileMenuOpen(false); soundService.unlockAudio(); setIsAudioSettingsOpen(true); }}>🎚️ <span>Ses ve müzik</span></button>
+            <button type="button" onClick={() => { setMobileMenuOpen(false); soundService.unlockAudio(); setIsAudioSettingsOpen(true); }}>🔊 <span>Ses ve müzik</span></button>
             <button type="button" onClick={() => { setMobileMenuOpen(false); setIsModeGateOpen(true); }}>🧭 <span>Oyun yolum</span></button>
             <button type="button" onClick={() => { setMobileMenuOpen(false); setIsParentGateOpen(true); }}>🛡️ <span>Ebeveyn ve bulut</span></button>
           </div>
