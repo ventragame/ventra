@@ -1,5 +1,6 @@
 'use client';
 import React,{useEffect,useRef,useState} from 'react';
+import {useDialogFocus} from '@/lib/a11y/useDialogFocus';
 import {soundService} from '@/lib/audio/SoundService';
 import {themeScene,visualForEnglishWord} from '@/lib/learning/learningArt';
 import {ThemeWordCue,ThemeWordArtwork} from './ThemeWordCue';
@@ -72,6 +73,8 @@ export function ThemeTownAdventure({profileId,englishLevel,gradeLevel,onBack,onS
  const [result,setResult]=useState<{stars:number;independent:number}|null>(null);
  const sessionRef=useRef(''),startedRef=useRef(0);
  const runRef=useRef(0),isMounted=useRef(true),lockRef=useRef(false);
+ const dialogRef=useRef<HTMLDivElement>(null);
+ useDialogFocus(dialogRef);
  const timerRef=useRef<ReturnType<typeof setTimeout>|null>(null);
  const task=deck?.tasks[step],currentTheme=THEME_DEFINITIONS.find(t=>t.id===active)!;
  /** No playable English voice (failed, muted or unsupported): a listening task
@@ -211,7 +214,7 @@ export function ThemeTownAdventure({profileId,englishLevel,gradeLevel,onBack,onS
  };
  const selectedTiles=task?wordTiles(task,selected):[];
  const percent=deck&&count?Math.round(100*Math.min(step,count)/count):0;
- return <div className="tt-root" role="dialog" aria-modal="true" aria-label="Tema Kasabası">
+ return <div ref={dialogRef} className="tt-root" role="dialog" aria-modal="true" aria-label="Tema Kasabası">
   <div className="tt-shell">
    <header className="tt-header">
     <button className="tt-back" type="button" data-game-exit disabled={saving} onClick={leave} aria-label="Kelime Bahçesi'ne ya da tema listesine dön">← <span>Geri</span></button>

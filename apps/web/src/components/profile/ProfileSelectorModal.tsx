@@ -13,6 +13,7 @@ import {AvatarPortrait} from './AvatarPortrait';
 import './avatar-collection.css';
 import {StarterPlacementCheck} from './StarterPlacementCheck';
 import {ParentalGateModal} from './ParentalGateModal';
+import {useDialogFocus} from '@/lib/a11y/useDialogFocus';
 
 interface ProfileSelectorModalProps{
  isOpen:boolean;
@@ -43,6 +44,10 @@ export const ProfileSelectorModal:React.FC<ProfileSelectorModalProps>=({
  // through the parental gate (a sibling cannot do it with one tap).
  const [deleteCandidate,setDeleteCandidate]=useState<PlayerProfile|null>(null);
  const deleteTrigger=useRef<HTMLElement|null>(null);
+ // Focus moves into the dialog on open (so Escape works at once), stays inside
+ // and returns to the opener on close.
+ const dialogRef=useRef<HTMLDivElement>(null);
+ useDialogFocus(dialogRef,isOpen);
  const [creating,setCreating]=useState(false);
  const [nickname,setNickname]=useState('');
  const [newAvatar,setNewAvatar]=useState(VENTRA_STARTER_AVATARS[0].id);
@@ -183,7 +188,7 @@ export const ProfileSelectorModal:React.FC<ProfileSelectorModalProps>=({
  const affordable=Boolean(shop&&shop.balance>=selected.price);
  return <div className="fixed inset-0 z-[120] flex items-center justify-center bg-[#030c20]/90 p-2 backdrop-blur-xl sm:p-4"
   onKeyDown={e=>{if(e.key==='Escape'&&!busy&&!deleteCandidate){e.stopPropagation();onClose();}}}>
-  <div role="dialog" aria-modal="true" aria-label="Oyuncular ve avatar koleksiyonu"
+  <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Oyuncular ve avatar koleksiyonu"
    className="avatar-v2 relative flex max-h-[96dvh] w-full max-w-6xl flex-col overflow-y-auto rounded-[28px] border-2 border-sky-200/35 bg-gradient-to-br from-[#143c69] via-[#151b55] to-[#25134f] text-white shadow-[0_24px_85px_#010a29b8] sm:rounded-[35px]">
    <div aria-hidden="true" className="pointer-events-none absolute inset-0 overflow-hidden rounded-[28px]">
     <div className="absolute -top-24 right-4 h-72 w-72 rounded-full bg-fuchsia-400/15 blur-[80px]"/>

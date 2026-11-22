@@ -1,5 +1,6 @@
 'use client';
 import React,{useEffect,useRef,useState} from 'react';
+import {useDialogFocus} from '@/lib/a11y/useDialogFocus';
 import {soundService} from '@/lib/audio/SoundService';
 import {alphabetVisual,visualForEnglishWord} from '@/lib/learning/learningArt';
 import {getProgressRepository} from '@/lib/progress';
@@ -58,6 +59,8 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
  const started=useRef(0);
  const locked=useRef(false);
  const alive=useRef(true);
+ const dialogRef=useRef<HTMLDivElement>(null);
+ useDialogFocus(dialogRef);
  const task=deck[step];
  const focus=ALPHABET_LETTERS.find(x=>x.id===task?.letterId);
  const recommended=ALPHABET_LESSONS.find(x=>!progress.replays[x.id])?.id??1;
@@ -202,7 +205,7 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
  };
  const wordTiles=task?.kind==='build-word'?selected.map(index=>task.choices[index]):[];
  const percent=deck.length?Math.round(100*Math.min(step,deck.length)/deck.length):0;
- return <div className="ag-root" role="dialog" aria-modal="true" aria-label="Harf Korusu">
+ return <div ref={dialogRef} className="ag-root" role="dialog" aria-modal="true" aria-label="Harf Korusu">
   <div className="ag-starscape" aria-hidden="true"/>
   <div className="ag-shell">
    <header className="ag-header">
