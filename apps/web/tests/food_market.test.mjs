@@ -284,7 +284,9 @@ test('G5 recognition assesses English words, never copies the featured illustrat
 });
 test('G5 listening and customer dialogue do not print or duplicate the answer without assisted mode',()=>{
  const ui=readSource('../src/components/learning/activities/FoodMarketAdventure.tsx');
- const intro=ui.slice(ui.indexOf('<div className="fm-command fm4-command">',ui.indexOf('<div className="fm-command fm4-command">')+1),
+ // Second command block = the question prompt (it also carries the focus ref).
+ const command='className="fm-command fm4-command">';
+ const intro=ui.slice(ui.indexOf(command,ui.indexOf(command)+1),
   ui.indexOf('{stage===2&&<div className="fm-featured'));
  assert.match(intro,/Customer says:/);
  assert.doesNotMatch(intro,/stage===4\?<><strong>Customer says:<\/strong><strong className="fm-english">\{task.prompt\}/);
