@@ -87,12 +87,24 @@ Testler: 517 → 562 (ilk paket) → **606** (ikinci paket); CI tüm test dosyal
 | P2 | Liman sahne eşyası dokunuşları İngilizce puanını düşürüyordu | Ayrı izlenir, puana girmez | Kaynak testi | `13cb4d6` |
 | P2 | Pasaport çocuğa teknik İngilizce hata gösteriyordu | Gerçek neden korunur, Türkçe çocuk metni | Birim testi | `13cb4d6` |
 | P2 | Kullanılmayan bileşenler | `RewardModal`, `GameLevelMap`, `MobileMeadowWorld`, `NumberPlaceWorkshop` silindi | `tsc` + build | `87b80c7` |
-| P2 | Modal odak yönetimi (profil, Tema, Harf) | `useDialogFocus` + `focusMemory`: içeri al, Tab'ı tut, açana geri ver | Chrome: 70 Tab dışarı çıkmadı, Escape sonrası odak açan düğmede | `87a8acc`, `89bdb10` |
+| P2 | Modal odak yönetimi (profil, Tema, Harf) | `useDialogFocus` + `focusMemory`: içeri al, Tab'ı tut, açana geri ver | Chrome, profil penceresi: 70 Tab dışarı çıkmadı, Escape sonrası odak açan düğmede. **Düzeltme:** Tema/Harf'ten çıkışta odak açana dönmüyordu (üçüncü kontrol) | `87a8acc`, `89bdb10` |
 | P2 | Meydan kelime kutuları 30×39 px | 44 px | Kaynak testi + 320 px ölçümü | `21010fe` |
 | P2 | Hikâye: yükleme hatasında yeniden deneme yok; tekrar oyunları aynı; yer kartı etiketleri ham İngilizce | "↻ Tekrar dene", geçmişe göre değişen bölümler, Türkçe yer etiketleri, odak | Birim + entegrasyon testi | `5e3d7d0` |
 | P2 | Uzun A2 cümleleri otomatik geçişte kesiliyordu (Meydan, Hareket) | Ses bitince geçiş (`sentenceAutoAdvance`), sesi yoksa okuma süresi | Sahte saatle zaman testi | `5e3d7d0` |
 | P2 | Meydan çeldiricileri hep aynıydı | Cümleye göre çeldirici: 1 288 soruda 1 013 farklı set | Birim testi | `5e3d7d0` |
 | P2 | Fener seçimleri Türkçe–Türkçe eşleme | Renk ve yer seçenekleri İngilizce | Birim testi | `5e3d7d0` |
+
+## Üçüncü kontrol — GitHub Actions ve geliştirme modu (22 Kasım 2026)
+
+Test yöntemi: her push'tan sonra GitHub Actions (TypeScript, regresyon testleri, production web build, Android APK + release bundle, iOS Simulator); ardından yerelde `npm run dev:web` ile manuel test. Otomatik testler gerçek cihaz testi değildir; hiçbir oyun yerelde kontrol edilmeden onaylanmış sayılmaz.
+
+- `eec8ce9` için Actions'taki tüm işler yeşildi: web, Android, iOS ve konuşma QA. "cancelled" görünen koşular, `cancel-in-progress` ayarı nedeniyle bir sonraki push'un iptal ettiği ara koşulardır.
+- Manuel test `next dev` ile, yani React StrictMode açıkken yapıldığı için odak kancaları bu modda yeniden ölçüldü. Harf ve Tema açılışta odağı içeri alıyor ve 30 Tab'da bir kez bile dışarı çıkmıyor; StrictMode'un sahte kapanışı odağı kaçırmıyor.
+
+| Madde | Sorun | Düzeltme | Doğrulama | Commit |
+|---|---|---|---|---|
+| P1 Oyun/veri | Dünyaya girdikten sonraki ilk ~2 saniyede ya da `?open=` bağlantısıyla bir ada açılınca, alttaki ada haritası (Phaser) kilitsiz kalıyordu. Bahçe'de fareyle Lezzet Pazarı'na tıklamak alttaki Keşif Akademisi adasına da gidiyor, 1,5 saniye sonra oyun kapanıp Akademi açılıyordu; kaydedilmemiş oyun durumu kayboluyordu. | Kilidin son değeri ortak durumda tutuluyor (`setWorldInputLocked` / `isWorldInputLocked`). Sahne başlarken bu değeri okuyor; uyutma sahne çalışmaya başlayınca uygulanıyor; ada isabet alanları kilit değiştiğinde iki yönde de yeniden hesaplanıyor. | Chrome, eski kod: dev'de 3/3; production'da hızlı giriş 2/2 ve `?open=` her seferinde hatalı, 3 saniye sonra giriş sorunsuz. Düzeltmeden sonra dev ve production'da: kilit tutuyor, Bahçe kapanınca dünya açılıyor, haritadaki adaya tıklama çalışıyor. | `8d88e07` |
+| P2 Erişilebilirlik | Bahçe oyunlarından çıkınca odak `<body>`'ye düşüyordu. İkinci paketteki "Tema/Harf açana geri verir" iddiası yanlıştı: açan düğme oyun açılınca DOM'dan kalkıyor. | `useReturnFocus` + `data-return-focus`: odak oyunu açan karta ya da düğmeye dönüyor. Klavye kullanıcısı için hedef görünmüyorsa ortalanıyor; fare ve dokunmatikte kaydırma ve halka yok. | Chrome, dev ve production, 1280 ve 390 px: klavye 4/4, fare 2/2 | `429931c` |
 
 ## Açık kalan riskler ve öneriler
 
@@ -119,6 +131,7 @@ Testler: 517 → 562 (ilk paket) → **606** (ikinci paket); CI tüm test dosyal
 - Fener Festivali 2. ve 4. bölüm: telefonda 2×2 konum seçicisi.
 - Yazı Atölyesi: telefon klavyesinin "Bitti/Git" tuşu cevabı kontrol ediyor mu.
 - İki sekmede aynı oyunu bitirmek: etkinlik listesinde tek satır.
+- Uygulamayı açar açmaz (ilk 1–2 saniyede) bir adaya girip oyunda dokunmak: başka bir adaya atlamamalı (özellikle yavaş telefonda).
 
 ## Yeni ortak modüller (korunmalı)
 - `lib/progress/levelProgressMap.ts` — seviye haritası; yeni oyun 10'dan fazla seviye kullanıyorsa sayısını buraya ekleyin.
@@ -126,7 +139,8 @@ Testler: 517 → 562 (ilk paket) → **606** (ikinci paket); CI tüm test dosyal
 - `lib/learning/sentenceTokens.ts` — cümle kelime karşılaştırma, çeldirici ve ders örneği filtresi.
 - `lib/learning/englishAnswerText.ts` — yazılı/konuşulan cevap normalizasyonu (bulanık eşleştirme değildir).
 - `lib/progress/gameCompletionPlan.ts` — iki depo için ortak yıldız/deneme/etkinlik planı; IndexedDB'de `readThenWrite` ile tek işlemde uygulanır.
-- `components/learning/activities/useQuestionFocus.ts`, `lib/a11y/useDialogFocus.ts`, `lib/a11y/focusMemory.ts` — odak sözleşmesi.
+- `components/learning/activities/useQuestionFocus.ts`, `lib/a11y/useDialogFocus.ts`, `lib/a11y/focusMemory.ts`, `lib/a11y/useReturnFocus.ts`, `lib/a11y/focusLost.ts` — odak sözleşmesi.
+- `lib/game/EventBus.ts` → `setWorldInputLocked` / `isWorldInputLocked` — ada haritası kilidi ortak durumdur; doğrudan `SET_WORLD_INPUT_LOCKED` yayınlamayın.
 - `components/learning/tutorialReplay.tsx` — öğreticiyi oyunun kendi yardımından tekrar açma.
 - `lib/speech/modelDownload.ts` — bayt ilerlemeli, bütünlük denetimli model indirme.
 - `components/learning/sentence/sentenceAutoAdvance.ts` — ses bitince otomatik geçiş.
