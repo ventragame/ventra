@@ -3,7 +3,7 @@
 import React, { useEffect, useRef, memo } from 'react';
 import Phaser from 'phaser';
 import { WorldScene } from './scenes/WorldScene';
-import { EventBus } from '@/lib/game/EventBus';
+import { EventBus, isWorldInputLocked } from '@/lib/game/EventBus';
 
 interface PhaserGameProps {
   wordGardenStatus: 'dormant' | 'blooming';
@@ -28,7 +28,6 @@ const PhaserGameComponent: React.FC<PhaserGameProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
-  const worldLockedRef = useRef(false);
 
   const callbacksRef = useRef({ onOpenLearningPath, onToast });
   callbacksRef.current = { onOpenLearningPath, onToast };
@@ -40,18 +39,18 @@ const PhaserGameComponent: React.FC<PhaserGameProps> = ({
       if(!game)return;
       try {
         const sleeping=game.scene.isSleeping('WorldScene');
-        const shouldSleep=worldLockedRef.current || document.hidden;
+        // The shared lock survives a remount of this component; a ref did not.
+        const shouldSleep=isWorldInputLocked() || document.hidden;
         if(shouldSleep && !sleeping)game.scene.sleep('WorldScene');
         else if(!shouldSleep && sleeping)game.scene.wake('WorldScene');
       } catch {
         // Scene may not have finished its initial Phaser preload.
       }
     };
-    const onWorldLock=(locked:boolean)=>{
-      worldLockedRef.current=Boolean(locked);
-      applyFrameBudget();
-    };
+    const onWorldLock=()=>applyFrameBudget();
     EventBus.on('SET_WORLD_INPUT_LOCKED',onWorldLock);
+    // A scene can only sleep once it runs; a lock sent while it loaded applies then.
+    EventBus.on('WORLD_SCENE_READY',applyFrameBudget);
     document.addEventListener('visibilitychange',applyFrameBudget);
 
     const timer = setTimeout(() => {
@@ -118,6 +117,7 @@ const PhaserGameComponent: React.FC<PhaserGameProps> = ({
       EventBus.off('OPEN_LEARNING_PATH', handleOpenPath);
       EventBus.off('SHOW_TOAST', handleToast);
       EventBus.off('SET_WORLD_INPUT_LOCKED',onWorldLock);
+      EventBus.off('WORLD_SCENE_READY',applyFrameBudget);
       document.removeEventListener('visibilitychange',applyFrameBudget);
 
       if (gameRef.current) {

@@ -43,7 +43,7 @@ import { COSMETICS,type CosmeticId } from '../../lib/rewards/economyEngine';
 import { soundService } from '../../lib/audio/SoundService';
 import { AvatarPortrait } from '../../components/profile/AvatarPortrait';
 const AudioSettingsPanel = dynamic(() => import('../../components/audio/AudioSettingsPanel').then((module) => module.AudioSettingsPanel), { loading: () => <div role="status" className="text-center text-sm text-sky-100 p-6">Ventra bölümü yükleniyor…</div> });
-import { EventBus } from '../../lib/game/EventBus';
+import { EventBus, setWorldInputLocked } from '../../lib/game/EventBus';
 import './kids-world-premium.css';
 import './kids-course-entry.css';
 
@@ -126,7 +126,7 @@ export default function VentraKidsWorldPage() {
   );
 
   useEffect(() => {
-    EventBus.emit('SET_WORLD_INPUT_LOCKED', isWorldLocked);
+    setWorldInputLocked(isWorldLocked);
   }, [isWorldLocked]);
 
   useEffect(() => {

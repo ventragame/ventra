@@ -1,5 +1,5 @@
 import Phaser from 'phaser';
-import { EventBus } from '@/lib/game/EventBus';
+import { EventBus, isWorldInputLocked } from '@/lib/game/EventBus';
 import { soundService } from '@/lib/audio/SoundService';
 import {archipelagoBadgeAnchor,archipelagoOpticalShiftPixels,archipelagoCameraFraming} from '@/lib/game/archipelagoPresentation';
 import {ARCHIPELAGO_SKYBRIDGES,ARCHIPELAGO_SKYBRIDGE_MATERIAL,skybridgePoint,skybridgeNormal} from '@/lib/game/archipelagoBridges';
@@ -115,7 +115,8 @@ export class WorldScene extends Phaser.Scene {
     if(typeof data.forestCompletedLevels==='number')this.forestCompletedLevels=data.forestCompletedLevels;
     if(typeof data.harborCompletedLevels==='number')this.harborCompletedLevels=data.harborCompletedLevels;
     this.isTransitioning = false;
-    this.isInputLocked = false;
+    // Honour a lock sent before this scene existed (an island may already be open).
+    this.isInputLocked = isWorldInputLocked();
   }
 
   preload(): void {
@@ -172,6 +173,10 @@ export class WorldScene extends Phaser.Scene {
 
     // 8. EventBus ve Pencere Dinleyicilerini Bağla
     this.setupEventListeners();
+    // An island opened while this scene was loading keeps the world locked:
+    // clicks inside that game must never reach the islands drawn underneath.
+    if (isWorldInputLocked()) this.setInputLocked(true);
+    this.events.once(Phaser.Scenes.Events.UPDATE, () => EventBus.emit('WORLD_SCENE_READY'));
 
     // 9. Resize Dinleyicisi
     this.scale.on('resize', this.handleResize, this);
@@ -677,6 +682,9 @@ export class WorldScene extends Phaser.Scene {
     if (this.input) {
       this.input.enabled = !locked;
     }
+    // Island and label targets follow the lock both ways: a presentation
+    // update made while locked used to leave them disabled after release.
+    this.updateIslandPresentation();
   }
 
   // TÜM ADALARIN HOVER VE ÖLÇEKLERİNİ SIFIRLAYAN GÜVENLİK YARDIMCISI
