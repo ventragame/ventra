@@ -18,6 +18,7 @@ import './word-garden-world-art.css';
 import {soundService} from '@/lib/audio/SoundService';
 import {musicSceneForDistrict} from '@/lib/audio/MusicDirector';
 import {FirstPlayHost} from './FirstPlayGuide';
+import {useReturnFocus} from '@/lib/a11y/useReturnFocus';
 import type {TutorialWorld} from '@/lib/learning/firstPlayTutorial';
 import { AnimalMeadowAdventure } from './activities/AnimalMeadowAdventure';
 import { ColorGroveAdventure } from './activities/ColorGroveAdventure';
@@ -194,6 +195,9 @@ export const LearningPathModal: React.FC<LearningPathModalProps> = ({
     window.addEventListener('keydown', onKey);
     return () => window.removeEventListener('keydown', onKey);
   }, [district, onClose]);
+  // Leaving a game rebuilds the overview: focus goes back to the control the
+  // child opened the game from instead of falling to <body>.
+  useReturnFocus(district,'overview');
 
   const withFirstPlay=(world:TutorialWorld,ready:boolean,hasPlayed:boolean,game:React.ReactNode)=>
     <FirstPlayHost key={profileId+':'+world} world={world} profileId={profileId} ready={ready} hasPlayed={hasPlayed}>{game}</FirstPlayHost>;

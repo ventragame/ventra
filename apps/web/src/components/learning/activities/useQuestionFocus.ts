@@ -1,14 +1,11 @@
 'use client';
 
 import {useEffect,useRef} from 'react';
+import {focusIsLost} from '../../../lib/a11y/focusLost.ts';
 
 /** True when keyboard focus has nowhere useful to be: on <body>, on a node that
  * was removed with the previous question, or on a control that was just disabled. */
-export function questionFocusLost(active:Element|null):boolean{
- if(!active||active===document.body||active===document.documentElement||!active.isConnected)return true;
- if(active instanceof HTMLButtonElement||active instanceof HTMLInputElement)return active.disabled;
- return active.getAttribute('aria-disabled')==='true';
-}
+export const questionFocusLost=focusIsLost;
 
 /**
  * Shared Kelime Bahçesi focus rule (P1 a11y audit). When a new question

@@ -145,7 +145,7 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
      <div className="wg-strip-track"><span style={{width:`${summary.percent}%`}}/></div>
      <strong>%{summary.percent}</strong>
     </div>
-    <button type="button" className="wg-hero-primary" onClick={playFeatured}
+    <button type="button" className="wg-hero-primary" onClick={playFeatured} data-return-focus="featured"
       aria-label={`${GARDEN_THEMES[featured.id].name}: ${featuredState==='complete'?'yeniden oyna':featuredState==='continue'?'devam et':'oyna'}`}>
        <span aria-hidden="true">▶</span> {featuredState==='complete'?'Yeniden Oyna':featuredState==='continue'?'Devam Et':'Oyna'}
     </button>
@@ -171,7 +171,7 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
       <p>Harfleri dinle, resimlerle kelimeleri keşfet.</p>
       <div className="wg-alpha-meta"><span>🔤 A–Z</span><span>🎧 Ses ve kelime</span><span>✦ {alphabetCompleted}/12 ders</span></div>
      </div>
-     <button className="wg-alpha-start" type="button" onClick={onEnterAlphabet}
+     <button className="wg-alpha-start" type="button" onClick={onEnterAlphabet} data-return-focus="view:alphabet"
       disabled={!alphabetReady||alphabetError}
       aria-label={'Harf Korusu: '+(alphabetError?'ilerleme yüklenemedi':alphabetReady?'öğrenmeye başla':'yükleniyor')}>
       {alphabetError?'Kayıt okunamadı':!alphabetReady?'Yükleniyor…':alphabetCompleted?'Devam Et →':'Keşfet →'}
@@ -190,7 +190,7 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
       <p>Okul, kıyafetler, hava durumu ve günlük İngilizce.</p>
       <div className="wg-theme-tags"><span>🎧 Sesli</span><span>🕰️ Saat oyunu</span><span>✦ {themeCompleted}/8 tema</span></div>
      </div>
-     <button type="button" className="wg-theme-enter" onClick={onEnterThemes}
+     <button type="button" className="wg-theme-enter" onClick={onEnterThemes} data-return-focus="view:themes"
       disabled={!themesReady||themesError}
       aria-label={'Tema Kasabası: '+(themesError?'ilerleme okunamadı':themesReady?'oyunlara gir':'yükleniyor')}>
       {themesError?'Kayıt okunamadı':!themesReady?'Yükleniyor…':themeCompleted?'Devam Et →':'Keşfet →'}
@@ -215,7 +215,7 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
        return <button type="button" key={id}
         onClick={()=>{setSelected(id);if(obj)enter(obj);}}
         onMouseEnter={()=>setSelected(id)} onFocus={()=>setSelected(id)}
-        disabled={!playable}
+        disabled={!playable} data-return-focus={'view:'+id}
         aria-label={`${theme.name}, ${p.completed}/${p.total} görev, ${districtStatusLabel(state)}`}
         className={`wg-world-card wg-card-${id} ${focus===id?'wg-card-featured':''} ${!playable?'wg-card-disabled':''}`}
         style={{'--wg-accent':theme.accent,'--wg-light':theme.light} as React.CSSProperties}>
