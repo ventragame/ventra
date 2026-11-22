@@ -1,0 +1,193 @@
+/* Aile Köyü — premium layer, loaded after the V5/V6 skins, the guides and the
+   shared quest navigation, before the child legibility floor. The storybook
+   picture becomes a scene strip carrying the feedback and the step counter,
+   help and sound share the header, the duplicate location bar and second help
+   button are gone and every mission fits the screen. */
+
+/* 1. Header: compact masthead; the help pill fits its label; sound joins it. */
+.fv5-screen.fv7-screen .fv5-top{min-height:76px;max-height:none;margin-bottom:8px;padding:4px 14px}
+.fv5-screen.fv7-screen .fv5-brand img{width:min(330px,27vw);max-height:74px}
+.fv5-screen.fv7-screen .fv5-back{min-height:48px;padding:7px 16px;font-size:15px;gap:9px}
+.fv5-screen.fv7-screen .fv5-back-arrow{font-size:22px}
+.fv5-screen.fv7-screen .fv5-stars{min-height:48px;padding:6px 14px;font-size:16px}
+.fv5-screen.fv7-screen .fv5-stars>span{font-size:21px}
+.fv5-screen.fv7-screen .fv5-top-actions{gap:10px}
+/* The shared help button is a 44px circle; this one carries its label. */
+.fv5-screen.fv7-screen .fv5-top-actions .wg-game-help summary{width:auto;height:auto;min-height:48px;
+ padding:6px 16px;border-radius:40px;font-size:15px}
+.fv5-screen.fv7-screen .fv5-top-actions .fv5-audio-toggle{width:48px;height:48px;min-width:48px;min-height:48px;
+ font-size:22px;border-width:3px;border-radius:16px}
+
+/* The masthead picture still shows the reference's old buttons at its edges
+   ("…esi" behind the back button, "Oy…" behind sound): mask them fully. */
+.fv5-screen.fv7-screen .fv5-top:after{background:linear-gradient(90deg,#062859 0%,#082e62 31%,transparent 40%,
+ transparent 61%,#072b65 70%,#061e58 100%)}
+
+/* 2. The location bar repeats the highlighted district and step: screen readers only. */
+.fv7-screen .gg-quest-location{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+ clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.fv7-screen .gg-quest-navigation{margin-bottom:8px}
+
+/* 3. District icons: the V4 tile background hid the V5 artwork (blank circles). */
+.fv5-screen.fv7-screen .fv3-district .fv-district-icon.fv5-district-icon{
+ width:46px;height:46px;border:0;border-radius:0;box-shadow:none;background-color:transparent;
+ background-image:url('/assets/family-village/reference-v5/village-ref-icons.webp');
+ background-size:900% 100%;background-repeat:no-repeat}
+.fv5-screen.fv7-screen .fv3-district .fv5-district-icon-family{background-position:0% 50%}
+.fv5-screen.fv7-screen .fv3-district .fv5-district-icon-rooms{background-position:12.5% 50%}
+.fv5-screen.fv7-screen .fv3-district .fv5-district-icon-objects{background-position:25% 50%}
+.fv5-screen.fv7-screen .fv3-district .fv5-district-icon-routines{background-position:37.5% 50%}
+/* The backpack crop carries letters from the reference ("E Ö"): a narrower
+   window shows the backpack alone, undistorted (cell height 46px, width 30px). */
+.fv5-screen.fv7-screen .fv3-district .fv-district-icon.fv5-district-icon-objects{width:30px;
+ background-size:1380% 100%;background-position:23.96% 50%}
+/* Step icons: the reference crops were cut off (half a house, half a speech
+   bubble, a stray "2"); the stage emoji stay crisp at every size. */
+.fv5-screen.fv7-screen .fv5-stepnav .fv3-step-icon{display:grid;place-items:center;width:auto;height:auto;
+ background:none;filter:none;font-size:22px;line-height:1}
+/* Districts and steps: one compact row each. */
+.fv5-screen.fv7-screen .fv5-district-nav{margin:0 0 8px;gap:10px}
+.fv5-screen.fv7-screen .fv5-district-nav .fv3-district{min-height:60px;padding:6px 12px;border-radius:18px;align-items:center}
+.fv5-screen.fv7-screen .fv5-district-nav .fv3-district strong{font-size:clamp(14px,1.2vw,18px)}
+.fv5-screen.fv7-screen .fv5-district-nav .fv3-district small{font-size:12px;margin-top:2px}
+.fv5-screen.fv7-screen .fv5-district-nav .fv4-district-lock{font-size:15px;top:6px;right:8px}
+.fv5-screen.fv7-screen .fv5-stepnav{margin:0 0 8px;gap:8px}
+.fv5-screen.fv7-screen .fv5-stepnav .fv3-step{min-height:50px;border-radius:18px;padding:4px 8px}
+.fv5-screen.fv7-screen .fv5-stepnav .fv3-step-title{font-size:14px}
+.fv5-screen.fv7-screen .fv5-stepnav .fv3-step b{font-size:13px}
+
+/* 4. Scene strip: picture, place, step counter and the feedback toast. */
+.fv5-screen.fv7-screen .fv5-card{border-width:3px;border-radius:26px}
+.fv5-screen.fv7-screen .fv5-scene{height:clamp(112px,10vw,136px)}
+.fv5-screen.fv7-screen .fv5-scene .fv3-landscape img{object-position:center 42%}
+.fv5-screen.fv7-screen .fv5-scene .fv3-place{bottom:8px;left:10px;padding:5px 11px}
+.fv5-screen.fv7-screen .fv5-scene .fv3-place small{font-size:12px}
+.fv7-screen .fv7-scene-count{position:absolute;z-index:5;top:10px;right:12px;padding:5px 12px;border-radius:999px;
+ border:2px solid #ffdb91;background:#fff9e5;color:#462164;font-size:13px;font-weight:1000;
+ font-variant-numeric:tabular-nums;box-shadow:0 4px 0 #bea68b}
+.fv7-screen .fv7-toast{
+ position:absolute;z-index:6;top:12px;left:50%;transform:translateX(-50%);
+ display:flex;align-items:baseline;justify-content:center;flex-wrap:wrap;gap:2px 10px;
+ width:max-content;max-width:calc(100% - 300px);margin:0;padding:9px 20px;border-radius:999px;
+ font-size:18px;font-weight:1000;line-height:1.2;text-align:center;
+ color:#2f5f1f;background:#fffbe2f7;border:3px solid #fff;
+ box-shadow:0 5px 0 #6aa84fa8,0 10px 24px #1b145566;
+ animation:fv7-toast-in .32s cubic-bezier(.2,1.5,.45,1) both;pointer-events:none}
+.fv7-screen .fv7-toast[data-good=false]{color:#6b2338;background:#fff0f2f7;box-shadow:0 5px 0 #c0577aa0,0 10px 24px #4a1b2d40}
+.fv7-screen .fv7-toast small{font-size:13px;font-weight:850;opacity:.85}
+@keyframes fv7-toast-in{from{opacity:0;transform:translate(-50%,-8px) scale(.9)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
+
+/* 5. Panel: slim progress, compact prompt, featured picture and answers. */
+.fv5-screen.fv7-screen .fv5-panel{padding:10px clamp(12px,2.4vw,30px) 14px}
+.fv5-screen.fv7-screen .fv5-hud-progress{width:100%;max-width:905px;margin:0 auto}
+.fv5-screen.fv7-screen .fv5-hud-progress .fv3-meter{height:12px;border-width:2px}
+.fv5-screen.fv7-screen .fv5-prompt{min-height:0;margin:8px auto;padding:6px 14px;border-width:3px;border-radius:22px}
+.fv5-screen.fv7-screen .fv5-prompt>span.fv-guide-portrait{flex-basis:64px;width:64px;height:64px}
+.fv5-screen.fv7-screen .fv5-prompt strong{font-size:clamp(18px,1.8vw,25px)}
+.fv5-screen.fv7-screen .fv5-featured{margin:4px auto 6px}
+.fv5-screen.fv7-screen .fv5-featured .fv3-word-art{width:124px;height:112px}
+.fv5-screen.fv7-screen .fv5-featured-portrait .fv6-character-art{width:142px;height:142px;max-height:142px}
+.fv5-screen.fv7-screen .fv5-featured-portrait .fv3-featured-label{margin-top:4px;font-size:14px}
+.fv5-screen.fv7-screen .fv5-activity .fv3-actions{margin:4px auto 6px}
+.fv5-screen.fv7-screen .fv5-activity .fv-hint-button{min-height:44px;font-size:13px}
+.fv5-screen.fv7-screen .fv3-audio-task{margin:4px auto 6px}
+.fv5-screen.fv7-screen .fv3-audio-task p{margin:6px 0 0;font-size:14px}
+.fv5-screen.fv7-screen .fv7-listen-status{font-size:13px;color:#f4e8ff}
+.fv5-screen.fv7-screen .fv5-answer-grid{margin:6px auto}
+.fv5-screen.fv7-screen .fv5-answer-grid .fv3-choice.fv-choice-icon,
+.fv5-screen.fv7-screen .fv5-answer-grid .fv3-choice.fv-choice-translation{min-height:118px}
+.fv5-screen.fv7-screen .fv5-answer-grid .fv3-choice.fv-choice-phrase{min-height:70px}
+.fv5-screen.fv7-screen .fv5-answer-grid .fv-choice-phrase .fv-choice-label{font-size:clamp(16px,1.6vw,21px)}
+.fv5-screen.fv7-screen .fv5-answer-grid .fv-choice-label{font-size:14px}
+.fv5-screen.fv7-screen .fv5-answer-grid .fv-choice-english .fv-choice-label{font-size:clamp(17px,1.9vw,25px)}
+.fv5-screen.fv7-screen .fv3-discovery{min-height:128px}
+.fv5-screen.fv7-screen .fv5-answer-grid .fv3-choice .fv-check{font-size:14px}
+.fv5-screen.fv7-screen .fv3-discovery strong{font-size:16px}
+.fv5-screen.fv7-screen .fv3-discovery small{font-size:12px}
+/* Answers answer back: correct pops, wrong shakes. */
+.fv7-screen .fv5-answer-grid .fv3-choice.fv-choice-correct{animation:fv7-pop .55s cubic-bezier(.2,1.5,.4,1) both}
+.fv7-screen .fv5-answer-grid .fv3-choice[data-wrong=true]{animation:fv7-shake .42s ease-in-out both}
+@keyframes fv7-pop{0%{transform:scale(1)}40%{transform:translateY(-6px) scale(1.05)}100%{transform:scale(1)}}
+@keyframes fv7-shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}
+ 40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(2px)}}
+
+/* 6. Reward: honest result and a tap-to-hear recap with the word pictures. */
+.fv5-screen.fv7-screen .fv3-celebrate{padding:8px 0 4px}
+.fv5-screen.fv7-screen .fv-guide-reward{width:118px;height:118px}
+.fv5-screen.fv7-screen .fv3-celebrate h2{margin:2px 0 0;font-size:clamp(22px,2.4vw,30px)}
+.fv5-screen.fv7-screen .fv3-celebrate .fv-result{margin:2px 0 0;letter-spacing:4px}
+.fv7-screen .fv7-win-stats{margin:4px 0 0;color:#fff4da;font-size:15px;font-weight:900}
+.fv7-screen .fv7-recap{margin:12px auto 4px;max-width:700px}
+.fv7-screen .fv7-recap-title{margin-bottom:8px;color:#e9dcff;font-size:12px;font-weight:900;letter-spacing:.04em}
+.fv7-screen .fv7-recap-list{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.fv7-screen .fv7-recap-word{display:inline-flex;align-items:center;gap:6px;min-height:48px;
+ padding:3px 14px 3px 4px;border-radius:999px;border:2px solid #ffe9b9;
+ background:linear-gradient(145deg,#fffaf0,#ffe9b9);color:#54206b;font-size:16px;font-weight:1000;
+ box-shadow:0 4px 0 #c68a88;touch-action:manipulation}
+.fv7-screen .fv7-recap-art{display:grid;place-items:center;width:40px;height:40px;flex:none}
+.fv7-screen .fv7-recap-art .fv3-word-art{width:40px;height:40px;max-width:40px;max-height:40px}
+.fv7-screen .fv7-recap-word:active:not(:disabled){transform:translateY(2px);box-shadow:0 2px 0 #c68a88}
+.fv7-screen .fv7-recap-word:disabled{opacity:.8}
+.fv7-screen .fv7-recap-word:focus-visible{outline:3px solid #fff1a1;outline-offset:3px}
+/* Short screens: the next-mission button comes before the recap. */
+@media(max-height:940px){
+ .fv7-screen .fv3-celebrate{display:flex;flex-direction:column;align-items:center}
+ .fv7-screen .fv3-celebrate .fv7-recap{order:10;width:100%}
+}
+
+/* 7. Phones: compact header, the play area fills the screen, answers in the thumb zone. */
+@media(max-width:767px){
+ /* The nameplate sits between the back button and the tools; the masthead
+    picture's own lettering would show through behind it, so phones use a plain sky. */
+ .fv5-screen.fv7-screen .fv5-top{min-height:60px;padding:4px 4px;gap:6px}
+ .fv5-screen.fv7-screen .fv5-top:before{display:none}
+ .fv5-screen.fv7-screen .fv5-top:after{inset:0 -8px -4px;background:linear-gradient(180deg,#0b4a95,#08245f)}
+ .fv5-screen.fv7-screen .fv5-brand{position:static;flex:1 1 auto;min-width:0;pointer-events:none}
+ .fv5-screen.fv7-screen .fv5-brand img{width:100%;max-width:140px;max-height:52px}
+ .fv5-screen.fv7-screen .fv5-back{min-height:44px;padding:4px 12px}
+ .fv5-screen.fv7-screen .fv5-back-text{display:none}
+ .fv5-screen.fv7-screen .fv5-stars{min-height:44px;padding:4px 10px;font-size:14px}
+ .fv5-screen.fv7-screen .fv5-stars>span{font-size:16px}
+ .fv5-screen.fv7-screen .fv5-stars-total{display:none}
+ .fv5-screen.fv7-screen .fv5-top-actions{gap:6px}
+ .fv5-screen.fv7-screen .fv5-top-actions .wg-game-help summary{width:44px;min-height:44px;height:44px;padding:0;border-radius:50%}
+ .fv5-screen.fv7-screen .fv5-top-actions .wg-game-help summary:after{content:none}
+ .fv5-screen.fv7-screen .fv5-top-actions .fv5-audio-toggle{width:44px;height:44px;min-width:44px;min-height:44px;font-size:19px}
+ .fv7-screen .gg-quest-navigation .gg-quest-zone-nav,.fv7-screen .gg-quest-navigation .gg-quest-stage-nav{padding-bottom:6px;margin-bottom:4px}
+ .fv5-screen.fv7-screen .gg-quest-navigation .fv3-district.gg-quest-zone{min-height:56px;padding:4px 8px;gap:6px}
+ .fv5-screen.fv7-screen .fv3-district .fv-district-icon.fv5-district-icon{width:34px;height:34px}
+ .fv5-screen.fv7-screen .fv3-district .fv-district-icon.fv5-district-icon-objects{width:22px}
+ .fv5-screen.fv7-screen .fv5-district-nav .fv3-district small{display:none}
+ .fv5-screen.fv7-screen .gg-quest-navigation .fv3-step.gg-quest-step{min-height:48px;padding:4px 6px}
+ .fv5-screen.fv7-screen .fv5-stepnav .fv3-step-icon{font-size:19px}
+ .fv5-screen.fv7-screen .fv5-stepnav .fv3-step-title{font-size:12px}
+ .fv5-screen.fv7-screen .fv5-scene{height:92px}
+ .fv5-screen.fv7-screen .fv5-scene .fv3-place{bottom:5px;left:6px;padding:3px 8px}
+ .fv5-screen.fv7-screen .fv5-scene .fv3-place small{display:none}
+ .fv5-screen.fv7-screen .fv5-scene .fv3-place strong{font-size:13px}
+ .fv7-screen .fv7-scene-count{top:6px;right:6px;font-size:12px;padding:3px 9px}
+ .fv7-screen .fv7-toast{top:8px;max-width:calc(100% - 16px);padding:6px 14px;font-size:16px;flex-direction:column;align-items:center;border-radius:18px}
+ .fv7-screen .fv7-toast small{font-size:12px}
+ .fv7-screen .fv5-scene:has(.fv7-toast) :is(.fv3-place,.fv7-scene-count){visibility:hidden}
+ .fv5-screen.fv7-screen .fv5-panel{padding:8px 8px 12px}
+ .fv5-screen.fv7-screen .fv5-prompt{padding:5px 8px;gap:8px}
+ .fv5-screen.fv7-screen .fv5-prompt>span.fv-guide-portrait{flex-basis:52px;width:52px;height:52px}
+ .fv5-screen.fv7-screen .fv5-prompt strong{font-size:17px}
+ .fv5-screen.fv7-screen .fv5-featured-portrait .fv6-character-art{width:112px;height:112px;max-height:112px}
+ .fv5-screen.fv7-screen .fv5-featured-portrait .fv3-featured-label{font-size:13px}
+ .fv5-screen.fv7-screen .fv5-featured .fv3-word-art{width:104px;height:96px}
+ .fv5-screen.fv7-screen .fv5-answer-grid .fv3-choice.fv-choice-icon,
+ .fv5-screen.fv7-screen .fv5-answer-grid .fv3-choice.fv-choice-translation{min-height:104px}
+ .fv5-screen.fv7-screen .fv5-answer-grid .fv-choice-english .fv-choice-label{font-size:clamp(14px,4vw,17px)}
+ .fv5-screen.fv7-screen .fv5-answer-grid .fv-choice-phrase .fv-choice-label{font-size:15px}
+ .fv5-screen.fv7-screen .fv3-discovery{min-height:112px}
+ .fv5-screen.fv7-screen .fv3-discovery strong{font-size:14px}
+ /* Fill the screen so the answers drop to the bottom (thumb zone). */
+ .fv5-screen.fv7-screen .fv5-card{display:flex;flex-direction:column;min-height:calc(100dvh - var(--fv7-chrome,238px) - env(safe-area-inset-bottom,0px))}
+ .fv5-screen.fv7-screen .fv5-panel{flex:1 1 auto;display:flex;flex-direction:column}
+ .fv5-screen.fv7-screen .fv5-activity{flex:1 1 auto;display:flex;flex-direction:column}
+ .fv5-screen.fv7-screen .fv5-activity>.fv5-answer-grid,.fv5-screen.fv7-screen .fv5-activity>.fv-grid-discover{width:100%;margin-top:auto}
+}
+@media(prefers-reduced-motion:reduce){
+ .fv7-screen .fv7-toast,.fv7-screen .fv5-answer-grid .fv3-choice{animation:none!important}
+}

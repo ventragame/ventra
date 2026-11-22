@@ -29,7 +29,7 @@ test('Temple never offers a colour crystal a child cannot tell apart from the an
 
 test('Help that gives no help is not recorded as assisted; stage 5 help shows the meaning',()=>{
  const family=src('components/learning/activities/FamilyVillageAdventure.tsx');
- assert.match(family,/if\(stage===4\)\{speak\(task\.audio\);setNotice\('Yönerge İngilizce okunuyor\.'\);return;\}\n\s*setHint\(true\);speak\(task\.audio\);/);
+ assert.match(family,/if\(stage===4\)\{speak\(task\.audio\);setNotice\(\{good:true,text:'🔊 Yönerge okunuyor'\}\);return;\}\n\s*setHint\(true\);speak\(task\.audio\);/);
  assert.match(family,/🔊 \{stage===4\?'Yönergeyi Dinle':'İngilizceyi Duy'\}/);
  const temple=src('components/learning/activities/TempleAdventure.tsx');
  assert.match(temple,/stage===5\?'Anlamı: '\+templeWord\(task\.target\)\.tr:templeWord\(task\.target\)\.en/);

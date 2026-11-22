@@ -23,6 +23,7 @@ import {CharacterGuide,type CharacterMood} from '@/components/learning/motion/Ch
 import './family-village-guides.css';
 import {GardenQuestNavigator} from './GardenQuestNavigator';
 import './garden-quest-navigation.css';
+import './family-village-premium.css';
 import './garden-child-legibility.css';
 
 type Props={
@@ -31,6 +32,8 @@ type Props={
  onSave:(district:VillageDistrict,stage:VillageStage,mistakes:number,duration:number,
  answers:FamilyAnswerEvidence[],sessionId:string)=>Promise<void>;
 };
+type Feedback={text:string;good:boolean;detail?:string;lang?:'en'};
+const upper=(id:string)=>id.toUpperCase();
 const sessionId=(profile:string,d:VillageDistrict,s:VillageStage)=>
  `family:${profile}:${d}:${s}:${Date.now()}:${Math.random().toString(36).slice(2)}`;
 type WordChoiceProps={id:string;mode:'icon'|'english'|'translation'|'phrase';
@@ -80,7 +83,7 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
  const doneHeading=useQuestionFocus<HTMLHeadingElement>(saved?'done':'play');
  const [busy,setBusy]=useState(false);
  const [saveError,setSaveError]=useState('');
- const [notice,setNotice]=useState('');
+ const [notice,setNotice]=useState<Feedback|null>(null);
  const [muted,setMuted]=useState(()=>soundService.getMuted());
  const currentSession=useRef(sessionId(profileId,district,stage));
  const started=useRef(Date.now()),locked=useRef(false),speechRun=useRef(0);
@@ -119,7 +122,7 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
  function speak(text:string,requireFullAudio=false){
    cancelSpeech();
    if(muted||!soundService.hasEnglishSpeech()){
-     if(requireFullAudio){setHint(true);setNotice('Ses kullanılamıyor; yazılı ipucuyla devam edebilirsin.');}
+     if(requireFullAudio){setHint(true);setNotice({good:false,text:'Ses kullanılamıyor',detail:'Yazılı destekle devam edebilirsin.'});}
      return;
    }
    const run=speechRun.current;
@@ -128,10 +131,10 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
      onStart:()=>{if(run===speechRun.current)setSpeaking(true);},
      onEnd:()=>{if(run===speechRun.current){setSpeaking(false);if(requireFullAudio)setHeard(true);}},
      onError:()=>{if(run===speechRun.current){setSpeaking(false);if(requireFullAudio){
-       setHeard(false);setHint(true);setNotice('Ses tamamlanamadı. Yazılı destek açıldı.');
+       setHeard(false);setHint(true);setNotice({good:false,text:'Ses tamamlanamadı',detail:'Yazılı destek açıldı.'});
      }}}
    });
-   if(!started&&requireFullAudio){setHint(true);setNotice('Ses açılamadı. Yazılı destek etkin.');}
+   if(!started&&requireFullAudio){setHint(true);setNotice({good:false,text:'Ses açılamadı',detail:'Yazılı destek etkin.'});}
 
  }
  function start(nextStage:VillageStage,nextDistrict:VillageDistrict=district){
@@ -142,7 +145,7 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
    setDistrict(nextDistrict);setStage(nextStage);setRevision(x=>x+1);
    setVisited([]);setAnswers([]);setMistakes(0);setRoundMistakes(0);setQuestion(0);
    setHint(false);setHeard(false);setAnswered(false);setSelected(null);setWrongIds([]);setSaved(false);
-   setBusy(false);setNotice('');setSaveError('');
+   setBusy(false);setNotice(null);setSaveError('');
  }
  function record(id:string,kind:FamilyAnswerEvidence['kind'],wrong:number,assisted:boolean):FamilyAnswerEvidence{
    return {wordId:id,kind,mistakes:wrong,firstTryCorrect:wrong===0&&!assisted,
@@ -152,10 +155,16 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
    if(!current||stage!==1||busy||saved)return;
    // A previously explored card can be replayed for pronunciation without
    // recording a duplicate discovery event.
-   speak(villageWord(id).id);setNotice(`${villageWord(id).id.toUpperCase()} — ${villageWord(id).tr}`);
+   speak(villageWord(id).id);setNotice({good:true,text:upper(villageWord(id).id),lang:'en',detail:villageWord(id).tr});
    if(visitedRef.current.has(id))return;
    visitedRef.current.add(id);
    setVisited(v=>[...v,id]);setAnswers(v=>[...v,record(id,'discovery',0,false)]);
+ }
+ /** A wrong answer says what the child picked, never what the answer is. */
+ function wrongDetail(id:string):string{
+   const w=villageWord(id);
+   if(stage===2||stage===5)return `${upper(w.id)} = ${w.tr}. Resme yeniden bak.`;
+   return `Bu: ${w.tr} (${upper(w.id)}). ${stage===4?'Yönergeyi yeniden oku.':'Yeniden dinle.'}`;
  }
  function choose(id:string){
    if(!task||!current||saved||busy||answered||locked.current||answerLock.current||wrongRef.current.has(id))return;
@@ -164,7 +173,7 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
      wrongRef.current.add(id);setWrongIds([...wrongRef.current]);
      setMistakes(m=>m+1);setRoundMistakes(m=>m+1);
      soundService.playSfx('gentle_retry',0.65);
-     setNotice('Bir daha dene! Kalan seçeneklere dikkatlice bak.');
+     setNotice({good:false,text:'Bir daha dene! 🦊',detail:wrongDetail(id)});
      return;
    }
    answerLock.current=true;
@@ -172,7 +181,8 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
    const next=[...answers,record(id,kind,roundMistakes,hint||(stage===3&&!heard))];
    setAnswers(next);setSelected(id);setAnswered(true);
    soundService.playSfx('correct',0.75);
-   setNotice('Doğru! '+villageWord(id).id+' — '+villageWord(id).tr);
+   setNotice(stage===5?{good:true,text:'✓ '+villageWord(id).phrase,lang:'en',detail:villageWord(id).tr}:
+    {good:true,text:`✓ ${upper(villageWord(id).id)}!`,lang:'en',detail:`${villageWord(id).tr} · Doğru!`});
    if(stage===2)speak(id);
    if(stage===4)speak(villageWord(id).command);
    if(stage===5)speak(villageWord(id).phrase);
@@ -183,7 +193,7 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
    try{
     await onSave(district,stage,mistakes,(Date.now()-started.current)/1000,proof,currentSession.current);
     setSaved(true);soundService.playSfx('fanfare',0.8);
-    setNotice('Görev başarıyla kaydedildi.');
+    setNotice(null);
    }catch(err){
     console.error('Aile Köyü kaydı başarısız',err);
     setSaveError('Görevin kaydı tamamlanamadı. İlerlemen silinmedi; tekrar deneyebilirsin.');
@@ -195,7 +205,7 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
    if(question+1>=current.questions.length){void complete(answers);return;}
    cancelSpeech();answerLock.current=false;wrongRef.current.clear();setWrongIds([]);
    setQuestion(x=>x+1);setRoundMistakes(0);
-   setHint(false);setHeard(false);setAnswered(false);setSelected(null);setNotice('');
+   setHint(false);setHeard(false);setAnswered(false);setSelected(null);setNotice(null);
  }
  useAutoQuestionAdvance({ready:answered,blocked:busy||saved||Boolean(saveError)||!current,
    onAdvance:advance,delayMs:1150,speaking});
@@ -213,10 +223,20 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
   stage===1&&visited.length?'point':'idle';
  const guideCue=revision+':'+question+':'+visited.length+':'+wrongIds.length+':'+
   Number(answered)+':'+Number(hint)+':'+Number(saved);
+ // The last answer of a mission says the mission is being saved.
+ const finishing=!saveError&&(stage===1?Boolean(current?.words.length)&&visited.length===current?.words.length:
+   answered&&question+1===total);
+ const toast=notice?{...notice,detail:notice.good&&finishing?'Görev kaydediliyor…':notice.detail}:null;
+ const stars=villageMissionStars(mistakes,answers);
+ const practised=answers.filter(a=>a.kind!=='discovery');
+ const assisted=practised.filter(a=>a.hintUsed).length;
+ // The words this mission practised, for the tap-to-hear recap.
+ const recap=[...new Set((stage===1?answers:practised).map(a=>a.wordId))];
+ const canHear=!muted&&soundService.hasEnglishSpeech();
  const access=(index:number)=>index===0||(index===1?progress.completedByDistrict.family===5:
    index===2?progress.completedByDistrict.rooms===5:progress.completedByDistrict.objects===5);
  return <div ref={dialogRef} role="dialog" aria-modal="true" aria-label="Aile Köyü İngilizce öğrenme dünyası"
-   className="fv-screen fv3-screen fv4-screen fv5-screen gg-quest-screen">
+   className="fv-screen fv3-screen fv4-screen fv5-screen gg-quest-screen fv7-screen" data-stage={stage}>
   <div className="fv-shell fv3-shell fv4-shell">
     <header className="fv-top fv3-top fv5-top">
       <button type="button" data-game-exit disabled={busy} onClick={()=>{cancelSpeech();onBack();}}
@@ -233,7 +253,15 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
           aria-label={`${Object.values(progress.starsByLevel).reduce((n,v)=>n+v,0)} / 60 yıldız`}>
           <span aria-hidden="true">⭐</span> {Object.values(progress.starsByLevel).reduce((n,v)=>n+v,0)}<span className="fv5-stars-total"> / 60</span>
         </div>
-        <GardenHelp label="Nasıl Oynanır?">{stageMeta.description}</GardenHelp>
+        <GardenHelp label="Nasıl Oynanır?">
+          <p><strong>{stageMeta.title}:</strong> {stageMeta.description}</p>
+          <p>Her mahallede beş görev var: keşfet, hatırla, dinle, evin içinde bul ve konuş. Aile kartlarında Türkçe akrabalık adı yazar; çünkü kimin teyze, kimin kuzen olduğu yüzden anlaşılmaz.</p>
+        </GardenHelp>
+        <button type="button" className="fv-audio-toggle fv3-audio-toggle fv5-audio-toggle"
+          aria-label={muted?'Sesi aç':'Sesi kapat'} aria-pressed={!muted}
+          onClick={()=>{const next=!muted;setMuted(next);soundService.toggleMute();if(next)cancelSpeech();}}>
+          {muted?'🔇':'🔊'}
+        </button>
       </div>
     </header>
     <GardenQuestNavigator areaTitle={lane.title} stageTitle={stageMeta.title} stage={stage} totalStages={5}>
@@ -254,7 +282,7 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
         aria-current={item.stage===stage?'step':undefined}
         onClick={()=>start(item.stage as VillageStage)}
         className={`fv-step fv3-step gg-quest-step ${stage===item.stage?'fv-step-current':''}`}>
-        <span className={`fv3-step-icon fv5-step-icon fv5-step-icon-${item.stage}`} aria-hidden="true"/><small className="fv3-step-title">{item.stage}. {item.title}</small><small className="fv3-step-index">{item.stage}/5</small>
+        <span className={`fv3-step-icon fv5-step-icon fv5-step-icon-${item.stage}`} aria-hidden="true">{item.icon}</span><small className="fv3-step-title">{item.stage}. {item.title}</small><small className="fv3-step-index">{item.stage}/5</small>
         {progress.starsByLevel[VILLAGE_OFFSETS[district]+item.stage]>0&&<b>★</b>}
       </button>)}
     </nav>
@@ -268,33 +296,20 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
           stage===1&&visited.length?'family-discovery-'+district+'-'+visited.length:null}/>
         {district!=='family'&&<div className="fv-place fv3-place">
          <span aria-hidden="true">{lane.icon}</span><div><strong>{lane.title}</strong>
-         <small>{lane.subtitle}</small></div></div>}
+         <small lang="en">{lane.subtitle}</small></div></div>}
         {district==='family'&&<span className="sr-only">Aile Evi</span>}
-        <span className="fv-mission-label fv3-mission-label">
-          <span aria-hidden="true">📋</span> GÖREV {VILLAGE_OFFSETS[district]+stage} / 20
-        </span>
+        <span className="fv7-scene-count" aria-label={`Görev ilerlemesi ${progressSteps} / ${total}`}>{progressSteps}/{total}</span>
+        {toast&&<p className="fv7-toast" data-good={toast.good} role="status" aria-live="polite">
+          <span lang={toast.lang}>{toast.text}</span>{toast.detail&&<small>{toast.detail}</small>}
+        </p>}
       </div>
       <div className="fv-panel fv3-panel fv5-panel">
-        <div className="fv5-hud">
-          <div className="fv5-hud-title">
-            <div className="fv5-heading-line">
-              <span className={`fv5-heading-icon fv5-step-icon-${stage}`} aria-hidden="true"/>
-              <h2>{stageMeta.title}</h2>
-            </div>
-            <GardenHelp>{stageMeta.description}</GardenHelp>
+        <h2 className="sr-only">{stageMeta.title}</h2>
+        <div className="fv5-hud-progress">
+          <div className="fv-meter fv3-meter" role="progressbar" aria-label="Görev ilerlemesi"
+           aria-valuenow={progressSteps} aria-valuemin={0} aria-valuemax={Math.max(1,total)}>
+            <span style={{width:`${Math.round(100*progressSteps/Math.max(1,total))}%`}}/>
           </div>
-          <div className="fv5-hud-progress">
-            <div className="fv-meter fv3-meter" role="progressbar" aria-label="Görev ilerlemesi"
-             aria-valuenow={progressSteps} aria-valuemin={0} aria-valuemax={Math.max(1,total)}>
-              <span style={{width:`${Math.round(100*progressSteps/Math.max(1,total))}%`}}/>
-            </div>
-            <p className="fv-count fv3-count" aria-live="polite">{progressSteps} / {total} adım</p>
-          </div>
-          <button type="button" className="fv-audio-toggle fv3-audio-toggle fv5-audio-toggle"
-            aria-label={muted?'Sesi aç':'Sesi kapat'} aria-pressed={!muted}
-            onClick={()=>{const next=!muted;setMuted(next);soundService.toggleMute();if(next)cancelSpeech();}}>
-            {muted?'🔇':'🔊'}
-          </button>
         </div>
         {loadError?<div role="alert" className="fv-error">Görev yüklenemedi.
           <button onClick={()=>start(stage)}>Tekrar Dene</button></div>:
@@ -302,11 +317,17 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
         saved?<div className="fv-celebrate fv3-celebrate">
           <div className="fv-guide-reward">
             <CharacterGuide character="village-fox" mood="celebrate" cueKey={'saved-'+revision}/>
-          </div><h2 ref={doneHeading} tabIndex={-1}>Well done! Great English!</h2>
-          <p>Görev ilerlemen kaydedildi. Yeniden oynayarak öğrendiklerini pekiştirebilirsin.</p>
-          <p className="fv-result" aria-label={`${villageMissionStars(mistakes,answers)} yıldız kazanıldı`}>
-            {'⭐'.repeat(villageMissionStars(mistakes,answers))}
-          </p>
+          </div><h2 ref={doneHeading} tabIndex={-1} lang="en">Well done! Great English!</h2>
+          <p className="fv-result" aria-label={`${stars} yıldız kazanıldı`}>{'⭐'.repeat(stars)}</p>
+          <p className="fv7-win-stats">{stage===1?`${answers.length} kelimenin İngilizcesini dinledin`:
+            `${practised.length} doğru · ${mistakes} yanlış deneme${assisted?` · ${assisted} destekli`:''}`}</p>
+          {recap.length>0&&<div className="fv7-recap" role="group" aria-label="Bu görevin İngilizce kelimeleri">
+            <p className="fv7-recap-title">Bu görevin kelimeleri · {stage===5?'dokun, cümleyi dinle':'dokun ve dinle'}</p>
+            <div className="fv7-recap-list">{recap.map(id=><button key={id} type="button" className="fv7-recap-word"
+              onClick={()=>speak(stage===5?villageWord(id).phrase:id)} disabled={!canHear}
+              aria-label={`${villageWord(id).tr}, İngilizce ${id}, dinle`}>
+              <span className="fv7-recap-art" aria-hidden="true"><FamilyWordArt id={id}/></span><span lang="en">{id}</span></button>)}</div>
+          </div>}
           <button className="fv-primary" onClick={()=>{
            if(stage<5)start((stage+1) as VillageStage);
            else if(district==='family')start(1,'rooms');
@@ -319,7 +340,7 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
           {stage===1?<><div className="fv-prompt fv3-prompt fv5-prompt">
             <span className="fv-guide-portrait">
               <CharacterGuide character="village-fox" mood={guideMood} cueKey={guideCue}/>
-            </span><div><strong>Explore and listen!</strong>
+            </span><div><strong lang="en">Explore and listen!</strong>
             <small>Her kutuya dokun, İngilizce kelimeyi öğren.</small></div>
           </div><div className="fv-grid fv-grid-discover fv3-grid-discover">
            {current.words.map(id=><button key={id} type="button"
@@ -327,23 +348,19 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
              onClick={()=>discover(id)} aria-pressed={visited.includes(id)}
              className={`fv-discovery fv3-discovery ${visited.includes(id)?'fv-visited':''}`}>
              <span aria-hidden="true"><FamilyWordArt id={id}/></span>
-             {visited.includes(id)?<><strong>{id}</strong><small>{villageWord(id).tr}</small></>:<strong>Keşfet ✨</strong>}
+             {visited.includes(id)?<><strong lang="en">{id}</strong><small>{villageWord(id).tr}</small></>:<strong>Keşfet ✨</strong>}
              {visited.includes(id)&&<b aria-label="Keşfedildi">✓</b>}
            </button>)}
-          </div><p role="status" aria-live="polite" className="fv3-discovery-status">
-              {busy?'Keşif kaydediliyor…':visited.length===current.words.length?
-               'Tüm kelimeler keşfedildi! Bölüm otomatik kaydediliyor…':
-               'Çizimlere dokun, İngilizcesini dinle. Son karttan sonra bölüm tamamlanır.'}
-             </p></>:
+          </div></>:
           task?<><div ref={questionPrompt} tabIndex={-1} className="fv-prompt fv3-prompt fv5-prompt">
             <span className="fv-guide-portrait">
               <CharacterGuide character="village-fox" mood={guideMood} cueKey={guideCue}/>
             </span>
-            <div>{stage===2?<><strong>What's this in English?</strong>
-              <small>{district==='family'?`Türkçesi: ${villageWord(task.target).tr}`:'Görseli incele, doğru İngilizce kelimeyi seç.'}</small></>:
-             stage===3?<><strong>Listen and find it!</strong><small>İngilizce sesi dinle, görseli bul.</small></>:
-             stage===4?<><strong className="fv-english">{task.prompt}</strong><small>İngilizce yönergeye uyan görseli seç.</small></>:
-             <><strong>Say it in English!</strong><small>Görsele uygun İngilizce cümleyi seç.</small></>}
+            <div>{stage===2?<><strong lang="en">What's this in English?</strong>
+              <small>Resme bak, İngilizce adını seç.</small></>:
+             stage===3?<><strong lang="en">Listen and find it!</strong><small>İngilizce sesi dinle, görseli bul.</small></>:
+             stage===4?<><strong className="fv-english" lang="en">{task.prompt}</strong><small>İngilizce yönergeye uyan görseli seç.</small></>:
+             <><strong lang="en">Say it in English!</strong><small>Resme uyan İngilizce cümleyi seç.</small></>}
             </div></div>
             {(stage===2||stage===5)&&<div className={`fv3-featured fv5-featured ${district==='family'?'fv5-featured-portrait':''}`} role="img"
              aria-label={`Bu kavramı İngilizce ifade et: ${villageWord(task.target).tr}`}>
@@ -354,20 +371,21 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
               <button type="button" onClick={()=>speak(task.audio,true)} disabled={busy||answered}
                 className="fv-listen">{speaking?'🔉 Dinleniyor…':'▶ İngilizceyi Dinle'}</button>
               <button type="button" disabled={busy||answered}
-                onClick={()=>{setHint(true);setNotice('Yazılı destek kullanıldı; bağımsız dinleme sayılmayacak.');}}
+                onClick={()=>{setHint(true);setNotice({good:true,text:'Yazılı destek açık',detail:'Bu cevap destekli sayılır.'});}}
                 className="fv-hint-button">Yazılı destek</button>
-              {hint&&<p>English: <strong>{task.target}</strong></p>}
+              {hint&&<p>English: <strong lang="en">{task.target}</strong></p>}
+              {!heard&&!hint&&<p className="fv7-listen-status">Önce dinle: resimler sesi duyduktan sonra açılır.</p>}
             </div>}
             {stage!==3&&<div className="fv-actions fv3-actions">
               <button type="button" className="fv-hint-button" disabled={busy||answered} onClick={()=>{
-               setHint(true);setNotice('İpucu kullanıldı; yanıt destekli olarak kaydedilecek.');
+               setHint(true);setNotice({good:true,text:'💡 İpucu açık',detail:'Bu cevap destekli sayılır.'});
               }}>💡 İpucu</button>
               <button type="button" className="fv-hint-button" disabled={busy||answered} onClick={()=>{
                // Stage 4 audio is the English instruction already on screen: replaying it
                // is not help, so it must not lower stars or mark the word as weak.
-               if(stage===4){speak(task.audio);setNotice('Yönerge İngilizce okunuyor.');return;}
+               if(stage===4){speak(task.audio);setNotice({good:true,text:'🔊 Yönerge okunuyor'});return;}
                setHint(true);speak(task.audio);
-               setNotice('Sesli destek kullanıldı; yanıt destekli olarak kaydedilecek.');
+               setNotice({good:true,text:'🔊 Sesli destek açık',detail:'Bu cevap destekli sayılır.'});
               }}>🔊 {stage===4?'Yönergeyi Dinle':'İngilizceyi Duy'}</button>
               {hint&&<span className="fv3-hint-reveal">İpucu: {
                 stage===2?`İlk harf: ${task.target[0].toUpperCase()}`:
@@ -383,19 +401,12 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
                 wrong={wrongIds.includes(id)}
                 active={selected===id} onPick={()=>choose(id)}/>)}
             </div>
-            {stage===3&&!heard&&!hint&&<p className="fv-instruction">
-              Sesi dinle veya destek aç. Ses oynatılmadan bağımsız dinleme başarısı kaydedilmez.</p>}
-            {answered&&!saveError&&<p role="status" aria-live="polite" className="fv-notice">
-              ✨ {question+1===current.questions.length?'Bölüm sonucu kaydediliyor…':'Sıradaki İngilizce soruya geçiliyor…'}
-            </p>}
           </>:<p role="alert">Görev içeriği bulunamadı. <button onClick={()=>start(stage)}>Yeniden Aç</button></p>}
-          {notice&&<p role="status" className="fv-notice">{notice}</p>}
           {saveError&&<div role="alert" className="fv-error">{saveError}
             <button onClick={()=>void complete(answers)}>Kaydetmeyi Tekrar Dene</button></div>}
         </div>}
       </div>
     </main>
-    <footer className="fv-footer fv3-footer">Ventra Kids · Aile Köyü · İngilizceyi keşfederek öğren 🌻</footer>
   </div>
  </div>;
 }

@@ -108,6 +108,22 @@ const random=(seed:number)=>{let n=seed>>>0;return ()=>{n=(Math.imul(n,1664525)+
 function shuffle<T>(input:readonly T[],rng:()=>number):T[]{
  const a=[...input];for(let i=a.length-1;i>0;i--){const j=Math.floor(rng()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;
 }
+/** Concepts a child could fairly take for each other in a picture: every meal
+ * is a child at a plate (breakfast, lunch, dinner), tidying and helping are
+ * both cleaning, washing the face and showering are both water, reading and
+ * homework are both books, the bedroom and guest room are both beds, a door
+ * and a wardrobe are both wooden doors, a bed has pillows, the study and the
+ * dining room are both a table. They are never offered side by side as an
+ * answer and a distractor. Family relations keep their Turkish labels instead. */
+export const VILLAGE_LOOKALIKES:readonly (readonly [string,string])[]=[
+ ['eat breakfast','have lunch'],['eat breakfast','have dinner'],['have lunch','have dinner'],
+ ['tidy my room','help at home'],['wash my face','take a shower'],['read a book','do homework'],
+ ['bedroom','guest room'],['living room','guest room'],['study','dining room'],
+ ['door','wardrobe'],['bed','pillow']
+];
+export function villageLookalike(a:string,b:string):boolean{
+ return a!==b&&VILLAGE_LOOKALIKES.some(([x,y])=>(x===a&&y===b)||(x===b&&y===a));
+}
 export function villageWord(id:string):VillageWord{
  const word=VILLAGE_WORDS.find(x=>x.id===id);
  if(!word)throw Error('Unknown village word '+id);
@@ -146,7 +162,10 @@ export function planVillageMission(args:{district:VillageDistrict;stage:VillageS
   // Avoid testing unfamiliar distractors before teaching them; the selected
   // mission words are already known to the learner or eligible on first play.
   const candidates=pool.length>=3?pool:all;
-  const others=shuffle(candidates.filter(w=>w.id!==id),rng).slice(0,2).map(w=>w.id);
+  const shuffled=shuffle(candidates.filter(w=>w.id!==id),rng);
+  // A look-alike is only a last resort for a tiny pool.
+  const others=[...shuffled.filter(w=>!villageLookalike(w.id,id)),...shuffled.filter(w=>villageLookalike(w.id,id))]
+    .slice(0,2).map(w=>w.id);
   const options=shuffle([id,...others],rng);
   // Older children occasionally need to parse a negation as well as a noun.
   // Use only a visible distractor, and retain the original simple form for
