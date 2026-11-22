@@ -1,0 +1,113 @@
+/* Colour Grove — premium layer, loaded after color-grove.css and the v4 world.
+   One scene-based world on every screen, feedback inside the scene, the
+   celebration behind the content, help in the HUD and a 12px text floor.
+   Motion obeys reduced-motion through the v4 stage rule. */
+
+/* 1. The reward celebration plays behind the text and buttons. */
+.cg-shell .cg-complete .learning-motion{z-index:0}
+.cg-shell .cg-complete>*:not(.learning-motion){position:relative;z-index:1}
+/* White text stays readable over the yellow burst behind it. */
+.cg-shell .cg-complete>h2,.cg-shell .cg-complete>p{text-shadow:0 2px 0 #0b3b33,0 0 14px #0b3b33,0 0 4px #0b3b33}
+
+/* 2. Answer feedback inside the scene (the bar below it fell off phone screens). */
+.cg-shell .cg4-toast{
+ position:absolute;z-index:5;top:14px;left:50%;transform:translateX(-50%);
+ display:flex;flex-direction:column;align-items:center;gap:1px;
+ max-width:calc(100% - 110px);margin:0;padding:8px 20px;border-radius:999px;
+ font-size:17px;font-weight:1000;line-height:1.2;text-align:center;
+ color:#14423a;background:#fffbe2f7;border:3px solid #fff;
+ box-shadow:0 5px 0 #2f7b5ca8,0 10px 24px #0d3f3c55;
+ animation:cg4-toast-in .32s cubic-bezier(.2,1.5,.45,1) both;pointer-events:none}
+.cg-shell .cg4-toast[data-good=false]{color:#6b2338;background:#fff0f2f7;
+ box-shadow:0 5px 0 #c0577aa0,0 10px 24px #4a1b2d40}
+.cg-shell .cg4-toast small{font-size:12px;font-weight:850;opacity:.78}
+/* The scene label steps aside while a toast is shown. */
+.cg-shell .cg4-stage:has(.cg4-toast) .cg4-scene-pill{visibility:hidden}
+@keyframes cg4-toast-in{from{opacity:0;transform:translate(-50%,-8px) scale(.9)}
+ to{opacity:1;transform:translate(-50%,0) scale(1)}}
+
+/* 3. The chosen answer answers back: correct pops, wrong shakes. */
+.cg-shell .cg4-choice[data-correct=true]{animation:cg4-pop .55s cubic-bezier(.2,1.5,.4,1) both}
+.cg-shell .cg4-choice[data-wrong=true]{animation:cg4-shake .42s ease-in-out both}
+@keyframes cg4-pop{0%{transform:scale(1)}40%{transform:translateY(-6px) scale(1.07)}100%{transform:scale(1)}}
+@keyframes cg4-shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}
+ 40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(2px)}}
+
+/* 4. Help sits with the HUD tools and opens as a panel. */
+.cg-shell .cg-hud .wg-game-help{position:relative;max-width:none;margin:0}
+.cg-shell .cg-hud .wg-game-help summary{width:44px;height:44px;border-radius:14px;
+ border:1px solid #ffffff40;background:#ffffff1a;box-shadow:none;font-size:20px}
+.cg-shell .cg-hud .wg-game-help-body{position:absolute;right:0;top:calc(100% + 8px);z-index:30;
+ width:min(340px,calc(100vw - 28px));margin:0;text-align:left}
+
+/* 5. Quest head: the review notice is a chip, not a banner. */
+.cg-shell .cg-quest-meta{display:inline-flex;align-items:center;gap:8px}
+.cg-shell .cg-review-chip{padding:3px 9px;border-radius:999px;background:#0d3a55d9;
+ border:1px solid #9fd6f0a0;color:#d9f2ff;font-size:12px;font-weight:900;white-space:nowrap}
+
+/* 6. 12px floor; the English answer words are the biggest text in the choices. */
+.cg-shell .cg-stage-intro>p:first-child,.cg-shell .cg-hud-title small,
+.cg-shell .cg4-scene-pill,.cg-shell .cg4-counter,.cg-shell .cg4-focus-label,
+.cg-shell .cg4-discover-sub,.cg-shell .cg4-new-badge{font-size:12px}
+.cg-shell .cg4-new-badge{padding:3px 6px}
+.cg-shell .cg4-stage--matching .cg4-choice-label{font-size:clamp(16px,1.9vw,22px);letter-spacing:.02em}
+.cg-shell .cg4-choice--paint .cg4-choice-label{font-size:13px}
+.cg-shell .cg-hint-wrap button{min-height:44px;font-size:13px}
+.cg-shell .cg4-discovery-note{font-size:12px}
+.cg-shell .cg4-discover-status{font-size:13px}
+
+/* 7. Desktop: the prompt is one compact row so the scene and answers fit. */
+@media(min-width:768px){
+ .cg-shell .cg-stage-intro{padding-block:12px 14px}
+ .cg-shell .cg-mission-prompt{display:flex;flex-wrap:wrap;align-items:center;gap:10px 14px;
+  margin-block:8px 12px;padding:12px 16px;text-align:left}
+ .cg-shell .cg-mission-prompt .cg-prompt-copy{flex:1 1 260px}
+ .cg-shell .cg-mission-prompt .cg-prompt-listen,.cg-shell .cg-mission-prompt .cg-hint-wrap{margin-top:0}
+ .cg-shell .cg-hint-wrap{display:flex;flex-wrap:wrap;align-items:center;gap:8px}
+ .cg-shell .cg-hint-wrap p{margin:0}
+ .cg-shell .cg-progress-track{margin-bottom:8px}
+}
+
+/* 8. Reward screen: honest result and a tap-to-hear colour recap. */
+.cg-shell .cg-recap{margin:14px auto 2px;max-width:640px}
+.cg-shell .cg-recap-title{margin-bottom:8px;font-size:12px;font-weight:900;letter-spacing:.04em;color:#c9f3dd}
+.cg-shell .cg-recap-list{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.cg-shell .cg-recap-word{display:inline-flex;align-items:center;gap:8px;min-height:46px;
+ padding:5px 14px 5px 6px;border-radius:999px;border:2px solid #fff3c4;
+ background:linear-gradient(160deg,#fffdf1,#d7f6e1);color:#1b4a43;
+ font-size:16px;font-weight:1000;box-shadow:0 4px 0 #2b6e5bb0;touch-action:manipulation}
+.cg-shell .cg-recap-swatch{width:30px;height:30px;border-radius:50%;flex:none;
+ background:var(--cg4-color);border:3px solid #fff;box-shadow:0 2px 5px #1a484966}
+.cg-shell .cg-recap-word:active:not(:disabled){transform:translateY(2px);box-shadow:0 2px 0 #2b6e5bb0}
+.cg-shell .cg-recap-word:disabled{opacity:.78}
+.cg-shell .cg-recap-word:focus-visible{outline:3px solid #fff09d;outline-offset:3px}
+/* Short screens: the next-mission button comes before the recap. */
+@media(max-height:940px){
+ .cg-shell .cg-complete{display:flex;flex-direction:column}
+ .cg-shell .cg-complete .cg-recap{order:10}
+}
+
+@media(max-width:767px){
+ .cg-shell .cg4-toast{top:10px;max-width:calc(100% - 96px);padding:7px 14px;font-size:15px}
+ .cg-shell .cg-hud{flex-wrap:nowrap}
+ /* Tab labels share one size with their number (desktop keeps 14px). */
+ .cg-shell .cg-mission-tabs button,.cg-shell .cg-mission-tabs .cg-tab-short,
+ .cg-shell .cg-mission-tabs .cg-tab-long{font-size:12px}
+ /* The HUD and tabs already name the mission; the big title stays for screen readers. */
+ .cg-shell .cg-stage-intro{position:absolute!important;width:1px;height:1px;padding:0;margin:-1px;
+  overflow:hidden;clip:rect(0,0,0,0);white-space:nowrap;border:0}
+ .cg-shell .cg-mission-prompt{display:flex;flex-wrap:wrap;align-items:center;gap:8px 10px;text-align:left}
+ .cg-shell .cg-mission-prompt .cg-prompt-copy{flex:1 1 55%}
+ .cg-shell .cg-mission-prompt .cg-prompt-listen,.cg-shell .cg-mission-prompt .cg-hint-wrap{margin-top:0}
+ /* The scene fills the screen; answers sit in the thumb zone. */
+ .cg-shell .cg4-stage{display:flex;flex-direction:column;min-height:calc(100dvh - var(--cg-chrome,300px))}
+ .cg-shell .cg4-stage--discovery{--cg-chrome:250px}
+ .cg-shell .cg4-stage--matching{--cg-chrome:322px}
+ .cg-shell .cg4-stage--complete{min-height:0}
+ .cg-shell .cg4-focus{flex:1 1 auto}
+ .cg-shell .cg4-choice-grid{margin-top:auto}
+ .cg-shell .cg4-discovery-grid{margin-block:auto}
+}
+@media(prefers-reduced-motion:reduce){
+ .cg-shell .cg4-toast,.cg-shell .cg4-choice[data-correct=true],.cg-shell .cg4-choice[data-wrong=true]{animation:none!important}
+}

@@ -127,7 +127,7 @@
  .cg-stage-intro .cg-desktop-description{display:none}
  .cg-mission-tabs{gap:5px;margin-bottom:9px!important}
  .cg-mission-tabs button{min-height:48px;padding:7px 3px!important;
-  font-size:10px!important;line-height:1.16;border-radius:12px!important;
+  font-size:12px!important;line-height:1.16;border-radius:12px!important;
   box-shadow:0 3px 0 #102e3b66}
  .cg-mission-tabs .cg-tab-long{display:none}
  .cg-mission-tabs .cg-tab-short{display:inline}
@@ -147,7 +147,7 @@
   padding:4px 7px!important;margin:0!important;border-radius:13px!important}
  .cg-mission-prompt .cg-prompt-listen-label{display:none}
  .cg-mission-prompt .cg-hint-wrap{margin-top:5px}
- .cg-mission-prompt .cg-hint-wrap button{font-size:11px!important;min-height:42px}
+ .cg-mission-prompt .cg-hint-wrap button{font-size:13px!important;min-height:44px}
  .cg-feedback{margin-top:8px!important;min-height:38px!important;font-size:12px!important}
  .cg-feedback p{padding:8px 10px!important}
  .cg-complete{padding:10px!important;border-radius:19px!important}

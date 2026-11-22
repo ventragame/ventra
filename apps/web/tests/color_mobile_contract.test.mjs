@@ -6,7 +6,7 @@ import { planColorMission } from '../src/lib/learning/colorMissionEngine.ts';
 
 const file=(name)=>fs.readFileSync(new URL('../src/components/learning/activities/'+name,import.meta.url),'utf8');
 
-test('Mobile Color Grove has a real touch-first game world and retains separate desktop SVG',()=>{
+test('Color Grove plays in one touch-first scene world on every screen (no separate desktop scene)',()=>{
  const world=file('MobileColorGroveWorld.tsx');
  const view=file('ColorGroveAdventure.tsx');
  const css=file('color-grove.css');
@@ -14,9 +14,10 @@ test('Mobile Color Grove has a real touch-first game world and retains separate 
  assert.match(view,/mode=\{step === 2 \? 'matching' : 'painting'\}/);
  assert.match(view,/onChoose=\{explore\}/);
  assert.match(view,/onChoose=\{choose\}/);
- assert.match(view,/cg-desktop-view/);
- assert.match(view,/cg-mobile-view/);
- assert.match(view,/<ColorGroveScene/);
+ // The desktop used to show a decorative scene plus a card grid whose Turkish
+ // names were white on cream; one world now serves desktop and phone.
+ assert.doesNotMatch(view,/cg-desktop-view|ColorGroveScene/);
+ assert.ok(!fs.existsSync(new URL('../src/components/learning/activities/ColorGroveScene.tsx',import.meta.url)));
  assert.match(world,/data-found=\{discovered\}/);
  assert.match(world,/data-wrong=\{wrongId===word.id\}/);
  assert.match(world,/data-correct=\{correctId===word.id\}/);
@@ -52,7 +53,6 @@ test('Mobile Color Grove audio controls detect Capacitor speech and honor sound 
 test('Color Grove v4 preserves accessible answers while updating the illustration and stage',()=>{
  const world=file('MobileColorGroveWorld.tsx');
  const css=file('color-grove-v4.css');
- const desktop=file('ColorGroveScene.tsx');
  const adventure=file('ColorGroveAdventure.tsx');
  assert.match(world,/cg4-stage/);
  assert.match(world,/cg4-discovery-grid/);
@@ -67,7 +67,6 @@ test('Color Grove v4 preserves accessible answers while updating the illustratio
  assert.match(css,/@media\(max-width:359px\)/);
  assert.match(css,/prefers-reduced-motion:reduce/);
  assert.match(css,/focus-visible/);
- assert.match(desktop,/grove-stage-v4\.svg/);
  assert.match(adventure,/variant=\{currentQuestion.scene\}/);
  assert.match(adventure,/cg4-discovery-note/);
  assert.match(adventure,/ready:step===1&&Boolean\(activePlan\?\.colors.length\)/);

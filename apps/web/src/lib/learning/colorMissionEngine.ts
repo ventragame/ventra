@@ -225,13 +225,42 @@ export function colorSwatchDistance(a: string, b: string): number {
 /** Below this ΔE two swatches are easy to confuse (purple/violet, dark blue/indigo,
  * yellow/gold, gray/silver, light/mint green…): a fair question never pairs them. */
 export const CONFUSABLE_COLOR_DELTA_E = 30;
+
+/** A general colour word and the named shades a child could defend as ALSO
+ * being it: "Find blue!" next to light blue (ΔE 55) or navy blue, "green"
+ * next to dark or mint green, "purple" next to lavender. Swatch distance alone
+ * let these through. Two shades of one family (light blue, dark blue) stay
+ * pairable: telling them apart is exactly what "light" and "dark" teach. */
+export const COLOR_FAMILIES: Readonly<Record<string, readonly string[]>> = {
+  blue: ['light blue', 'dark blue', 'navy blue', 'indigo'],
+  green: ['light green', 'dark green', 'olive green', 'mint green'],
+  purple: ['violet', 'lavender', 'indigo'],
+  red: ['maroon'],
+  pink: ['coral'],
+  orange: ['peach', 'coral'],
+  yellow: ['gold', 'cream'],
+  white: ['cream', 'silver'],
+  gray: ['silver'],
+  brown: ['beige', 'maroon']
+};
+function sameColorFamily(a: string, b: string): boolean {
+  return (COLOR_FAMILIES[a] ?? []).includes(b) || (COLOR_FAMILIES[b] ?? []).includes(a);
+}
+/** True when a fair question must not offer both: a general word with its own
+ * shade, or two swatches closer than CONFUSABLE_COLOR_DELTA_E. */
+export function colorsConfusable(a: string, b: string): boolean {
+  return a !== b && (sameColorFamily(a, b) || colorSwatchDistance(a, b) < CONFUSABLE_COLOR_DELTA_E);
+}
 export function distinctColorDistractors<T extends string>(target: T, allowed: readonly T[], needed: number): T[] {
   const others = allowed.filter(id => id !== target);
-  const distinct = others.filter(id => colorSwatchDistance(target, id) >= CONFUSABLE_COLOR_DELTA_E);
+  const distinct = others.filter(id => !colorsConfusable(target, id));
   if (distinct.length >= needed) return distinct;
-  // Never block a mission: fall back to the visually farthest colours.
-  return [...others].sort((a, b) => colorSwatchDistance(target, b) - colorSwatchDistance(target, a))
-    .slice(0, Math.max(needed, distinct.length));
+  // Never block a mission: top up with the least confusable colours left -
+  // a general word's own shade only as the very last resort.
+  const rest = others.filter(id => !distinct.includes(id)).sort((a, b) =>
+    Number(sameColorFamily(target, a)) - Number(sameColorFamily(target, b)) ||
+    colorSwatchDistance(target, b) - colorSwatchDistance(target, a));
+  return [...distinct, ...rest].slice(0, Math.max(needed, distinct.length));
 }
 
 export function getColorInstruction(

@@ -21,6 +21,8 @@ interface Props {
   correctId?: string | null;
   disabled?: boolean;
   onChoose?: (id: ColorWord['id']) => void;
+  /** In-scene answer feedback (visible without scrolling on every screen). */
+  toast?: { text: string; good: boolean; detail?: string; lang?: 'en' } | null;
 }
 
 const FINISH_COLORS = ['#ff9eaf', '#f9d671', '#a593f1', '#84d6c7', '#8cc8f5', '#eaa3e2'];
@@ -32,11 +34,12 @@ function Blossom({ color, size = 'normal' }: { color: string; size?: 'normal' | 
   </span>;
 }
 
-/** One shared learning interaction with a responsive, touch-safe illustrated stage.
- * Color names remain readable when a child cannot distinguish neighboring hues. */
+/** The one Colour Grove world on every screen size (desktop used to show a
+ * separate decorative scene plus a card grid). Colour names stay readable on
+ * the paint swatches for children who cannot tell neighbouring hues apart. */
 export function MobileColorGroveWorld({
   mode, words = [], targetHex, variant = 'garden', discoveredIds = [], freshIds = [],
-  paintedIds = [], wrongId = null, correctId = null, disabled = false, onChoose
+  paintedIds = [], wrongId = null, correctId = null, disabled = false, onChoose, toast = null
 }: Props) {
   const isDiscovery = mode === 'discovery';
   const isPainting = mode === 'painting';
@@ -60,6 +63,9 @@ export function MobileColorGroveWorld({
       {isDiscovery && <span className="cg4-counter" aria-label={discoveredIds.length + ' renk keşfedildi'}>{discoveredIds.length} / {words.length} <span aria-hidden="true">✓</span></span>}
       {isPainting && <span className="cg4-counter" aria-label={paintedIds.length + ' renk boyandı'}>{paintedIds.length} <span aria-hidden="true">✦</span></span>}
     </div>
+    {toast && !isDone && <p className="cg4-toast" data-good={toast.good} role="status" aria-live="polite">
+      <span lang={toast.lang}>{toast.text}</span>{toast.detail && <small>{toast.detail}</small>}
+    </p>}
 
     {isDone ? (
       <div className="cg4-finale" aria-label="Renkleri geri gelen çiçek bahçesi">
@@ -82,7 +88,7 @@ export function MobileColorGroveWorld({
             <span className={'cg4-card-art cg4-card-art--' + (index%3)}>
               <Blossom color={word.hex}/>
             </span>
-            <span className="cg4-discover-name">{word.id.toUpperCase()}</span>
+            <span className="cg4-discover-name" lang="en">{word.id.toUpperCase()}</span>
             <span className="cg4-discover-sub">{word.tr}</span>
             <span className="cg4-discover-status" aria-hidden="true">{discovered ? '✓' : '♪'}</span>
           </button>;
@@ -111,7 +117,7 @@ export function MobileColorGroveWorld({
             aria-pressed={correctId===word.id}
             aria-label={isPainting?word.tr+' boyasını seç':word.id+' İngilizce renk adını seç'}>
             {isPainting && <span className="cg4-paint-swatch" style={{'--cg4-color':word.hex} as React.CSSProperties} aria-hidden="true"/>}
-            <span className="cg4-choice-label">{isPainting ? word.tr : word.id.toUpperCase()}</span>
+            <span className="cg4-choice-label" lang={isPainting ? undefined : 'en'}>{isPainting ? word.tr : word.id.toUpperCase()}</span>
             {correctId===word.id && <span className="cg4-choice-check" aria-hidden="true">✓</span>}
           </button>)}
         </div>

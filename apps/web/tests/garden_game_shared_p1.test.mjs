@@ -10,7 +10,7 @@ test('Garden games opt into shared control and scene mechanics, preserving their
   assert.match(code,/gg-game-control/);
   assert.match(code,/role="dialog" aria-modal="true"/);
  }
- for(const file of ['MeadowPlayStage.tsx','ColorGroveScene.tsx','MobileColorGroveWorld.tsx','NumberValleyAdventure.tsx']){
+ for(const file of ['MeadowPlayStage.tsx','MobileColorGroveWorld.tsx','NumberValleyAdventure.tsx']){
   assert.match(read(file),/gg-game-scene/);
  }
  const css=read('garden-game-foundation.css');

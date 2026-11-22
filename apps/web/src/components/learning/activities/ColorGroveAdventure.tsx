@@ -9,9 +9,9 @@ import { soundService } from '@/lib/audio/SoundService';
 import {useAutoQuestionAdvance} from '@/lib/learning/useAutoQuestionAdvance';
 import { EventBus } from '@/lib/game/EventBus';
 import './garden-game-foundation.css';
-import { ColorGroveScene } from './ColorGroveScene';
 import {GardenHelp} from '../GardenHelp';
 import { MobileColorGroveWorld } from './MobileColorGroveWorld';
+import './color-grove-premium.css';
 import {LearningMotion} from '@/components/learning/motion/LearningMotion';
 
 type Word = (typeof COLOR_GROVE_WORDS)[number];
@@ -63,7 +63,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
   const questionHeading = useQuestionFocus<HTMLHeadingElement>(`${step}:${question}`);
   const [mistakes, setMistakes] = useState(0);
   const [correct, setCorrect] = useState(0);
-  const [feedback, setFeedback] = useState<string | null>(null);
+  const [feedback, setFeedback] = useState<{ text: string; good: boolean; detail?: string; lang?: 'en' } | null>(null);
   const [saving, setSaving] = useState(false);
   const [saveError, setSaveError] = useState<string | null>(null);
   const [complete, setComplete] = useState(false);
@@ -197,7 +197,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
       setMistakes((value) => value + 1);
       setQuestionMistakes((value) => value + 1);
       soundService.playSfx('gentle_retry');
-      setFeedback('Bu renk değil. Başka bir seçeneğe dokun veya yönergeyi tekrar dinle.');
+      setFeedback({ text: 'Bir daha dene! 🎨', good: false, detail: 'Yönergeyi yeniden dinleyebilirsin.' });
       return;
     }
     answerLocked.current=true;
@@ -216,7 +216,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
     setQuestionMistakes(0);
     setAnswerHighlight(target);
     if (step === 3) setPaintedIds(list => [...list, target]);
-    setFeedback('Doğru! ' + getWord(target).tr + ' = ' + target.toUpperCase());
+    setFeedback({ text: '✨ ' + target.toUpperCase() + '!', good: true, lang: 'en', detail: getWord(target).tr });
     setAwaitingAdvance(true);
     if (question + 1 >= activePlan.questions.length) {
       setFinishedAnswers(nextEvidence);
@@ -262,6 +262,9 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
       setEvidence((old) => [...old, { wordId: id, mistakes: 0, firstTryCorrect: false, kind: 'discovery', timestamp: new Date().toISOString() }]);
     }
   };
+  // The words this mission practised, for the tap-to-hear recap on the reward screen.
+  const recap: Word[] = (activePlan ? (step === 1 ? activePlan.colors : Array.from(new Set(activePlan.questions.map(q => q.target)))) : [])
+    .map(id => getWord(id));
   const listen = (text:string) => {
     soundService.unlockAudio();
     setSpeechError(false);
@@ -292,6 +295,12 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
             <span className="cg-hud-points rounded-xl border border-lime-300/40 bg-lime-950/60 px-3 py-2.5 text-xs font-black text-lime-100">
               ⭐ {Object.values(progress.starsByLevel).reduce((sum, value) => sum + value, 0)} / 9
             </span>
+            <GardenHelp label="Renk Korusu nasıl oynanır?">
+              <p>{step === 1 ? 'Lumi’nin korusunu keşfet. Her turda yeni renkleri bul; İngilizce adlarına dokun ve dinle.' :
+              step === 2 ? 'Rengini kaybeden çiçeği kurtar! Gördüğün rengin İngilizce adını seç.' :
+              'Koruya renkleri geri getir! İngilizce söylenen rengi boya paletinden bul.'}</p>
+              <p>Ses açılmasa da bütün görevler yazılı olarak oynanabilir. Yıldızlar görev kaydedilince verilir.</p>
+            </GardenHelp>
             <button onClick={toggleSound} className="cg-hud-sound gg-game-control vg-answer-card min-h-11 rounded-xl border border-white/25 bg-white/10 px-3 text-sm font-bold hover:bg-white/20"
               aria-label={muted ? 'Sesi aç' : 'Sesi kapat'} aria-pressed={muted}>
               {muted ? '🔇' : '🔊'}
@@ -301,11 +310,6 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
         <div className="cg-stage-intro py-4 text-center sm:py-6">
           <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-lime-200">Büyülü Renkler Hikâyesi · Bölüm {step}/3</p>
           <h1 ref={headingRef} tabIndex={-1} className="mt-2 text-3xl font-black tracking-tight outline-none sm:text-5xl">{names[step - 1]}</h1>
-          <GardenHelp label="Renk Korusu nasıl oynanır?">
-            {step === 1 ? 'Lumi’nin korusunu keşfet. Her turda yeni renkleri bul; İngilizce adlarına dokun ve dinle.' :
-            step === 2 ? 'Rengini kaybeden çiçeği kurtar! Gördüğün rengin İngilizce adını seç.' :
-            'Koruya renkleri geri getir! İngilizce söylenen rengi boya paletinden bul.'}
-          </GardenHelp>
         </div>
 
         <div className="cg-mission-tabs mb-4 grid grid-cols-3 gap-2 sm:mb-5">
@@ -336,17 +340,17 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
         {!loadError && !invalidPlan && (complete ? (
           <section className="cg-complete relative isolate overflow-hidden mx-auto max-w-3xl rounded-3xl border border-lime-300/50 bg-emerald-900/70 p-4 text-center shadow-xl sm:p-7">
             <LearningMotion variant="victory" trigger={complete?'grove-complete-'+step+'-'+replayNonce:null}/>
-            <div className="cg-desktop-view"><ColorGroveScene
-              mode={step === 1 ? 'discovery' : step === 2 ? 'matching' : 'painting'}
-              paintedIds={paintedIds}
-              targetHex={currentQuestion ? getWord(currentQuestion.target).hex : undefined}
-              highlight
-            /></div>
-            <div className="cg-mobile-view"><MobileColorGroveWorld mode="complete" paintedIds={paintedIds}/></div>
-            <div className="mt-4 text-6xl" aria-hidden="true">🌟</div>
+            <MobileColorGroveWorld mode="complete" paintedIds={paintedIds}/>
             <h2 ref={doneHeading} tabIndex={-1} className="mt-3 text-2xl font-black">Koru Canlandı!</h2>
             <p className="mt-2 text-sm text-emerald-100">Görev başarıyla kaydedildi.</p>
-            <p className="mt-2 text-sm">Doğru: {correct} · Hatalı deneme: {mistakes}</p>
+            <p className="cg-done-stats mt-2 text-sm">{step === 1 ? `${discovered.length} rengin İngilizce adını dinledin` : `${correct} doğru · ${mistakes} yanlış deneme`}</p>
+            {recap.length > 0 && <div className="cg-recap" role="group" aria-label="Bu görevin İngilizce renkleri">
+              <p className="cg-recap-title">Bu görevin renkleri · dokun ve dinle</p>
+              <div className="cg-recap-list">{recap.map(word => <button key={word.id} type="button" className="cg-recap-word gg-game-control"
+                onClick={() => listen(word.id)} disabled={muted || !speechAvailable} aria-label={`${word.tr}, İngilizce ${word.id}, dinle`}>
+                <span className="cg-recap-swatch" style={{ '--cg4-color': word.hex } as React.CSSProperties} aria-hidden="true"/>
+                <span lang="en">{word.id}</span></button>)}</div>
+            </div>}
             <p className="mt-3 rounded-xl bg-lime-300/15 px-4 py-3 text-sm font-bold text-lime-100">
               ⭐ Bu görevdeki en iyi yıldızın: {progress.starsByLevel[step] ?? (mistakes === 0 ? 3 : mistakes <= 2 ? 2 : 1)} / 3
             </p>
@@ -365,39 +369,18 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
           </section>
         ) : !activePlan ? null : step === 1 ? (
           <section className="cg-discovery-panel mx-auto max-w-4xl">
-            <div className="cg-desktop-view"><ColorGroveScene mode="discovery" /></div>
-            <div className="cg-mobile-view"><MobileColorGroveWorld
+            <MobileColorGroveWorld
               mode="discovery" words={activePlan.colors.map(getWord)}
               discoveredIds={discovered} freshIds={activePlan.freshColorIds}
               disabled={saving} onChoose={explore}
-            /></div>
+            />
             {speechError&&<p className="mb-2 rounded-xl border border-amber-300/50 bg-amber-900/60 p-2 text-xs text-amber-100" role="status">
               İngilizce ses oynatılamadı. Cihazın İngilizce ses paketini kontrol et; keşfe devam edebilirsin.
             </p>}
-            <div className="cg-discovery-progress my-4 flex items-center justify-between rounded-xl border border-white/20 bg-black/20 px-4 py-3 text-sm font-bold">
-              <span>🧭 Keşfedilen renkler</span>
-              <span className="text-lime-200">{discovered.length} / {activePlan.colors.length}</span>
-            </div>
             <p className="sr-only">
               {activePlan.encounteredCount} / {activePlan.eligibleCount} renk daha önce keşfedildi ·
               {activePlan.freshColorIds.length > 0 ? ` Bu tur ${activePlan.freshColorIds.length} yeni renk` : ' Pekiştirme turu'}
             </p>
-            <div className="cg-desktop-view grid grid-cols-2 gap-2 sm:grid-cols-3 sm:gap-3">
-              {activePlan.colors.map((id) => getWord(id)).map((word) => (
-                <button key={word.id} onClick={() => explore(word.id)} disabled={saving}
-                  aria-label={`${word.tr}, İngilizce ${word.id}, telaffuzu dinlemek için dokun`}
-                  aria-pressed={discovered.includes(word.id)}
-                  className={`cg4-desktop-discover gg-game-control vg-answer-card group min-h-40 rounded-3xl border bg-slate-950/35 p-3 text-center shadow-lg transition-transform hover:-translate-y-0.5 disabled:opacity-60 sm:p-4 ${discovered.includes(word.id) ? 'border-lime-300/80 bg-emerald-500/20' : 'border-white/25 hover:border-sky-200'}`}>
-                  <div className="cg4-desktop-crystal" style={{ '--cg4-color': word.hex } as React.CSSProperties} aria-hidden="true">
-                     <span className="cg4-desktop-crystal-glint"/>
-                     {discovered.includes(word.id) && <span className="cg4-desktop-crystal-check">✓</span>}
-                   </div>
-                  <div className="mt-3 text-base font-black tracking-wide">{word.id.toUpperCase()} {speechAvailable && !muted && <span aria-hidden="true">🔊</span>}</div>
-                  <div className="text-sm text-white/80">{word.tr}</div>
-                  {activePlan.freshColorIds.includes(word.id) && <span className="mt-2 inline-block rounded-full border border-lime-200/50 bg-lime-400/20 px-3 py-1 text-[10px] font-black text-lime-100">YENİ KEŞİF</span>}
-                </button>
-              ))}
-            </div>
             <p className="cg4-discovery-note" role="status" aria-live="polite">
               {discovered.length === activePlan.colors.length
                 ? (saving ? 'Keşif kaydediliyor…' : 'Tüm renkler keşfedildi! Görev otomatik tamamlanıyor…')
@@ -408,26 +391,15 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
           <section className="cg-quiz-panel mx-auto max-w-4xl rounded-3xl border border-white/20 bg-slate-950/20 p-3 sm:p-6">
             <div className="cg-mission-top mb-3 flex items-center justify-between gap-2 text-sm font-bold text-lime-100">
               <span>🪄 Lumi’nin Görevi</span>
-              <span aria-label={`Soru ${question + 1} / ${activePlan.questions.length}`}>{question + 1} / {activePlan.questions.length}</span>
+              <span className="cg-quest-meta">{activePlan.reviewColorIds.length > 0 && <span className="cg-review-chip">🔁 Hatırlama<span className="sr-only">: {activePlan.reviewColorIds.length} renk daha pekiştiriliyor</span></span>}
+                <span aria-label={`Soru ${question + 1} / ${activePlan.questions.length}`}>{question + 1} / {activePlan.questions.length}</span></span>
             </div>
-            {activePlan.reviewColorIds.length > 0 && (
-              <p className="cg-review-caption mb-3 rounded-xl border border-sky-200/25 bg-sky-950/40 p-2 text-center text-xs font-bold text-sky-100">
-                🔁 Hatırlama turu: {activePlan.reviewColorIds.length} renk daha pekiştiriliyor
-              </p>
-            )}
             <div aria-hidden="true" className="cg-progress-track mb-5 h-2 overflow-hidden rounded-full bg-white/15">
               <div className="h-full rounded-full bg-gradient-to-r from-lime-300 to-sky-300 transition-all" style={{ width: `${Math.round(((question + Number(awaitingAdvance)) / activePlan.questions.length) * 100)}%` }} />
             </div>
-            <div className="cg-desktop-view"><ColorGroveScene
-              mode={step === 2 ? 'matching' : 'painting'}
-              targetHex={getWord(currentQuestion.target).hex}
-              paintedIds={paintedIds}
-              highlight={awaitingAdvance}
-              variant={currentQuestion.scene}
-            /></div>
             <div className="cg-mission-prompt my-4 rounded-2xl border border-white/20 bg-[#103b47]/90 p-3 text-center sm:p-4">
               <div className="cg-prompt-copy">
-              <h2 ref={questionHeading} tabIndex={-1} className="text-xl font-black tracking-wide sm:text-2xl">
+              <h2 ref={questionHeading} tabIndex={-1} lang={step === 3 ? 'en' : undefined} className="text-xl font-black tracking-wide sm:text-2xl">
                 {getColorInstruction(currentQuestion.target, step, englishLevel).title}
               </h2>
               <p className="sr-only">
@@ -446,7 +418,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
                     setHintUsed(true);
                   }}
                     aria-expanded={hintShown} className="vg-answer-card min-h-11 rounded-xl border border-white/20 bg-white/10 px-4 text-xs font-bold disabled:opacity-50">
-                    {hintShown ? 'Türkçe İpucunu Gizle' : 'Renkleri Ayırt Etmek İçin Türkçe İpucu'}
+                    {hintShown ? 'İpucunu gizle' : '💡 Türkçe ipucu'}
                   </button>
                   {hintShown && <p role="status" className="mt-2 text-sm font-bold text-lime-100">
                     Bu rengin Türkçe adı: {getWord(currentQuestion.target).tr}
@@ -457,46 +429,20 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
             {speechError && <p role="status" className="mb-2 rounded-xl border border-amber-300/40 bg-amber-900/40 px-3 py-2 text-xs text-amber-100">
               İngilizce ses oynatılamadı; cihazın ses paketini kontrol et. Soruları yazılı olarak cevaplayabilirsin.
             </p>}
-            <div className="cg-mobile-view">
-              <MobileColorGroveWorld
+            <MobileColorGroveWorld
                 mode={step === 2 ? 'matching' : 'painting'}
                 words={currentQuestion.choices.map(getWord)}
                 targetHex={getWord(currentQuestion.target).hex}
                 paintedIds={paintedIds} variant={currentQuestion.scene}
                 correctId={answerHighlight} wrongId={wrongAnswerId}
                 disabled={saving || awaitingAdvance} onChoose={choose}
+                toast={feedback ? { ...feedback, detail: feedback.good && finishedAnswers && !saveError ? 'Görev kaydediliyor…' : feedback.detail } : null}
               />
-            </div>
-            <div className="cg-desktop-view grid grid-cols-3 gap-2 sm:gap-3">
-              {currentQuestion.choices.map((id) => {
-                const word = getWord(id);
-                return (
-                  <button key={id} onClick={() => choose(id)} disabled={saving || awaitingAdvance}
-                    aria-label={step === 2 ? `${word.id} rengini seç` : `${word.tr} rengini seç`}
-                    aria-pressed={answerHighlight === id}
-                    className={`cg4-desktop-answer vg-answer-card min-h-24 rounded-2xl border bg-slate-950/45 p-2 text-center transition hover:scale-[1.02] disabled:opacity-60 sm:min-h-28 sm:p-4 ${answerHighlight === id ? 'border-lime-300 bg-lime-300/20 ring-2 ring-lime-300/60' : wrongAnswerId === id ? 'border-rose-300 bg-rose-500/20 ring-2 ring-rose-300/50' : 'border-white/25 hover:border-yellow-200'}`}>
-                    {step === 3 && <div className="cg4-desktop-paint" style={{ '--cg4-color': word.hex } as React.CSSProperties} aria-hidden="true"/>}
-                    <div className="text-xs font-black sm:text-lg">{step === 2 ? word.id.toUpperCase() : word.tr}</div>
-                  </button>
-                );
-              })}
-            </div>
-            <div className="cg-feedback mt-5 min-h-12 text-center text-sm font-semibold">
-              {feedback && <p role="status" aria-live="polite"
-                className={`rounded-xl px-4 py-3 ${awaitingAdvance ? 'text-lime-100' : 'text-amber-100'}`}>
-                {feedback}
-              </p>}
-              {awaitingAdvance&&!saveError&&<p role="status" aria-live="polite"
-                className="mt-2 rounded-xl border border-lime-300/40 bg-emerald-900/40 px-5 py-3 text-sm font-black text-lime-100">
-                ✨ {question+1===activePlan.questions.length?'Görev sonucu kaydediliyor…':'Yeni renk geliyor…'}
-              </p>}
-            </div>
           </section>
         ) : null)}
         {saveError && <div role="alert" className="mx-auto mt-4 max-w-lg rounded-xl border border-red-300 bg-red-950/80 p-4 text-center text-sm">
           {saveError} <button disabled={saving} className="ml-3 min-h-11 font-black underline disabled:opacity-50" onClick={() => void (step === 1 ? finish(discovered.length) : finish(correct, finishedAnswers ?? evidence))}>Tekrar Kaydet</button>
         </div>}
-<p className="cg-footer py-5 text-center text-xs text-sky-100/70">Sesli telaffuz cihazın konuşma motorunu kullanır. Ses açılmasa da bütün görevler yazılı olarak oynanabilir. Kayıt tamamlanmadan yıldız verilmez.</p>
       </div>
     </div>
   );
