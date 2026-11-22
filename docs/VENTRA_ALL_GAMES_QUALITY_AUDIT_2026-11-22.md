@@ -9,10 +9,10 @@
 | | Bulunan | Düzeltilen | Açık |
 |---|---|---|---|
 | P0 | 20 | 20 | 0 |
-| P1 | ~35 | 26 | 9 (aşağıda) |
-| P2 | ~20 | 6 | çoğu (aşağıda) |
+| P1 | ~35 | 33 | 2 ("Sonra Ne Oldu?" görselleri; dekoratif küçük metinler — aşağıda) |
+| P2 | ~30 | ~29 | kısmi: hikâye tekrar çeşitliliği sınırları (aşağıda) |
 
-Testler: 517 → **562** otomatik test (CI artık tüm test dosyalarını otomatik bulur). TypeScript ve production build temiz.
+Testler: 517 → 562 (ilk paket) → **606** (ikinci paket); CI tüm test dosyalarını otomatik bulur. TypeScript ve production build temiz.
 
 ## P0 — oyunu bozan, veri/kanıt kaybettiren, öğrenme doğruluğunu bozan
 
@@ -60,23 +60,51 @@ Testler: 517 → **562** otomatik test (CI artık tüm test dosyalarını otomat
 - Cümle oyunlarında kartların sıralı gelme koruması hiç çalışmıyordu; 1. görevde doğru renk hep ilk seçenekti (`66ca8f0`).
 - Yolculuk paneli 2,8 MB görsel indiriyordu → 320 px küçük resimler (`f86a578`).
 
-## Açık kalan riskler ve öneriler (sonraki iş paketleri)
+## İkinci paket — açık maddelerin kapatılması (22 Kasım 2026)
 
-**P1**
-1. **Odak yönetimi:** Cevaptan sonra seçilen düğme kaybolunca klavye/anahtar kullanıcısının odağı `<body>`'ye düşüyor (Pazar, Köy, Tapınak, Hayvan, Renk, Sayı). Soru başlığına odak taşıma önerilir.
-2. **IndexedDB yinelenen oturum denetimi atomik değil:** iki sekme aynı checkpoint'i aynı anda kaydederse yinelenen etkinlik satırı oluşabilir; yıldız/coin etkilenmez (en iyi değer + seviye başına coin).
-3. **Profil silme ebeveyn kapısı gerektirmiyor:** tek `confirm` ile kardeş profili silinebilir. Ürün kararı gerekir.
-4. **Akademi mikrofonu:** ~86 MB yerel model inerken "Dinliyorum…" gösteriliyor; ilerleme/iptal yok.
-5. **Hikâyeyi Keşfet A2 sonuç sorusu:** seçenek resimleri nesneyi gösterdiği için nesne eşlemesiyle çözülebiliyor; iki bitiş anlatımı (sandık, kuş ailesi) resimde görünmüyor. Yeni görsel gerektirir.
-6. **Sonra Ne Oldu?** 1. bölümde iki kare neredeyse aynı; bazı karakterler 3D WebP, bazıları düz SVG (tutarsız görünüm). Yeni görsel gerektirir.
-7. **Fener Festivali** harita pinleri 320–400 px'de üst üste binebilir (ölçülmedi).
-8. **Diyalog Limanı** "What is your name?" yalnızca "My name is Alex." kabul ediyor.
-9. **Dekoratif küçük metinler** (8–11 px etiketler/sayaçlar) birçok ekranda duruyor; işlevsel olanlar düzeltildi.
+İlk paketteki açık P1/P2 maddeleri ve belgeye girmemiş P2 bulguları ele alındı. Her paket: kod → test → `tsc` + `test:ci` + production build → commit → `main`. Testler 562 → **606**.
 
-**P2:** Hayvan Çayırı bitiş ekranı her zaman ⭐⭐⭐; Renk Korusu keşif kaydı tekrarında yanlış doğru sayısı; sayı kelimesi parçalama ("hun|dre|d"); bazı kullanılmayan bileşenler (`RewardModal`, `GameLevelMap`, `MobileMeadowWorld`, `NumberPlaceWorkshop`); Aile Köyü başlığı 320 px'de yıldız rozetinin altında kalıyor.
+| Madde | Sorun | Düzeltme | Doğrulama | Commit |
+|---|---|---|---|---|
+| P1 Veri | IndexedDB yinelenen oturum denetimi atomik değildi | Silinmiş profil + oturum + önceki seviye + tüm yazmalar tek `readwrite` işleminde (`readThenWrite`); ortak `gameCompletionPlan.ts` | Sıralı işlem taklidi: eski kod çift kayıt yazıp deneme kaybediyordu, yeni kod geçiyor | `e81b330` |
+| P1 Güvenlik | Profil silme tek `confirm` ile | Mevcut `ParentalGateModal` (tehlike görünümü, profil adı ve sonucu yazılı); Escape önce kapıyı kapatır | Kaynak testi | `e81b330` |
+| P1 Konuşma | Liman "What is your name?" yalnızca "Alex" | `personal:'name'` kalıbı: "My name is <kendi adı>"; hiçbir şey saklanmaz | Birim testi | `717e7bf` |
+| P1 Konuşma | Akademi ~73 MB model inerken "Dinliyorum…" | Bayt düzeyi ilerleme (boyut + SHA-256 korunur), aşamalar, 44 px "Dur" düğmesi; Liman'da da ilerleme | Akış testi (Node) | `717e7bf` |
+| P1 Erişilebilirlik | Cevaptan sonra odak `<body>`'ye düşüyordu (6 oyun) | `useQuestionFocus`: yeni soru / görev sonucu başlığına, yalnızca odak kaybolduysa | Chrome, yalnız klavye: Hayvan (4 soru + bitiş), Pazar (3 soru), 0 kez `<body>` | `d683071` |
+| P1 Mobil | Fener pinleri 320–400 px'de üst üste | ≤660 px: harita simge işaretçisi, seçim 2×2 okunur listede | Geometri testi (bölüm yeni profilde kilitli, ekran görüntüsü alınamadı) | `3cfe744` |
+| P1 Mobil | Öğretici "tekrar aç" düğmesi görev sayacını ve oyunun "?" düğmesini örtüyordu | Oyunun kendi yardım panelinde "Öğretimi tekrar oyna"; yüzen düğme yalnızca yedek | Chrome: 4 oyun × 2 genişlik | `3cfe744` |
+| P1 Pedagoji | Hikâyeyi Keşfet A2 sonuç sorusu nesne resmiyle çözülüyordu | Nesneyi adlandırmayan İngilizce sonuç cümleleri (okuduğunu anlama); yeni görsel gerekmedi | Birim testi | `7fe5831` |
+| P1 Okunabilirlik | 9–11 px işlevsel etiketler | Bahçe gezinme/ilerleme etiketleri 12 px, sahne etiketleri 11 px; Fener, Aile Köyü mobil metinleri | Chrome 320 px ölçümü | `3cfe744` |
+| P2 | Aile Köyü başlığı 320 px'de yıldız rozetinin altında | Tabela esnek öğe, rozet kısa sayı gösterir | Chrome ölçümü: çakışma yok | `3cfe744` |
+| P2 | "—. sınıf" başlığı (5 oyun) | "Sınıf seçilmedi" | Birim testi | `3cfe744` |
+| P2 | Hayvan Çayırı bitişi hep ⭐⭐⭐ | Bu turun yıldızı | Kaynak testi | `13cb4d6` |
+| P2 | Renk Korusu keşif kaydını yeniden denerken 0 doğru | Yeniden deneme ilk kayıtla aynı | Kaynak testi | `13cb4d6` |
+| P2 | Pazar keşfi son kelimenin sesinin üstüne kaydediyordu | Konuşma bitişini bekler | Kaynak testi | `13cb4d6` |
+| P2 | Tapınak renk çeldiricileri ayırt edilemiyordu (purple/violet…) | ΔE<30 renkler çeldirici olamaz | 1 440 plan: eski motor 42, yeni 0 | `13cb4d6` |
+| P2 | Yardım etmeyen eylemler "destekli" sayılıyordu (Köy 4, Tapınak 5) | Yönerge tekrarı ipucu sayılmaz; 5. aşama ipucu anlamı gösterir | Kaynak testi | `13cb4d6` |
+| P2 | Sayı kelimeleri "one\|hun\|dre\|dtw…" | Kelime ve anlamlı parça (one · hundred · twenty- · five) | 1–1000 testi | `13cb4d6` |
+| P2 | Yazı Atölyesi'nde Enter yeni satır ekliyordu | Enter/"done" cevabı kontrol eder | Kaynak testi | `13cb4d6` |
+| P2 | Liman sahne eşyası dokunuşları İngilizce puanını düşürüyordu | Ayrı izlenir, puana girmez | Kaynak testi | `13cb4d6` |
+| P2 | Pasaport çocuğa teknik İngilizce hata gösteriyordu | Gerçek neden korunur, Türkçe çocuk metni | Birim testi | `13cb4d6` |
+| P2 | Kullanılmayan bileşenler | `RewardModal`, `GameLevelMap`, `MobileMeadowWorld`, `NumberPlaceWorkshop` silindi | `tsc` + build | `87b80c7` |
+| P2 | Modal odak yönetimi (profil, Tema, Harf) | `useDialogFocus` + `focusMemory`: içeri al, Tab'ı tut, açana geri ver | Chrome: 70 Tab dışarı çıkmadı, Escape sonrası odak açan düğmede | `87a8acc`, `89bdb10` |
+| P2 | Meydan kelime kutuları 30×39 px | 44 px | Kaynak testi + 320 px ölçümü | `21010fe` |
+| P2 | Hikâye: yükleme hatasında yeniden deneme yok; tekrar oyunları aynı; yer kartı etiketleri ham İngilizce | "↻ Tekrar dene", geçmişe göre değişen bölümler, Türkçe yer etiketleri, odak | Birim + entegrasyon testi | `5e3d7d0` |
+| P2 | Uzun A2 cümleleri otomatik geçişte kesiliyordu (Meydan, Hareket) | Ses bitince geçiş (`sentenceAutoAdvance`), sesi yoksa okuma süresi | Sahte saatle zaman testi | `5e3d7d0` |
+| P2 | Meydan çeldiricileri hep aynıydı | Cümleye göre çeldirici: 1 288 soruda 1 013 farklı set | Birim testi | `5e3d7d0` |
+| P2 | Fener seçimleri Türkçe–Türkçe eşleme | Renk ve yer seçenekleri İngilizce | Birim testi | `5e3d7d0` |
+
+## Açık kalan riskler ve öneriler
+
+1. **"Sonra Ne Oldu?" görselleri:** 1. bölümde iki kare neredeyse aynı. Tavşan resimsel 3D WebP; tilki, geyik ve ayı SVG. Projedeki `fluent-3d` emoji PNG'leri bu kitap üslubuna uymadığı için kullanılmadı. Yeni görsel gerekir.
+2. **Fener Festivali konum seçicisi** gerçek tarayıcıda görülmedi (bölüm yeni profilde kilitli). Geometri ve kaynak testleriyle doğrulandı; cihazda bakılmalı.
+3. **Akademi model indirme ilerlemesi** gerçek indirmeyle tarayıcıda görülmedi (masaüstü Chrome farklı konuşma moduna geçebiliyor); akış Node testleriyle doğrulandı.
+4. **12 px altı dekoratif metinler:** ada ana ekranlarında (Yazı Atölyesi 22, Liman 16 öğe) ve oyun alt bilgilerinde duruyor. İşlevsel olanlar düzeltildi.
+5. **Hikâye tekrar çeşitliliği:** 4. bölümün 4 kareli ve tüm 5 kareli destelerde alternatif alıntı yok; A2 1. ve 4. bölüm yalnızca karışır.
+6. **İstekler Meydanı ve Fener Festivali** otomatik geçiş için hâlâ kendi satır içi kopyalarını kullanıyor; davranış aynı, ileride `sentenceAutoAdvance`'a taşınabilir.
 
 ## Görsel varlık ihtiyaçları (üretim altyapısı yok — sahte/düşük kaliteli görsel eklenmedi)
-- Hikâyeyi Keşfet: anahtarla açılan sandık ve "kuş ailesine kavuşur" bitiş sahneleri; nesnesiz sonuç kartları.
+- Hikâyeyi Keşfet: anahtarla açılan sandık ve "kuş ailesine kavuşur" bitiş sahneleri (isteğe bağlı; A2 sonuç sorusu artık yazılı cümlelerle çalışıyor, görsel gerektirmiyor).
 - Sonra Ne Oldu?: 1. bölüm "elmayı ağaca taşır" karesi için belirgin ağaç/poz; tüm bölümlerde tavşan, tilki, geyik için tutarlı 3D WebP.
 
 ## Gerçek cihazda kontrol edilmesi gerekenler
@@ -85,12 +113,23 @@ Testler: 517 → **562** otomatik test (CI artık tüm test dosyalarını otomat
 - Sherpa/Chrome konuşma tanıma: "I'm happy", "Let's go", "I need two apples" Liman'da kabul ediliyor mu?
 - Sessize alınmış cihazda Tema Kasabası dinleme görevleri.
 - 320×568 telefonda Hikâyeyi Keşfet A1/A2 yer/sonuç kontrolünde 💡'ye dokunma.
-- Profil silme → kalan profille oynayıp uygulamayı yeniden başlatma.
+- Profil silme → ebeveyn kapısı → kalan profille oynayıp uygulamayı yeniden başlatma.
+- İlk kez Akademi/Liman mikrofonu: model indirme yüzdesi ilerliyor mu, "Dur" düğmesi çalışıyor mu (yavaş mobil ağ).
+- Liman "What is your name?" sorusuna kendi adıyla "My name is …" demek.
+- Fener Festivali 2. ve 4. bölüm: telefonda 2×2 konum seçicisi.
+- Yazı Atölyesi: telefon klavyesinin "Bitti/Git" tuşu cevabı kontrol ediyor mu.
+- İki sekmede aynı oyunu bitirmek: etkinlik listesinde tek satır.
 
 ## Yeni ortak modüller (korunmalı)
 - `lib/progress/levelProgressMap.ts` — seviye haritası; yeni oyun 10'dan fazla seviye kullanıyorsa sayısını buraya ekleyin.
 - `lib/progress/activityTitles.ts` — etkinlik başlıkları; `WORLD_GAMES` etiketleriyle aynı olmalı.
 - `lib/learning/sentenceTokens.ts` — cümle kelime karşılaştırma, çeldirici ve ders örneği filtresi.
 - `lib/learning/englishAnswerText.ts` — yazılı/konuşulan cevap normalizasyonu (bulanık eşleştirme değildir).
+- `lib/progress/gameCompletionPlan.ts` — iki depo için ortak yıldız/deneme/etkinlik planı; IndexedDB'de `readThenWrite` ile tek işlemde uygulanır.
+- `components/learning/activities/useQuestionFocus.ts`, `lib/a11y/useDialogFocus.ts`, `lib/a11y/focusMemory.ts` — odak sözleşmesi.
+- `components/learning/tutorialReplay.tsx` — öğreticiyi oyunun kendi yardımından tekrar açma.
+- `lib/speech/modelDownload.ts` — bayt ilerlemeli, bütünlük denetimli model indirme.
+- `components/learning/sentence/sentenceAutoAdvance.ts` — ses bitince otomatik geçiş.
+- `lib/learning/gradeLabel.ts` — sınıf etiketi.
 - `components/learning/activities/garden-child-legibility.css` — 44 px / okunabilirlik tabanı.
 - `scripts/run-tests.mjs` — tüm testleri bulur; `scripts/mobile-audit.mjs` — gerçek tarayıcı mobil denetimi (`npm --workspace=apps/web run qa:mobile`, bir kez `npm i -D playwright-core -w apps/web` gerekir).
