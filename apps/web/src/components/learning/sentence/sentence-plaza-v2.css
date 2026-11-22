@@ -252,10 +252,11 @@
  .sp-v2 .sp-cue{font-size:16px;padding:9px 10px}
  .sp-v2 .sp-v2-steps{gap:4px;margin:8px 0}
  .sp-v2 .sp-v2-steps span{font-size:10px;padding:7px 3px}
- .sp-v2 .sp-scene-choice{padding:5px 7px;min-height:43px}
+ .sp-v2 .sp-scene-choice{padding:5px 7px;min-height:44px}
  .sp-v2 .sp-scene-choice small{font-size:10px}
  .sp-v2 .sp-slots{gap:5px;padding:8px 5px;min-height:65px}
- .sp-v2 .sp-slot{min-width:30px;min-height:39px;padding:6px 7px}
+ /* Filled slots are buttons (tap to return the word): 44px like the tiles. */
+ .sp-v2 .sp-slot{min-width:44px;min-height:44px;padding:6px 7px}
  .sp-v2 .sp-tile{min-width:45px;min-height:44px;padding:6px 8px;font-size:12px}
  .sp-v2 .sp-tools .sp-secondary{font-size:11px;padding:6px 4px}
  .sp-v2 .sp-side{padding:14px}

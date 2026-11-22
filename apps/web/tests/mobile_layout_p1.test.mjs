@@ -72,3 +72,10 @@ test('Garden navigation and progress labels have a 12px floor; scene-painted lab
  assert.match(css,/:is\(\.fm-banner,\.tp-mission-tag,\.fv-mission-label\)\{font-size:11px!important\}/);
  assert.match(src('components/learning/activities/garden-quest-navigation.css'),/\.gg-quest-location-kicker\{font-size:11px;/);
 });
+
+test('Sentence Plaza word slots and scene choices stay 44px on phones',()=>{
+ const css=src('components/learning/sentence/sentence-plaza-v2.css');
+ assert.match(css,/\.sp-v2 \.sp-slot\{min-width:44px;min-height:44px;/);
+ assert.doesNotMatch(css,/\.sp-v2 \.sp-slot\{min-width:30px;min-height:39px/);
+ assert.match(css,/\.sp-v2 \.sp-scene-choice\{padding:5px 7px;min-height:44px\}/);
+});
