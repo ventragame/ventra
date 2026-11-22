@@ -74,7 +74,10 @@ export function eligibleMarketWords(aisle:MarketAisle,gradeLevel:number|null|und
  return MARKET_WORDS.filter(x=>x.aisle===aisle&&x.tier<=tier);
 }
 const PLURAL_MARKET=new Set(['grapes','cherries','pancakes','beans']);
-const MASS_MARKET=new Set(['bread','cheese','butter','honey','milk','water','juice','tea','lemonade','soup','rice','fish','smoothie','coffee','pasta','chicken','cereal','salt']);
+/** Uncountable food, and food the art shows as a slice (cake, pizza and
+ * watermelon are drawn as slices: "some cake", not "a cake"). A smoothie is
+ * ordered as one drink: "a smoothie". */
+const MASS_MARKET=new Set(['bread','cheese','butter','honey','milk','water','juice','tea','lemonade','soup','rice','fish','coffee','pasta','chicken','cereal','salt','cake','pizza','watermelon']);
 /** Natural introductory shopping English; avoid "I want apple" or "a bread". */
 export function marketNounPhrase(id:string):string{
  marketWord(id);
@@ -84,6 +87,24 @@ export function marketNounPhrase(id:string):string{
 /** "some" is for positive sentences: I don't want ANY milk / an apple. */
 export function negativeNounPhrase(id:string):string{
  return marketNounPhrase(id).replace(/^some /,'any ');
+}
+/** Items a child could fairly take for each other: the pictures look alike
+ * (apple/tomato, tea/coffee, donut/bagel, cake/sandwich, cheese/butter,
+ * peach/onion, rice/cereal, cake/muffin) or one word can name the other's
+ * picture (lemonade and a smoothie are both "juice" to a six-year-old).
+ * They are never offered side by side as an answer and a distractor. */
+export const MARKET_LOOKALIKES:readonly (readonly [string,string])[]=[
+ ['apple','tomato'],['peach','onion'],['donut','bagel'],['cake','sandwich'],['cake','muffin'],
+ ['cheese','butter'],['tea','coffee'],['rice','cereal'],['juice','lemonade'],['juice','smoothie']
+];
+export function marketLookalike(a:string,b:string):boolean{
+ return a!==b&&MARKET_LOOKALIKES.some(([x,y])=>(x===a&&y===b)||(x===b&&y===a));
+}
+/** Keeps the given order but moves anything that looks like an earlier pick to the end. */
+function distinctFirst<T extends {id:string}>(items:readonly T[]):T[]{
+ const kept:T[]=[],later:T[]=[];
+ for(const item of items)(kept.some(k=>marketLookalike(k.id,item.id))?later:kept).push(item);
+ return [...kept,...later];
 }
 export function marketWord(id:string):FoodWord{
  const found=MARKET_WORDS.find(w=>w.id===id);if(!found)throw Error('Unknown market item: '+id);return found;
@@ -111,7 +132,9 @@ export function planMarketMission(input:{
   if(stage===1)return Number(discovered.has(a.id))-Number(discovered.has(b.id));
   return priority(b,history)-priority(a,history);
  });
- const active=ordered.slice(0,count);
+ // The basket grid shows every word of the mission at once, so it avoids
+ // look-alike pairs (apple and tomato) whenever the aisle has enough items.
+ const active=(stage===5?distinctFirst(ordered):ordered).slice(0,count);
  const words=active.map(w=>w.id);
  if(stage===1)return {aisle,stage,words,questions:[]};
  // Stage 5 basket items stay in the basket (disabled), so every basket target
@@ -125,7 +148,10 @@ export function planMarketMission(input:{
    // that have not appeared in a discovery mission. On a first ever session,
    // use the eligible grade-scoped pool as a safe fallback.
    const distractorPool=(pool.length>=3?pool:all).filter(w=>w.id!==word.id);
-   const distractors=shuffled(distractorPool,rng).slice(0,2).map(w=>w.id);
+   const candidates=shuffled(distractorPool,rng);
+   // A look-alike is only a last resort for a tiny pool.
+   const distractors=[...candidates.filter(w=>!marketLookalike(w.id,word.id)),
+     ...candidates.filter(w=>marketLookalike(w.id,word.id))].slice(0,2).map(w=>w.id);
    const options=shuffled([word.id,...distractors],rng);
    const customer=i%2===0?'I would like':'Can I have';
    // Spoken customer request: neither its written word nor a copy of the
@@ -150,8 +176,13 @@ export function planMarketMission(input:{
  });
  // The basket grid always keeps the last target plus at least two other
  // enabled products, so the final pick is never a forced single choice.
- const gridWords=stage===5&&words.length<rounds+2?[...words,...shuffled(all.filter(w=>!words.includes(w.id)),rng)
-  .slice(0,rounds+2-words.length).map(w=>w.id)]:words;
+ let gridWords=words;
+ if(stage===5&&words.length<rounds+2){
+  const extra=shuffled(all.filter(w=>!words.includes(w.id)),rng);
+  const looksLikeActive=(w:FoodWord)=>active.some(a=>marketLookalike(a.id,w.id));
+  const fillers=[...extra.filter(w=>!looksLikeActive(w)),...extra.filter(looksLikeActive)];
+  gridWords=[...words,...fillers.slice(0,rounds+2-words.length).map(w=>w.id)];
+ }
  return {aisle,stage,words:gridWords,questions};
 }
 /**

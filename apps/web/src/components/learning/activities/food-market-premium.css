@@ -1,0 +1,175 @@
+/* Lezzet Pazarı — premium layer, loaded after the V6 skin and the shared quest
+   navigation, before the child legibility floor. The market picture becomes
+   a slim scene strip with the feedback inside it, help and sound join the
+   HUD, the duplicate location bar is kept for screen readers only and every
+   mission fits the screen. Motion obeys prefers-reduced-motion. */
+
+/* 1. HUD: stars, help and sound sit together. */
+.fm7-screen .fm4-header{margin-bottom:10px}
+.fm7-screen .fm4-brand h1>span{font-size:.85em}
+.fm7-screen .fm7-hud-tools{display:flex;align-items:center;gap:8px;flex:none}
+.fm7-screen .fm4-header .wg-game-help{position:relative;max-width:none;margin:0;color:#24534d}
+.fm7-screen .fm4-header .wg-game-help summary{width:46px;height:46px;border-radius:15px;
+ border:2px solid #fff7c9;background:linear-gradient(155deg,#dff7da,#c2e6d4);color:#205751;
+ box-shadow:0 4px 0 #98bda9;font-size:21px}
+.fm7-screen .fm4-header .wg-game-help-body{position:absolute;right:0;top:calc(100% + 8px);z-index:60;
+ width:min(340px,calc(100vw - 28px));margin:0;text-align:left;color:#e8f7f0}
+.fm7-screen .fm4-header .fm4-sound{min-width:46px;min-height:46px;font-size:20px}
+
+/* 2. The location bar repeats the highlighted lane and step: screen readers only. */
+.fm7-screen .gg-quest-location{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
+ clip:rect(0,0,0,0);white-space:nowrap;border:0}
+.fm7-screen .gg-quest-navigation{margin-bottom:10px}
+
+/* 3. Lanes and steps: one compact row each. */
+.fm7-screen .fm4-lane{min-height:60px;padding:6px 12px 6px 92px}
+.fm7-screen .fm6-lane-art{width:84px}
+.fm7-screen .fm4-lane .fm-lane-icon{left:54px;width:26px;height:26px;font-size:17px}
+.fm7-screen .fm4-lane .fm-lane-copy small{margin-top:3px}
+.fm7-screen .fm4-stagebar{margin-bottom:0}
+.fm7-screen .fm4-stage-pill{min-height:50px;display:flex;flex-direction:row;align-items:center;justify-content:center;gap:7px;padding:6px 8px}
+.fm7-screen .fm4-step-icon{font-size:20px}
+.fm7-screen .fm4-step-name{font-size:13px;text-align:left}
+.fm7-screen .fm4-stage-pill[data-completed=true]:after{font-size:12px}
+
+/* 4. The market picture is a scene strip; feedback and progress live in it. */
+.fm7-screen .fm4-scenery{height:clamp(112px,12vw,136px)}
+.fm7-screen .fm4-backdrop>img{object-position:center 58%}
+.fm7-screen .fm4-scene-label{bottom:10px;left:12px;padding:6px 12px}
+.fm7-screen .fm4-scene-label>span{font-size:20px}
+.fm7-screen .fm4-scene-label strong{font-size:14px}
+.fm7-screen .fm4-scene-label small{font-size:12px}
+.fm7-screen .fm7-scene-count{position:absolute;z-index:3;top:10px;right:12px;padding:5px 12px;border-radius:999px;
+ border:2px solid #fff3c4;background:#fffae7;color:#7a4a32;font-size:13px;font-weight:1000;
+ font-variant-numeric:tabular-nums;box-shadow:0 4px 0 #c9906c87}
+.fm7-screen .fm7-toast{
+ position:absolute;z-index:4;top:12px;left:50%;transform:translateX(-50%);
+ display:flex;align-items:baseline;justify-content:center;flex-wrap:wrap;gap:2px 10px;
+ width:max-content;max-width:calc(100% - 300px);margin:0;padding:9px 20px;border-radius:999px;
+ font-size:18px;font-weight:1000;line-height:1.2;text-align:center;
+ color:#1e5a3f;background:#fffbe2f7;border:3px solid #fff;
+ box-shadow:0 5px 0 #4f9a6aa8,0 10px 24px #0d3f3c55;
+ animation:fm7-toast-in .32s cubic-bezier(.2,1.5,.45,1) both;pointer-events:none}
+.fm7-screen .fm7-toast[data-good=false]{color:#6b2338;background:#fff0f2f7;box-shadow:0 5px 0 #c0577aa0,0 10px 24px #4a1b2d40}
+.fm7-screen .fm7-toast small{font-size:13px;font-weight:850;opacity:.85}
+@keyframes fm7-toast-in{from{opacity:0;transform:translate(-50%,-8px) scale(.9)}to{opacity:1;transform:translate(-50%,0) scale(1)}}
+
+/* 5. Workshop: the prompt card is the first thing under the strip. */
+.fm7-screen .fm4-workshop{padding:12px 20px 18px}
+.fm7-screen .fm4-meter{margin-top:0;height:9px}
+.fm7-screen .fm4-command{margin:10px auto;padding:8px 12px}
+.fm7-screen .fm4-command small{font-size:13px}
+.fm7-screen .fm4-featured{min-height:0;margin:4px auto 6px}
+.fm7-screen .fm4-featured-stand{width:150px;height:136px}
+.fm7-screen .fm4-featured-stand .fm4-food-svg{width:124px;height:118px}
+.fm7-screen .fm-hint-row{margin-top:4px;gap:8px}
+.fm7-screen .fm-text-hint{min-height:44px;padding:6px 14px;font-size:13px}
+.fm7-screen .fm7-hint-text{padding:6px 12px;border-radius:12px;background:#fff3d4;border:1px solid #f0cf96;
+ color:#7a4a32;font-size:14px;font-weight:950}
+.fm7-screen .fm4-audio-panel{margin:6px auto 4px}
+.fm7-screen .fm-audio-button{min-height:58px}
+.fm7-screen .fm5-listen-status{font-size:13px}
+.fm7-screen .fm5-assisted-text{font-size:13px}
+.fm7-screen .fm5-assisted-text strong{font-size:16px}
+.fm7-screen .fm5-option-marker{font-size:13px}
+.fm7-screen .fm5-word-label{font-size:clamp(16px,1.9vw,21px);letter-spacing:.02em}
+.fm7-screen .fm5-dialogue-option>.fm5-dialogue-option-label{min-width:26px;height:26px;font-size:13px}
+.fm7-screen .fm-product-name{font-size:clamp(14px,1.6vw,17px)}
+@media(min-width:850px){.fm7-screen .fm4-product{min-height:132px}
+ .fm7-screen .fm-product-illustration,.fm7-screen .fm4-product .fm4-food-svg{height:92px}}
+.fm7-screen .fm4-products{margin:10px auto 8px}
+/* Basket: drop zone and what is already inside, on one row. */
+.fm7-screen .fm4-basket-target{min-height:58px;margin:6px auto 0;padding-block:5px;gap:12px;flex-wrap:wrap}
+/* The basket mission shows the whole stall (8 cards) plus the list and the basket. */
+@media(min-width:768px){
+ .fm7-screen[data-stage="5"] .fm4-product{min-height:112px}
+ .fm7-screen[data-stage="5"] .fm-product-illustration,.fm7-screen[data-stage="5"] .fm4-product .fm4-food-svg{height:80px}
+ .fm7-screen[data-stage="5"] .fm4-products{margin-block:6px}
+ .fm7-screen[data-stage="5"] .fm-hint-row{margin-top:0}
+ .fm7-screen[data-stage="5"] .fm4-workshop{padding-bottom:10px}
+}
+.fm7-screen .fm4-basket-target small{font-size:12px}
+.fm7-screen .fm4-basket-target .fm4-basket{margin:0 0 0 auto;padding:4px 8px;border:0;background:none;box-shadow:none}
+.fm7-screen .fm4-basket>span{font-size:12px}
+
+/* 6. Answers answer back: correct pops, wrong shakes. */
+.fm7-screen :is(.fm5-word-option,.fm5-dialogue-option)[data-result=correct],
+.fm7-screen .fm4-product.fm-product-good{animation:fm7-pop .55s cubic-bezier(.2,1.5,.4,1) both}
+.fm7-screen :is(.fm5-word-option,.fm5-dialogue-option)[data-result=wrong],
+.fm7-screen .fm4-product[data-wrong=true]{animation:fm7-shake .42s ease-in-out both}
+@keyframes fm7-pop{0%{transform:scale(1)}40%{transform:translateY(-6px) scale(1.06)}100%{transform:scale(1)}}
+@keyframes fm7-shake{0%,100%{transform:translateX(0)}20%{transform:translateX(-7px)}
+ 40%{transform:translateX(6px)}60%{transform:translateX(-4px)}80%{transform:translateX(2px)}}
+
+/* 7. Reward: honest result and a tap-to-hear word recap. */
+.fm7-screen .fm4-win{padding:12px 18px 14px;margin-top:6px}
+.fm7-screen .fm4-win .fm-win-icon{width:52px;height:52px;font-size:26px}
+.fm7-screen .fm4-win .fm-cta{margin-top:12px}
+.fm7-screen .fm4-win .fm-secondary{margin-top:8px}
+.fm7-screen .fm4-win .fm-gained{margin:4px 0 0;letter-spacing:4px}
+.fm7-screen .fm7-win-stats{margin:4px 0 0;color:#2d6555;font-size:15px;font-weight:900}
+.fm7-screen .fm7-recap{margin:12px auto 4px;max-width:640px}
+.fm7-screen .fm7-recap-title{margin-bottom:8px;color:#5b7f6c;font-size:12px;font-weight:900;letter-spacing:.04em}
+.fm7-screen .fm7-recap-list{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.fm7-screen .fm7-recap-word{display:inline-flex;align-items:center;gap:6px;min-height:48px;
+ padding:3px 14px 3px 4px;border-radius:999px;border:2px solid #f5d6a5;
+ background:linear-gradient(150deg,#fffdf2,#eaf7ee);color:#174e50;font-size:16px;font-weight:1000;
+ box-shadow:0 4px 0 #b5caa8;touch-action:manipulation}
+.fm7-screen .fm7-recap-art{width:38px;height:38px}
+.fm7-screen .fm7-recap-word:active:not(:disabled){transform:translateY(2px);box-shadow:0 2px 0 #b5caa8}
+.fm7-screen .fm7-recap-word:disabled{opacity:.8}
+.fm7-screen .fm7-recap-word:focus-visible{outline:3px solid #f4b83e;outline-offset:3px}
+/* Short screens: the next-mission button comes before the recap. */
+@media(max-height:940px){
+ .fm7-screen .fm4-win{display:flex;flex-direction:column;align-items:center}
+ .fm7-screen .fm4-win .fm7-recap{order:10;width:100%}
+}
+
+/* 8. Phones: the play area fills the screen and answers sit in the thumb zone. */
+@media(max-width:767px){
+ .fm7-screen .fm4-header .wg-game-help summary,.fm7-screen .fm4-header .fm4-sound{width:44px;min-width:44px;height:44px;min-height:44px;font-size:18px}
+ .fm7-screen .fm7-hud-tools{gap:5px}
+ /* One-line title between the back button and the three HUD tools. */
+ .fm7-screen .fm4-brand h1{font-size:clamp(17px,4.8vw,22px);white-space:nowrap}
+ .fm7-screen .fm4-brand h1>span{display:none}
+ .fm7-screen .fm4-score{font-size:12px;padding:6px 8px}
+ .fm7-screen .gg-quest-navigation .gg-quest-zone-nav,.fm7-screen .gg-quest-navigation .gg-quest-stage-nav{padding-bottom:6px;margin-bottom:4px}
+ .fm7-screen .gg-quest-navigation .gg-quest-zone{min-height:56px;flex-basis:clamp(132px,40vw,168px);width:clamp(132px,40vw,168px)}
+ .fm7-screen .fm4-lane{padding:4px 6px 5px 58px!important;flex-direction:row;justify-content:flex-start;align-items:center}
+ .fm7-screen .fm6-lane-art{width:52px;height:auto;bottom:0;border-radius:11px 0 0 11px;mask-image:linear-gradient(90deg,#000 70%,transparent)}
+ .fm7-screen .fm4-lane .fm-lane-icon{display:none}
+ .fm7-screen .fm4-lane .fm-lane-copy{margin-top:0}
+ .fm7-screen .gg-quest-navigation .gg-quest-step{min-height:48px;flex-basis:clamp(118px,36vw,150px);width:clamp(118px,36vw,150px)}
+ .fm7-screen .fm4-step-name{font-size:12px}
+ .fm7-screen .fm4-scenery{height:92px}
+ .fm7-screen .fm4-scene-label{bottom:6px;left:6px;padding:4px 9px}
+ .fm7-screen .fm4-scene-label small{display:none}
+ .fm7-screen .fm4-scene-label strong{font-size:13px}
+ .fm7-screen .fm7-scene-count{top:6px;right:6px;font-size:12px;padding:3px 9px}
+ .fm7-screen .fm7-toast{top:8px;max-width:calc(100% - 16px);padding:6px 14px;font-size:16px;flex-direction:column;align-items:center;border-radius:18px}
+ .fm7-screen .fm7-toast small{font-size:12px}
+ .fm7-screen .fm4-scenery:has(.fm7-toast) :is(.fm4-scene-label,.fm7-scene-count){visibility:hidden}
+ .fm7-screen .fm4-workshop{padding:9px 8px 12px}
+ .fm7-screen .fm4-command{margin:8px auto}
+ .fm7-screen .fm4-command small{font-size:12px}
+ .fm7-screen .fm4-featured-stand{width:128px;height:116px}
+ .fm7-screen .fm4-featured-stand .fm4-food-svg{width:104px;height:100px}
+ .fm7-screen .fm5-word-label{font-size:clamp(14px,4.2vw,17px)}
+ .fm7-screen .fm-product-name{font-size:13px}
+ .fm7-screen .fm-audio-button{min-height:54px;font-size:16px}
+ .fm7-screen .fm4-basket-target small{display:none}
+ .fm7-screen[data-stage="5"] .fm-supermarket-grid .fm4-product{min-height:82px}
+ .fm7-screen[data-stage="5"] .fm-supermarket-grid .fm-product-illustration,
+ .fm7-screen[data-stage="5"] .fm-supermarket-grid .fm4-food-svg{height:58px}
+ .fm7-screen[data-stage="5"] .fm4-command{padding:6px 8px}
+ .fm7-screen .fm4-basket-target{min-height:50px}
+ /* Fill the screen so the answers drop to the bottom (thumb zone). */
+ .fm7-screen .fm4-play{display:flex;flex-direction:column;min-height:calc(100dvh - var(--fm7-chrome,248px) - env(safe-area-inset-bottom,0px))}
+ .fm7-screen .fm4-workshop{flex:1 1 auto;display:flex;flex-direction:column}
+ .fm7-screen .fm4-activity{flex:1 1 auto;display:flex;flex-direction:column}
+ .fm7-screen .fm4-activity>:is(.fm7-answers,.fm5-word-choices){width:100%;margin-top:auto}
+ .fm7-screen .fm4-activity>.fm7-answers~.fm4-basket-target{width:100%}
+}
+@media(prefers-reduced-motion:reduce){
+ .fm7-screen .fm7-toast,.fm7-screen :is(.fm5-word-option,.fm5-dialogue-option,.fm4-product){animation:none!important}
+}
