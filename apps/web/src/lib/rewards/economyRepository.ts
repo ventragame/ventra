@@ -46,6 +46,9 @@ export class IndexedDbEconomyStorage implements EconomyStorage{
       const tx=db.transaction('meta','readwrite');
       const store=tx.objectStore('meta'),key=`p5:${profileId}`;
       let result:EconomyState|null=null;
+      // Keep the domain reason (e.g. "Goal not yet complete") instead of the
+      // generic abort error, so the UI can explain it to the child.
+      let failure:unknown=null;
       const get=store.get(key);
       get.onsuccess=()=>{
         try {
@@ -55,11 +58,11 @@ export class IndexedDbEconomyStorage implements EconomyStorage{
           if(next.profileId!==profileId||economyBalance(next)<0)throw new Error('Invalid economy transaction');
           result=next;
           store.put({key,value:next});
-        }catch{tx.abort();}
+        }catch(error){failure=error;tx.abort();}
       };
       tx.oncomplete=()=>{db.close();if(result)resolve(result);else reject(new Error('No economy result'));};
       tx.onerror=()=>{db.close();reject(tx.error??new Error('Economy transaction failed'));};
-      tx.onabort=()=>{db.close();reject(tx.error??new Error('Economy transaction rejected'));};
+      tx.onabort=()=>{db.close();reject(failure??tx.error??new Error('Economy transaction rejected'));};
     });
   }
   async remove(profileId:string):Promise<void>{
@@ -153,4 +156,15 @@ export async function purchaseAvatarWithCoins(repo:IProgressRepository,profileId
   storage:EconomyStorage=economyStorage(),now=new Date()){
  await getAvatarShop(repo,profileId,currentAvatarId,storage,now);
  return storage.mutate(profileId,s=>buyAvatar(s,avatarId,now.toISOString()));
+}
+
+/** Child-facing Turkish text for a rejected passport/coin action. Technical
+ * reasons stay in the console; children never see English error strings. */
+export function economyErrorMessage(error:unknown):string{
+ const reason=error instanceof Error?error.message:'';
+ if(/Goal not yet complete/.test(reason))return 'Bu görev henüz tamamlanmadı. Biraz daha oyna, sonra tekrar dene!';
+ if(/Yetersiz Ventra Coin/.test(reason))return 'Bunun için biraz daha Ventra Coin biriktirmelisin.';
+ if(/Invalid day/.test(reason))return 'Yeni bir gün başladı! Pasaportun yenilendi, tekrar dene.';
+ if(/Unknown cosmetic|Unowned cosmetic|Unknown avatar/.test(reason))return 'Bu ödül şu anda kullanılamıyor.';
+ return 'İşlem tamamlanamadı. Tekrar deneyebilirsin.';
 }

@@ -362,9 +362,12 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
                setHint(true);setNotice('İpucu kullanıldı; yanıt destekli olarak kaydedilecek.');
               }}>💡 İpucu</button>
               <button type="button" className="fv-hint-button" disabled={busy||answered} onClick={()=>{
+               // Stage 4 audio is the English instruction already on screen: replaying it
+               // is not help, so it must not lower stars or mark the word as weak.
+               if(stage===4){speak(task.audio);setNotice('Yönerge İngilizce okunuyor.');return;}
                setHint(true);speak(task.audio);
                setNotice('Sesli destek kullanıldı; yanıt destekli olarak kaydedilecek.');
-              }}>🔊 İngilizceyi Duy</button>
+              }}>🔊 {stage===4?'Yönergeyi Dinle':'İngilizceyi Duy'}</button>
               {hint&&<span className="fv3-hint-reveal">İpucu: {
                 stage===2?`İlk harf: ${task.target[0].toUpperCase()}`:
                 stage===4?villageWord(task.target).tr:

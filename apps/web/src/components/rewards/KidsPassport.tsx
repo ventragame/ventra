@@ -5,7 +5,7 @@ import {
   COSMETICS,DAILY_GOALS, WORLD_GAMES,type CosmeticId,type CosmeticGroup,type DailyGoal
 } from '@/lib/rewards/economyEngine';
 import {
-  claimQuest,getPassport,purchaseCosmetic,setEquipped,type PassportSnapshot
+  claimQuest,economyErrorMessage,getPassport,purchaseCosmetic,setEquipped,type PassportSnapshot
 } from '@/lib/rewards/economyRepository';
 import {getProgressRepository} from '@/lib/progress';
 import {CosmeticArtwork} from './CosmeticArtwork';
@@ -40,7 +40,9 @@ export function KidsPassport({profileId,nickname,avatarId,gradeLevel,englishLeve
     setBusy(true);setError(null);
     try{await task();await refresh();setNotice(message);onChanged?.();}
     catch(e){console.error('P5 economy action rejected',e);
-      setError(e instanceof Error?e.message:'İşlem tamamlanamadı. Tekrar deneyebilirsin.');}
+      setError(economyErrorMessage(e));
+      // A stale passport (e.g. open past midnight) shows the current day again.
+      void refresh().catch(()=>{});}
     finally{setBusy(false);}
   };
   useEffect(()=>{

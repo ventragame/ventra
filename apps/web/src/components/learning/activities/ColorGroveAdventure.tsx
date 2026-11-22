@@ -494,7 +494,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
           </section>
         ) : null)}
         {saveError && <div role="alert" className="mx-auto mt-4 max-w-lg rounded-xl border border-red-300 bg-red-950/80 p-4 text-center text-sm">
-          {saveError} <button disabled={saving} className="ml-3 min-h-11 font-black underline disabled:opacity-50" onClick={() => void finish(correct, finishedAnswers ?? evidence)}>Tekrar Kaydet</button>
+          {saveError} <button disabled={saving} className="ml-3 min-h-11 font-black underline disabled:opacity-50" onClick={() => void (step === 1 ? finish(discovered.length) : finish(correct, finishedAnswers ?? evidence))}>Tekrar Kaydet</button>
         </div>}
 <p className="cg-footer py-5 text-center text-xs text-sky-100/70">Sesli telaffuz cihazın konuşma motorunu kullanır. Ses açılmasa da bütün görevler yazılı olarak oynanabilir. Kayıt tamamlanmadan yıldız verilmez.</p>
       </div>

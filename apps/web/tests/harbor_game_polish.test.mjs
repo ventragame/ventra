@@ -72,7 +72,9 @@ test('Incorrect scene objects are taught and tracked once; transient Lottie mood
  const avatar=read('../src/components/learning/harbor/HarborCaptainAvatar.tsx');
  const css=read('../src/components/learning/harbor/harbor-premium-scene.css');
  assert.match(game,/wrongSceneObjects\.includes\(id\)/);
- assert.match(game,/setMistakes\(count=>count\+1\)/);
+ // Tracked once on the scene, but a Turkish-labelled prop is not an English mistake.
+ assert.match(game,/if\(!wrongSceneObjects\.includes\(id\)\)setWrongSceneObjects\(previous=>\[\.\.\.previous,id\]\);/);
+ assert.doesNotMatch(game.slice(game.indexOf('const selectSceneObject='),game.indexOf('setSceneSelected(true);')),/setMistakes/);
  assert.match(game,/wrongObjects=\{wrongSceneObjects\}/);
  assert.match(stage,/data-wrong=\{wrongObjects\.includes\(id\)\}/);
  assert.match(css,/hp-object-choice\[data-wrong="true"\]/);

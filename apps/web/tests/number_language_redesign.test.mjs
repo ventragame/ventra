@@ -11,7 +11,10 @@ test('All English number word puzzles reconstruct accurately in every difficulty
  for(let n=1;n<=1000;n++){
   const word=englishNumber(n).replace(/[^a-z]/g,'');
   const parts=numberWordParts(n);
-  assert.equal(parts.join(''),word,'English parts for '+n);
+  assert.equal(parts.join('').replace(/[^a-z]/g,''),word,'English parts for '+n);
+  // A tile never spans two English words (no "dtw" from "hundred twenty").
+  const words=englishNumber(n).split(/[\s-]+/);
+  for(const part of parts)assert.ok(words.some(w=>w.includes(part.replace(/-$/,''))),n+': '+part);
   assert.ok(parts.length>=1&&parts.length<=10,'accessible taps '+n);
   const tiles=numberWordTiles(n,n*13);
   assert.equal(tiles.length,parts.length);
@@ -113,4 +116,14 @@ test('NV5 keeps grade-aware language engine and safe touch-first play',()=>{
  assert.doesNotMatch(ui,/Keşfi Tamamla/);
  assert.match(style,/env\(safe-area-inset-bottom/);
  assert.match(style,/touch-action:manipulation/);
+});
+
+test('Number words are built from words and meaningful pieces, keeping spaces and hyphens visible',()=>{
+ assert.deepEqual(numberWordParts(5),['f','i','v','e'],'short words are spelled letter by letter');
+ assert.deepEqual(numberWordParts(17),['seven','teen']);
+ assert.deepEqual(numberWordParts(70),['seven','ty']);
+ assert.deepEqual(numberWordParts(25),['twenty-','five']);
+ assert.deepEqual(numberWordParts(125),['one','hundred','twenty-','five'],'was one|hun|dre|dtw|ent|yfi|ve');
+ assert.deepEqual(numberWordParts(1000),['one','thousand'],'was on|et|ho|us|an|d');
+ assert.deepEqual(numberWordParts(101),['one','hundred','one']);
 });

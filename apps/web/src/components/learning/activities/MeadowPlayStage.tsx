@@ -10,6 +10,8 @@ import './animal-meadow-guides.css';
 export type MeadowMode='discover'|'match'|'listen'|'command'|'rescue'|'complete';
 export interface MeadowPlayStageProps {
  mode:MeadowMode;
+ /** Stars earned in THIS run, shown on the completion scene (default 3). */
+ stars?:1|2|3;
  animals:readonly AnimalWord[];
  target?:AnimalWord|null;
  discovered?:readonly AnimalId[];
@@ -45,7 +47,7 @@ function safeDestination(word:AnimalWord|null|undefined):string{
  * - the same question and accessibility callbacks drive every device.
  */
 export function MeadowPlayStage({
- mode,animals,target,discovered=[],wrongId=null,correctId=null,disabled=false,
+ mode,animals,target,discovered=[],wrongId=null,correctId=null,disabled=false,stars=3,
  noAudioMode=false,canSpeak=true,speaking=false,onSelect,onListen
 }:MeadowPlayStageProps){
  const seen=new Set(discovered);
@@ -75,12 +77,12 @@ export function MeadowPlayStage({
    </div>
   </div>
   {isComplete?(
-   <div className="am3-victory" role="img" aria-label="Üç yıldız ve görev başarısı">
+   <div className="am3-victory" role="img" aria-label={stars+' yıldız ile görev tamamlandı'}>
     <div className="am3-guide-finale">
      <CharacterGuide character="meadow-owl" mood="celebrate" cueKey="meadow-saved"/>
     </div>
-    <span className="am3-victory-stars">⭐ ⭐ ⭐</span>
-    <strong>Harika!</strong>
+    <span className="am3-victory-stars">{[1,2,3].map(n=><span key={n} className={n<=stars?undefined:'am3-victory-star-empty'}>⭐</span>)}</span>
+    <strong>{stars===3?'Harika!':stars===2?'Çok iyi!':'Başardın!'}</strong>
    </div>
   ):<>
    {isMatch&&target&&<div className="am3-focus" aria-label="İngilizce adı sorulan hayvan">

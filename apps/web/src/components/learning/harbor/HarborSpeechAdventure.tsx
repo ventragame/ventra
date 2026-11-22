@@ -154,10 +154,9 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  const selectSceneObject=(id:HarborPropId)=>{
   if(sceneSelected||busy||locked.current||listening)return;
   if(id!==quest.item){
-   if(!wrongSceneObjects.includes(id)){
-    setWrongSceneObjects(previous=>[...previous,id]);
-    setMistakes(count=>count+1);
-   }
+   // Scene props are Turkish-labelled exploration, not English evidence: a
+   // wrong prop is marked on the scene but never lowers the English score.
+   if(!wrongSceneObjects.includes(id))setWrongSceneObjects(previous=>[...previous,id]);
    setFeedback('Bir daha bakalım! Bu eşya değil; diğerini dene.');
    soundService.playSfx('gentle_retry',.35);return;
   }

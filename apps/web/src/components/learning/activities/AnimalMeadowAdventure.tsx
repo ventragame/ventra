@@ -19,6 +19,9 @@ import './animal-meadow.css';
 import './garden-child-legibility.css';
 import {gradeLevelLabel} from '@/lib/learning/gradeLabel';
 
+/** Stars for one run: the value saved and the one shown on the completion scene. */
+const animalRunStars=(wrong:number):1|2|3=>wrong===0?3:wrong<=2?2:1;
+
 const STAGES = [
   { name:'Keşfet', icon:'🌱',desc:'Hayvanlarla tanış',story:'Çayırın yeni dostları seni bekliyor. Hepsini ziyaret et ve isimlerini öğren!' },
   { name:'Eşleştir',icon:'🧩',desc:'Resim ve kelime',story:'Bir rüzgâr isim kartlarını karıştırdı! Doğru İngilizce isimleri bul.' },
@@ -216,7 +219,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
     const total=stage===1?activePlan.animals.length:activePlan.questions.length;
     if(amount!==total)return;
     busy.current=true;setSaving(true);setSaveError(null);
-    const stars=wrongCount===0?3:wrongCount<=2?2:1;
+    const stars=animalRunStars(wrongCount);
     try{
       const result=await onSave(stage,stars,{
         wrongAttempts:wrongCount,correctAnswers:amount,
@@ -341,7 +344,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
           <button onClick={()=>reset(stage)} className="am-cta mt-4">Yeniden Yükle</button>
         </div>}
         {!loadError && completed && <section className="mx-auto max-w-3xl rounded-3xl border border-lime-300/50 bg-emerald-950/75 p-5 text-center shadow-2xl">
-          <MeadowPlayStage mode="complete" animals={[]}/>
+          <MeadowPlayStage mode="complete" animals={[]} stars={animalRunStars(wrongCount)}/>
           <h2 ref={doneHeading} tabIndex={-1} className="mt-2 text-2xl font-black">Görev Tamamlandı!</h2>
           <p className="mt-2 text-sm text-lime-100">Bu görevdeki en iyi ödülün: ⭐ {localProgress.starsByLevel[stage]??0}/3</p>
           <p className="mt-1 text-xs text-white/75">{correctCount || discovered.length} doğru/keşif · {wrongCount} yanlış deneme</p>

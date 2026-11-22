@@ -2,6 +2,7 @@ import type {TempleAnswerEvidence,AnimalAnswerEvidence,ColorAnswerEvidence,FoodA
 import {resolveVocabularyTier,type EnglishPlacement} from './gradeAwareLearningPolicy.ts';
 import {ANIMAL_MEADOW_WORDS,ANIMAL_VOCAB_TIERS} from './animalMissionEngine.ts';
 import {COLOR_GROVE_WORDS} from '../progress/colorGroveProgress.ts';
+import {colorSwatchDistance,CONFUSABLE_COLOR_DELTA_E} from './colorMissionEngine.ts';
 import {MARKET_WORDS,marketNounPhrase} from './foodMarketEngine.ts';
 import {VILLAGE_WORDS} from './familyVillageEngine.ts';
 import {englishNumber} from './numberValleyEngine.ts';
@@ -82,6 +83,11 @@ export type TemplePriorEvidence={
  food:readonly FoodAnswerEvidence[];
  family:readonly FamilyAnswerEvidence[];
 };
+/** Two colour words whose swatches a child cannot reliably tell apart
+ * (same perceptual threshold as Colour Grove). */
+export function confusableColours(a:Pick<TempleWord,'en'|'domain'>,b:Pick<TempleWord,'en'|'domain'>):boolean{
+ return a.domain==='colors'&&b.domain==='colors'&&colorSwatchDistance(a.en,b.en)<CONFUSABLE_COLOR_DELTA_E;
+}
 export function templeWeakWords(prior:TemplePriorEvidence):Set<string>{
  const out=new Set<string>();
  for(const [domain,rows] of [
@@ -130,8 +136,10 @@ export function planTempleMission(input:{chamber:TempleChamber;stage:TempleStage
   // Assess earlier discoveries before introducing unfamiliar distractors.
   // Fall back to grade-scoped vocabulary only if unique choices are scarce.
   // Same-label cross-world homonyms must never create two correct options.
+  // Colour crystals are told apart by their swatch: perceptually close colours
+  // (navy/dark blue, violet/purple) would be a second defensible answer.
   const safe=(other:TempleWord)=>other.id!==w.id&&other.en.toLowerCase()!==w.en.toLowerCase()&&
-    other.tr.toLowerCase()!==w.tr.toLowerCase();
+    other.tr.toLowerCase()!==w.tr.toLowerCase()&&!confusableColours(w,other);
   const preferred=shuffle(pool.filter(safe),random);
   const fallback=shuffle(all.filter(safe),random);
   const unique=new Map<string,TempleWord>();

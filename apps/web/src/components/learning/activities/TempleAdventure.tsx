@@ -345,7 +345,9 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
        {stage!==3&&<div className="tp-controls tp6-controls">
         <button className="tp-help" disabled={busy||correct} onClick={()=>{setHint(true);setNotice('İpucu açıldı: yanıt destekli olarak kaydedilecek.');}}>💡 İpucu</button>
         <button className="tp-help" disabled={busy||correct} onClick={()=>{setHint(true);speak(task.audio);}}>🔊 İngilizceyi Duy</button>
-        {hint&&<span>İpucu: {stage===4?task.sentenceAnswer?.join(' '):templeWord(task.target).en}</span>}
+        {hint&&<span>İpucu: {stage===4?task.sentenceAnswer?.join(' '):
+         // Stage 5 already prints the English words; the help is their meaning.
+         stage===5?'Anlamı: '+templeWord(task.target).tr:templeWord(task.target).en}</span>}
        </div>}
        {stage===4?<div className="tp-sentence tp6-sentence">
         <div className="tp-sentence-line" role="group" aria-label="Oluşturulan İngilizce cümle">

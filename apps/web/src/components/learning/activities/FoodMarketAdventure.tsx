@@ -219,7 +219,8 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
    ready:stage===1&&Boolean(current?.words.length)&&
      visited.length===current?.words.length&&answers.length===current?.words.length,
    blocked:busy||finished||Boolean(saveError)||!current,
-   onAdvance:()=>{void finish(answers);},delayMs:900
+   // Wait for the last product's English word to finish (as Family and Temple do).
+   onAdvance:()=>{void finish(answers);},delayMs:900,speaking
  });
  const allowedAisle=(i:number)=>i===0||(i===1?progress.completedByAisle.orchard===5:progress.completedByAisle.bakery===5);
  const stageEnabled=(n:number)=>n<=usedStage+1;

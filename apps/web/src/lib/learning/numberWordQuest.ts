@@ -2,15 +2,27 @@
 import {englishNumber} from './numberValleyEngine.ts';
 
 export type WordTile={id:number;part:string};
-/** A short numeral is spelled letter-by-letter; long numerals use pronounceable-ish
- * two/three character chunks to keep the touch task accessible. */
+/** Long single number words split into the pieces children hear and reuse
+ * (seven|teen, seven|ty, hun|dred), never at arbitrary letter positions. */
+const NUMBER_MORPHEMES:Readonly<Record<string,readonly string[]>>={hundred:['hun','dred'],thousand:['thou','sand']};
+function meaningfulPieces(word:string):string[]{
+ const known=NUMBER_MORPHEMES[word];
+ if(known)return [...known];
+ for(const suffix of ['teen','ty'])if(word.length>suffix.length+2&&word.endsWith(suffix))return [word.slice(0,-suffix.length),suffix];
+ return [word];
+}
+/** Tiles for building the English number word, in reading order:
+ * - one short word (≤6 letters) is spelled letter by letter;
+ * - one longer word is built from meaningful pieces (fif|teen, hun|dred);
+ * - a phrase is built word by word; a compound keeps its hyphen on the first
+ *   half (one · hundred · twenty- · five), so spaces and hyphens stay visible. */
 export function numberWordParts(value:number):string[]{
- const word=englishNumber(value).replace(/[^a-z]/g,'');
- if(word.length<=6)return [...word];
- const size=word.length<=12?2:3;
- const parts:string[]=[];
- for(let i=0;i<word.length;i+=size)parts.push(word.slice(i,i+size));
- return parts;
+ const phrase=englishNumber(value).toLowerCase().trim();
+ const words=phrase.split(/\s+/);
+ if(words.length===1&&!phrase.includes('-'))return phrase.length<=6?[...phrase]:meaningfulPieces(phrase);
+ return words.flatMap(word=>word.includes('-')
+  ?word.split('-').map((piece,i,all)=>i<all.length-1?piece+'-':piece)
+  :[word]);
 }
 export function numberWordTiles(value:number,seed:number):WordTile[]{
  const parts=numberWordParts(value),result=parts.map((part,id)=>({id,part}));

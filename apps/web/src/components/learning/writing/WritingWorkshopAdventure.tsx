@@ -341,6 +341,9 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
        value={input} maxLength={180} rows={wordCount>=9?3:2}
        placeholder={englishLevel==='Pre-A1'?'İngilizce kelimeyi yaz…':'İngilizce cümleni yaz…'}
        onChange={event=>{setInput(event.target.value);setMessage('');}}
+       // The keyboard's Enter/"done" checks the answer (as in Academy); answers are
+       // one sentence, so a typed newline was invisible to the child.
+       onKeyDown={event=>{if(event.key==='Enter'&&!event.shiftKey&&!event.nativeEvent.isComposing){event.preventDefault();if(input.trim())submit();}}}
        onFocus={()=>setTypingFocused(true)} onBlur={()=>setTypingFocused(false)}
        disabled={saving||resolved}/>
       <div className="writing-keyboard-guidance" id="workshop-keyboard-guidance">
