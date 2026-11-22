@@ -46,7 +46,7 @@ export function StarterPlacementCheck({onApply,onCancel,saving}:{
           onClick={()=>choose(choice)}
           className="min-h-14 rounded-xl border border-white/30 bg-white/10 p-2 text-sm font-black uppercase
             focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-lime-300
-            hover:border-lime-200 disabled:opacity-50">{choice}</button>)}
+            hover:border-lime-200 disabled:opacity-50"><span lang="en">{choice}</span></button>)}
       </div>
     </>}
     {result&&<div role="status" className="mt-4 space-y-3 rounded-xl border border-lime-200/30 bg-emerald-950/50 p-4">

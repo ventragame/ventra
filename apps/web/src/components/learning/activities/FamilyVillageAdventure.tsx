@@ -45,6 +45,7 @@ function WordChoice({id,mode,active=false,wrong=false,disabled=false,onPick}:Wor
  return <button type="button" onClick={onPick} disabled={disabled}
    aria-pressed={active} data-wrong={wrong}
    className={`fv-choice fv3-choice fv-choice-${mode} ${active?'fv-choice-correct':''}`}
+   lang={mode==='english'||mode==='phrase'?'en':undefined}
    aria-label={mode==='english'?w.id:mode==='phrase'?w.phrase:`Görsel: ${w.tr}`}>
    {hasArt&&<span className="fv-choice-art" aria-hidden="true"><FamilyWordArt id={id}/></span>}
    {(mode==='english'||mode==='phrase'||showRelation)&&<span className="fv-choice-label">

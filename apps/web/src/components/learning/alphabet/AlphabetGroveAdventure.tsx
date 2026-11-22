@@ -317,7 +317,7 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
          disabled={resolved||saving||i>=selected.length}
          onClick={()=>{setSelected(old=>old.filter((__,idx)=>idx!==i));setMessage('');}}
          aria-label={i<selected.length?'Harf '+wordTiles[i]+' kaldır':'Boş harf yeri'}>
-         {wordTiles[i]??'·'}</button>)}
+         <span lang="en">{wordTiles[i]??'·'}</span></button>)}
        </div>
        <div className="ag-letter-tiles" aria-label="Harf bankası">
         {task.choices.map((ch,i)=><button type="button" key={i} disabled={resolved||saving||selected.includes(i)}

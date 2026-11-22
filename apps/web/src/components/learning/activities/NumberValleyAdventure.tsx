@@ -441,7 +441,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
                     className="nv-forge-tile nv5-forge-tile gg-game-control min-h-16 min-w-16 rounded-2xl px-4 py-3 text-xl font-black uppercase disabled:opacity-30"
                     style={{animationDelay:`${i*95}ms`}}>
                     <span aria-hidden="true" className="block text-2xl text-amber-200">✦</span>
-                    {tile.part}
+                    <span lang="en">{tile.part}</span>
                   </button>)}
                 </div>
               </div>}
@@ -452,7 +452,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
                 <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
                   {current.choices.map(value=><button key={value} type="button" onClick={()=>choose(value)}
                     disabled={buttonsDisabled} className="nv-choice gg-game-control min-h-20 rounded-2xl p-3 text-base font-black uppercase disabled:opacity-50">
-                    {englishNumber(value)}
+                    <span lang="en">{englishNumber(value)}</span>
                   </button>)}
                 </div>
               </div>}
