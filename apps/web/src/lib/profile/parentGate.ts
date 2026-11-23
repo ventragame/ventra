@@ -2,17 +2,23 @@
  * Parental gate rules (pure, testable).
  *
  * A gate cannot stop every older child, but it must stop young players and
- * guessing:
- * - the question is written in Turkish words, never digits, so a child who
- *   cannot read number words cannot even start ("on yedi çarpı altı");
- * - the sum is beyond the times table: two-digit × one-digit, or a
- *   three-digit minus two-digit subtraction that needs borrowing;
+ * guessing, and it must never be easy by luck:
+ * - the question is a two-step instruction written in Turkish words, never
+ *   digits ("On yedi ile altı sayılarını çarp, sonuca iki yüz kırk üç
+ *   ekle."): a child has to read every number word, keep the first result in
+ *   mind and then do the second step;
+ * - every question is equally hard (no round numbers, no ×1, ×2 or ×10,
+ *   the answer always has three digits), so asking for another question
+ *   never brings an easy one;
  * - every wrong answer brings a new question; after three wrong answers the
  *   gate locks for 1, then 3, then 10 minutes, and the lock survives closing
  *   the window or reloading the page (it is stored on this device);
  * - nobody has to wait: during a lock a parent can answer one harder
- *   "parent question" (two tries per lock, never more), or use a PIN's
- *   recovery key or the family e-mail (see parentPin);
+ *   "parent question" (two-digit × two-digit, then a three-digit step; two
+ *   tries per lock, never more), or use a PIN's recovery key or the family
+ *   e-mail (see parentPin);
+ * - every try and entry is written to the gate history (parentGateLog), so a
+ *   parent notices an entry they did not make;
  * - the answer is never placed in the page.
  */
 
@@ -27,29 +33,72 @@ export function turkishNumberWords(value:number):string{
  return [hundreds===0?'':hundreds===1?'yüz':ONES[hundreds]+' yüz',TENS[tens],ONES[ones]].filter(Boolean).join(' ');
 }
 
-export type GateChallenge={kind:'multiply'|'subtract'|'hard';prompt:string;answer:number};
+/** The four ways a question is asked; each is two steps. */
+export type GateKind='multiply-add'|'multiply-subtract'|'add-multiply'|'difference-multiply';
+/** A piece of the question; numbers are marked so the page can set them in
+ * bold (easier for an adult to scan, still words for a child to read). */
+export type PromptPart={text:string;number?:true};
+export type GateChallenge={kind:GateKind;level:'standard'|'hard';prompt:string;parts:PromptPart[];answer:number};
+/** Longest answer (the parent question can reach four digits). */
+export const GATE_ANSWER_DIGITS=4;
 
 const between=(random:()=>number,min:number,max:number)=>min+Math.floor(random()*(max-min+1));
-const sentence=(text:string)=>text.charAt(0).toLocaleUpperCase('tr-TR')+text.slice(1);
+/** No 20, 30, 22, 33…: nothing a child could do in their head at a glance. */
+const plain=(value:number)=>value%10!==0&&!(value<100&&value%11===0);
+const pick=(random:()=>number,min:number,max:number)=>{
+ let value=0;
+ do value=between(random,min,max);while(!plain(value));
+ return value;
+};
 
-export function createGateChallenge(random:()=>number=Math.random):GateChallenge{
- if(random()<0.5){
-  const a=between(random,12,19),b=between(random,3,9);
-  return {kind:'multiply',prompt:sentence(`${turkishNumberWords(a)} çarpı ${turkishNumberWords(b)} kaç eder?`),answer:a*b};
- }
- // a - b where the ones digit of b is larger: the child has to borrow.
- let a=0,b=0;
- do{a=between(random,121,199);b=between(random,23,89);}while(b%10<=a%10||a-b<20);
- return {kind:'subtract',prompt:sentence(`${turkishNumberWords(a)} eksi ${turkishNumberWords(b)} kaç eder?`),answer:a-b};
+const TEMPLATES:Record<GateKind,(a:number,b:number,c:number)=>(string|number)[]>={
+ 'multiply-add':(a,b,c)=>[a,' ile ',b,' sayılarını çarp, sonuca ',c,' ekle.'],
+ 'multiply-subtract':(a,b,c)=>[a,' ile ',b,' sayılarını çarp, sonuçtan ',c,' çıkar.'],
+ 'add-multiply':(a,b,c)=>[a,' ile ',b,' sayılarını topla, sonucu ',c,' ile çarp.'],
+ 'difference-multiply':(a,b,c)=>[a,' ile ',b,' sayılarının farkını bul, sonucu ',c,' ile çarp.']
+};
+const ANSWERS:Record<GateKind,(a:number,b:number,c:number)=>number>={
+ 'multiply-add':(a,b,c)=>a*b+c,
+ 'multiply-subtract':(a,b,c)=>a*b-c,
+ 'add-multiply':(a,b,c)=>(a+b)*c,
+ 'difference-multiply':(a,b,c)=>(a-b)*c
+};
+export const GATE_KINDS=Object.keys(TEMPLATES) as GateKind[];
+
+function build(kind:GateKind,level:GateChallenge['level'],a:number,b:number,c:number):GateChallenge{
+ const parts:PromptPart[]=TEMPLATES[kind](a,b,c).map(piece=>typeof piece==='number'?{text:turkishNumberWords(piece),number:true}:{text:piece});
+ parts[0]={...parts[0],text:parts[0].text.charAt(0).toLocaleUpperCase('tr-TR')+parts[0].text.slice(1)};
+ return {kind,level,prompt:parts.map(part=>part.text).join(''),parts,answer:ANSWERS[kind](a,b,c)};
 }
 
-/** The way past a lock without waiting: two-digit × two-digit (13–39 ×
- * 12–19), still in words. Adults manage it in their head or with a
- * calculator; a child who just failed three easier sums is guessing among
- * ~600 possible answers with two tries. */
+/** Two steps, every time: multiply then add or subtract a number up to three
+ * digits, or add / subtract two-digit numbers then multiply. The answer is
+ * always 100–999, so a guess has one chance in about nine hundred. */
+export function createGateChallenge(random:()=>number=Math.random):GateChallenge{
+ const kind=GATE_KINDS[Math.min(GATE_KINDS.length-1,Math.floor(random()*GATE_KINDS.length))];
+ for(;;){
+  let a=0,b=0,c=0;
+  if(kind==='multiply-add'){a=pick(random,12,29);b=between(random,3,9);c=pick(random,101,399);}
+  else if(kind==='multiply-subtract'){a=pick(random,23,49);b=between(random,4,9);if(a*b<131)continue;c=pick(random,21,Math.min(a*b-100,199));}
+  else if(kind==='add-multiply'){a=pick(random,12,49);b=pick(random,12,49);c=between(random,3,9);}
+  else{a=pick(random,51,99);b=pick(random,12,49);c=between(random,3,9);if(a-b<13||!plain(a-b))continue;}
+  const answer=ANSWERS[kind](a,b,c);
+  if(answer>=100&&answer<=999)return build(kind,'standard',a,b,c);
+ }
+}
+
+/** The way past a lock without waiting: two-digit × two-digit, then add or
+ * subtract a three-digit number, still in words. Adults manage it with a
+ * calculator; a child who just failed three questions is guessing among
+ * thousands of possible answers with two tries. */
 export function createHardChallenge(random:()=>number=Math.random):GateChallenge{
- const a=between(random,13,39),b=between(random,12,19);
- return {kind:'hard',prompt:sentence(`${turkishNumberWords(a)} çarpı ${turkishNumberWords(b)} kaç eder?`),answer:a*b};
+ const kind:GateKind=random()<0.5?'multiply-add':'multiply-subtract';
+ for(;;){
+  const a=pick(random,13,49),b=pick(random,12,29);
+  if(kind==='multiply-subtract'&&a*b<301)continue;
+  const c=kind==='multiply-add'?pick(random,101,899):pick(random,101,Math.min(a*b-100,899));
+  return build(kind,'hard',a,b,c);
+ }
 }
 
 export type GateGuard={wrong:number;lockouts:number;lockedUntil:number;hardLeft:number};

@@ -98,11 +98,11 @@ test('A stored PIN is read back only when it is intact; the first-release format
 test('Gate: only the PIN opens it; e-mail and recovery key open a lock or reset a forgotten PIN',()=>{
  const gate=src('components/profile/ParentalGateModal.tsx');
  assert.match(gate,/setMode\(record \? 'pin' : 'question'\);/,'a PIN replaces the question');
- assert.match(gate,/if \(await pinMatches\(value, pinRecord\)\) \{ pass\(\); return; \}/);
+ assert.match(gate,/if \(await pinMatches\(value, pinRecord\)\) \{ pass\('pin'\); return; \}/);
  assert.match(gate,/if \(res\.user\?\.id !== owner\.id\) throw new Error\(/,'the code must come from the same family account');
- assert.match(gate,/pass\(purpose === 'reset-pin'\);/);
- assert.match(gate,/if \(await recoveryMatches\(recoveryKey, pinRecord\)\) \{ pass\(purpose === 'reset-pin'\); return; \}/);
- assert.match(gate,/else if \(pinRecord\?\.resetRequestedAt\) writePinRecord\(cancelPinReset\(pinRecord\)\);/,'proving who you are cancels a reset request');
+ assert.match(gate,/pass\('email', purpose === 'reset-pin'\);/);
+ assert.match(gate,/if \(await recoveryMatches\(recoveryKey, pinRecord\)\) \{ pass\('recovery', purpose === 'reset-pin'\); return; \}/);
+ assert.match(gate,/else if \(pinRecord\?\.resetRequestedAt\) \{ writePinRecord\(cancelPinReset\(pinRecord\)\); recordGateEvent\(\{ e: 'reset-cancel' \}\); \}/,'proving who you are cancels a reset request');
  assert.match(gate,/\{hasRecovery && optionButton\('recovery', '🔑', 'Kurtarma anahtarıyla aç'/);
  assert.match(gate,/24 saatlik sıfırlamayı başlat/);
  assert.match(gate,/Bu isteği sen başlatmadıysan PIN'ini gir; istek iptal olur\./);

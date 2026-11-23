@@ -4,9 +4,12 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useDialogFocus } from '@/lib/a11y/useDialogFocus';
 import { useFocusRescue } from '@/lib/a11y/useFocusRescue';
 import {
-  GATE_HARD_TRIES, GATE_MAX_WRONG, canTryHard, createGateChallenge, createHardChallenge, emptyGuard, formatLock,
+  GATE_ANSWER_DIGITS, GATE_HARD_TRIES, GATE_MAX_WRONG, canTryHard, createGateChallenge, createHardChallenge, emptyGuard, formatLock,
   lockDurationMs, readGuard, registerHardWrong, registerWrong, remainingLockMs, writeGuard, type GateChallenge, type GateGuard
 } from '@/lib/profile/parentGate';
+import {
+  formatSpan, readGateLog, recordGateEvent, triesSinceLastPass, triesText, type GateTries, type GateVia
+} from '@/lib/profile/parentGateLog';
 import {
   cancelPinReset, clearPinRecord, formatWait, maskEmail, normaliseRecoveryKey, pinMatches, pinSupported, readPinRecord,
   recoveryMatches, requestPinReset, resetWaitMs, writePinRecord, type ParentPinRecord, type PinOwner
@@ -33,13 +36,13 @@ interface ParentalGateModalProps {
   zIndex?: number;
 }
 
-type Mode = 'question' | 'pin' | 'email' | 'recovery' | 'hard' | 'forgot';
+type Mode = 'question' | 'pin' | 'email' | 'recovery' | 'hard' | 'forgot' | 'notice';
 type Purpose = 'unlock' | 'reset-pin';
 const RESEND_SECONDS = 30;
 
 /** The adult check in front of parent-only areas (backups, the family panel,
  * deleting a child, speech diagnostics).
- * - Default: a question written in words, beyond the times table.
+ * - Default: a two-step question written in words, equally hard every time.
  * - With a parent PIN: only the PIN opens it, so an older child who can solve
  *   sums still cannot get in.
  * - Three wrong answers lock it (1 / 3 / 10 minutes, survives reloads), but
@@ -47,7 +50,9 @@ const RESEND_SECONDS = 30;
  *   a PIN — a harder parent question (two tries per lock) opens it at once.
  * - A forgotten PIN: e-mail, recovery key, or a 24-hour reset that entering
  *   the right PIN cancels.
- * Rules: lib/profile/parentGate and lib/profile/parentPin. */
+ * - Every try and entry goes to the gate history; tries made before this
+ *   opening are shown to the parent once, right after they get in.
+ * Rules: lib/profile/parentGate, parentPin and parentGateLog. */
 export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
   isOpen,
   onClose,
@@ -81,6 +86,8 @@ export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
   const [sideBusy, setSideBusy] = useState(false);
   const [sideError, setSideError] = useState('');
   const [cooldown, setCooldown] = useState(0);
+  // Wrong tries made before this opening (since the last entry), shown once.
+  const [earlier, setEarlier] = useState<GateTries | null>(null);
   const dialogRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const closeRef = useRef<HTMLButtonElement>(null);
@@ -101,6 +108,7 @@ export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
     setMode(record ? 'pin' : 'question');
     setGuard(readGuard());
     setNow(Date.now());
+    setEarlier(triesSinceLastPass(readGateLog(), Date.now()));
     newChallenge();
     setPin('');
     setResetAfterQuestion(false);
@@ -161,11 +169,16 @@ export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
   const resetWait = pinRecord ? resetWaitMs(pinRecord, now) : null;
   const mainMode: Mode = pinRecord && !resetAfterQuestion ? 'pin' : 'question';
 
-  // The parent proved who they are: a pending reset request is withdrawn.
-  const pass = (removePin = false) => {
-    if (removePin) clearPinRecord();
-    else if (pinRecord?.resetRequestedAt) writePinRecord(cancelPinReset(pinRecord));
+  // The parent proved who they are: a pending reset request is withdrawn and
+  // the entry is written to the gate history. If someone tried before this
+  // opening, the parent sees it once before the area opens.
+  const pass = (via: GateVia, removePin = false) => {
+    if (removePin) { clearPinRecord(); setPinRecord(null); }
+    else if (pinRecord?.resetRequestedAt) { writePinRecord(cancelPinReset(pinRecord)); recordGateEvent({ e: 'reset-cancel' }); }
     writeGuard(emptyGuard());
+    recordGateEvent({ e: 'pass', via });
+    if (removePin) recordGateEvent({ e: 'pin-removed' });
+    if (earlier) { setNow(Date.now()); setMode('notice'); return; }
     onSuccess();
   };
 
@@ -173,6 +186,7 @@ export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
     const current = Date.now();
     const next = registerWrong(guard, current);
     writeGuard(next);
+    recordGateEvent({ e: 'wrong', pin: mode === 'pin', lock: next.lockouts > guard.lockouts });
     setGuard(next);
     setNow(current);
     setShake(count => count + 1);
@@ -183,9 +197,7 @@ export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
     e.preventDefault();
     if (locked || !userAnswer) return;
     if (Number(userAnswer) === challenge.answer) {
-      if (resetAfterQuestion) clearPinRecord();
-      writeGuard(emptyGuard());
-      onSuccess();
+      pass(resetAfterQuestion ? 'reset' : 'question', resetAfterQuestion);
       return;
     }
     recordWrong();
@@ -197,7 +209,7 @@ export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
     if (!pinRecord || locked || checking || value.length < 4) return;
     setChecking(true);
     try {
-      if (await pinMatches(value, pinRecord)) { pass(); return; }
+      if (await pinMatches(value, pinRecord)) { pass('pin'); return; }
       recordWrong();
       setPin('');
       inputRef.current?.focus();
@@ -250,7 +262,7 @@ export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
       if (!res.success) throw new Error(res.error || 'Kod doğrulanamadı.');
       // The code must belong to the same family account, not just any address.
       if (res.user?.id !== owner.id) throw new Error('Bu kod, kapıyı açabilecek aile hesabına ait değil.');
-      pass(purpose === 'reset-pin');
+      pass('email', purpose === 'reset-pin');
     } catch (error) {
       console.warn('[Ebeveyn kapısı] kod doğrulanamadı', error);
       setSideError(friendlyAccountError(error, 'Kod doğrulanamadı. Yeni bir kod isteyip yeniden dene.'));
@@ -266,7 +278,7 @@ export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
     setSideBusy(true);
     setSideError('');
     try {
-      if (await recoveryMatches(recoveryKey, pinRecord)) { pass(purpose === 'reset-pin'); return; }
+      if (await recoveryMatches(recoveryKey, pinRecord)) { pass('recovery', purpose === 'reset-pin'); return; }
       setSideError('Anahtar eşleşmedi. Harfleri kontrol et; anahtarda 0, O, 1, I ve L yoktur.');
     } finally {
       setSideBusy(false);
@@ -276,9 +288,10 @@ export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
   const submitHard = (e: React.FormEvent) => {
     e.preventDefault();
     if (!userAnswer || !canTryHard(guard, Date.now())) return;
-    if (Number(userAnswer) === hardChallenge.answer) { pass(); return; }
+    if (Number(userAnswer) === hardChallenge.answer) { pass('hard'); return; }
     const next = registerHardWrong(guard, Date.now());
     writeGuard(next);
+    recordGateEvent({ e: 'wrong' });
     setGuard(next);
     setShake(count => count + 1);
     setUserAnswer('');
@@ -296,6 +309,7 @@ export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
     if (!pinRecord) return;
     const next = requestPinReset(pinRecord);
     writePinRecord(next);
+    recordGateEvent({ e: 'reset-start' });
     setPinRecord(next);
     setNow(Date.now());
   };
@@ -306,19 +320,21 @@ export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
   const showLock = locked && onMainMode;
   const hardOpen = !pinRecord && canTryHard(guard, now);
   const canSkipWait = Boolean(owner) || hasRecovery || hardOpen;
-  const sideIcons: Partial<Record<Mode, string>> = { email: '✉️', recovery: '🔑', hard: '🧮', forgot: '❓' };
+  const sideIcons: Partial<Record<Mode, string>> = { email: '✉️', recovery: '🔑', hard: '🧮', forgot: '❓', notice: '🛡️' };
   const icon = sideIcons[mode] ?? (showLock ? '⏳' : danger ? '🗑️' : '🔒');
   const heading =
     mode === 'email' ? (purpose === 'reset-pin' ? 'PIN\'i e-postayla sıfırla' : 'E-postayla aç') :
     mode === 'recovery' ? (purpose === 'reset-pin' ? 'PIN\'i anahtarla sıfırla' : 'Kurtarma anahtarıyla aç') :
     mode === 'hard' ? 'Ebeveyn sorusu' :
-    mode === 'forgot' ? 'PIN\'imi unuttum' : title;
+    mode === 'forgot' ? 'PIN\'imi unuttum' :
+    mode === 'notice' ? 'Bilgin olsun' : title;
   const context = description ?? 'Bu alan yetişkinler içindir: yedekleme, aile hesabı ve İngilizce karnesi.';
   const intro =
     mode === 'email' ? (purpose === 'reset-pin' ? 'PIN\'i sıfırlamak için aile hesabının e-postasına bir kod gönderelim.' : 'Beklemeden açmak için aile hesabının e-postasına bir kod gönderelim.') :
     mode === 'recovery' ? (purpose === 'reset-pin' ? 'PIN\'i belirlerken kaydettiğin kurtarma anahtarını yaz; PIN kaldırılır ve kapı açılır.' : 'PIN\'i belirlerken kaydettiğin kurtarma anahtarını yaz; kapı hemen açılır.') :
     mode === 'hard' ? 'Beklemeden açmak için bu biraz daha zor soruyu yanıtla. Hesap makinesi kullanabilirsin.' :
     mode === 'forgot' ? 'Endişelenme; PIN\'i sıfırlamanın bir yolunu seç.' :
+    mode === 'notice' ? 'Doğrulama tamam. Bu açılıştan önce bu cihazda yanlış denemeler yapılmış:' :
     resetAfterQuestion ? 'Sıfırlama süresi doldu. Soruyu yanıtlayınca PIN kaldırılır ve kapı açılır.' :
     `${context} ${mode === 'pin' ? 'Devam etmek için Ebeveyn PIN\'ini gir.' : 'Devam etmek için soruyu yanıtla.'}`;
 
@@ -361,6 +377,21 @@ export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
     </button>
   );
   const sideErrorBox = sideError && <p role="alert" className="rounded-xl border border-rose-300/40 bg-rose-950/60 px-3 py-2 text-sm font-bold text-rose-100">{sideError}</p>;
+  // Number words in bold: quicker for an adult to scan, still words to read.
+  const promptText = (c: GateChallenge, id: string, numberClass: string) => (
+    <p id={id} className="mt-1 text-lg font-semibold leading-snug text-slate-200 sm:text-xl">
+      {c.parts.map((part, i) => part.number
+        ? <strong key={i} className={'font-black ' + numberClass}>{part.text}</strong>
+        : <React.Fragment key={i}>{part.text}</React.Fragment>)}
+    </p>
+  );
+  const answerOnly = (value: string) => value.replace(/\D/g, '').slice(0, GATE_ANSWER_DIGITS);
+  // Children read this too: tries are not anonymous.
+  const recordedNote = (
+    <p className="text-xs font-semibold leading-relaxed text-slate-400">
+      <span aria-hidden="true">🕒 </span>Her deneme ve giriş bu cihazda saatiyle kaydedilir.
+    </p>
+  );
 
   return (
     <div className="fixed inset-0 flex items-center justify-center overflow-y-auto bg-[#030817]/90 p-4 backdrop-blur-md"
@@ -395,6 +426,31 @@ export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
               </div>
             )}
           </section>
+        ) : mode === 'notice' && earlier ? (
+          <div className="relative mt-5 flex flex-col gap-3 text-left">
+            <div role="status" className="rounded-2xl border border-amber-200/40 bg-amber-300/10 px-4 py-3">
+              <p className="text-base font-black text-amber-50"><span aria-hidden="true">⚠️ </span>{triesText(earlier.wrong, earlier.pin, earlier.locks)}</p>
+              <p className="mt-0.5 text-sm font-semibold text-amber-50/80">{formatSpan(earlier.from, earlier.to, now)}</p>
+            </div>
+            <p className="text-sm leading-relaxed text-slate-300">
+              Bunları sen yaptıysan bir şey yapman gerekmez.{' '}
+              {pinRecord
+                ? 'Yapmadıysan biri PIN\'i tahmin etmeye çalışmış; PIN tahminle açılmaz. İstersen “Yedekleme ve hesap” bölümünden değiştirebilirsin.'
+                : 'Yapmadıysan bir çocuk denemiş olabilir. “Yedekleme ve hesap” bölümünden bir PIN belirlersen kapı soru sormaz; yalnızca sen açarsın.'}
+            </p>
+            <p className="text-xs leading-relaxed text-slate-400">Tüm girişler ve denemeler “Yedekleme ve hesap” → “Ebeveyn kilidi” → “Kapı geçmişi”nde.</p>
+            <div className="mt-1 grid grid-cols-2 gap-3">
+              <button type="button" onClick={onClose} autoFocus={danger}
+                className="min-h-12 rounded-2xl border border-white/20 bg-white/5 px-3 text-sm font-bold text-slate-200 hover:bg-white/10 focus-visible:outline focus-visible:outline-4 focus-visible:outline-lime-300">
+                Vazgeç
+              </button>
+              <button type="button" onClick={onSuccess} autoFocus={!danger}
+                className={'min-h-12 rounded-2xl px-3 text-sm font-black text-white shadow-lg transition hover:brightness-110 focus-visible:outline focus-visible:outline-4 focus-visible:outline-lime-300 '+
+                  (danger ? 'bg-gradient-to-r from-rose-600 to-rose-700 shadow-rose-950/50' : 'bg-gradient-to-r from-sky-500 to-blue-600 shadow-sky-950/50')}>
+                {danger ? confirmLabel : 'Anladım, devam et'}
+              </button>
+            </div>
+          </div>
         ) : mode === 'email' && owner ? (
           <div className="relative mt-5 flex flex-col gap-3 text-left">
             <div className="rounded-2xl border border-sky-300/25 bg-[#050b1d] px-4 py-3">
@@ -445,13 +501,13 @@ export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
         ) : mode === 'hard' ? (
           <form onSubmit={submitHard} className="relative mt-5 flex flex-col gap-3">
             <div key={shake} className={'pg-question rounded-2xl border bg-[#050b1d] px-4 pb-4 pt-3 text-left '+(sideError ? 'pg-question--wrong border-rose-300/50' : 'border-amber-200/30')}>
-              <span className="text-xs font-black uppercase tracking-[0.18em] text-amber-200/90">Ebeveyn sorusu</span>
-              <p id="ventra-parent-gate-hard" className="mt-1 text-2xl font-black leading-snug text-amber-100">{hardChallenge.prompt}</p>
-              <p className="mt-1 text-xs font-semibold text-slate-400">Cevabı rakamla yaz.</p>
+              <span className="text-xs font-black uppercase tracking-[0.18em] text-amber-200/90">Ebeveyn sorusu · iki adım</span>
+              {promptText(hardChallenge, 'ventra-parent-gate-hard', 'text-amber-100')}
+              <p className="mt-2 text-xs font-semibold text-slate-400">Cevabı rakamla yaz.</p>
             </div>
             <label htmlFor="ventra-parent-gate-hard-answer" className="sr-only">Ebeveyn sorusunun cevabı, rakamla</label>
             <input ref={inputRef} id="ventra-parent-gate-hard-answer" type="text" inputMode="numeric" pattern="[0-9]*" autoComplete="off" autoFocus
-              value={userAnswer} onChange={(e) => setUserAnswer(e.target.value.replace(/\D/g, '').slice(0, 3))} placeholder="Cevap"
+              value={userAnswer} onChange={(e) => setUserAnswer(answerOnly(e.target.value))} placeholder="Cevap"
               aria-describedby="ventra-parent-gate-hard"
               className="min-h-14 w-full rounded-2xl border border-amber-200/30 bg-[#050b1d] px-4 text-center text-2xl font-black tabular-nums text-white outline-none placeholder:text-base placeholder:font-semibold placeholder:text-slate-500 focus-visible:border-lime-300 focus-visible:ring-4 focus-visible:ring-lime-300/25" />
             {dots(guard.hardLeft, GATE_HARD_TRIES, 'hak')}
@@ -517,19 +573,20 @@ export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
               className="min-h-11 rounded-2xl px-3 text-sm font-bold text-sky-200 underline-offset-4 hover:underline focus-visible:outline focus-visible:outline-4 focus-visible:outline-lime-300">
               PIN'imi unuttum
             </button>
+            {recordedNote}
           </form>
         ) : (
           <form onSubmit={handleSubmit} className="relative mt-5 flex flex-col gap-3">
             <div key={shake} className={'pg-question rounded-2xl border bg-[#050b1d] px-4 pb-4 pt-3 text-left '+(hasError ? 'pg-question--wrong border-rose-300/50' : 'border-sky-300/25')}>
               <div className="flex items-center justify-between gap-2">
-                <span className="text-xs font-black uppercase tracking-[0.18em] text-sky-200/80">Soru</span>
+                <span className="text-xs font-black uppercase tracking-[0.18em] text-sky-200/80">Soru · iki adım</span>
                 <button type="button" onClick={() => { newChallenge(false); inputRef.current?.focus(); }}
                   className="min-h-11 rounded-xl px-3 text-sm font-bold text-sky-100 hover:bg-white/10 focus-visible:outline focus-visible:outline-4 focus-visible:outline-lime-300">
                   ↻ Başka soru
                 </button>
               </div>
-              <p id="ventra-parent-gate-question" className="mt-1 text-2xl font-black leading-snug text-sky-200">{challenge.prompt}</p>
-              <p className="mt-1 text-xs font-semibold text-slate-400">Cevabı rakamla yaz.</p>
+              {promptText(challenge, 'ventra-parent-gate-question', 'text-sky-200')}
+              <p className="mt-2 text-xs font-semibold text-slate-400">Cevabı rakamla yaz.</p>
             </div>
             <label htmlFor="ventra-parent-gate-answer" className="sr-only">Cevabın, rakamla</label>
             <input
@@ -541,7 +598,7 @@ export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
               autoComplete="off"
               autoFocus
               value={userAnswer}
-              onChange={(e) => setUserAnswer(e.target.value.replace(/\D/g, '').slice(0, 3))}
+              onChange={(e) => setUserAnswer(answerOnly(e.target.value))}
               placeholder="Cevap"
               aria-invalid={hasError || undefined}
               aria-describedby={'ventra-parent-gate-question' + (hasError ? ' ventra-parent-gate-error' : '')}
@@ -556,6 +613,7 @@ export const ParentalGateModal: React.FC<ParentalGateModalProps> = ({
             )}
             {actions(!userAnswer)}
             {resetAfterQuestion && backButton}
+            {recordedNote}
           </form>
         )}
         {showLock && (

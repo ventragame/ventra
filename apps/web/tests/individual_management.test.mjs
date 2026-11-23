@@ -118,7 +118,7 @@ test('Parental gate: focus stays inside, numeric keyboard, a wrong answer is ann
  const gate=src('components/profile/ParentalGateModal.tsx');
  assert.match(gate,/useDialogFocus\(dialogRef, isOpen\);/);
  assert.match(gate,/inputMode="numeric"/);
- assert.match(gate,/onChange=\{\(e\) => setUserAnswer\(e\.target\.value\.replace\(\/\\D\/g, ''\)\.slice\(0, 3\)\)\}/);
+ assert.match(gate,/onChange=\{\(e\) => setUserAnswer\(answerOnly\(e\.target\.value\)\)\}/,'digits only');
  assert.match(gate,/<p id="ventra-parent-gate-error" role="alert"/);
  const hook=src('lib/a11y/useDialogFocus.ts');
  assert.match(hook,/const run=\+\+generation\.current;/);

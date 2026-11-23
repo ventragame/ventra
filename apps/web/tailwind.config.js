@@ -9,6 +9,12 @@ module.exports = {
       colors: {
         background: '#050914',
       },
+      // The parent area draws its hairline borders at 12 % white
+      // (border-white/12); without this step the class is never generated and
+      // the border falls back to the bright default.
+      opacity: {
+        '12': '0.12',
+      },
       scale: {
         '98': '0.98',
         '102': '1.02',

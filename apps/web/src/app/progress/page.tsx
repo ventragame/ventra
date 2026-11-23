@@ -11,7 +11,9 @@ import {AdultAccountModal} from '../../components/profile/AdultAccountModal';
 import {FamilyDashboard} from '../../components/family/FamilyDashboard';
 
 /** The family panel shows a child's records and the account tools: an adult
- * opens it once per browser session (30 minutes), never the child by accident. */
+ * opens it once per browser session (30 minutes), never the child by accident.
+ * Going back to the game locks it again, so the browser's back button cannot
+ * reopen it for a child. */
 const GATE_KEY='ventra:family-panel:unlocked-at';
 const GATE_MS=30*60*1000;
 function gateStillOpen():boolean{
@@ -19,6 +21,7 @@ function gateStillOpen():boolean{
  catch{return false;}
 }
 function rememberGate(){try{window.sessionStorage.setItem(GATE_KEY,String(Date.now()));}catch{/* private mode: ask again next time */}}
+function forgetGate(){try{window.sessionStorage.removeItem(GATE_KEY);}catch{/* nothing stored */}}
 
 export default function FamilyPanelPage(){
  const router=useRouter();
@@ -60,7 +63,13 @@ export default function FamilyPanelPage(){
    .finally(()=>{if(id===request.current)setLoading(false);});
  },[unlocked,profile]);
 
- return <div className="min-h-[100dvh] bg-[#071427] text-white">
+ // Every way back to the game (header, dashboard, logo) locks the panel again.
+ const lockOnLeave=(event:React.MouseEvent)=>{
+  const href=(event.target as HTMLElement).closest('a[href]')?.getAttribute('href');
+  if(href==='/kids'||href==='/')forgetGate();
+ };
+
+ return <div onClickCapture={lockOnLeave} className="min-h-[100dvh] bg-[#071427] text-white">
   <div aria-hidden="true" className="pointer-events-none fixed inset-0 overflow-hidden">
    <div className="absolute -left-40 -top-32 h-[34rem] w-[34rem] rounded-full bg-sky-500/15 blur-3xl"/>
    <div className="absolute -right-32 top-1/3 h-[30rem] w-[30rem] rounded-full bg-violet-500/15 blur-3xl"/>

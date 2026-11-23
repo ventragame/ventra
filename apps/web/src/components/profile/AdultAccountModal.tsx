@@ -11,6 +11,8 @@ import { useDialogFocus } from '@/lib/a11y/useDialogFocus';
 import { useFocusRescue } from '@/lib/a11y/useFocusRescue';
 import { AvatarPortrait } from './AvatarPortrait';
 import { PinField } from './PinField';
+import { GateHistory } from './GateHistory';
+import { recordGateEvent, type GateNote } from '@/lib/profile/parentGateLog';
 import {
   cancelPinReset, clearPinRecord, createPinRecord, formatWait, maskEmail, pinProblem, pinSupported, readPinRecord, resetWaitMs,
   withNewRecoveryKey, writePinRecord, type ParentPinRecord
@@ -63,6 +65,8 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
   const [pinSecond, setPinSecond] = useState('');
   const [pinMessage, setPinMessage] = useState('');
   const [pinBusy, setPinBusy] = useState(false);
+  // Bumped after every PIN change so the gate history shows it at once.
+  const [gateVersion, setGateVersion] = useState(0);
   const dialogRef = useRef<HTMLDivElement>(null);
   useDialogFocus(dialogRef, isOpen);
   useFocusRescue(dialogRef, isOpen, [account, checked, isOtpSent, pending, deleteAccountOpen, message, profiles, isLoading, pinStep, pinRecord, pendingPin]);
@@ -287,7 +291,7 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
         if (tied.recoveryHash) {
           const kept = { ...tied, ownerId: null, ownerEmail: null };
           writePinRecord(kept); setPinRecord(kept);
-        } else { clearPinRecord(); setPinRecord(null); }
+        } else { clearPinRecord(); setPinRecord(null); noteGate('pin-removed'); }
         setPinStep('idle');
       }
       try { window.localStorage.removeItem('ventra-last-sync:' + accountId); } catch {}
@@ -310,6 +314,7 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
   // the family it was tied to unless another account is signed in.
   const pinOwner = account ? { id: account.userId, email: account.email }
     : pinRecord?.ownerId && pinRecord.ownerEmail ? { id: pinRecord.ownerId, email: pinRecord.ownerEmail } : null;
+  const noteGate = (note: GateNote) => { recordGateEvent({ e: note }); setGateVersion(version => version + 1); };
   const startPin = () => { setPinStep('new'); setPinFirst(''); setPinSecond(''); setPinMessage(''); setPendingPin(null); };
   const stopPin = () => { setPinStep('idle'); setPinFirst(''); setPinSecond(''); setPinMessage(''); setPendingPin(null); setKeyCheck(''); setKeyCopied(false); };
   const advancePin = async (value: string) => {
@@ -359,6 +364,7 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
     writePinRecord(pendingPin.record);
     setPinRecord(pendingPin.record);
     const fresh = pendingPin.isNew;
+    noteGate(fresh ? 'pin-set' : 'key-renewed');
     stopPin();
     setMessage({ type: 'success', text: fresh
       ? 'Ebeveyn kilidi açık: kapı artık yalnızca PIN\'i soracak. Kilitlenirse ya da PIN\'i unutursan kurtarma anahtarınla' + (pinOwner ? ' veya e-postanla' : '') + ' hemen açarsın.'
@@ -373,15 +379,20 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
     const next = cancelPinReset(pinRecord);
     writePinRecord(next);
     setPinRecord(next);
+    noteGate('reset-cancel');
     setMessage({ type: 'success', text: 'PIN sıfırlama isteği iptal edildi.' });
   };
   const removePin = () => {
     clearPinRecord();
     setPinRecord(null);
+    noteGate('pin-removed');
     stopPin();
     setMessage({ type: 'success', text: 'PIN kaldırıldı. Kapı yeniden yazılı soruyu soruyor.' });
   };
   const pendingReset = pinRecord ? resetWaitMs(pinRecord) : null;
+  // Two-step sums are 4th-grade work: from then on a child can solve the
+  // written question, so the window recommends a PIN by name.
+  const solvers = profiles.filter(p => (p.gradeLevel ?? 0) >= 4);
 
   const linkedCount = account ? profiles.filter(p => p.userId === account.userId).length : 0;
   const localCount = profiles.filter(p => !p.userId).length;
@@ -398,7 +409,7 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
                 <div className="min-w-0 flex-1">
                   <h3 id="acct-pin-title" className="text-base font-black">Ebeveyn kilidi</h3>
                   <p className="mt-0.5 text-sm text-sky-100/80">
-                    {!pinRecord ? 'Şu an yazılı bir soru soruluyor.' :
+                    {!pinRecord ? 'Şu an iki adımlı yazılı bir soru soruluyor.' :
                       <>PIN açık{pinRecord.recoveryHash ? ' · kurtarma anahtarı var' : ''}{pinRecord.ownerEmail ? <> · <span className="break-all">{maskEmail(pinRecord.ownerEmail)}</span></> : ''}</>}
                   </p>
                 </div>
@@ -426,8 +437,15 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
                   </div>
                 ) : (
                   <>
+                    {solvers.length > 0 && (
+                      <p className="mt-3 rounded-2xl border border-amber-200/40 bg-amber-300/10 px-3 py-2 text-sm leading-relaxed text-amber-50">
+                        <strong>{solvers.length === 1 ? `${solvers[0].nickname} ${solvers[0].gradeLevel}. sınıfta:` : `Bu cihazda ${solvers.length} oyuncu 4. sınıf ya da üstünde:`}</strong>{' '}
+                        iki adımlı soruyu çözebilir{solvers.length === 1 ? '' : 'ler'}. Yalnızca senin bildiğin bir PIN öneririz.
+                      </p>
+                    )}
                     <ul className="mt-3 space-y-1.5 text-sm leading-relaxed text-sky-100/85">
-                      <li>• Yazılı soruyu büyük çocuklar çözebilir; bilmedikleri bir PIN'i açamazlar.</li>
+                      <li>• Soru, okuyup iki adım işlem yapamayan küçük çocukları durdurur; büyük çocuklar çözebilir. Bilmedikleri bir PIN'i açamazlar.</li>
+                      <li>• PIN'le her girişte 4 rakam yeter; soru hiç gelmez.</li>
                       <li>• Beklemek yok: kapı kilitlense de kurtarma anahtarınla{account ? ' ya da e-postanla' : ''} hemen açarsın.</li>
                       <li>• PIN'i unutursan da aynı yolla sıfırlarsın. Aile hesabı gerekmez.</li>
                     </ul>
@@ -493,6 +511,7 @@ export const AdultAccountModal: React.FC<AdultAccountModalProps> = ({
                   </p>
                 </form>
               )}
+              {pinStep === 'idle' && <GateHistory version={gateVersion} hasPin={Boolean(pinRecord)} />}
             </section>
   ) : null;
 
