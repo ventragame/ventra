@@ -82,15 +82,19 @@ test('P6: existing local child is visible to current parent for explicit cloud l
  assert.deepEqual(localSchoolCandidates(local,[],''),[]);
 });
 test('P6: school enrollment source requires explicit parental confirmation and valid invite code',()=>{
- const source=fs.readFileSync(new URL('../src/app/school/page.tsx',import.meta.url),'utf8');
+ const source=fs.readFileSync(new URL('../src/components/school/ParentWorkspace.tsx',import.meta.url),'utf8');
+ const ui=fs.readFileSync(new URL('../src/components/school/schoolUi.tsx',import.meta.url),'utf8');
  assert.match(source,/localSchoolCandidates\(local,profiles,auth\.data\.user\.id\)/);
  // An in-page confirmation (works in app WebViews, says exactly what happens).
  assert.match(source,/onClick=\{\(\)=>setPendingLink\(profile\)\}/);
- assert.match(source,/pendingLink\?\.id===profile\.id&&<div role="group" aria-label="Bağlamayı onayla"/);
- assert.match(source,/linkLocalSchoolCandidate\(profile\.id,adultUserId\)/);
+ assert.match(source,/pendingLink\?\.id===profile\.id&&<ConfirmBox label="Bağlamayı onayla"/);
+ assert.match(ui,/<div role="group" aria-label=\{label\}/);
+ assert.match(source,/linkLocalSchoolCandidate\(profile\.id,data\.adultId\)/);
  // A complete code is required to join, but the field never truncates a
  // pasted code before it is tidied (a 36-character limit cut codes pasted
- // with spaces): the button checks the normalised length instead.
- assert.match(source,/disabled=\{!chosenChild\|\|typedCode\.length!==36\|\|busy\}/);
+ // with spaces): the button checks the normalised length instead. A code
+ // the server reports as invalid, or a child already in the class, blocks it.
+ assert.match(source,/disabled=\{!chosenChild\|\|typedCode\.length!==36\|\|busy\|\|blocked\}/);
+ assert.match(source,/const blocked=preview\?\.state==='invalid'\|\|preview\?\.state==='loading'\|\|already;/);
  assert.doesNotMatch(source,/maxLength=\{36\}/);
 });
