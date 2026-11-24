@@ -97,7 +97,7 @@
  background:#124b62dc;border:1px solid #f9e5ac99;border-radius:9px;padding:2px 6px
 }
 .sp-v2 .sp-v2-mission strong{font-size:clamp(12px,1.4vw,16px);line-height:1.14;padding:9px 9px 2px;color:#fff8de}
-.sp-v2 .sp-v2-mission small{padding:0 9px 10px;font-size:10px;line-height:1.25;color:#d7eadf}
+.sp-v2 .sp-v2-mission small{padding:0 9px 10px;font-size:12px;line-height:1.25;color:#d7eadf}
 /* Main scene: 3D original artwork is separate from dynamic semantic SVG overlays. */
 .sp-v2 .sp-v2-art{
  position:relative;isolation:isolate;aspect-ratio:900/478;min-height:215px;
@@ -115,7 +115,7 @@
  position:absolute;z-index:3;left:11px;right:auto;bottom:10px;
  min-height:0;max-width:calc(100% - 22px);width:auto;padding:7px 10px;
  border:1px solid #f8e3af;border-radius:12px;
- background:#073e53de;color:#fff8d8;font-size:11px;line-height:1.2;
+ background:#073e53de;color:#fff8d8;font-size:12px;line-height:1.2;
  box-shadow:0 3px 0 #083b4d,0 7px 13px #04253974;
  backdrop-filter:blur(5px);
 }
@@ -153,7 +153,7 @@
 .sp-v2 .sp-v2-steps{display:flex;gap:7px;justify-content:center;margin:12px 0}
 .sp-v2 .sp-v2-steps span{
  flex:1;text-align:center;padding:9px 6px;border-radius:999px;
- background:#154b62;border:1px solid #8bb6bc;color:#cfe5db;font-size:11px;font-weight:950;
+ background:#154b62;border:1px solid #8bb6bc;color:#cfe5db;font-size:12px;font-weight:950;
 }
 .sp-v2 .sp-v2-steps .sp-v2-step-current{
  background:linear-gradient(120deg,#fff6d7,#e8df9b);border-color:#fff1b0;color:#205763;
@@ -231,42 +231,42 @@
  .sp-v2 .sp-logo-emblem{width:42px;height:42px;font-size:22px}
  .sp-v2 .sp-brand-title{font-size:clamp(19px,4.9vw,24px)}
  .sp-v2 .sp-actions{gap:5px}
- .sp-v2 .sp-chip{padding:6px 8px;font-size:10px}
- .sp-v2 .sp-back{min-height:44px;padding:7px;font-size:10px}
+ .sp-v2 .sp-chip{padding:6px 8px;font-size:12px}
+ .sp-v2 .sp-back{min-height:44px;padding:7px;font-size:12px}
  .sp-v2 .sp-hero{padding:12px 2px 11px}
  .sp-v2 .sp-hero h2{font-size:clamp(24px,6.4vw,32px)}
  .sp-v2 .sp-hero p{font-size:12px}
  .sp-v2 .sp-stars{min-width:78px;padding:8px}
  .sp-v2 .sp-v2-flow{gap:5px;margin:12px 0}
  .sp-v2 .sp-v2-flow>div{border-radius:12px;min-height:60px}
- .sp-v2 .sp-v2-flow>div strong{font-size:10px}
+ .sp-v2 .sp-v2-flow>div strong{font-size:12px}
  .sp-v2 .sp-map-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
  .sp-v2 .sp-v2-mission{min-height:145px;border-radius:14px}
  .sp-v2 .sp-v2-card-art{height:88px}
  .sp-v2 .sp-v2-mission strong{font-size:12px}
- .sp-v2 .sp-v2-mission small{font-size:10px}
+ .sp-v2 .sp-v2-mission small{font-size:12px}
  .sp-v2 .sp-v2-art{min-height:190px;border-radius:17px}
- .sp-v2 .sp-v2-art .sp-scene-caption{left:6px;bottom:5px;padding:5px 7px;font-size:10px;max-width:calc(100% - 12px)}
+ .sp-v2 .sp-v2-art .sp-scene-caption{left:6px;bottom:5px;padding:5px 7px;font-size:12px;max-width:calc(100% - 12px)}
  .sp-v2 .sp-workshop{padding:12px 9px;border-radius:16px}
- .sp-v2 .sp-step{font-size:11px}
+ .sp-v2 .sp-step{font-size:12px}
  .sp-v2 .sp-cue{font-size:16px;padding:9px 10px}
  .sp-v2 .sp-v2-steps{gap:4px;margin:8px 0}
- .sp-v2 .sp-v2-steps span{font-size:10px;padding:7px 3px}
+ .sp-v2 .sp-v2-steps span{font-size:12px;padding:7px 3px}
  .sp-v2 .sp-scene-choice{padding:5px 7px;min-height:44px}
- .sp-v2 .sp-scene-choice small{font-size:10px}
+ .sp-v2 .sp-scene-choice small{font-size:12px}
  .sp-v2 .sp-slots{gap:5px;padding:8px 5px;min-height:65px}
  /* Filled slots are buttons (tap to return the word): 44px like the tiles. */
  .sp-v2 .sp-slot{min-width:44px;min-height:44px;padding:6px 7px}
  .sp-v2 .sp-tile{min-width:45px;min-height:44px;padding:6px 8px;font-size:12px}
- .sp-v2 .sp-tools .sp-secondary{font-size:11px;padding:6px 4px}
+ .sp-v2 .sp-tools .sp-secondary{font-size:12px;padding:6px 4px}
  .sp-v2 .sp-side{padding:14px}
 }
 @media(max-width:359px){
  .sp-v2 .sp-actions .sp-chip:first-child{display:none}
- .sp-v2 .sp-v2-mission strong{font-size:11px}
+ .sp-v2 .sp-v2-mission strong{font-size:12px}
  .sp-v2 .sp-v2-card-art{height:83px}
  .sp-v2 .sp-v2-art{min-height:162px}
- .sp-v2 .sp-v2-steps span{font-size:9px}
+ .sp-v2 .sp-v2-steps span{font-size:12px}
 }
 @media(prefers-reduced-motion:reduce){
  .sp-v2 .sp-v2-mission,.sp-v2 .sp-v2-card-art,.sp-v2 .sp-tile,

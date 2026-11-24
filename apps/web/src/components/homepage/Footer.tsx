@@ -27,20 +27,20 @@ export function Footer({ onOpenFaq, onOpenLifeModal }: FooterProps) {
             </h4>
             <ul className="space-y-2 text-xs sm:text-sm">
               <li>
-                <Link href="/kids" className="hover:text-blue-600 transition-colors">
+                <Link href="/kids" className="inline-flex min-h-11 items-center sm:min-h-0 hover:text-blue-600 transition-colors">
                   Ventra Kids (7–12 Yaş)
                 </Link>
               </li>
               <li>
                 <button
                   onClick={onOpenLifeModal}
-                  className="hover:text-purple-600 transition-colors text-left cursor-pointer"
+                  className="inline-flex min-h-11 items-center sm:min-h-0 hover:text-purple-600 transition-colors text-left cursor-pointer"
                 >
                   Ventra Life (13+ Yaş — Yakında)
                 </button>
               </li>
               <li>
-                <a href="#neden-ventra" className="hover:text-blue-600 transition-colors">
+                <a href="#neden-ventra" className="inline-flex min-h-11 items-center sm:min-h-0 hover:text-blue-600 transition-colors">
                   Neden Ventra?
                 </a>
               </li>
@@ -54,14 +54,14 @@ export function Footer({ onOpenFaq, onOpenLifeModal }: FooterProps) {
             </h4>
             <ul className="space-y-2 text-xs sm:text-sm">
               <li>
-                <a href="#ozellikler" className="hover:text-blue-600 transition-colors">
+                <a href="#ozellikler" className="inline-flex min-h-11 items-center sm:min-h-0 hover:text-blue-600 transition-colors">
                   Platform Özellikleri
                 </a>
               </li>
               <li>
                 <button
                   onClick={onOpenFaq}
-                  className="hover:text-blue-600 transition-colors text-left cursor-pointer"
+                  className="inline-flex min-h-11 items-center sm:min-h-0 hover:text-blue-600 transition-colors text-left cursor-pointer"
                 >
                   Sıkça Sorulan Sorular
                 </button>

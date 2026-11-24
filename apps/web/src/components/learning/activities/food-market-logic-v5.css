@@ -37,7 +37,7 @@
 .fm4-screen .fm5-assisted-text{margin:9px auto 0;color:#486858;
  font-size:12px;line-height:1.5;overflow-wrap:anywhere}
 .fm5-assisted-text strong{display:inline-block;color:#8b5051;font-size:15px}
-.fm4-screen .fm5-listen-status{color:#597866;font-size:11px;margin:6px auto 0;font-weight:800}
+.fm4-screen .fm5-listen-status{color:#597866;font-size:12px;margin:6px auto 0;font-weight:800}
 .fm4-screen .fm5-dialogue-choices{
  grid-template-columns:repeat(3,minmax(0,1fr));gap:10px;
  max-width:705px;margin:14px auto 16px;
@@ -70,14 +70,14 @@
  font-size:clamp(13px,2vw,18px);line-height:1.4;
  overflow-wrap:anywhere;color:#85524f!important}
 .fm4-screen .fm5-order-progress{display:block;color:#467667;
- font-size:11px;font-weight:900}
+ font-size:12px;font-weight:900}
 .fm4-screen .fm4-product[data-wrong=true]:disabled{opacity:.6}
 .fm4-screen button:focus-visible{outline:3px solid #b4772a!important;outline-offset:3px!important}
 @media(max-width:680px){
  .fm4-screen .fm5-word-choices{gap:6px;margin:10px auto 11px}
  .fm4-screen .fm5-word-option{min-height:70px;gap:4px;padding:7px 4px;border-radius:12px;
   flex-direction:column}
- .fm5-option-marker{width:24px;height:23px;border-radius:8px;font-size:10px}
+ .fm5-option-marker{width:24px;height:23px;border-radius:8px;font-size:12px}
  .fm5-word-label{font-size:clamp(11px,3.1vw,14px);line-height:1.1}
  .fm5-answer-check{top:2px;right:5px;font-size:13px}
  .fm4-screen .fm5-customer-audio{padding:8px;margin:9px auto;border-radius:13px}
@@ -85,16 +85,16 @@
  .fm4-screen .fm5-dialogue-option{min-height:105px;padding:6px 3px;border-radius:12px}
  .fm5-dialogue-option>.fm4-food-svg{height:72px!important;width:100%!important;max-height:75px}
  .fm4-screen .fm5-dialogue-option>.fm5-dialogue-option-label{
-  width:21px;height:21px;font-size:10px}
+  width:21px;height:21px;font-size:12px}
  .fm4-screen .fm5-order-sentence{font-size:12px;margin:3px 0;padding:6px}
- .fm4-screen .fm5-order-progress{font-size:10px}
- .fm4-screen .fm5-assisted-text{font-size:11px}
+ .fm4-screen .fm5-order-progress{font-size:12px}
+ .fm4-screen .fm5-assisted-text{font-size:12px}
  .fm5-assisted-text strong{font-size:12px}
 }
 @media(max-width:359px){
  .fm4-screen .fm5-word-choices{gap:4px}
  .fm4-screen .fm5-word-option{min-height:68px;padding:5px 2px}
- .fm5-word-label{font-size:10px}
+ .fm5-word-label{font-size:12px}
  .fm4-screen .fm5-dialogue-choices{gap:4px}
  .fm4-screen .fm5-dialogue-option{min-height:99px;padding:3px}
  .fm5-dialogue-option>.fm4-food-svg{height:64px!important}

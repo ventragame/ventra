@@ -25,7 +25,7 @@
  box-shadow:0 4px 0 #092d38,0 8px 12px #001d2a61;
  font-size:12px;color:#fffbed;min-height:44px;
 }
-.fm6-screen .fm4-brand>span{font-size:9px;color:#b6e7cb;letter-spacing:.13em}
+.fm6-screen .fm4-brand>span{font-size:12px;color:#b6e7cb;letter-spacing:.13em}
 .fm6-screen .fm4-brand h1{
  color:#fff5d6;font-size:clamp(22px,3vw,33px);
  text-shadow:0 3px 0 #a76b4d,0 6px 10px #032b36;letter-spacing:-.035em;
@@ -73,7 +73,7 @@
  line-height:1.14;display:block;text-shadow:0 1px #ffffff90;
 }
 .fm6-screen .fm4-lane .fm-lane-copy small{
- margin-top:7px;color:#516e62;font-size:10px;line-height:1.3;font-weight:850;
+ margin-top:7px;color:#516e62;font-size:12px;line-height:1.3;font-weight:850;
 }
 .fm6-screen .fm4-stagebar{gap:8px;margin-bottom:12px}
 .fm6-screen .fm4-stage-pill{
@@ -89,7 +89,7 @@
  box-shadow:0 5px 0 #d5b15f,0 10px 18px #001c2755;
 }
 .fm6-screen .fm4-stage-pill[data-completed=true]:after{
- content:'★';position:absolute;top:3px;right:5px;color:#ffdb70;font-size:10px;
+ content:'★';position:absolute;top:3px;right:5px;color:#ffdb70;font-size:12px;
  text-shadow:0 1px #805b23;pointer-events:none;
 }
 .fm6-screen .fm4-stage-pill:disabled{opacity:.65}
@@ -216,14 +216,14 @@
  border-color:#f9e4ad;box-shadow:0 6px 0 #93bfa7;
 }
 .fm6-screen .fm4-feedback{background:#e0f6e6;border-color:#9dceb0;color:#1e6355}
-.fm6-screen .fm4-count{font-size:11px;color:#497567!important}
+.fm6-screen .fm4-count{font-size:12px;color:#497567!important}
 .fm6-screen button:focus-visible{outline:3px solid #f4b83e!important;outline-offset:3px!important}
 @media(max-width:680px){
  .fm6-screen{padding:8px 7px max(20px,env(safe-area-inset-bottom,0px))}
  .fm6-screen .fm4-header{min-height:58px;padding:7px 8px;border-radius:17px}
  .fm6-screen .fm4-brand h1{font-size:clamp(18px,5vw,24px)}
  .fm6-screen .fm4-back{min-width:44px;min-height:44px;padding:6px!important}
- .fm6-screen .fm4-score{min-height:42px;font-size:11px;padding:6px 8px}
+ .fm6-screen .fm4-score{min-height:42px;font-size:12px;padding:6px 8px}
  .fm6-screen .fm4-map{gap:6px;margin-bottom:9px}
  .fm6-screen .fm4-lane{
   min-height:87px;padding:5px 4px 7px;flex-direction:column;gap:2px;
@@ -253,7 +253,7 @@
  .fm6-screen .fm4-brand h1{font-size:17px}
  .fm6-screen .fm4-map{gap:4px}
  .fm6-screen .fm4-lane{min-height:83px;padding-inline:2px}
- .fm6-screen .fm4-lane .fm-lane-copy strong{font-size:9px}
+ .fm6-screen .fm4-lane .fm-lane-copy strong{font-size:12px}
  .fm6-screen .fm4-stage-pill{min-height:49px}
  .fm6-screen .fm5-word-option{padding:6px 2px;min-height:68px}
 }

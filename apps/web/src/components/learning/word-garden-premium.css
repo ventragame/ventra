@@ -112,3 +112,6 @@
  .wg-card-artwork{transition:none!important}
  .wg-world-card:not(:disabled):hover .wg-card-artwork{transform:none}
 }
+
+/* The hub title is the screen heading for assistive tech; it keeps the HUD look. */
+.wg-hud-heading{margin:0;font:inherit;line-height:inherit;color:inherit}

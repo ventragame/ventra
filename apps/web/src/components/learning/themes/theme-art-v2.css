@@ -23,9 +23,9 @@
 .tt-root .tt-semantic-background{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.20;z-index:-1}
 .tt-root .tt-semantic-emblem{display:grid;place-items:center;width:78%;height:78%;border-radius:28%;background:linear-gradient(145deg,#fffdf6,#dcf5e6);box-shadow:0 8px 24px #266c6040;color:#267c70;border:2px solid #ffffffc7}
 .tt-root .tt-semantic-emblem svg{width:60%;height:60%;stroke-linecap:round;stroke-linejoin:round}
-.tt-root .tt-semantic-caption{position:absolute;bottom:9px;padding:5px 10px;border-radius:999px;background:#fffdf5ee;color:#2e685d;letter-spacing:.08em;font-size:9px;line-height:1;font-weight:950}
+.tt-root .tt-semantic-caption{position:absolute;bottom:9px;padding:5px 10px;border-radius:999px;background:#fffdf5ee;color:#2e685d;letter-spacing:.08em;font-size:12px;line-height:1;font-weight:950}
 .tt-root .tt-scenario-v2 .tt-semantic-cue{width:clamp(110px,20vw,146px);height:clamp(110px,20vw,146px);border-radius:22px}
-@media(max-width:640px){.tt-root .tt-semantic-cue{width:140px;height:140px}.tt-root .tt-scenario-v2 .tt-semantic-cue{width:108px;height:108px}.tt-root .tt-semantic-caption{font-size:8px}}
+@media(max-width:640px){.tt-root .tt-semantic-cue{width:140px;height:140px}.tt-root .tt-scenario-v2 .tt-semantic-cue{width:108px;height:108px}.tt-root .tt-semantic-caption{font-size:12px}}
 @media(max-width:355px){.tt-root .tt-semantic-cue{width:122px;height:122px}}
 
 .tt-root .tt-art-load-warning{display:block;max-width:220px;font-size:12px;line-height:1.45;text-align:center;color:#805a39;font-weight:750}

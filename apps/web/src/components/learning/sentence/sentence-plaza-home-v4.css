@@ -34,7 +34,7 @@
 .sp-v4-home .sp-v4-intro-copy{align-self:center;min-width:0}
 .sp-v4-home .sp-v4-kicker{
  display:flex;align-items:center;gap:8px;
- font-size:10px;font-weight:950;letter-spacing:.14em;
+ font-size:12px;font-weight:950;letter-spacing:.14em;
  color:#b6f1e4;text-transform:uppercase;
 }
 .sp-v4-home .sp-v4-kicker span{font-size:18px;color:#ffdb8e}
@@ -63,7 +63,7 @@
  box-shadow:inset 0 1px #e7fff22b;
 }
 .sp-v4-home .sp-v4-progress>span{
- font-size:9px;letter-spacing:.12em;
+ font-size:12px;letter-spacing:.12em;
  font-weight:1000;color:#aadfd4;
 }
 .sp-v4-home .sp-v4-progress strong{
@@ -124,7 +124,7 @@
 }
 .sp-v4-home .sp-v4-quests-overline{
  display:block;color:#9bdccc;
- font-size:10px;font-weight:1000;letter-spacing:.14em;
+ font-size:12px;font-weight:1000;letter-spacing:.14em;
 }
 .sp-v4-home .sp-v4-quests h3{
  margin:4px 0 0;font-size:clamp(22px,2.5vw,28px);
@@ -133,7 +133,7 @@
 .sp-v4-home .sp-v4-quests-counter{
  border:1px solid #b6d9b791;border-radius:99px;
  padding:7px 11px;background:#16485dcc;
- color:#f7dd92;font-size:11px;font-weight:900;
+ color:#f7dd92;font-size:12px;font-weight:900;
 }
 .sp-v2 .sp-v4-home .sp-v4-grid{
  display:grid;
@@ -193,7 +193,7 @@
 .sp-v4-home .sp-v4-mission small{
  display:block;width:100%;margin-top:auto;
  padding:0 13px 12px;
- font-size:11px;font-weight:850;line-height:1.3;color:#d2e9df;
+ font-size:12px;font-weight:850;line-height:1.3;color:#d2e9df;
 }
 .sp-v4-home .sp-v4-future{
  border:1px solid #80b4bc69;border-radius:15px;
@@ -236,16 +236,16 @@
  .sp-v4-home .sp-v4-start{min-height:52px;padding:6px 9px;font-size:14px}
  .sp-v4-home .sp-v4-journey{gap:6px;padding-top:11px}
  .sp-v4-home .sp-v4-journey>div{
-  min-height:34px;padding:6px 9px;font-size:11px;gap:5px;
+  min-height:34px;padding:6px 9px;font-size:12px;gap:5px;
  }
  .sp-v4-home .sp-v4-journey-arrow{font-size:12px}
  .sp-v4-home .sp-v4-quests h3{font-size:22px}
- .sp-v4-home .sp-v4-quests-counter{font-size:10px}
+ .sp-v4-home .sp-v4-quests-counter{font-size:12px}
  .sp-v2 .sp-v4-home .sp-v4-grid{gap:9px}
  .sp-v4-home .sp-v4-mission{min-height:159px;border-radius:14px}
  .sp-v4-home .sp-v4-mission .sp-v2-card-art{height:100px}
  .sp-v4-home .sp-v4-mission strong{font-size:12px;padding:7px 8px 2px}
- .sp-v4-home .sp-v4-mission small{font-size:10px;padding:0 8px 9px}
+ .sp-v4-home .sp-v4-mission small{font-size:12px;padding:0 8px 9px}
  .sp-v4-home .sp-v4-mission .sp-mission-top{top:5px;left:6px;right:6px}
  .sp-v4-home .sp-v4-mission .sp-mission-top span{font-size:12px;min-width:23px;min-height:23px}
  .sp-v4-home .sp-v4-future .sp-future-grid{grid-template-columns:repeat(2,minmax(0,1fr))}

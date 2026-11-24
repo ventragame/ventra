@@ -81,7 +81,7 @@ export function AuthModal({ isOpen, onClose }: AuthModalProps) {
 
         {/* Footer info */}
         <div className="mt-6 pt-4 border-t border-slate-100 text-center">
-          <p className="text-[11px] text-slate-400">
+          <p className="text-xs text-slate-400">
             Çocuklara özel korumalı ortam. Ebeveyn denetimli güvenli kullanım.
           </p>
         </div>

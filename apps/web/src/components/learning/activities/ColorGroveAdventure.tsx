@@ -308,7 +308,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
           </div>
         </header>
         <div className="cg-stage-intro py-4 text-center sm:py-6">
-          <p className="text-[11px] font-extrabold uppercase tracking-[0.22em] text-lime-200">Büyülü Renkler Hikâyesi · Bölüm {step}/3</p>
+          <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-lime-200">Büyülü Renkler Hikâyesi · Bölüm {step}/3</p>
           <h1 ref={headingRef} tabIndex={-1} className="mt-2 text-3xl font-black tracking-tight outline-none sm:text-5xl">{names[step - 1]}</h1>
         </div>
 
@@ -318,7 +318,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
               onClick={() => { if (i + 1 <= progress.completedLevels + 1) reset((i + 1) as Step); }}
               disabled={i + 1 > progress.completedLevels + 1 || saving}
               aria-current={step === i + 1 ? 'step' : undefined}
-              className={`gg-game-control vg-answer-card min-h-14 rounded-xl border px-2 py-3 text-[11px] font-bold sm:text-sm ${step === i + 1 ? 'border-lime-200 bg-emerald-600/55' : 'border-white/20 bg-white/10'} disabled:opacity-40`}>
+              className={`gg-game-control vg-answer-card min-h-14 rounded-xl border px-2 py-3 text-xs font-bold sm:text-sm ${step === i + 1 ? 'border-lime-200 bg-emerald-600/55' : 'border-white/20 bg-white/10'} disabled:opacity-40`}>
               {i + 1 <= progress.completedLevels ? '✓ ' : ''}{i + 1}. <span className="cg-tab-long">{name}</span><span className="cg-tab-short">{['Keşif','Eşleştir','Boya'][i]}</span>
             </button>
           ))}

@@ -41,7 +41,7 @@
  .fv5-screen .fv5-answer-grid .fv6-character-art{width:min(100%,72px);max-width:72px;max-height:72px}
  .fv5-screen .fv5-featured.fv5-featured-portrait{max-width:196px;margin:5px auto 8px}
  .fv5-screen .fv5-featured-portrait .fv6-character-art{width:135px;height:135px;max-height:135px}
- .fv5-screen .fv5-featured-portrait .fv3-featured-label{font-size:11px;padding:4px 10px}
+ .fv5-screen .fv5-featured-portrait .fv3-featured-label{font-size:12px;padding:4px 10px}
 }
 @media(max-width:359px){
  .fv5-screen .fv3-discovery .fv6-character-art{max-width:69px;max-height:69px}

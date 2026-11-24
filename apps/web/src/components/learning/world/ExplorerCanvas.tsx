@@ -171,7 +171,7 @@ export function ExplorerCanvas({
       <span aria-hidden="true">{ambienceOn?'🔊':'🔈'}</span>
     </button>
     <div role="status" aria-live="polite" className="sr-only">
-      <div className="max-w-[65%] rounded-xl border border-white/25 bg-[#134454]/85 px-3 py-2 text-[11px] font-bold text-white shadow-lg backdrop-blur-sm sm:text-xs">
+      <div className="max-w-[65%] rounded-xl border border-white/25 bg-[#134454]/85 px-3 py-2 text-xs font-bold text-white shadow-lg backdrop-blur-sm sm:text-xs">
         {engineFailed?'Sahne açılamadı. Aşağıdaki oyunlardan seç.':ready?hint:'🌿 Dünya hazırlanıyor…'}
       </div>
     </div>

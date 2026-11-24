@@ -63,7 +63,7 @@ export function TrustStatsSection() {
                     <div className="text-sm sm:text-base font-black text-slate-900 tracking-tight leading-none">
                       {item.headline}
                     </div>
-                    <div className="text-[10px] sm:text-[11px] text-slate-500 font-medium leading-none mt-1">
+                    <div className="text-xs sm:text-xs text-slate-500 font-medium leading-none mt-1">
                       {item.sublabel}
                     </div>
                   </div>

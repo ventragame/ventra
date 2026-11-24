@@ -19,7 +19,7 @@
 .gg-quest-screen .gg-quest-navigation [aria-current="step"]{outline:2px solid #fff3b8;outline-offset:-3px}
 .gg-quest-screen .gg-quest-navigation button:disabled{cursor:not-allowed}
 .gg-quest-screen .gg-quest-navigation .gg-quest-zone strong{font-size:clamp(12px,1.5vw,15px);line-height:1.28;overflow-wrap:anywhere}
-.gg-quest-screen .gg-quest-navigation .gg-quest-zone small{font-size:11px;line-height:1.25}
+.gg-quest-screen .gg-quest-navigation .gg-quest-zone small{font-size:12px;line-height:1.25}
 .gg-quest-screen .gg-quest-navigation .gg-quest-step{font-size:12px;line-height:1.3}
 .gg-quest-screen .fm4-workshop h2,.gg-quest-screen .fv5-heading-line h2,.gg-quest-screen .tp6-panel-head h2{
  line-height:1.25;overflow-wrap:anywhere}
@@ -51,7 +51,7 @@
  .gg-quest-screen .gg-quest-navigation .gg-quest-step .fv3-step-index,
  .gg-quest-screen .gg-quest-navigation .gg-quest-step .tp6-trial-index{display:none}
  .gg-quest-screen .gg-quest-navigation .gg-quest-zone strong{font-size:12px}
- .gg-quest-screen .gg-quest-navigation .gg-quest-zone small{font-size:11px}
+ .gg-quest-screen .gg-quest-navigation .gg-quest-zone small{font-size:12px}
  .gg-quest-screen .fm4-command small,.gg-quest-screen .fv5-prompt small,.gg-quest-screen .tp6-command small{font-size:12px}
  .gg-quest-screen .fm4-count,.gg-quest-screen .fv3-count,.gg-quest-screen .tp6-step-count{font-size:12px}
 }

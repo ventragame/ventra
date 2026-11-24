@@ -104,7 +104,7 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
      <span aria-hidden="true">←</span><span className="wg-back-label">Geri</span></button>
     <div className="wg-hud-identity">
      <span className="wg-hud-crest" aria-hidden="true">🌸</span>
-     <div><strong id="wg-world-title">Kelime Bahçesi</strong>
+     <div><h1 id="wg-world-title" className="wg-hud-heading"><strong>Kelime Bahçesi</strong></h1>
       {playerName&&<small>{playerName}</small>}</div>
     </div>
     <div className="wg-hud-items">

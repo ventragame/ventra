@@ -18,7 +18,7 @@
 .cg4-scene-pill,.cg4-counter{display:inline-flex;align-items:center;gap:6px;
   border-radius:999px;border:1px solid #ffeec8e0;background:#164c52e8;
   color:#fff9de;padding:8px 13px;box-shadow:0 4px 11px #1a484954;
-  font-size:11px;line-height:1;font-weight:950;letter-spacing:.035em}
+  font-size:12px;line-height:1;font-weight:950;letter-spacing:.035em}
 .cg4-counter{background:#fdf4dbe8;color:#235e4f;border-color:white}
 .cg4-discovery-grid{position:relative;z-index:1;display:grid;
   grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;padding:1px 3px 7px}
@@ -51,13 +51,13 @@
   box-shadow:0 1px 4px #6d542d70}
 .cg4-discover-name{position:relative;z-index:1;display:block;max-width:100%;font-size:clamp(12px,1.4vw,16px);
   font-weight:1000;line-height:1.15;text-align:center;overflow-wrap:anywhere}
-.cg4-discover-sub{font-size:11px;font-weight:700;color:#477067;text-align:center;line-height:1.25}
+.cg4-discover-sub{font-size:12px;font-weight:700;color:#477067;text-align:center;line-height:1.25}
 .cg4-discover-status{position:absolute;right:8px;top:8px;display:grid;place-items:center;
   height:25px;min-width:25px;padding:2px;border-radius:50%;background:#28685c;color:#fff6d5;
   font-weight:900;font-size:14px;box-shadow:0 2px 5px #194e4580}
 .cg4-new-badge{position:absolute;z-index:1;top:9px;left:7px;padding:4px 6px;
   border-radius:8px;background:#e4ff9c;border:1px solid #fff;color:#276345;
-  font-size:9px;font-weight:950}
+  font-size:12px;font-weight:950}
 .cg4-focus{position:relative;z-index:1;display:flex;flex-direction:column;
   align-items:center;justify-content:center;min-height:184px;gap:0;margin:-4px 0 12px}
 .cg4-focus-platform{--cg4-color:#f3b9cf;position:relative;display:grid;place-items:center;
@@ -82,7 +82,7 @@
   border-radius:15px;background:linear-gradient(90deg,#633e51,#aa7176,#633e51)}
 .cg4-focus-label{position:relative;z-index:2;margin-top:-2px;padding:6px 14px;
   border-radius:99px;background:#164f4be8;border:1px solid #fff0cf;color:#fff9da;
-  font-size:11px;font-weight:950;letter-spacing:.065em}
+  font-size:12px;font-weight:950;letter-spacing:.065em}
 .cg4-correct-burst{position:absolute;right:-7px;top:7px;font-size:42px;color:#fff3a0;
   text-shadow:0 0 18px #fff;animation:cg4-rise .35s ease both}
 .cg4-choice-grid{position:relative;z-index:2;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
@@ -119,14 +119,14 @@
 @media(max-width:767px){
  .cg-world.cg4-stage{padding:11px 10px 23px;min-height:325px;border-radius:21px}
  .cg4-topbar{margin-bottom:8px}
- .cg4-scene-pill,.cg4-counter{font-size:9px;padding:7px 10px}
+ .cg4-scene-pill,.cg4-counter{font-size:12px;padding:7px 10px}
  .cg4-discovery-grid{gap:8px;padding:0 1px 6px}
  .cg4-discover-card{min-height:130px;padding:8px 3px 8px;border-radius:15px}
  .cg4-card-art{height:66px;width:75px;margin:0}
  .cg4-card-art .cg4-blossom{width:59px;height:59px}
  .cg4-discover-name{font-size:clamp(10px,3.2vw,13px)}
- .cg4-discover-sub{font-size:10px}
- .cg4-discover-status{height:20px;min-width:20px;font-size:11px}
+ .cg4-discover-sub{font-size:12px}
+ .cg4-discover-status{height:20px;min-width:20px;font-size:12px}
  .cg4-focus{min-height:155px;margin:0 0 9px}
  .cg4-focus-platform{width:143px;height:139px}
  .cg4-blossom--hero{width:108px;height:108px}
@@ -151,7 +151,7 @@
  .cg4-card-art .cg4-blossom{width:49px;height:49px}
  .cg4-choice-grid{gap:5px}
  .cg4-choice{min-height:73px;padding:6px 2px}
- .cg4-choice-label{font-size:10px}
+ .cg4-choice-label{font-size:12px}
  .cg4-paint-swatch{width:38px;height:38px}
  .cg4-choice--paint{min-height:85px}
 }

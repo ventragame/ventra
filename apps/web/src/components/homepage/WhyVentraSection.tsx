@@ -50,7 +50,7 @@ export function WhyVentraSection({ onLearnMore }: WhyVentraSectionProps) {
 
           {/* Center Column: Eyebrow, Heading, CTA Button */}
           <div className="lg:col-span-5 text-center lg:text-left space-y-3">
-            <p className="text-[11px] font-black tracking-[0.22em] text-[#1D63ED] uppercase">
+            <p className="text-xs font-black tracking-[0.22em] text-[#1D63ED] uppercase">
               NEDEN VENTRA?
             </p>
             <h2 className="text-xl sm:text-2xl lg:text-[26px] font-black text-slate-900 leading-snug">
@@ -63,7 +63,7 @@ export function WhyVentraSection({ onLearnMore }: WhyVentraSectionProps) {
               <a
                 href="#ozellikler"
                 onClick={onLearnMore}
-                className="inline-flex items-center gap-2 px-5 py-2 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-full text-xs font-bold text-slate-900 shadow-sm hover:shadow transition-all group"
+                className="inline-flex min-h-11 items-center gap-2 px-5 py-2 bg-white hover:bg-slate-50 border border-slate-200/90 rounded-full text-xs font-bold text-slate-900 shadow-sm hover:shadow transition-all group"
               >
                 <span>Daha Fazlasını Keşfet</span>
                 <ArrowRight className="w-3.5 h-3.5 text-slate-700 transition-transform group-hover:translate-x-1" />

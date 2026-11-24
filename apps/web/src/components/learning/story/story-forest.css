@@ -33,7 +33,7 @@
 .sf-cover-art{position:absolute;width:min(610px,64%);height:115%;right:-5%;top:-6%;
  object-fit:contain;z-index:-1;filter:drop-shadow(0 20px 22px #0c343e6c)}
 .sf-cover-copy{z-index:1;color:#f8fff5;max-width:62%}
-.sf-eyebrow{font-weight:1000;letter-spacing:.13em;color:#fce8a8;font-size:11px}
+.sf-eyebrow{font-weight:1000;letter-spacing:.13em;color:#fce8a8;font-size:12px}
 .sf-cover h1{font-size:clamp(25px,4vw,48px);line-height:1.06;margin:9px 0 11px;
  letter-spacing:-.04em;font-weight:1000;text-shadow:0 3px 12px #153e4f7a}
 .sf-cover p{font-size:clamp(12px,1.6vw,17px);font-weight:800;line-height:1.4;color:#e4fff4}
@@ -58,7 +58,7 @@
  color:#245466;min-width:0;line-height:1.2}
 .sf-episode-number{display:grid;place-items:center;background:#d0efdd;
  color:#1f7967;width:26px;height:26px;min-width:26px;border-radius:9px;font-size:13px}
-.sf-episode-stars{font-size:11px;letter-spacing:-.03em;white-space:nowrap;
+.sf-episode-stars{font-size:12px;letter-spacing:-.03em;white-space:nowrap;
  color:#99773d;font-weight:1000}
 .sf-status{margin-top:22px;background:#fff9e6;padding:18px;border-radius:16px;
  font-weight:800;display:flex;gap:18px;align-items:center}
@@ -166,9 +166,9 @@
  .sf-episode{border-radius:16px}
  .sf-episode-art{height:104px}
  .sf-episode-meta{padding:9px;gap:5px}
- .sf-episode-meta strong{font-size:11px}
- .sf-episode-number{width:23px;height:23px;min-width:23px;font-size:11px}
- .sf-episode-stars{font-size:10px}
+ .sf-episode-meta strong{font-size:12px}
+ .sf-episode-number{width:23px;height:23px;min-width:23px;font-size:12px}
+ .sf-episode-stars{font-size:12px}
  .sf-game-name{max-width:130px;overflow:hidden;text-overflow:ellipsis}
  .sf-steps{gap:4px}
  .sf-steps span{width:11px;height:9px;min-width:8px}

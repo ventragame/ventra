@@ -47,7 +47,7 @@
 .fv4-screen .fv4-heading::before{content:"🌿";left:-18px}
 .fv4-screen .fv4-heading::after{content:"🌿";right:-18px;transform:translateY(-50%) scaleX(-1)}
 .fv4-screen .fv4-heading-kicker{display:block;color:#ffe7b4;letter-spacing:.17em;
-  font-size:9px;font-weight:900;text-shadow:0 2px 3px #502821;margin:0 0 2px}
+  font-size:12px;font-weight:900;text-shadow:0 2px 3px #502821;margin:0 0 2px}
 .fv4-screen .fv4-heading h1{
   margin:0;color:#fff2da;font-size:clamp(29px,3.9vw,46px);
   font-weight:1000;letter-spacing:-.035em;line-height:1.08;
@@ -93,7 +93,7 @@
 }
 .fv4-screen .fv3-district strong{display:block;color:#fff9e9;font-size:clamp(11px,1.5vw,17px);
   line-height:1.22;text-shadow:0 2px 3px #18224eaa}
-.fv4-screen .fv3-district small{display:block;font-size:11px;color:#d5defe;line-height:1.22;margin-top:5px}
+.fv4-screen .fv3-district small{display:block;font-size:12px;color:#d5defe;line-height:1.22;margin-top:5px}
 .fv4-screen .fv3-district.fv-district-current strong{color:#452565;text-shadow:none}
 .fv4-screen .fv3-district.fv-district-current small{color:#5c427b}
 .fv4-district-copy{min-width:0;flex:1}
@@ -143,7 +143,7 @@
  backdrop-filter:none;transform:rotate(-1deg);
 }
 .fv4-screen .fv3-place strong{color:#fff6e4;text-shadow:0 2px 2px #563326;font-size:17px}
-.fv4-screen .fv3-place small{color:#ffe9bc;font-size:11px}
+.fv4-screen .fv3-place small{color:#ffe9bc;font-size:12px}
 .fv4-screen .fv3-place>span{font-size:26px}
 .fv4-screen .fv3-mission-label{
  z-index:5;top:14px;right:14px;
@@ -175,7 +175,7 @@
 .fv4-screen .fv3-panel-head h2{
  color:#fff5e3;font-weight:1000;font-size:clamp(24px,3.2vw,35px);
  text-shadow:0 3px 0 #37245f,0 4px 8px #1a1b48a3;margin:0}
-.fv4-screen .fv3-panel-head .fv-eyebrow{color:#e2cbff;font-size:9px;letter-spacing:.15em}
+.fv4-screen .fv3-panel-head .fv-eyebrow{color:#e2cbff;font-size:12px;letter-spacing:.15em}
 .fv4-screen .fv3-panel-head p{color:#e5dff9}
 .fv4-screen .fv3-panel-head .wg-game-help{color:#ffedc9}
 .fv4-screen .fv3-audio-toggle{
@@ -288,11 +288,11 @@
  .fv4-screen .fv3-district-nav{gap:7px}
  .fv4-screen .fv3-district{min-height:70px;padding:8px 7px;gap:6px}
  .fv4-screen .fv3-district .fv-district-icon{width:38px;height:39px;font-size:24px;border-radius:11px}
- .fv4-screen .fv3-district strong{font-size:11px}
- .fv4-screen .fv3-district small{font-size:10px}
+ .fv4-screen .fv3-district strong{font-size:12px}
+ .fv4-screen .fv3-district small{font-size:12px}
  .fv4-screen .fv3-stepnav{gap:6px}
  .fv4-screen .fv3-step{min-height:65px}
- .fv4-screen .fv3-step-title{font-size:11px}
+ .fv4-screen .fv3-step-title{font-size:12px}
 }
 @media(max-width:680px){
  .fv-screen.fv3-screen.fv4-screen{padding:max(6px,env(safe-area-inset-top,0px)) 6px max(20px,env(safe-area-inset-bottom,0px))}
@@ -302,7 +302,7 @@
  }
  .fv4-screen .fv3-top{min-height:69px;padding:7px 7px;gap:6px;margin:0 0 11px;border-radius:15px}
  .fv4-screen .fv3-back,.fv4-screen .fv4-stars{
-  min-height:44px;border-radius:13px;padding:7px 9px;font-size:10px}
+  min-height:44px;border-radius:13px;padding:7px 9px;font-size:12px}
  .fv4-screen .fv4-heading{flex:1;min-width:0;padding:8px 7px 9px;border-width:2px;border-radius:12px}
  .fv4-screen .fv4-heading h1{font-size:clamp(18px,4.8vw,27px);white-space:nowrap}
  .fv4-screen .fv4-heading-kicker{font-size:7px;letter-spacing:.045em}
@@ -312,32 +312,32 @@
   flex-direction:column;justify-content:center;text-align:center;
   min-height:74px;padding:6px 2px;gap:4px;border-radius:13px}
  .fv4-screen .fv3-district .fv-district-icon{width:31px;height:31px;font-size:19px;border-width:1px;box-shadow:none}
- .fv4-screen .fv3-district strong{font-size:9px;line-height:1.12;text-shadow:none}
+ .fv4-screen .fv3-district strong{font-size:12px;line-height:1.12;text-shadow:none}
  .fv4-screen .fv3-district small{display:none}
- .fv4-district-lock{font-size:10px;top:4px;right:4px}
+ .fv4-district-lock{font-size:12px;top:4px;right:4px}
  .fv4-screen .fv3-stepnav{gap:5px;margin-bottom:9px}
  .fv4-screen .fv3-step{min-height:58px;padding:5px 1px;border-radius:12px}
  .fv4-screen .fv3-step-icon{font-size:22px}
  .fv4-screen .fv3-step-title{display:none}
- .fv4-screen .fv3-step-index{display:block;font-size:10px}
+ .fv4-screen .fv3-step-index{display:block;font-size:12px}
  .fv4-screen .fv3-card{border-radius:19px;border-width:2px}
  .fv4-screen .fv3-scene{height:clamp(135px,29vw,175px);border-bottom-width:3px}
  .fv4-screen .fv3-landscape img{object-position:center 52%}
  .fv4-screen .fv3-place{bottom:8px;left:8px;padding:6px 9px;border-width:2px;border-radius:10px;gap:5px}
  .fv4-screen .fv3-place>span{font-size:18px}
- .fv4-screen .fv3-place strong{font-size:11px}
+ .fv4-screen .fv3-place strong{font-size:12px}
  .fv4-screen .fv3-place small{display:none}
- .fv4-screen .fv3-mission-label{top:8px;right:8px;font-size:9px;padding:6px 9px;border-width:1px}
+ .fv4-screen .fv3-mission-label{top:8px;right:8px;font-size:12px;padding:6px 9px;border-width:1px}
  .fv4-screen .fv3-panel{padding:13px 9px 18px}
  .fv4-screen .fv3-panel-head h2{font-size:clamp(21px,5vw,27px)}
- .fv4-screen .fv3-panel-head .fv-eyebrow{font-size:8px}
+ .fv4-screen .fv3-panel-head .fv-eyebrow{font-size:12px}
  .fv4-screen .fv3-audio-toggle{width:48px;height:48px;min-width:48px;min-height:48px;font-size:21px;border-radius:15px;border-width:2px}
  .fv4-screen .fv3-meter{height:10px;margin-top:11px}
- .fv4-screen .fv3-count{font-size:10px}
+ .fv4-screen .fv3-count{font-size:12px}
  .fv4-screen .fv3-prompt{min-height:74px;padding:10px 10px;gap:9px;border-radius:16px;border-width:2px;margin:10px auto}
  .fv4-screen .fv3-prompt>span{width:36px;height:39px;border-radius:10px;font-size:22px}
  .fv4-screen .fv3-prompt strong{font-size:clamp(15px,3.8vw,19px)}
- .fv4-screen .fv3-prompt small{font-size:11px}
+ .fv4-screen .fv3-prompt small{font-size:12px}
  .fv4-screen .fv3-featured{max-width:198px;margin:9px auto 11px;padding:7px;border-width:3px;border-radius:19px}
  .fv4-screen .fv3-featured .fv3-word-art{width:119px;height:113px;max-width:119px;max-height:113px}
  .fv4-screen .fv3-featured-label{font-size:12px}
@@ -350,15 +350,15 @@
  .fv4-screen .fv3-choice.fv-choice-icon,.fv4-screen .fv3-choice.fv-choice-translation{min-height:114px}
  .fv4-screen .fv3-choice .fv3-word-art{max-height:75px;max-width:79px}
  .fv4-screen .fv3-discovery{min-height:110px;border-width:2px;border-radius:13px}
- .fv4-screen .fv3-discovery strong{font-size:10px}
- .fv4-screen .fv-hint-button{min-height:44px;font-size:11px}
+ .fv4-screen .fv3-discovery strong{font-size:12px}
+ .fv4-screen .fv-hint-button{min-height:44px;font-size:12px}
 }
 @media(max-width:359px){
  .fv4-screen .fv4-heading{padding:8px 2px 9px}
  .fv4-screen .fv4-heading h1{font-size:17px}
  .fv4-screen .fv4-heading-kicker{display:none}
- .fv4-screen .fv3-back,.fv4-screen .fv4-stars{padding:7px 7px;font-size:9px}
- .fv4-screen .fv3-district strong{font-size:8px}
+ .fv4-screen .fv3-back,.fv4-screen .fv4-stars{padding:7px 7px;font-size:12px}
+ .fv4-screen .fv3-district strong{font-size:12px}
  .fv4-screen .fv3-district{min-height:69px}
  .fv4-screen .fv3-scene{height:128px}
  .fv4-screen .fv3-prompt strong{font-size:14px}

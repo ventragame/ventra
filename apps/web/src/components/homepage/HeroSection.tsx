@@ -70,7 +70,7 @@ export function HeroSection() {
           </div>
 
           {/* Eyebrow */}
-          <p className="text-[11px] font-black tracking-[0.25em] text-[#1D63ED] uppercase mb-1.5">
+          <p className="text-xs font-black tracking-[0.25em] text-[#1D63ED] uppercase mb-1.5">
             DAHA FAZLASI MÜMKÜN
           </p>
 

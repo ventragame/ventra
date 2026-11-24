@@ -40,7 +40,7 @@
  box-shadow:0 4px 0 #082f3c,0 8px 13px #041b2896;
  font-size:12px;}
 .tp7-screen .tp6-return:hover:enabled{filter:brightness(1.13)}
-.tp7-screen .tp6-title>span{color:#addbd8;font-size:9px;letter-spacing:.15em}
+.tp7-screen .tp6-title>span{color:#addbd8;font-size:12px;letter-spacing:.15em}
 .tp7-screen .tp6-title h1{
  color:#fff3d5;
  font-size:clamp(25px,3.8vw,38px);
@@ -78,7 +78,7 @@
 .tp7-screen .tp6-chambers .tp-chamber>small{position:relative;z-index:2;color:#fff9e8;text-shadow:0 2px 4px #021f30}
 .tp7-screen .tp6-chambers .tp-chamber>span{font-size:24px;filter:drop-shadow(0 2px 3px #061a27)}
 .tp7-screen .tp6-chambers .tp-chamber>strong{font-size:clamp(11px,1.3vw,14px)}
-.tp7-screen .tp6-chambers .tp-chamber>small{color:#ffe8b2;font-size:10px}
+.tp7-screen .tp6-chambers .tp-chamber>small{color:#ffe8b2;font-size:12px}
 .tp7-screen .tp6-chambers .tp-chamber.tp-active-chamber{
  border-color:#fff3a1;background:#2f5950;
  box-shadow:0 6px 0 #c39346,0 11px 23px #061d2e99,0 0 0 2px #f8df9a80;
@@ -170,7 +170,7 @@
  color:#104f58;font-size:clamp(23px,3vw,32px);
  text-shadow:0 1px #fff9e4;letter-spacing:-.025em;
 }
-.tp7-screen .tp6-panel-head .tp-eyebrow{color:#ab834c;font-size:9px}
+.tp7-screen .tp6-panel-head .tp-eyebrow{color:#ab834c;font-size:12px}
 .tp7-screen .tp6-panel-head p{color:#647a6e}
 .tp7-screen .tp6-panel-head .tp-mute{
  border:2px solid #fff0c5;border-radius:15px;
@@ -284,16 +284,16 @@
   border-radius:13px;padding:5px 4px;
  }
  .tp7-screen .tp6-chambers .tp-chamber>span{font-size:21px}
- .tp7-screen .tp6-chambers .tp-chamber>strong{font-size:11px}
- .tp7-screen .tp6-chambers .tp-chamber>small{font-size:11px}
+ .tp7-screen .tp6-chambers .tp-chamber>strong{font-size:12px}
+ .tp7-screen .tp6-chambers .tp-chamber>small{font-size:12px}
  .tp7-screen .tp6-trials{gap:5px;margin-bottom:10px}
  .tp7-screen .tp6-trials .tp-trial{border-radius:11px;min-height:51px;padding:5px 2px}
  .tp7-screen .tp6-quest{border-width:2px;border-radius:17px}
  .tp7-screen .tp6-scenery{height:clamp(145px,39vw,205px);border-bottom-width:3px}
  .tp7-screen .tp7-scene-img{object-position:center 50%}
  .tp7-screen .tp6-scene-label{padding:5px 8px;bottom:7px;left:7px;border-width:1px}
- .tp7-screen .tp6-scene-label strong{font-size:11px}
- .tp7-screen .tp6-mission-tag{font-size:9px;padding:5px 8px;top:7px;right:7px}
+ .tp7-screen .tp6-scene-label strong{font-size:12px}
+ .tp7-screen .tp6-mission-tag{font-size:12px;padding:5px 8px;top:7px;right:7px}
  .tp7-screen .tp6-workbench{padding:12px 9px 18px}
  .tp7-screen .tp6-workbench:before{inset:4px}
  .tp7-screen .tp6-panel-head h2{font-size:clamp(18px,5vw,24px)}

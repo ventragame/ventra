@@ -65,7 +65,7 @@ export function VentraLogo({ className = '', size = 'md', asLink = true }: Ventr
 
   if (asLink) {
     return (
-      <Link href="/" className="inline-flex items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-lg">
+      <Link href="/" className="inline-flex min-h-11 items-center focus:outline-none focus-visible:ring-2 focus-visible:ring-blue-500 rounded-lg">
         {content}
       </Link>
     );

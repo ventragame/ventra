@@ -119,7 +119,7 @@ export const MiniQuestActivity: React.FC<MiniQuestActivityProps> = ({ onComplete
                 <div className="text-xs font-bold text-white tracking-wide">
                   <span lang="en">{slot.placed && animal ? animal.word.toLocaleUpperCase('en-US') : slot.nameTr}</span>
                 </div>
-                <div className="text-[10px] text-slate-400">{slot.nameEn}</div>
+                <div className="text-xs text-slate-400">{slot.nameEn}</div>
               </div>
             </button>
           );

@@ -17,7 +17,7 @@
  border-radius:15px;background:#ffffff23;color:white;flex:none;
 }
 .writing-brand{min-width:0;flex:1}
-.writing-brand small{display:block;font-size:10px;letter-spacing:.11em;
+.writing-brand small{display:block;font-size:12px;letter-spacing:.11em;
  text-overflow:ellipsis;overflow:hidden;white-space:nowrap;color:#ffecc9;font-weight:900}
 .writing-brand h1{font-size:clamp(19px,2.3vw,26px);font-weight:950;line-height:1.2}
 .writing-badge{
@@ -42,7 +42,7 @@
  box-shadow:0 17px 30px #19203a7d;
 }
 .writing-hero-copy{max-width:710px;padding:clamp(16px,3.2vw,32px)}
-.writing-hero-copy>span{font-size:11px;color:#ffe1a2;font-weight:950;letter-spacing:.13em}
+.writing-hero-copy>span{font-size:12px;color:#ffe1a2;font-weight:950;letter-spacing:.13em}
 .writing-hero h2{font-size:clamp(24px,4vw,39px);line-height:1.18;font-weight:950;
  margin:8px 0 9px}
 .writing-hero p{font-size:clamp(13px,1.65vw,17px);line-height:1.5;
@@ -71,11 +71,11 @@
  border-radius:20px;background:var(--chapter-accent);border:1px solid #fff;
  box-shadow:0 6px 12px #3c35602f;
 }
-.writing-chapter-index{font-size:11px;font-weight:950;letter-spacing:.11em;color:#7b6293}
+.writing-chapter-index{font-size:12px;font-weight:950;letter-spacing:.11em;color:#7b6293}
 .writing-chapter strong{font-size:clamp(14px,1.5vw,17px);line-height:1.2}
-.writing-chapter small{font-size:11px;line-height:1.4;color:#5d566b}
+.writing-chapter small{font-size:12px;line-height:1.4;color:#5d566b}
 .writing-chapter-status{font-size:12px;color:#6e4581;font-weight:900;margin-top:auto}
-.writing-privacy{color:#e2e5f9;font-size:11px;line-height:1.5;text-align:center;margin:18px auto}
+.writing-privacy{color:#e2e5f9;font-size:12px;line-height:1.5;text-align:center;margin:18px auto}
 .writing-topline{display:flex;justify-content:space-between;gap:12px;align-items:center;
  font-weight:950;max-width:850px;margin:0 auto 9px;font-size:clamp(12px,1.5vw,15px)}
 .writing-topline span:last-child{color:#ffefa8;white-space:nowrap}
@@ -96,7 +96,7 @@
  gap:8px;margin-top:3px}
 .writing-mode{display:inline-flex;align-items:center;padding:7px 12px;
  background:#e8e0f6;border-radius:99px;color:#564879;font-size:12px;font-weight:900}
-.writing-stage{font-size:11px;font-weight:900;letter-spacing:.08em;color:#866b65}
+.writing-stage{font-size:12px;font-weight:900;letter-spacing:.08em;color:#866b65}
 .writing-art{
  position:relative;display:grid;place-items:center;width:clamp(95px,18vw,152px);
  height:clamp(89px,15vw,136px);margin:6px auto 11px;border-radius:36px;
@@ -175,7 +175,7 @@
  border-radius:13px;font-size:13px;font-weight:750;
 }
 .writing-alert button{padding:8px 11px;border-radius:9px;background:#fff2e6;color:#603934}
-.writing-skill-note{margin:14px auto;text-align:center;color:#e0e5f2;font-size:11px}
+.writing-skill-note{margin:14px auto;text-align:center;color:#e0e5f2;font-size:12px}
 .writing-finale{
  text-align:center;max-width:730px;padding:clamp(22px,4vw,40px);
  margin:clamp(8px,3vh,35px) auto;border:2px solid #f5d4a0;border-radius:32px;
@@ -203,7 +203,7 @@
  width:100%;min-height:82px;padding:12px;border-radius:11px;
  background:#fffdf5;color:#263b56;font-size:16px;line-height:1.5;resize:vertical;
 }
-.writing-creative small{font-size:11px;color:#f7e8d9}
+.writing-creative small{font-size:12px;color:#f7e8d9}
 .writing-finale-buttons{display:flex;justify-content:center;flex-wrap:wrap;gap:10px}
 .writing-finale-buttons button{
  min-height:48px;border-radius:13px;padding:11px 16px;background:#b3f2d6;
@@ -218,7 +218,7 @@
 @media(max-width:640px){
  .writing-header{min-height:60px;padding:7px 10px;gap:9px}
  .writing-back{min-height:44px;min-width:44px}
- .writing-brand small{font-size:9px;letter-spacing:.035em}
+ .writing-brand small{font-size:12px;letter-spacing:.035em}
  .writing-brand h1{font-size:19px}
  .writing-badge{min-width:55px;font-size:12px;padding:8px}
  .writing-main{padding:10px 9px max(22px,env(safe-area-inset-bottom))}
@@ -231,19 +231,19 @@
  .writing-hero-copy{padding:13px;max-width:100%}
  .writing-hero h2{font-size:24px}
  .writing-hero p{font-size:12px}
- .writing-level-pill{font-size:10px}
+ .writing-level-pill{font-size:12px}
  .writing-chapters{grid-template-columns:repeat(2,minmax(0,1fr));gap:10px}
  .writing-chapter{min-height:191px;padding:12px 10px}
  .writing-chapter-icon{height:48px;width:48px;font-size:29px;border-radius:15px}
  .writing-chapter strong{font-size:14px}
- .writing-chapter small{font-size:11px}
+ .writing-chapter small{font-size:12px}
  .writing-desk{border-width:2px;border-radius:23px;padding:12px}
  .writing-art{height:91px;width:101px;border-radius:26px;margin:4px auto 8px}
  .writing-art-icon{font-size:55px}
  .writing-desk h2{font-size:19px}
  .writing-task-caption{font-size:12px;margin-bottom:9px}
  .writing-learning-tools{gap:7px;margin-bottom:9px}
- .writing-learning-tools button{padding:7px 9px;flex:1 1 135px;font-size:11px}
+ .writing-learning-tools button{padding:7px 9px;flex:1 1 135px;font-size:12px}
  .writing-tile{min-height:48px;min-width:44px;font-size:17px;padding:8px}
  .writing-tiles{gap:7px}
  .writing-paper{min-height:60px}
@@ -251,13 +251,13 @@
  .writing-actions button{flex:1 1 135px;font-size:13px}
  .writing-finale{padding:20px 12px}
  .writing-finale-stats{gap:5px}
- .writing-finale-stats span{font-size:10px;padding:9px 3px}
+ .writing-finale-stats span{font-size:12px;padding:9px 3px}
  .writing-finale-stats strong{font-size:18px}
 }
 @media(max-width:360px){
- .writing-brand small{font-size:8px}
+ .writing-brand small{font-size:12px}
  .writing-chapter{min-height:190px}
- .writing-chapter-status{font-size:10px}
+ .writing-chapter-status{font-size:12px}
  .writing-desk h2{font-size:17px}
  .writing-tile{padding:7px}
 }
@@ -275,7 +275,7 @@
  background:linear-gradient(110deg,#285e769e,#495887b8);
 }
 @media(max-width:640px){
- .writing-replay-note{font-size:11px;padding:10px;margin:13px auto 8px}
+ .writing-replay-note{font-size:12px;padding:10px;margin:13px auto 8px}
 }
 
 /* Three lightweight writing milestones; no extra step/button fatigue. */
@@ -284,7 +284,7 @@
 .writing-arc span[data-state="now"]{background:#fff4db;color:#5c4269;border-color:#f9dba0}
 .writing-arc span[data-state="done"]{background:#c4f2de2e;color:#b7efd0;border-color:#b7efd066}
 .writing-guided-clue{border-radius:14px;background:#fff8df;color:#705229;padding:10px 12px;line-height:1.45;font-size:13px;font-weight:700;margin:8px 0}
-@media(max-width:390px){.writing-arc{gap:4px}.writing-arc span{padding:6px 3px;font-size:10px}}
+@media(max-width:390px){.writing-arc{gap:4px}.writing-arc span{padding:6px 3px;font-size:12px}}
 
 /* Yazı Atölyesi P0 — CSS-drawn writing desk: three task identities, no unrelated emoji. */
 .writing-workbench{position:relative;isolation:isolate;width:min(100%,640px);height:clamp(128px,18vw,198px);margin:9px auto 16px;border-radius:27px;overflow:hidden;border:2px solid #ffe9ba;box-shadow:inset 0 1px 0 #ffffffaa,0 9px 22px #352f5260;background:linear-gradient(120deg,#35426777,#5545616a),url('/assets/kids-islands/sentence_workshop.webp') center 52% / cover no-repeat}
@@ -309,7 +309,7 @@
 .writing-root[data-keyboard-open="true"] .writing-main{scroll-padding-bottom:calc(32px + var(--writing-keyboard-inset));padding-bottom:calc(24px + env(safe-area-inset-bottom) + var(--writing-keyboard-inset))}
 .writing-root[data-keyboard-open="true"] .writing-workbench{height:95px;margin:4px auto 9px}
 .writing-root[data-keyboard-open="true"] .writing-desk{scroll-margin-bottom:20px}
-@media(max-width:640px){.writing-workbench{height:118px;width:100%;margin:5px auto 10px;border-radius:19px;background-image:linear-gradient(120deg,#35426777,#5545616a),url('/assets/kids-islands/sentence_workshop_mobile.webp')}.writing-workbench-paper{width:53%;left:24%;top:8%;height:82%}.writing-workbench-page{gap:4px}.writing-workbench-ink{width:40px;height:40px;left:7%;bottom:20%;border-width:2px}.writing-workbench-pencil{width:45px;height:45px;right:7%;bottom:13%}.writing-workbench-pencil svg{width:25px;height:25px}.writing-workbench-ink svg{width:18px;height:18px}.writing-step-help{margin:8px 0;font-size:12px;padding:10px}.writing-keyboard-guidance{font-size:11px}}
+@media(max-width:640px){.writing-workbench{height:118px;width:100%;margin:5px auto 10px;border-radius:19px;background-image:linear-gradient(120deg,#35426777,#5545616a),url('/assets/kids-islands/sentence_workshop_mobile.webp')}.writing-workbench-paper{width:53%;left:24%;top:8%;height:82%}.writing-workbench-page{gap:4px}.writing-workbench-ink{width:40px;height:40px;left:7%;bottom:20%;border-width:2px}.writing-workbench-pencil{width:45px;height:45px;right:7%;bottom:13%}.writing-workbench-pencil svg{width:25px;height:25px}.writing-workbench-ink svg{width:18px;height:18px}.writing-step-help{margin:8px 0;font-size:12px;padding:10px}.writing-keyboard-guidance{font-size:12px}}
 @media(max-width:360px){.writing-workbench{height:101px}.writing-workbench-paper{width:56%;left:23%}}
 @media(prefers-reduced-motion:reduce){.writing-workbench *,.writing-step-help{transition:none!important;animation:none!important}}
 

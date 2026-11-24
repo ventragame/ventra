@@ -62,7 +62,7 @@
 .sd-cover-character .sf-actor-illustration{width:100%;height:100%;object-fit:contain;object-position:bottom}
 .sd-cover-text{position:absolute;z-index:2;top:50%;left:clamp(15px,3vw,36px);
  transform:translateY(-50%);color:#fff9e8;max-width:68%}
-.sd-cover-text span{font-size:11px;color:#ffe09c;font-weight:1000;letter-spacing:.08em}
+.sd-cover-text span{font-size:12px;color:#ffe09c;font-weight:1000;letter-spacing:.08em}
 .sd-cover-text h1{font-size:clamp(29px,4.8vw,55px);line-height:1.05;
  font-weight:1000;letter-spacing:-.052em;margin:7px 0 11px;text-shadow:0 4px 7px #133d4480}
 .sd-cover-text p{font-size:clamp(12px,1.7vw,17px);font-weight:900;color:#e4ffe5}
@@ -89,7 +89,7 @@
  gap:8px;min-height:55px;padding:8px 12px;font-size:13px;font-weight:1000}
 .sd-chapter-bottom span{overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .sd-chapter-bottom b{color:#378d7c;margin-right:4px}
-.sd-chapter-bottom small{font-size:11px;color:#3c8471;white-space:nowrap}
+.sd-chapter-bottom small{font-size:12px;color:#3c8471;white-space:nowrap}
 .sd-status{padding:12px 16px;margin:10px auto;border:2px solid #fff8e1;
  border-radius:15px;background:#fff9e7;color:#835f60;text-align:center;font-weight:900}
 .sd-playing{
@@ -151,7 +151,7 @@
  scrollbar-width:thin;overscroll-behavior:contain;
 }
 .sd-notebook-top{display:flex;flex-direction:column;gap:7px}
-.sd-notebook-eyebrow{font-size:10px;font-weight:1000;letter-spacing:.1em;color:#568d7f}
+.sd-notebook-eyebrow{font-size:12px;font-weight:1000;letter-spacing:.1em;color:#568d7f}
 .sd-notebook-title{display:flex;align-items:center;gap:11px}
 .sd-notebook-icon{display:grid;place-items:center;width:49px;height:49px;
  border-radius:17px;background:linear-gradient(145deg,#ffe6a7,#ecc68a);
@@ -171,7 +171,7 @@
  box-shadow:inset 0 3px 3px #b4e5ff9f,0 4px 0 #20618d;
 }
 .sd-audio-body{flex:1;min-width:0}
-.sd-audio-body small{font-size:10px;font-weight:1000;letter-spacing:.06em;color:#3c8273}
+.sd-audio-body small{font-size:12px;font-weight:1000;letter-spacing:.06em;color:#3c8273}
 .sd-audio-body p{
  font-size:clamp(12px,1.35vw,16px);line-height:1.32;font-weight:900;color:#245968;
  overflow-wrap:anywhere;margin-top:3px;
@@ -318,21 +318,21 @@
  .sd-steps{gap:3px}
  .sd-steps i{width:10px;height:8px}
  .sd-steps i.active{width:16px}
- .sd-count{padding:7px;font-size:11px}
+ .sd-count{padding:7px;font-size:12px}
  .sd-chapters{padding:9px 9px 26px}
  .sd-cover{height:180px;border-radius:21px;border-width:3px}
  .sd-cover-text{left:13px;max-width:75%}
- .sd-cover-text>span{font-size:9px}
+ .sd-cover-text>span{font-size:12px}
  .sd-cover-text h1{font-size:clamp(23px,6.5vw,36px)}
- .sd-cover-text p{font-size:11px}
+ .sd-cover-text p{font-size:12px}
  .sd-cover-character{right:-10%;width:50%}
  .sd-cover-glass{right:18%;top:2%;font-size:47px}
- .sd-available{font-size:11px;margin:14px 0 12px}
+ .sd-available{font-size:12px;margin:14px 0 12px}
  .sd-chapter-grid{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
  .sd-chapter{border-radius:17px;border-width:2px}
  .sd-chapter-image{height:120px}
- .sd-chapter-bottom{min-height:46px;padding:7px 9px;font-size:11px}
- .sd-chapter-bottom small{font-size:10px}
+ .sd-chapter-bottom{min-height:46px;padding:7px 9px;font-size:12px}
+ .sd-chapter-bottom small{font-size:12px}
  .sd-playing{
   display:flex;flex-direction:column;justify-content:flex-start;
   padding:7px 7px calc(8px + env(safe-area-inset-bottom,0px));
@@ -351,7 +351,7 @@
   flex:1;min-height:0;overflow-y:auto;border-radius:20px;border-width:3px;
   gap:9px;padding:11px;
  }
- .sd-notebook-eyebrow{font-size:9px}
+ .sd-notebook-eyebrow{font-size:12px}
  .sd-notebook-title h2{font-size:20px}
  .sd-notebook-icon{width:39px;height:39px;border-radius:13px;font-size:21px}
  .sd-audio{min-height:60px;border-width:2px;border-radius:16px;padding:6px}
@@ -365,7 +365,7 @@
   border-radius:16px;border-width:2px}
  .sd-locations{gap:6px}
  .sd-location-card{height:clamp(110px,18dvh,155px);border-width:2px;border-radius:13px}
- .sd-location-card span{font-size:10px}
+ .sd-location-card span{font-size:12px}
  .sd-intro-box{min-height:110px}
  .sd-intro-stamp{width:98px;height:98px}
  .sd-controls{min-height:44px}

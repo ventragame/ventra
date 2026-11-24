@@ -10,7 +10,7 @@
 .sfh-hero-art{position:absolute;right:-4%;top:-24%;width:min(61%,620px);height:160%;
  object-fit:contain;z-index:-2;filter:drop-shadow(0 12px 20px #224f668c)}
 .sfh-hero-text{position:relative;color:white;padding:clamp(16px,3vw,36px);max-width:72%}
-.sfh-hero-text>span{font-size:11px;letter-spacing:.1em;color:#f2ecae;font-weight:1000}
+.sfh-hero-text>span{font-size:12px;letter-spacing:.1em;color:#f2ecae;font-weight:1000}
 .sfh-hero-text h2{font-size:clamp(26px,5vw,48px);font-weight:1000;
  letter-spacing:-.045em;line-height:1.1;margin:7px 0 8px}
 .sfh-hero-text p{font-size:clamp(12px,2vw,18px);font-weight:900;color:#dffbed}
@@ -52,7 +52,7 @@
  .sfh-main{padding:10px 10px 25px}
  .sfh-hero{height:160px;border-radius:20px}
  .sfh-hero-text{padding:14px;max-width:76%}
- .sfh-hero-text>span{font-size:9px}
+ .sfh-hero-text>span{font-size:12px}
  .sfh-hero-art{width:74%;right:-21%;height:150%;top:-25%}
  .sfh-games{grid-template-columns:1fr;gap:12px;margin-top:12px}
  .sfh-card{border-radius:19px}

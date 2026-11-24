@@ -105,11 +105,11 @@ export function KidsPassport({profileId,nickname,avatarId,gradeLevel,englishLeve
             <div className="flex min-w-[115px] gap-2 sm:gap-3">
               <div className="rounded-xl border border-white/25 bg-slate-950/45 px-3 py-3 text-center">
                 <span className="block text-lg">⭐</span><strong className="text-xl text-amber-200">{snapshot.totalStars}</strong>
-                <span className="block text-[10px] text-sky-200">Yıldız</span>
+                <span className="block text-xs text-sky-200">Yıldız</span>
               </div>
               <div className="rounded-xl border border-white/25 bg-slate-950/45 px-3 py-3 text-center">
                 <span className="block text-lg">🪙</span><strong className="text-xl text-amber-200">{snapshot.balance}</strong>
-                <span className="block text-[10px] text-sky-200">Ventra Coin</span>
+                <span className="block text-xs text-sky-200">Ventra Coin</span>
               </div>
             </div>
           </div>
@@ -213,7 +213,7 @@ export function KidsPassport({profileId,nickname,avatarId,gradeLevel,englishLeve
             Öğrenme görevleri ücretsiz erişilebilir kalır.
           </p>
         </section>}
-        <footer className="mt-5 rounded-xl border border-white/15 bg-slate-950/65 p-3 text-[11px] leading-relaxed text-slate-300">
+        <footer className="mt-5 rounded-xl border border-white/15 bg-slate-950/65 p-3 text-xs leading-relaxed text-slate-300">
           Çevrimdışı ödüller bu cihazdaki profile kaydedilir. Farklı cihazlarda güvenilir coin eşitlemesi ve
           ebeveyn onaylı ödeme doğrulaması tamamlanmadan gerçek ücretli coin bakiyesi oluşturulmaz.
         </footer>

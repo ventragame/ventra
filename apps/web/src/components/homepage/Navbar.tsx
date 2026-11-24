@@ -123,13 +123,13 @@ export function Navbar({ onOpenAuth, onOpenFaq }: NavbarProps) {
         <div className="flex md:hidden items-center gap-2">
           <button
             onClick={onOpenAuth}
-            className="bg-[#1E6BFF] hover:bg-blue-600 text-white text-xs font-bold px-3.5 py-1.5 rounded-full shadow-sm"
+            className="inline-flex min-h-11 items-center bg-[#1E6BFF] hover:bg-blue-600 text-white text-xs font-bold px-4 rounded-full shadow-sm"
           >
             Giriş
           </button>
           <button
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            className="p-1.5 rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100"
+            className="inline-flex h-11 w-11 items-center justify-center rounded-xl text-slate-600 hover:text-slate-900 hover:bg-slate-100"
             aria-label="Menüyü aç"
           >
             {mobileMenuOpen ? <X className="w-5 h-5" /> : <Menu className="w-5 h-5" />}

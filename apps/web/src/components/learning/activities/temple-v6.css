@@ -15,7 +15,7 @@
 .tp6-return:disabled{opacity:.55}
 .tp6-back-icon{font-size:27px;line-height:1}
 .tp6-title{min-width:0;flex:1;order:0}
-.tp6-title>span{color:#fbe1ac;font-size:9px;letter-spacing:.14em}
+.tp6-title>span{color:#fbe1ac;font-size:12px;letter-spacing:.14em}
 .tp6-title h1{font-size:clamp(23px,3.4vw,36px);white-space:nowrap;letter-spacing:-.03em;
  text-shadow:0 3px 6px #1c2b42}
 .tp6-score{flex-shrink:0;background:linear-gradient(135deg,#fff6df,#f4deb5);
@@ -28,7 +28,7 @@
  transition:transform .15s}
 .tp6-chambers .tp-chamber>span{font-size:26px}
 .tp6-chambers .tp-chamber strong{font-size:clamp(10px,1.3vw,13px);line-height:1.12}
-.tp6-chambers .tp-chamber small{color:#607e76;font-size:10px}
+.tp6-chambers .tp-chamber small{color:#607e76;font-size:12px}
 .tp6-chambers .tp-chamber:hover:enabled{transform:translateY(-2px)}
 .tp6-chambers .tp-chamber.tp-active-chamber{border-color:#fff5b6;background:linear-gradient(145deg,#ffebbb,#d5f2d9);
  box-shadow:0 5px 0 #b8b88a,0 11px 21px #0e2d4055;color:#3b6470}
@@ -43,7 +43,7 @@
 .tp6-trials .tp-trial>span{font-size:23px}
 .tp6-trials .tp-trial small{font-size:clamp(9px,1.2vw,12px);line-height:1.15}
 .tp6-trial-index{display:none!important}
-.tp6-trials .tp-trial b{position:absolute;top:4px;right:5px;font-size:11px}
+.tp6-trials .tp-trial b{position:absolute;top:4px;right:5px;font-size:12px}
 .tp6-trials .tp-trial:disabled{opacity:.47}
 .tp6-quest{border:3px solid #fff1d5;border-radius:25px;
  box-shadow:0 7px 0 #264e5a,0 17px 41px #0e2139a3;overflow:hidden}
@@ -61,15 +61,15 @@
 .tp6-seal-trail{position:absolute;left:50%;bottom:10px;transform:translateX(-50%);
  display:flex;gap:5px;justify-content:center;align-items:center;
  background:#163851b8;border:1px solid #fff6d08c;padding:5px 9px;border-radius:99px}
-.tp6-seal-trail span{font-size:10px;line-height:1;color:#7f9298}
+.tp6-seal-trail span{font-size:12px;line-height:1;color:#7f9298}
 .tp6-seal-trail .tp6-seal-active{color:#ffe6a0;text-shadow:0 0 8px #ffda92}
 .tp6-scene-label{z-index:2;left:13px;bottom:11px;padding:8px 11px;
  background:#183f53df;border-color:#fff8d0;border-radius:15px;box-shadow:0 5px 12px #0f2b4870}
 .tp6-scene-label>span{font-size:25px}
 .tp6-scene-label strong{font-size:15px}
-.tp6-scene-label small{font-size:10px}
+.tp6-scene-label small{font-size:12px}
 .tp6-mission-tag{z-index:2;right:11px;top:11px;padding:7px 11px;
- border:1px solid #fff5c7;background:#fff4dfe8;color:#7d6554;font-size:11px;
+ border:1px solid #fff5c7;background:#fff4dfe8;color:#7d6554;font-size:12px;
  box-shadow:0 4px 14px #26374b55}
 .tp6-workbench{padding:15px 19px 24px;color:#2f625c;
  background:radial-gradient(ellipse at 22% -24%,#fffdf1 0%,transparent 62%),
@@ -77,7 +77,7 @@
 .tp6-panel-head{align-items:center;gap:9px}
 .tp6-panel-head h2{font-size:clamp(20px,2.9vw,29px);color:#2f6763}
 .tp6-panel-head p{color:#648478;font-size:12px}
-.tp6-panel-head .tp-eyebrow{color:#6a9b82;font-size:9px;letter-spacing:.15em}
+.tp6-panel-head .tp-eyebrow{color:#6a9b82;font-size:12px;letter-spacing:.15em}
 .tp6-panel-head .tp-mute{flex-shrink:0;min-width:46px;min-height:46px;border:2px solid #fff2d4;
  background:linear-gradient(145deg,#fff5dd,#d6e9da);color:#306e6c;
  box-shadow:0 4px 0 #a6bea6}
@@ -169,10 +169,10 @@
  border-color:#fffbe2;color:#315e57;box-shadow:0 5px 0 #8fbaa1}
 .tp6-workbench .tp-notice{background:#e4f2e4;border:1px solid #b6d5b7;color:#427c68;
  border-radius:13px;font-size:12px}
-.tp6-workbench .tp-info{color:#648473;font-size:11px}
+.tp6-workbench .tp-info{color:#648473;font-size:12px}
 .tp6-collected-chips{display:flex;gap:5px;flex-wrap:wrap;align-items:center;justify-content:center}
 .tp6-collected-chip{font-weight:850;background:#fff2d0;border:1px solid #f2d9ae;
- color:#637164;border-radius:99px;font-size:11px;padding:6px 9px}
+ color:#637164;border-radius:99px;font-size:12px;padding:6px 9px}
 .tp6-play .tp-collected{background:#dbece0;border:1px dashed #aecdb8;color:#4f796c;margin:10px auto}
 .tp6-finished{max-width:730px;min-height:310px;padding:20px;margin:12px auto;
  border:2px solid #f4e5bc;border-radius:22px;background:linear-gradient(135deg,#fff6da,#deedda);
@@ -196,40 +196,40 @@
  .tp6-title{flex-basis:auto;order:0}
  .tp6-title>span{font-size:7px;letter-spacing:.07em}
  .tp6-title h1{font-size:clamp(18px,5vw,25px);white-space:nowrap}
- .tp6-score{font-size:10px;padding:8px;min-height:43px}
+ .tp6-score{font-size:12px;padding:8px;min-height:43px}
  .tp6-chambers{display:flex;grid-template-columns:none;gap:6px;overflow-x:auto;scroll-snap-type:x mandatory;
   margin:0 0 9px;padding-bottom:7px;scrollbar-width:thin}
  .tp6-chambers .tp-chamber{flex:0 0 94px;min-height:64px;padding:5px 3px;border-radius:12px;
   scroll-snap-align:start}
  .tp6-chambers .tp-chamber>span{font-size:20px}
- .tp6-chambers .tp-chamber strong{font-size:10px}
- .tp6-chambers .tp-chamber small{font-size:9px}
+ .tp6-chambers .tp-chamber strong{font-size:12px}
+ .tp6-chambers .tp-chamber small{font-size:12px}
  .tp6-trials{grid-template-columns:repeat(5,minmax(0,1fr));gap:5px;margin-bottom:9px}
  .tp6-trials .tp-trial{min-width:0;min-height:52px;gap:1px;padding:5px 2px;border-radius:10px}
  .tp6-trials .tp-trial>span{font-size:20px}
- .tp6-trials .tp-trial b{font-size:9px;top:1px;right:2px}
+ .tp6-trials .tp-trial b{font-size:12px;top:1px;right:2px}
  .tp6-quest{border-width:2px;border-radius:17px}
  .tp6-scenery{height:143px;border-bottom-width:3px}
  .tp6-scene-img{object-position:center 56%}
  .tp6-scene-label{left:7px;bottom:6px;padding:5px 8px;gap:5px;border-radius:11px}
  .tp6-scene-label>span{font-size:19px}
- .tp6-scene-label strong{font-size:11px}
+ .tp6-scene-label strong{font-size:12px}
  .tp6-scene-label small{display:none}
- .tp6-mission-tag{right:7px;top:7px;padding:5px 8px;font-size:9px}
+ .tp6-mission-tag{right:7px;top:7px;padding:5px 8px;font-size:12px}
  .tp6-seal-trail{bottom:5px;gap:3px;padding:3px 6px}
- .tp6-seal-trail span{font-size:8px}
+ .tp6-seal-trail span{font-size:12px}
  .tp6-workbench{padding:10px 8px 16px}
  .tp6-panel-head h2{font-size:clamp(17px,4.7vw,23px)}
- .tp6-panel-head p{font-size:11px}
- .tp6-panel-head .tp-eyebrow{font-size:8px;letter-spacing:.05em}
+ .tp6-panel-head p{font-size:12px}
+ .tp6-panel-head .tp-eyebrow{font-size:12px;letter-spacing:.05em}
  .tp6-panel-head .tp-mute{min-width:43px;min-height:43px}
  .tp6-meter{margin-top:8px;height:7px}
- .tp6-step-count{font-size:10px;margin-top:4px}
+ .tp6-step-count{font-size:12px;margin-top:4px}
  .tp6-command{margin:9px auto;padding:9px 9px;border-radius:12px;gap:8px}
  .tp6-command>span{font-size:22px}
  .tp6-command strong{font-size:clamp(14px,4vw,18px)}
- .tp6-command small{font-size:11px}
- .tp6-code{font-size:11px!important;padding:6px 8px}
+ .tp6-command small{font-size:12px}
+ .tp6-code{font-size:12px!important;padding:6px 8px}
  .tp6-play .tp-grid{gap:6px;margin:9px auto}
  .tp6-discovery,.tp6-play .tp-seal-grid{grid-template-columns:repeat(3,minmax(0,1fr))}
  .tp6-play .tp-rune{min-height:83px;padding:5px 3px;border-radius:12px;border-width:2px}
@@ -241,12 +241,12 @@
  .tp6-color-crystal{height:54px;width:54px}
  .tp6-play .tp-rune-text{font-size:clamp(11px,3.2vw,15px);line-height:1.12}
  .tp6-discovery .tp-reveal{min-height:33px;padding:4px 0 0}
- .tp6-discovery .tp-reveal strong{font-size:11px}
- .tp6-discovery .tp-reveal small{font-size:9px}
+ .tp6-discovery .tp-reveal strong{font-size:12px}
+ .tp6-discovery .tp-reveal small{font-size:12px}
  .tp6-featured{max-width:158px;padding:5px}
  .tp6-featured .tp-rune{min-height:89px;max-height:92px}
  .tp6-featured .tp6-sprite,.tp6-featured .tp-rune-animal{max-height:87px}
- .tp6-discovery-guide{font-size:11px;margin-top:9px;padding:8px}
+ .tp6-discovery-guide{font-size:12px;margin-top:9px;padding:8px}
  .tp6-listen-panel{margin:8px auto;padding:6px}
  .tp6-listen-panel .tp-listen{min-height:46px;font-size:12px;margin:3px;padding:7px 10px}
  .tp6-controls{margin:7px auto}
@@ -255,18 +255,18 @@
  .tp6-sentence .tp-sentence-token{padding:6px 7px;font-size:12px}
  .tp6-sentence .tp-token-options{gap:6px;margin-top:9px}
  .tp6-sentence .tp-word-token{min-height:43px;padding:6px 9px;font-size:13px}
- .tp6-play .tp-collected{padding:7px;margin:8px auto;font-size:11px}
+ .tp6-play .tp-collected{padding:7px;margin:8px auto;font-size:12px}
 }
 @media(max-width:359px){
  .tp6-title>span{font-size:6px}
  .tp6-title h1{font-size:17px}
- .tp6-score{padding:6px;font-size:9px}
+ .tp6-score{padding:6px;font-size:12px}
  .tp6-scenery{height:125px}
  .tp6-play .tp-grid{gap:4px}
  .tp6-play .tp-rune{min-height:75px;padding:3px 2px}
  .tp6-sprite,.tp6-rune-animal{height:65px}
  .tp6-discovery .tp-rune{min-height:88px}
- .tp6-play .tp-rune-text{font-size:10px}
+ .tp6-play .tp-rune-text{font-size:12px}
  .tp6-color-crystal{width:44px;height:44px}
 }
 @media(max-width:740px) and (max-height:530px) and (orientation:landscape){

@@ -25,7 +25,7 @@
  }
  .am3-stage--complete .am3-victory{gap:7px}
  .am3-victory .am3-guide-finale{width:122px;height:122px}
- .am3-discovered{padding:5px 7px;font-size:10px}
+ .am3-discovered{padding:5px 7px;font-size:12px}
 }
 @media(max-width:359px){
  .am3-guide-inline{width:46px;height:46px}

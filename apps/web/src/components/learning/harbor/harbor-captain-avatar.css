@@ -50,15 +50,15 @@
  .harbor-intro-character .harbor-intro-copy h2{
   font-size:clamp(19px,4.9vw,29px);line-height:1.16;margin:6px 0;
  }
- .harbor-intro-character .harbor-intro-copy p{font-size:11px;line-height:1.42}
- .harbor-intro-character .harbor-intro-copy>span{font-size:9px;letter-spacing:.06em}
+ .harbor-intro-character .harbor-intro-copy p{font-size:12px;line-height:1.42}
+ .harbor-intro-character .harbor-intro-copy>span{font-size:12px;letter-spacing:.06em}
  .harbor-finale-captain{height:185px;width:167px}
 }
 @media(max-width:360px){
  .harbor-intro-character{grid-template-columns:92px minmax(0,1fr);gap:6px;padding:7px}
  .harbor-intro-captain{height:146px}
  .harbor-intro-character .harbor-intro-copy h2{font-size:18px}
- .harbor-intro-character .harbor-intro-copy p{font-size:10px}
+ .harbor-intro-character .harbor-intro-copy p{font-size:12px}
  .hp-actor{bottom:17%;height:53%;width:47%}
 }
 @media(prefers-reduced-motion:reduce){

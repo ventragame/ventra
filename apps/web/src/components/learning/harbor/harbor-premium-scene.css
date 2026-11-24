@@ -20,7 +20,7 @@
 .harbor-episode-icon{position:absolute;z-index:2;top:67px;left:17px;width:53px;height:53px;border:2px solid #fff7;box-shadow:0 5px 12px #0926448a;background:#134979de;border-radius:19px;font-size:26px}
 .harbor-episode-card .harbor-episode-number{margin-top:9px}
 .harbor-episode-card strong{font-size:clamp(12px,1.4vw,16px);line-height:1.35}
-.harbor-episode-card small{line-height:1.4;font-size:11px}
+.harbor-episode-card small{line-height:1.4;font-size:12px}
 .harbor-episode-state{display:block;color:#dffbbb!important;margin-top:auto;font-size:12px}
 .harbor-level-title{font-size:clamp(12px,1.4vw,15px);max-width:1150px;margin:0 auto 10px}
 .hp-quest-top{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:1150px;margin:0 auto 9px;font-size:12px;color:#e5ffcf}
@@ -57,7 +57,7 @@
 .hp-speech-card{position:absolute;top:10%;right:7%;z-index:3;width:min(44%,415px);min-width:230px;
  background:#fffcf2;color:#144761;border:2px solid #fff;border-radius:26px 26px 26px 7px;
  padding:clamp(13px,2.4vw,24px);box-shadow:0 12px 20px #03355585}
-.hp-speaker-tag{display:inline-block;font-size:10px;color:#1782a0;font-weight:950;letter-spacing:.1em}
+.hp-speaker-tag{display:inline-block;font-size:12px;color:#1782a0;font-weight:950;letter-spacing:.1em}
 .hp-speech-card p{font-size:clamp(17px,2.7vw,29px);line-height:1.3;font-weight:950;margin:10px 0 16px}
 .hp-replay{min-height:44px;border-radius:13px;background:#d6f1f9;color:#17436c;border:1px solid #71bcd5;padding:10px 15px;font-weight:950;font-size:12px}
 .hp-object-task{position:absolute;z-index:6;left:50%;bottom:9%;transform:translateX(-50%);min-width:min(95%,400px);max-width:calc(100% - 20px);
@@ -96,7 +96,7 @@
 .harbor-answer:not(:disabled):hover{transform:translateY(-2px);background:#ffffff2a;border-color:#fff0ac}
 .harbor-answer>span{position:absolute;top:8px;left:10px}
 .harbor-answer[data-level="Pre-A1"]{min-height:112px;font-size:clamp(17px,2.1vw,23px)}
-.harbor-answer[data-level="Pre-A1"]>span{font-size:10px}
+.harbor-answer[data-level="Pre-A1"]>span{font-size:12px}
 .harbor-talk-title{justify-content:center;text-align:center}
 .harbor-talk-title strong{font-size:clamp(18px,2.3vw,23px)}
 .hp-listen-hint{text-align:center;color:#d1edf2;font-size:12px;margin:3px 0 8px}
@@ -123,9 +123,9 @@
  .hp-actor[data-actor="leo"]{left:0;bottom:17%;height:56%;width:52%}
  .hp-speech-card{top:5%;right:3%;width:58%;min-width:0;max-width:60%;
  border-radius:19px 19px 19px 6px;padding:10px 12px;box-shadow:0 7px 15px #021c3b9c}
- .hp-speaker-tag{font-size:8px}
+ .hp-speaker-tag{font-size:12px}
  .hp-speech-card p{font-size:clamp(15px,4.6vw,22px);line-height:1.24;margin:6px 0 10px}
- .hp-replay{padding:7px;font-size:11px;min-height:38px}
+ .hp-replay{padding:7px;font-size:12px;min-height:38px}
  .hp-object-task{left:50%;bottom:4%;min-width:calc(100% - 20px);padding:10px}
  .hp-object-choice{min-height:72px;width:110px}
  .hp-prop-art{height:47px}
@@ -136,7 +136,7 @@
  .harbor-answer-grid{grid-template-columns:1fr;gap:10px}
  .harbor-answer{min-height:55px}
  .harbor-answer[data-level="Pre-A1"]{min-height:75px}
- .hp-quest-top{font-size:11px}
+ .hp-quest-top{font-size:12px}
  .hp-quest-text{font-size:15px}
 }
 @media(prefers-reduced-motion:reduce){.hp-scene *, .hp-episode-thumb img, .harbor-answer{animation:none!important;transition:none!important}
@@ -152,7 +152,7 @@
 @media(max-width:640px){
  .harbor-root .harbor-header{gap:8px;padding:7px 10px;min-height:62px}
  .harbor-header>div:not(.harbor-progress){min-width:0;flex:1}
- .harbor-root .harbor-header small{display:block;font-size:9px;letter-spacing:.035em;white-space:nowrap}
+ .harbor-root .harbor-header small{display:block;font-size:12px;letter-spacing:.035em;white-space:nowrap}
  .harbor-root .harbor-header h1{font-size:18px;line-height:1.2;margin:2px 0 0}
  .harbor-back{min-width:44px;min-height:44px;flex:0 0 44px}
  .harbor-progress{flex:none;margin-left:0;padding:8px 9px;border-radius:14px;font-size:12px}
@@ -166,7 +166,7 @@
  .harbor-talk{margin-top:10px;padding:12px}
  .harbor-talk-title{gap:3px;margin-bottom:10px;align-items:flex-start;text-align:left}
  .harbor-talk-title strong{font-size:18px}
- .harbor-talk-title span{font-size:11px}
+ .harbor-talk-title span{font-size:12px}
  .harbor-answer-grid{gap:8px}
  .harbor-answer,.harbor-answer[data-level="Pre-A1"]{
   position:relative;display:flex;flex-direction:row;align-items:center;
@@ -192,11 +192,11 @@
  }
  .harbor-footer{
   flex:none;padding:6px 10px max(6px,env(safe-area-inset-bottom));
-  font-size:10px;line-height:1.3;
+  font-size:12px;line-height:1.3;
  }
 }
 @media(max-width:370px){
- .harbor-root .harbor-header small{font-size:8.5px;letter-spacing:.02em}
+ .harbor-root .harbor-header small{font-size:12px;letter-spacing:.02em}
  .harbor-root .harbor-header h1{font-size:17px}
  .hp-scene{height:280px}
  .harbor-answer,.harbor-answer[data-level="Pre-A1"]{
@@ -239,14 +239,14 @@
 }
 @media(max-width:640px){
  .hp-beat-label{top:7px;left:7px;max-width:40%;min-height:28px;
-  font-size:10px;padding:3px 7px 3px 3px;gap:5px}
+  font-size:12px;padding:3px 7px 3px 3px;gap:5px}
  .hp-beat-label span{min-width:23px;height:23px}
  .hp-scene .hp-speech-card{max-height:66%;overflow-y:auto;overscroll-behavior:contain}
  .hp-scene .hp-speech-card p{overflow-wrap:break-word;hyphens:auto}
 }
 @media(max-width:370px){
  .hp-scene .hp-speech-card p{font-size:clamp(13px,3.6vw,17px)}
- .hp-beat-label{max-width:37%;font-size:9px}
+ .hp-beat-label{max-width:37%;font-size:12px}
 }
 
 /* Harbor 2.2 coached learning, accessible answers and real saved stars. */
@@ -310,7 +310,7 @@
  .harbor-answer[data-answer="correct"]:after{flex:none}
  .harbor-finale{margin:7vh auto;padding:22px 13px}
  .harbor-finale-stats{gap:5px}
- .harbor-finale-stats span{font-size:10px;padding:9px 3px}
+ .harbor-finale-stats span{font-size:12px;padding:9px 3px}
  .harbor-finale-stats strong{font-size:18px}
 }
 @media(max-width:370px) and (max-height:740px){

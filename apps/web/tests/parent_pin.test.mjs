@@ -48,10 +48,18 @@ test('Any family can set a PIN; it is a salted digest, never digits, and comes w
 
 test('Recovery keys are uniform and readable; typed keys are tidied',()=>{
  const counts=new Map();
- for(let i=0;i<400;i++)for(const c of generateRecoveryKey().replace(/-/g,''))counts.set(c,(counts.get(c)??0)+1);
+ const KEYS=3000;
+ for(let i=0;i<KEYS;i++)for(const c of generateRecoveryKey().replace(/-/g,''))counts.set(c,(counts.get(c)??0)+1);
  assert.equal(counts.size,RECOVERY_ALPHABET.length,'every character appears');
- const values=[...counts.values()];
- assert.ok(Math.max(...values)/Math.min(...values)<1.6,'no character strongly favoured');
+ // Chi-square goodness of fit against a uniform alphabet. The limit is the
+ // Wilson-Hilferty quantile at z=5, so a fair generator fails about once in
+ // three million runs. (The former max/min<1.6 check failed about once in a
+ // hundred runs and turned CI red at random.)
+ const expected=KEYS*12/RECOVERY_ALPHABET.length;
+ const chi=[...counts.values()].reduce((sum,n)=>sum+(n-expected)**2/expected,0);
+ const df=RECOVERY_ALPHABET.length-1;
+ const limit=df*(1-2/(9*df)+5*Math.sqrt(2/(9*df)))**3;
+ assert.ok(chi<limit,`no character favoured (chi²=${chi.toFixed(1)}, limit ${limit.toFixed(1)})`);
  // biased bytes are rejected, not folded with a modulo
  const fixed=generateRecoveryKey(n=>new Uint8Array(n).fill(250).map((v,i)=>i%2?v:3));
  assert.equal(fixed,'DDDD-DDDD-DDDD');

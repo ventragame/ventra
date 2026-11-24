@@ -41,7 +41,7 @@
 }
 @media(max-width:360px){
  .story-standard-guide-top{flex-wrap:wrap}
- .story-standard-guide-top span{font-size:11px}
+ .story-standard-guide-top span{font-size:12px}
 }
 @media(prefers-reduced-motion:reduce){
  .story-standard-guide,.story-standard-narration{scroll-behavior:auto}

@@ -15,7 +15,7 @@
  border:1px solid #ffefd3a3;box-shadow:none;color:#fff6e5;font-size:12px;white-space:nowrap}
 .fv3-back-arrow{font-size:25px;font-weight:700;line-height:1}
 .fv3-screen .fv3-heading{min-width:0;order:0;flex:1;flex-basis:auto;text-align:center}
-.fv3-heading>span{font-size:9px;color:#dff4da;letter-spacing:.11em;white-space:nowrap}
+.fv3-heading>span{font-size:12px;color:#dff4da;letter-spacing:.11em;white-space:nowrap}
 .fv3-heading h1{font-size:clamp(21px,3.5vw,32px);
  color:#fff4d2;line-height:1.08;text-shadow:0 3px 10px #10394a99;letter-spacing:-.03em}
 .fv3-screen .fv3-stars{flex:none;min-height:44px;padding:9px 12px;
@@ -39,7 +39,7 @@
  border-radius:13px;box-shadow:0 3px 0 #cfbd9c}
 .fv3-district>span:last-child{min-width:0}
 .fv3-screen .fv3-district strong{font-size:clamp(10px,1.5vw,13px);line-height:1.15;color:#245a54}
-.fv3-screen .fv3-district small{color:#598477;font-size:10px;line-height:1.24}
+.fv3-screen .fv3-district small{color:#598477;font-size:12px;line-height:1.24}
 .fv3-screen .fv3-stepnav{grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:11px}
 .fv3-screen .fv3-step{min-width:0;min-height:69px;position:relative;
  border-radius:15px;padding:7px 4px;border:2px solid #d0e9d3a9;
@@ -51,7 +51,7 @@
  box-shadow:0 4px 0 #8bb79a,0 11px 16px #092c4361}
 .fv3-screen .fv3-step:disabled{opacity:.45}
 .fv3-step-icon{font-size:24px;line-height:1.05}.fv3-step-title{font-size:clamp(10px,1.5vw,12px);line-height:1.15}
-.fv3-step-index{display:none;font-size:9px;font-weight:950}
+.fv3-step-index{display:none;font-size:12px;font-weight:950}
 .fv3-step>b{position:absolute;right:7px;top:3px;color:#ebba56}
 .fv3-screen .fv3-card{overflow:hidden;border-radius:27px;
  border:3px solid #fff2caae;background:#eaf7e5;
@@ -69,17 +69,17 @@
  background:#174856e9;border:1px solid #fff2cb;border-radius:15px;box-shadow:0 5px 15px #18454c50}
 .fv3-place>span{font-size:25px}
 .fv3-place strong{color:#fff8de;font-weight:950;font-size:14px}
-.fv3-place small{color:#e8f7e9;font-size:10px}
+.fv3-place small{color:#e8f7e9;font-size:12px}
 .fv3-screen .fv3-mission-label{z-index:2;top:11px;right:13px;
  padding:7px 12px;border-radius:999px;background:#fff9dbea;color:#745a52;
- border:2px solid #ffe8c1;font-size:11px;box-shadow:0 4px 11px #21445054}
+ border:2px solid #ffe8c1;font-size:12px;box-shadow:0 4px 11px #21445054}
 .fv3-screen .fv3-panel{background:radial-gradient(ellipse at 24% 3%,#fff8dd,transparent 64%),
  linear-gradient(155deg,#fffaf1,#e4f3e5);color:#214f4c;
  padding:17px 18px 24px}
 .fv3-screen .fv3-panel-head{display:flex;align-items:center;justify-content:space-between;gap:13px}
 .fv3-panel-head>div{min-width:0;flex:1}
 .fv3-panel-head h2{font-size:clamp(20px,3vw,27px);color:#205b53;letter-spacing:-.025em}
-.fv3-panel-head .fv-eyebrow{color:#659480;letter-spacing:.1em;font-size:10px;margin:0 0 2px}
+.fv3-panel-head .fv-eyebrow{color:#659480;letter-spacing:.1em;font-size:12px;margin:0 0 2px}
 .fv3-panel-head p{color:#547f6f}
 .fv3-panel-head .wg-game-help{margin-top:6px}
 .fv3-screen .fv3-audio-toggle{flex:none;display:grid;place-items:center;
@@ -89,7 +89,7 @@
  overflow:hidden;border-radius:99px}
 .fv3-meter span{background:linear-gradient(90deg,#6cbda6,#eac477);
  box-shadow:0 0 10px #e1e6ad80}
-.fv3-screen .fv3-count{text-align:right;color:#688b7c;margin-top:5px;font-size:10px}
+.fv3-screen .fv3-count{text-align:right;color:#688b7c;margin-top:5px;font-size:12px}
 .fv3-screen .fv3-prompt{display:flex;align-items:center;gap:11px;max-width:765px;
  margin:12px auto 12px;padding:10px 13px;
  border:2px solid #f4dfb5;border-radius:17px;
@@ -125,7 +125,7 @@
  display:grid;place-items:center;width:100%;height:106px;filter:none}
 .fv3-screen .fv3-discovery strong{font-size:clamp(11px,1.8vw,14px);
  line-height:1.16;overflow-wrap:anywhere;max-width:100%;color:#2e6358}
-.fv3-screen .fv3-discovery small{font-size:10px;color:#608278;line-height:1.1}
+.fv3-screen .fv3-discovery small{font-size:12px;color:#608278;line-height:1.1}
 .fv3-screen .fv3-discovery b{border:2px solid #fff3d6;font-size:12px;top:6px;right:6px}
 .fv3-screen .fv3-answer-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));
  max-width:730px;margin:14px auto 17px;gap:11px}
@@ -175,7 +175,7 @@
  border-radius:12px;min-height:45px;padding:9px 13px;margin:3px}
 .fv3-screen .fv3-actions{gap:5px;justify-content:center;margin:10px auto;max-width:730px;color:#567970}
 .fv3-screen .fv3-hint-reveal{display:block;width:100%;text-align:center;
- font-size:11px;color:#825e52;background:#fff4dd;border:1px solid #e1cfae;
+ font-size:12px;color:#825e52;background:#fff4dd;border:1px solid #e1cfae;
  padding:7px;border-radius:10px}
 .fv3-screen .fv-notice{max-width:735px;margin:10px auto 0;
  padding:10px;background:#dff3df;color:#346655;
@@ -196,7 +196,7 @@
  box-shadow:0 5px 0 #99b996,0 12px 18px #60836f4e;color:#2a6154}
 .fv3-screen .fv-secondary{border:1px solid #b6d4bd;background:#d2eadc;
  color:#285d52;box-shadow:0 3px 0 #a5c5b7}
-.fv3-screen .fv3-footer{color:#c9e6da;font-size:10px;text-align:center}
+.fv3-screen .fv3-footer{color:#c9e6da;font-size:12px;text-align:center}
 .fv3-screen button:focus-visible{outline:3px solid #f2b45b!important;outline-offset:3px}
 @keyframes fv3-flicker{to{opacity:.32;transform:translateY(-8px)}}
 @media(max-width:760px){
@@ -205,45 +205,45 @@
  .fv3-screen .fv3-back{padding:6px 9px;min-height:43px}
  .fv3-back-label{display:none}
  .fv3-screen .fv3-heading{order:0;flex-basis:auto;text-align:center}
- .fv3-heading>span{font-size:8px;letter-spacing:.04em}
+ .fv3-heading>span{font-size:12px;letter-spacing:.04em}
  .fv3-heading h1{font-size:clamp(18px,4.9vw,25px)}
- .fv3-screen .fv3-stars{min-height:42px;padding:7px 9px;font-size:10px}
+ .fv3-screen .fv3-stars{min-height:42px;padding:7px 9px;font-size:12px}
  .fv3-screen .fv3-district-nav{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-bottom:7px}
  .fv3-screen .fv3-district{min-height:63px;flex-direction:column;text-align:center;
    justify-content:center;padding:5px 2px;gap:2px;border-radius:11px}
  .fv3-district .fv-district-icon{width:27px;height:26px;border-radius:8px;font-size:18px;box-shadow:none}
- .fv3-screen .fv3-district strong{font-size:9px;line-height:1.1}
+ .fv3-screen .fv3-district strong{font-size:12px;line-height:1.1}
  .fv3-screen .fv3-district small{display:none}
  .fv3-screen .fv3-stepnav{gap:5px;margin-bottom:8px}
  .fv3-screen .fv3-step{min-height:53px;padding:4px 2px;border-radius:11px}
  .fv3-step-icon{font-size:19px}
  .fv3-step-title{display:none}
- .fv3-step-index{display:block;font-size:9px}
- .fv3-step>b{font-size:9px;right:3px;top:2px}
+ .fv3-step-index{display:block;font-size:12px}
+ .fv3-step>b{font-size:12px;right:3px;top:2px}
  .fv3-screen .fv3-card{border-radius:19px;border-width:2px}
  .fv3-screen .fv3-scene{height:clamp(118px,23vw,160px);border-bottom-width:3px}
  .fv3-landscape img{object-position:center center}
  .fv3-screen .fv3-place{bottom:7px;left:7px;padding:5px 8px;border-radius:10px;gap:5px}
  .fv3-place>span{font-size:19px}
- .fv3-place strong{font-size:11px}
+ .fv3-place strong{font-size:12px}
  .fv3-place small{display:none}
- .fv3-screen .fv3-mission-label{top:6px;right:7px;padding:5px 7px;font-size:9px;border-width:1px}
+ .fv3-screen .fv3-mission-label{top:6px;right:7px;padding:5px 7px;font-size:12px;border-width:1px}
  .fv3-screen .fv3-panel{padding:10px 8px 15px}
  .fv3-panel-head h2{font-size:clamp(18px,4.6vw,24px)}
- .fv3-panel-head .fv-eyebrow{font-size:9px}
+ .fv3-panel-head .fv-eyebrow{font-size:12px}
  .fv3-screen .fv3-audio-toggle{min-height:43px;min-width:43px;border-radius:11px}
  .fv3-screen .fv3-meter{margin-top:9px;height:7px}
- .fv3-screen .fv3-count{font-size:10px;margin-top:4px}
+ .fv3-screen .fv3-count{font-size:12px;margin-top:4px}
  .fv3-screen .fv3-prompt{margin:9px auto;padding:8px 9px;gap:7px;border-radius:13px}
  .fv3-prompt>span{font-size:21px}
  .fv3-prompt strong{font-size:14px}
- .fv3-prompt small{font-size:11px}
+ .fv3-prompt small{font-size:12px}
  .fv3-screen .fv3-grid-discover{grid-template-columns:repeat(3,minmax(0,1fr));gap:6px;margin:9px auto}
  .fv3-screen .fv3-discovery,.fv3-screen .fv3-choice{min-height:112px;padding:5px 3px 8px;border-radius:13px;border-width:2px;gap:3px}
  .fv3-screen .fv3-discovery>span:first-child,.fv3-screen .fv3-choice .fv-choice-art{height:75px}
  .fv3-word-art{width:82px;height:78px;max-height:78px;max-width:82px}
- .fv3-screen .fv3-discovery strong{font-size:10px}
- .fv3-screen .fv3-discovery small{font-size:9px}
+ .fv3-screen .fv3-discovery strong{font-size:12px}
+ .fv3-screen .fv3-discovery small{font-size:12px}
  .fv3-screen .fv3-answer-grid{gap:6px;margin:10px auto 12px;grid-template-columns:repeat(3,minmax(0,1fr))}
  .fv3-screen .fv3-choice.fv-choice-english{min-height:75px;padding:8px 4px}
  .fv3-screen .fv3-choice.fv-choice-english .fv-choice-label{font-size:clamp(10px,3.2vw,14px)}
@@ -252,16 +252,16 @@
  .fv3-screen .fv3-choice.fv-choice-icon,.fv3-screen .fv3-choice.fv-choice-translation{min-height:114px}
  .fv3-screen .fv3-choice .fv-choice-art{height:72px}
  .fv3-screen .fv3-choice .fv3-word-art{width:79px;height:76px}
- .fv3-screen .fv3-choice .fv-choice-label{font-size:10px}
+ .fv3-screen .fv3-choice .fv-choice-label{font-size:12px}
  .fv3-screen .fv3-answer-grid.fv-grid-scene{grid-template-columns:repeat(3,minmax(0,1fr));padding:7px;gap:5px;border-radius:14px}
  .fv3-screen .fv3-featured{max-width:198px;margin:8px auto 9px;
  padding:5px;border-radius:19px}
  .fv3-featured .fv3-word-art{width:118px;height:110px;max-width:118px;max-height:110px}
- .fv3-screen .fv3-featured-label{font-size:11px}
+ .fv3-screen .fv3-featured-label{font-size:12px}
  .fv3-screen .fv3-audio-task{margin:8px auto}
  .fv3-screen .fv3-audio-task .fv-listen{min-height:49px;font-size:13px;padding:9px}
- .fv3-screen .fv-hint-button{font-size:11px;min-height:43px;padding:8px 10px}
- .fv3-screen .fv-notice,.fv3-screen .fv3-discovery-status{padding:8px;font-size:11px}
+ .fv3-screen .fv-hint-button{font-size:12px;min-height:43px;padding:8px 10px}
+ .fv3-screen .fv-notice,.fv3-screen .fv3-discovery-status{padding:8px;font-size:12px}
  .fv3-screen .fv3-celebrate{min-height:260px;padding:13px 5px 19px}
  .fv3-screen .fv3-celebrate .fv-medal{width:73px;height:73px;font-size:32px}
  .fv3-screen .fv-primary{font-size:14px;min-height:52px}
@@ -269,13 +269,13 @@
 @media(max-width:359px){
  .fv-screen.fv3-screen{padding-left:5px;padding-right:5px}
  .fv3-heading h1{font-size:18px}
- .fv3-screen .fv3-stars{padding:6px 7px;font-size:9px}
- .fv3-screen .fv3-district strong{font-size:8px}
+ .fv3-screen .fv3-stars{padding:6px 7px;font-size:12px}
+ .fv3-screen .fv3-district strong{font-size:12px}
  .fv3-screen .fv3-grid-discover{gap:4px}
  .fv3-screen .fv3-discovery{min-height:107px;padding:3px 1px}
  .fv3-screen .fv3-discovery>span:first-child{height:66px}
  .fv3-word-art{width:75px;height:71px}
- .fv3-screen .fv3-choice.fv-choice-phrase .fv-choice-label{font-size:10px}
+ .fv3-screen .fv3-choice.fv-choice-phrase .fv-choice-label{font-size:12px}
  .fv3-screen .fv3-scene{height:111px}
  .fv3-screen .fv3-prompt{padding:7px}
  .fv3-screen .fv3-prompt strong{font-size:12px}

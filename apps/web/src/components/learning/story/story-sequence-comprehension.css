@@ -60,7 +60,7 @@
 @media(max-width:365px){
  .ss-check-reference{height:clamp(115px,24dvh,185px)}
  .ss-check-card{height:clamp(92px,15dvh,140px);border-radius:12px}
- .ss-check-heading{font-size:11px}
+ .ss-check-heading{font-size:12px}
 }
 @media(max-height:520px) and (min-width:701px){
  .ss-check-reference{height:120px}

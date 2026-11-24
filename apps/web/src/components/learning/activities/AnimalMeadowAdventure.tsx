@@ -306,7 +306,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
           </div>
         </header>
         <div className="am-intro am3-intro sr-only">
-          <p className="text-[11px] font-black uppercase tracking-[.23em] text-lime-200">Hayvan Çayırı · Bölüm {stage}/5</p>
+          <p className="text-xs font-black uppercase tracking-[.23em] text-lime-200">Hayvan Çayırı · Bölüm {stage}/5</p>
           <h1 ref={headingRef} tabIndex={-1} className="mt-2 text-3xl font-black tracking-tight outline-none sm:text-5xl">{STAGES[stage-1].icon} {STAGES[stage-1].name}</h1>
           <p className="sr-only">
             {stage===1?'Çayırdaki hayvanları keşfet; adlarına dokun ve İngilizcelerini öğren.':
@@ -334,7 +334,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
                 {unlocked?<AnimalPicture word={word}/>:<img src={word.image} alt="" loading="lazy" draggable={false}
                   className="am-silhouette h-16 w-16 object-contain sm:h-20 sm:w-20"/>}
                 <span className="mt-1 text-xs font-black uppercase" lang={unlocked?'en':undefined}>{unlocked?word.id:'???'}</span>
-                <span className="mt-1 text-[11px] text-sky-100">{unlocked?word.tr:'Keşfedilmedi'}</span>
+                <span className="mt-1 text-xs text-sky-100">{unlocked?word.tr:'Keşfedilmedi'}</span>
 
               </button>;
             })}

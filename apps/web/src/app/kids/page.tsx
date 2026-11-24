@@ -498,7 +498,7 @@ export default function VentraKidsWorldPage() {
     >
       <div className="kids-world-atmosphere" aria-hidden="true" />
       {ISLAND_PRELOAD}
-      <h1 className="sr-only">Ventra Kids · Adalar Evreni</h1>
+      {!activeRegion&&<h1 className="sr-only">Ventra Kids · Adalar Evreni</h1>}
 
       {/* 1. ÜST GEZİNME VE PROFİL ÇUBUĞU */}
       <header

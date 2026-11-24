@@ -35,13 +35,13 @@ export function ExperienceCards({ onOpenLifeModal }: ExperienceCardsProps) {
           <div className="relative z-10 mx-1.5 sm:mx-2 mb-1.5 bg-white/95 backdrop-blur-md border border-white/90 rounded-[22px] sm:rounded-[24px] px-4 py-3 sm:px-5 sm:py-3.5 shadow-lg shadow-slate-900/10 flex items-center justify-between">
             {/* Text Area */}
             <div className="space-y-0.5 sm:space-y-1 pr-2">
-              <span className="inline-block bg-[#0084FF] text-white text-[10px] sm:text-[11px] font-black px-3 py-0.5 rounded-full shadow-sm shadow-blue-500/25">
+              <span className="inline-block bg-[#0084FF] text-white text-xs sm:text-xs font-black px-3 py-0.5 rounded-full shadow-sm shadow-blue-500/25">
                 7-12 yaş
               </span>
               <h3 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight leading-tight">
                 Ventra Kids
               </h3>
-              <p className="text-slate-600 text-[11px] sm:text-xs font-medium leading-tight">
+              <p className="text-slate-600 text-xs sm:text-xs font-medium leading-tight">
                 Adalar, oyunlar ve maceralarla
                 <br />
                 İngilizce öğren.
@@ -79,13 +79,13 @@ export function ExperienceCards({ onOpenLifeModal }: ExperienceCardsProps) {
           <div className="relative z-10 mx-1.5 sm:mx-2 mb-1.5 bg-white/95 backdrop-blur-md border border-white/90 rounded-[22px] sm:rounded-[24px] px-4 py-3 sm:px-5 sm:py-3.5 shadow-lg shadow-slate-900/10 flex items-center justify-between">
             {/* Text Area */}
             <div className="space-y-0.5 sm:space-y-1 pr-2">
-              <span className="inline-block bg-[#8B5CF6] text-white text-[10px] sm:text-[11px] font-black px-3 py-0.5 rounded-full shadow-sm shadow-purple-500/25">
+              <span className="inline-block bg-[#8B5CF6] text-white text-xs sm:text-xs font-black px-3 py-0.5 rounded-full shadow-sm shadow-purple-500/25">
                 13+ yaş
               </span>
               <h3 className="text-xl sm:text-2xl font-black text-[#0F172A] tracking-tight leading-tight">
                 Ventra Life
               </h3>
-              <p className="text-slate-600 text-[11px] sm:text-xs font-medium leading-tight">
+              <p className="text-slate-600 text-xs sm:text-xs font-medium leading-tight">
                 Gerçek yaşam odaklı, modern
                 <br />
                 İngilizce öğrenme deneyimi.
