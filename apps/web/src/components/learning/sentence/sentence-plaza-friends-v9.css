@@ -60,7 +60,7 @@
  filter:drop-shadow(0 3px 3px #15464c4e);
 }
 .sp-v3 .sp-v9-animal-option small{
- font-size:clamp(11px,1.1vw,13px);
+ font-size:clamp(12px,1.1vw,13px);
  font-weight:950;
  text-transform:capitalize;
  color:#174f55;

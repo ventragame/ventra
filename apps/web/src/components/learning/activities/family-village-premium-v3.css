@@ -38,7 +38,7 @@
  font-size:25px;background:#fffae6;border:1px solid #f6ddae;
  border-radius:13px;box-shadow:0 3px 0 #cfbd9c}
 .fv3-district>span:last-child{min-width:0}
-.fv3-screen .fv3-district strong{font-size:clamp(10px,1.5vw,13px);line-height:1.15;color:#245a54}
+.fv3-screen .fv3-district strong{font-size:clamp(12px,1.5vw,13px);line-height:1.15;color:#245a54}
 .fv3-screen .fv3-district small{color:#598477;font-size:12px;line-height:1.24}
 .fv3-screen .fv3-stepnav{grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:11px}
 .fv3-screen .fv3-step{min-width:0;min-height:69px;position:relative;
@@ -50,7 +50,7 @@
  border-color:#fff3b0;background:linear-gradient(155deg,#fff5ce,#caefc7);
  box-shadow:0 4px 0 #8bb79a,0 11px 16px #092c4361}
 .fv3-screen .fv3-step:disabled{opacity:.45}
-.fv3-step-icon{font-size:24px;line-height:1.05}.fv3-step-title{font-size:clamp(10px,1.5vw,12px);line-height:1.15}
+.fv3-step-icon{font-size:24px;line-height:1.05}.fv3-step-title{font-size:clamp(12px,1.5vw,12px);line-height:1.15}
 .fv3-step-index{display:none;font-size:12px;font-weight:950}
 .fv3-step>b{position:absolute;right:7px;top:3px;color:#ebba56}
 .fv3-screen .fv3-card{overflow:hidden;border-radius:27px;
@@ -123,7 +123,7 @@
  max-width:118px;max-height:111px;overflow:visible;filter:drop-shadow(0 5px 4px #335d6551)}
 .fv3-screen .fv3-discovery>span:first-child,.fv3-screen .fv3-choice .fv-choice-art{
  display:grid;place-items:center;width:100%;height:106px;filter:none}
-.fv3-screen .fv3-discovery strong{font-size:clamp(11px,1.8vw,14px);
+.fv3-screen .fv3-discovery strong{font-size:clamp(12px,1.8vw,14px);
  line-height:1.16;overflow-wrap:anywhere;max-width:100%;color:#2e6358}
 .fv3-screen .fv3-discovery small{font-size:12px;color:#608278;line-height:1.1}
 .fv3-screen .fv3-discovery b{border:2px solid #fff3d6;font-size:12px;top:6px;right:6px}
@@ -150,7 +150,7 @@
  min-height:154px}
 .fv3-screen .fv3-choice.fv-choice-icon .fv-choice-label,
 .fv3-screen .fv3-choice.fv-choice-translation .fv-choice-label{
- font-size:clamp(11px,1.6vw,13px);line-height:1.15;color:#476e62;
+ font-size:clamp(12px,1.6vw,13px);line-height:1.15;color:#476e62;
  text-align:center;overflow-wrap:anywhere}
 .fv3-screen .fv3-choice-wrong{position:absolute;top:5px;right:7px;font-size:17px;
  background:#e0a19a;border:1px solid #ffebd9;color:#713b46;border-radius:50%;width:24px;height:24px}
@@ -246,9 +246,9 @@
  .fv3-screen .fv3-discovery small{font-size:12px}
  .fv3-screen .fv3-answer-grid{gap:6px;margin:10px auto 12px;grid-template-columns:repeat(3,minmax(0,1fr))}
  .fv3-screen .fv3-choice.fv-choice-english{min-height:75px;padding:8px 4px}
- .fv3-screen .fv3-choice.fv-choice-english .fv-choice-label{font-size:clamp(10px,3.2vw,14px)}
+ .fv3-screen .fv3-choice.fv-choice-english .fv-choice-label{font-size:clamp(12px,3.2vw,14px)}
  .fv3-screen .fv3-choice.fv-choice-phrase{min-height:81px;padding:8px 6px}
- .fv3-screen .fv3-choice.fv-choice-phrase .fv-choice-label{font-size:clamp(11px,3.1vw,14px)}
+ .fv3-screen .fv3-choice.fv-choice-phrase .fv-choice-label{font-size:clamp(12px,3.1vw,14px)}
  .fv3-screen .fv3-choice.fv-choice-icon,.fv3-screen .fv3-choice.fv-choice-translation{min-height:114px}
  .fv3-screen .fv3-choice .fv-choice-art{height:72px}
  .fv3-screen .fv3-choice .fv3-word-art{width:79px;height:76px}

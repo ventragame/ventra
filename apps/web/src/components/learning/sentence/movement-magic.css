@@ -123,7 +123,7 @@
 .mm-sentence-slots{min-height:70px;display:flex;flex-wrap:wrap;gap:6px;justify-content:center;
  align-items:center;padding:7px 0}
 .mm-slot{min-height:42px;min-width:35px;border:1px dashed #c0dfe8a8;border-radius:10px;
- padding:8px 9px;background:#ffffff15;color:#fff5e9;font-size:clamp(11px,1vw,15px);font-weight:900}
+ padding:8px 9px;background:#ffffff15;color:#fff5e9;font-size:clamp(12px,1vw,15px);font-weight:900}
 .mm-slot[data-filled=true]{background:linear-gradient(145deg,#d8fab7,#91dfc4);border:1px solid #fff2cb;color:#164453}
 .mm-slot[data-error=true]{background:#ae5267;color:#fff;border-color:#ffbbc1}
 .mm-tile-tray{display:flex;flex-wrap:wrap;justify-content:center;gap:8px;margin-top:10px}

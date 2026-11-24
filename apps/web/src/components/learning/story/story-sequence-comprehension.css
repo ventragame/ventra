@@ -10,7 +10,7 @@
  gap:9px;align-items:center;padding:9px 13px;border-radius:17px;
  background:linear-gradient(110deg,#fff9e5,#eaffee);
  border:2px solid #f5e9cb;box-shadow:0 4px 12px #376f6b27;
- font-weight:950;color:#356d67;font-size:clamp(11px,2vw,16px)}
+ font-weight:950;color:#356d67;font-size:clamp(12px,2vw,16px)}
 .ss-check-heading strong{font-size:clamp(13px,2.5vw,21px)}
 .ss-check-audio{
  width:min(100%,820px);display:flex;align-items:center;gap:10px;

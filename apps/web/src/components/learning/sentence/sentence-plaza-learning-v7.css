@@ -6,7 +6,7 @@
  opacity:1;visibility:visible;
  border-color:#fff0b7;
  background:#063f51f5;
- font-size:clamp(10px,1vw,12px);
+ font-size:clamp(12px,1vw,12px);
 }
 .sp-v3 .sp-v7-location-scene .sp-v6-hotspot{
  border-width:3px;

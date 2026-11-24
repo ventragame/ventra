@@ -91,7 +91,7 @@
  border:2px solid #fae2b7;border-radius:16px;font-size:29px;
  box-shadow:0 4px 0 #7d6da5,0 6px 11px #19194255;
 }
-.fv4-screen .fv3-district strong{display:block;color:#fff9e9;font-size:clamp(11px,1.5vw,17px);
+.fv4-screen .fv3-district strong{display:block;color:#fff9e9;font-size:clamp(12px,1.5vw,17px);
   line-height:1.22;text-shadow:0 2px 3px #18224eaa}
 .fv4-screen .fv3-district small{display:block;font-size:12px;color:#d5defe;line-height:1.22;margin-top:5px}
 .fv4-screen .fv3-district.fv-district-current strong{color:#452565;text-shadow:none}
@@ -117,7 +117,7 @@
 }
 .fv4-screen .fv3-step:disabled{opacity:.62}
 .fv4-screen .fv3-step-icon{font-size:26px;filter:drop-shadow(0 2px 1px #1e2c5066)}
-.fv4-screen .fv3-step-title{font-size:clamp(11px,1.28vw,14px);color:inherit;font-weight:950}
+.fv4-screen .fv3-step-title{font-size:clamp(12px,1.28vw,14px);color:inherit;font-weight:950}
 .fv4-screen .fv3-step-index{color:inherit}
 /* Keep the poster art entirely decorative. Scene-specific dynamic labels float
    above it, so they never get frozen into the media asset. */
@@ -344,9 +344,9 @@
  .fv4-screen .fv3-answer-grid{gap:6px;margin:11px auto 14px}
  .fv4-screen .fv3-choice{border-width:2px;border-radius:13px}
  .fv4-screen .fv3-choice.fv-choice-english{min-height:76px}
- .fv4-screen .fv3-choice.fv-choice-english .fv-choice-label{font-size:clamp(11px,3.3vw,16px)}
+ .fv4-screen .fv3-choice.fv-choice-english .fv-choice-label{font-size:clamp(12px,3.3vw,16px)}
  .fv4-screen .fv3-choice.fv-choice-phrase{min-height:84px}
- .fv4-screen .fv3-choice.fv-choice-phrase .fv-choice-label{font-size:clamp(10px,2.9vw,14px)}
+ .fv4-screen .fv3-choice.fv-choice-phrase .fv-choice-label{font-size:clamp(12px,2.9vw,14px)}
  .fv4-screen .fv3-choice.fv-choice-icon,.fv4-screen .fv3-choice.fv-choice-translation{min-height:114px}
  .fv4-screen .fv3-choice .fv3-word-art{max-height:75px;max-width:79px}
  .fv4-screen .fv3-discovery{min-height:110px;border-width:2px;border-radius:13px}

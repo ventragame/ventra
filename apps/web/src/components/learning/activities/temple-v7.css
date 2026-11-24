@@ -77,7 +77,7 @@
 .tp7-screen .tp6-chambers .tp-chamber>strong,
 .tp7-screen .tp6-chambers .tp-chamber>small{position:relative;z-index:2;color:#fff9e8;text-shadow:0 2px 4px #021f30}
 .tp7-screen .tp6-chambers .tp-chamber>span{font-size:24px;filter:drop-shadow(0 2px 3px #061a27)}
-.tp7-screen .tp6-chambers .tp-chamber>strong{font-size:clamp(11px,1.3vw,14px)}
+.tp7-screen .tp6-chambers .tp-chamber>strong{font-size:clamp(12px,1.3vw,14px)}
 .tp7-screen .tp6-chambers .tp-chamber>small{color:#ffe8b2;font-size:12px}
 .tp7-screen .tp6-chambers .tp-chamber.tp-active-chamber{
  border-color:#fff3a1;background:#2f5950;

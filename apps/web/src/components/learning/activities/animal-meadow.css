@@ -195,7 +195,7 @@
  .am-mobile-animal-art img{height:100%;width:100%;object-fit:contain;
   filter:drop-shadow(0 4px 4px #395e5c56)}
  .am-mobile-habitat-icon{font-size:36px}
- .am-mobile-animal-label{font-size:clamp(9px,2.6vw,12px);font-weight:1000;
+ .am-mobile-animal-label{font-size:clamp(12px,2.6vw,12px);font-weight:1000;
   line-height:1.15;white-space:normal;overflow-wrap:anywhere;text-align:center;
   max-width:100%}
  .am-mobile-animal[data-discovered=true]{background:linear-gradient(135deg,#e5fac6,#aff0c3);

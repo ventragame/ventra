@@ -22,7 +22,7 @@
  border-radius:11px;background:#ffffff20;border:1px solid #ffffff37;color:#fff0c2}
 .academy-root .academy-skill-card--done .academy-skill-card-icon{background:#cbf3d522;color:#c7f6d4}
 .academy-root .academy-skill-card-copy{display:grid;gap:4px;min-width:0}
-.academy-root .academy-skill-card-copy strong{font-size:clamp(11px,1.15vw,13px);font-weight:950;
+.academy-root .academy-skill-card-copy strong{font-size:clamp(12px,1.15vw,13px);font-weight:950;
  line-height:1.25;overflow-wrap:anywhere}
 .academy-root .academy-skill-card-copy small{font-size:12px;line-height:1.2;color:#dcecff}
 .academy-root .academy-skill-card--current .academy-skill-card-copy small{color:#fff0b9}

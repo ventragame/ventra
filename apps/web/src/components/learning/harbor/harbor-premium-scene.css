@@ -62,7 +62,7 @@
 .hp-replay{min-height:44px;border-radius:13px;background:#d6f1f9;color:#17436c;border:1px solid #71bcd5;padding:10px 15px;font-weight:950;font-size:12px}
 .hp-object-task{position:absolute;z-index:6;left:50%;bottom:9%;transform:translateX(-50%);min-width:min(95%,400px);max-width:calc(100% - 20px);
  display:flex;flex-direction:column;gap:8px;align-items:center;background:#073450ed;border:2px solid #ffdfaa;padding:13px 15px;border-radius:20px;box-shadow:0 12px 30px #0007}
-.hp-object-task strong{text-align:center;font-size:clamp(11px,1.5vw,14px);color:#fff5cf}
+.hp-object-task strong{text-align:center;font-size:clamp(12px,1.5vw,14px);color:#fff5cf}
 .hp-object-options{display:flex;gap:12px;justify-content:center;max-width:100%}
 .hp-object-choice{width:clamp(95px,13vw,125px);min-height:86px;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:5px;
  border:2px solid #cffff7b5;background:linear-gradient(150deg,#d8fff2,#a7daf1);color:#12415e;font-size:12px;font-weight:950;border-radius:15px;transition:transform .18s ease,box-shadow .18s ease}
@@ -214,7 +214,7 @@
  max-width:44%;min-height:32px;padding:4px 10px 4px 5px;
  border:1px solid #ebffeb99;border-radius:999px;
  color:#fafff6;background:#07415edb;box-shadow:0 5px 14px #032d4d5b;
- font-size:clamp(10px,1.25vw,12px);font-weight:850;line-height:1.25;
+ font-size:clamp(12px,1.25vw,12px);font-weight:850;line-height:1.25;
  pointer-events:none;
 }
 .hp-beat-label span{

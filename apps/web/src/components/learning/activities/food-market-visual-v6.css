@@ -235,7 +235,7 @@
  }
  .fm6-screen .fm4-lane .fm-lane-icon{left:5px;top:4px;bottom:auto;width:21px;height:21px;font-size:15px}
  .fm6-screen .fm4-lane .fm-lane-copy{margin-top:33px}
- .fm6-screen .fm4-lane .fm-lane-copy strong{font-size:clamp(9px,2.55vw,12px);line-height:1.12}
+ .fm6-screen .fm4-lane .fm-lane-copy strong{font-size:clamp(12px,2.55vw,12px);line-height:1.12}
  .fm6-screen .fm4-lane .fm-lane-copy small{display:none}
  .fm6-screen .fm4-stagebar{gap:5px;margin-bottom:9px}
  .fm6-screen .fm4-stage-pill{min-height:52px;border-radius:12px;padding:4px 2px}

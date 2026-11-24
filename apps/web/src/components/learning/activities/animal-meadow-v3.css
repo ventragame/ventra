@@ -115,7 +115,7 @@
  .am3-stage--discover .am3-choice{min-height:107px}
  .am3-portrait{height:clamp(68px,22vw,107px);max-height:107px;padding:1px}
  .am3-choices--discover .am3-portrait{height:clamp(59px,18vw,84px);max-height:84px}
- .am3-caption{min-height:18px;flex-basis:18px;font-size:clamp(9px,2.6vw,12px)}
+ .am3-caption{min-height:18px;flex-basis:18px;font-size:clamp(12px,2.6vw,12px)}
  .am3-check{height:22px;width:22px;top:2px;right:2px;font-size:14px}
  .am3-stage--command .am3-choices{margin-top:12px;margin-bottom:11px}
  .am3-stage--command .am3-choice{min-height:135px}
@@ -124,7 +124,7 @@
  .am3-listen-zone{min-height:100px}
  .am3-listen-button{min-height:89px;min-width:102px;border-radius:19px}
  .am3-choices--words .am3-choice{min-height:67px;padding:8px 3px}
- .am3-word-choice{font-size:clamp(11px,3.4vw,16px)}
+ .am3-word-choice{font-size:clamp(12px,3.4vw,16px)}
  .am3-rescue-zone{min-height:54px;font-size:29px}
  .am3-rescue-success{font-size:14px;margin-top:11px;padding:7px 11px}
 }

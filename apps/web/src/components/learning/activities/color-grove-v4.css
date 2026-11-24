@@ -93,7 +93,7 @@
   background:linear-gradient(155deg,#fffcf5,#e1f6eb);
   box-shadow:0 5px 0 #2c706e,0 10px 16px #1154515c;touch-action:manipulation}
 .cg4-choice--paint{min-height:118px}
-.cg4-choice-label{max-width:100%;font-size:clamp(11px,1.5vw,16px);font-weight:950;
+.cg4-choice-label{max-width:100%;font-size:clamp(12px,1.5vw,16px);font-weight:950;
   overflow-wrap:anywhere;line-height:1.2;text-align:center}
 .cg4-paint-swatch{--cg4-color:#fb93a2;display:block;flex:none;width:58px;height:58px;
   border:4px solid white;border-radius:50% 50% 49% 14%;transform:rotate(-45deg);
@@ -124,7 +124,7 @@
  .cg4-discover-card{min-height:130px;padding:8px 3px 8px;border-radius:15px}
  .cg4-card-art{height:66px;width:75px;margin:0}
  .cg4-card-art .cg4-blossom{width:59px;height:59px}
- .cg4-discover-name{font-size:clamp(10px,3.2vw,13px)}
+ .cg4-discover-name{font-size:clamp(12px,3.2vw,13px)}
  .cg4-discover-sub{font-size:12px}
  .cg4-discover-status{height:20px;min-width:20px;font-size:12px}
  .cg4-focus{min-height:155px;margin:0 0 9px}
@@ -136,7 +136,7 @@
  .cg4-choice{min-height:75px;padding:7px 3px;border-radius:14px}
  .cg4-choice--paint{min-height:96px}
  .cg4-paint-swatch{width:46px;height:46px}
- .cg4-choice-label{font-size:clamp(10px,3vw,13px)}
+ .cg4-choice-label{font-size:clamp(12px,3vw,13px)}
  .cg4-finale{padding:15px 4px 11px}
  .cg4-finale-garden{gap:7px}
  .cg4-finale-bloom{padding:5px;border-radius:15px}

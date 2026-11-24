@@ -69,7 +69,7 @@ linear-gradient(165deg,#242b52,#2d3d61 52%,#152c43);color:#fff9eb;font-family:in
 .wf-speech-bubble{position:absolute;left:31%;top:35%;width:min(30%,255px);min-height:54px;
  display:grid;place-items:center;text-align:center;padding:11px 15px;border-radius:22px 22px 22px 4px;
  border:3px solid #fff0cf;background:#fff6e3;color:#3c526b;font-weight:1000;
- font-size:clamp(10px,1.35vw,17px);line-height:1.3;box-shadow:0 7px 18px #2a3d5880;z-index:2}
+ font-size:clamp(12px,1.35vw,17px);line-height:1.3;box-shadow:0 7px 18px #2a3d5880;z-index:2}
 .wf-basket{position:absolute;right:8%;bottom:5%;width:23%;min-height:116px;max-width:185px;
  display:flex;align-items:center;justify-content:center;gap:3px;
  border:4px solid #ffe4a6;background:linear-gradient(140deg,#f5d6ac,#bb8d96);
@@ -159,7 +159,7 @@ linear-gradient(165deg,#242b52,#2d3d61 52%,#152c43);color:#fff9eb;font-family:in
  padding:8px 0;min-height:61px}
 .wf-slot{min-height:41px;min-width:38px;border:1px dashed #b3d9dfad;
  background:#ffffff1c;border-radius:10px;padding:7px 9px;color:#fff7e4;
- font-size:clamp(11px,1.1vw,14px);font-weight:950}
+ font-size:clamp(12px,1.1vw,14px);font-weight:950}
 .wf-slot[data-filled=true]{background:linear-gradient(120deg,#e4f7c1,#b1e8d4);
  border:1px solid #fff6cd;color:#275463}
 .wf-slot[data-wrong=true]{background:#a04c65!important;color:#fff!important;border-color:#ffb5bd}

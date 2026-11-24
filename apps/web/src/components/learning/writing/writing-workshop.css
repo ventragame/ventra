@@ -280,7 +280,7 @@
 
 /* Three lightweight writing milestones; no extra step/button fatigue. */
 .writing-arc{display:flex;gap:7px;justify-content:space-between;margin:10px 0 8px}
-.writing-arc span{flex:1;text-align:center;border-radius:12px;padding:7px 5px;font-size:clamp(10px,1.5vw,12px);font-weight:800;background:#ffffff18;color:#e7deea;border:1px solid #ffffff25}
+.writing-arc span{flex:1;text-align:center;border-radius:12px;padding:7px 5px;font-size:clamp(12px,1.5vw,12px);font-weight:800;background:#ffffff18;color:#e7deea;border:1px solid #ffffff25}
 .writing-arc span[data-state="now"]{background:#fff4db;color:#5c4269;border-color:#f9dba0}
 .writing-arc span[data-state="done"]{background:#c4f2de2e;color:#b7efd0;border-color:#b7efd066}
 .writing-guided-clue{border-radius:14px;background:#fff8df;color:#705229;padding:10px 12px;line-height:1.45;font-size:13px;font-weight:700;margin:8px 0}

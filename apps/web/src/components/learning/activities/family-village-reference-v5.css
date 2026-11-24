@@ -108,7 +108,7 @@
  text-shadow:0 2px 3px #10163e;
 }
 .fv5-screen .fv5-district-nav .fv3-district small{
- color:#e1e2ff;font-size:clamp(10px,1vw,14px);line-height:1.2;margin-top:5px;
+ color:#e1e2ff;font-size:clamp(12px,1vw,14px);line-height:1.2;margin-top:5px;
 }
 .fv5-screen .fv5-district-nav .fv3-district.fv-district-current strong{color:#3b2065;text-shadow:none}
 .fv5-screen .fv5-district-nav .fv3-district.fv-district-current small{color:#5b3781}
@@ -126,7 +126,7 @@
 }
 .fv5-screen .fv5-stepnav .fv3-step:disabled{opacity:.78}
 .fv5-screen .fv5-stepnav .fv3-step-icon{width:47px;height:47px}
-.fv5-screen .fv5-stepnav .fv3-step-title{display:block;color:inherit;font-size:clamp(10px,1.16vw,15px);font-weight:1000;
+.fv5-screen .fv5-stepnav .fv3-step-title{display:block;color:inherit;font-size:clamp(12px,1.16vw,15px);font-weight:1000;
  text-shadow:0 1px 2px #1924476f;line-height:1.1}
 .fv5-screen .fv5-stepnav .fv3-step.fv-step-current .fv3-step-title{text-shadow:none}
 .fv5-screen .fv5-stepnav .fv3-step-index{display:none}
@@ -205,7 +205,7 @@
  box-shadow:inset 0 2px 0 #ffffffc5,0 0 12px #d0f9a57b;
  border-radius:inherit;
 }
-.fv5-screen .fv5-hud-progress .fv3-count{color:#fff4ed;font-size:clamp(11px,1.1vw,15px);margin:7px 0 0;
+.fv5-screen .fv5-hud-progress .fv3-count{color:#fff4ed;font-size:clamp(12px,1.1vw,15px);margin:7px 0 0;
  text-align:right;text-shadow:0 2px 4px #121043;font-weight:1000}
 .fv5-screen .fv5-audio-toggle{
  display:grid;place-items:center;width:71px;height:71px;min-width:71px;min-height:71px;
@@ -226,7 +226,7 @@
  border-radius:14px;box-shadow:0 3px 0 #7753a6;font-size:26px}
 .fv5-screen .fv5-prompt strong{color:#512069;font-size:clamp(17px,2.15vw,29px);
  text-shadow:none;font-weight:1000}
-.fv5-screen .fv5-prompt small{color:#68377e;font-size:clamp(11px,1.15vw,16px);
+.fv5-screen .fv5-prompt small{color:#68377e;font-size:clamp(12px,1.15vw,16px);
  font-weight:850}
 .fv5-screen .fv5-featured{position:relative;max-width:285px;margin:7px auto 9px;
  background:linear-gradient(150deg,#fff7d5,#e5c9fb);border:4px solid #ffe9b9;border-radius:28px;
@@ -366,7 +366,7 @@
  .fv5-screen .fv5-activity .fv-hint-button{min-height:42px;padding:7px 8px;font-size:12px}
  .fv5-screen .fv5-answer-grid{gap:5px;margin:7px auto}
  .fv5-screen .fv5-answer-grid .fv3-choice{min-height:64px;padding:5px 4px;border-radius:13px;border-width:2px}
- .fv5-screen .fv5-answer-grid .fv-choice-english .fv-choice-label{font-size:clamp(10px,3.2vw,15px)}
+ .fv5-screen .fv5-answer-grid .fv-choice-english .fv-choice-label{font-size:clamp(12px,3.2vw,15px)}
  .fv5-screen .fv5-answer-grid .fv3-choice .fv-check{padding:2px 4px;font-size:12px;right:2px}
  .fv5-screen .fv5-answer-grid .fv3-choice.fv-choice-icon,
  .fv5-screen .fv5-answer-grid .fv3-choice.fv-choice-translation{min-height:112px}

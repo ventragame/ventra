@@ -39,7 +39,7 @@
  border:2px solid #fff3b8!important;
  box-shadow:0 5px 0 #75b49b,0 12px 20px #073e3f66!important}
 .nv5-band-icon{font-size:23px;line-height:1.1}
-.nv5-band-title{font-size:clamp(10px,1.4vw,13px);font-weight:950;line-height:1.15}
+.nv5-band-title{font-size:clamp(12px,1.4vw,13px);font-weight:950;line-height:1.15}
 .nv5-band-range{font-size:12px;opacity:.88;line-height:1}
 .nv5-band-lock{position:absolute;top:4px;right:8px;font-size:12px}
 .nv5-chapters{margin-bottom:12px!important;gap:7px!important}
@@ -108,7 +108,7 @@
 .nv5-crystal-tile .nv-gem{width:69px;height:74px;
  filter:drop-shadow(0 7px 5px #224c566a)}
 .nv5-crystal-tile .nv-gem-number{font-size:22px;color:#123756}
-.nv5-crystal-word{font-size:clamp(10px,1.5vw,13px);font-weight:950;
+.nv5-crystal-word{font-size:clamp(12px,1.5vw,13px);font-weight:950;
  line-height:1.14;text-align:center;overflow-wrap:anywhere;max-width:100%;color:#19505b}
 .nv5-crystal-status{color:#205f4c;font-weight:900;font-size:12px}
 .nv5-question{position:relative;z-index:3;max-width:800px;margin:0 auto;text-align:center}

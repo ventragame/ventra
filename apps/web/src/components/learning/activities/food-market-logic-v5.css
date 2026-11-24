@@ -78,7 +78,7 @@
  .fm4-screen .fm5-word-option{min-height:70px;gap:4px;padding:7px 4px;border-radius:12px;
   flex-direction:column}
  .fm5-option-marker{width:24px;height:23px;border-radius:8px;font-size:12px}
- .fm5-word-label{font-size:clamp(11px,3.1vw,14px);line-height:1.1}
+ .fm5-word-label{font-size:clamp(12px,3.1vw,14px);line-height:1.1}
  .fm5-answer-check{top:2px;right:5px;font-size:13px}
  .fm4-screen .fm5-customer-audio{padding:8px;margin:9px auto;border-radius:13px}
  .fm4-screen .fm5-dialogue-choices{gap:6px;margin:8px auto 12px}

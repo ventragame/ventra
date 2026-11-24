@@ -40,7 +40,7 @@
 .sj-cover-copy>span{font-size:12px;font-weight:1000;letter-spacing:.1em;color:#fff2b9}
 .sj-cover-copy h1{font-size:clamp(24px,4vw,46px);line-height:1.08;
  letter-spacing:-.045em;font-weight:1000;margin:8px 0 10px}
-.sj-cover-copy p{font-size:clamp(11px,1.7vw,16px);font-weight:900;color:#d5f9e9}
+.sj-cover-copy p{font-size:clamp(12px,1.7vw,16px);font-weight:900;color:#d5f9e9}
 .sj-guide{font-size:12px;font-weight:950;text-align:center;color:#437772;
  padding:16px 0 1px}
 .sj-episode-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));

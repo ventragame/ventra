@@ -234,7 +234,7 @@
 .sd-location-card:after{content:"";position:absolute;inset:45% 0 0;pointer-events:none;
  background:linear-gradient(0deg,#0c3842df,transparent)}
 .sd-location-card span{position:absolute;left:4px;right:4px;bottom:10px;z-index:1;
- color:white;font-size:clamp(10px,1.35vw,14px);font-weight:1000;
+ color:white;font-size:clamp(12px,1.35vw,14px);font-weight:1000;
  text-shadow:0 2px 4px #193f48}
 .sd-clue-stamps-small{min-height:56px}
 .sd-clue-stamps-small .sd-stamp{width:53px;height:53px;border-radius:14px}
