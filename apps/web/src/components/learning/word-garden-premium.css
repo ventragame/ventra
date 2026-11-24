@@ -11,12 +11,12 @@
 .wg-hud-identity{display:flex;align-items:center;gap:9px;flex:1;min-width:0}
 .wg-hud-crest{width:43px;height:43px;flex:0 0 auto;display:grid;place-items:center;font-size:24px;border-radius:14px;background:linear-gradient(145deg,#a5eeb5,#4a9ea9);border:2px solid #eaf8c3;box-shadow:0 4px 12px #071f2866}
 .wg-hud-identity strong{display:block;font-size:clamp(15px,2vw,20px);font-weight:1000;letter-spacing:-.025em}
-.wg-hud-identity small{display:block;color:#d0f0df;font-size:11px}
+.wg-hud-identity small{display:block;color:#d0f0df;font-size:12px}
 .wg-hud-items{display:flex;align-items:center;gap:7px;flex-shrink:0}
 .wg-hud-chip{gap:5px;padding:7px 13px;font-size:13px;white-space:nowrap}
 .wg-star-chip{color:#ffe7a9;background:#234b4c}
 .wg-passport{background:#f7e4b5;color:#294f50;font-size:16px}
-.wg-passport-label{font-size:11px}
+.wg-passport-label{font-size:12px}
 .wg-help-toggle{width:46px;padding:0;border-radius:50%;font-size:22px;color:#fdf3c8;background:#215968}
 .wg-back:not(:disabled):hover,.wg-help-toggle:hover,.wg-passport:hover{filter:brightness(1.15)}
 .wg-play-strip{display:flex;align-items:center;gap:18px;min-height:175px;margin:15px 0;padding:23px 24px;border:1px solid #e6f3cd71;border-radius:24px;
@@ -24,7 +24,7 @@
  background-size:cover;background-position:center 52%;box-shadow:0 12px 38px #062e3466;overflow:hidden}
 .wg-strip-heading{display:flex;gap:12px;align-items:center;flex:1;min-width:0}
 .wg-strip-flower{font-size:clamp(34px,4vw,55px);filter:drop-shadow(0 5px 2px #0b413890)}
-.wg-strip-heading small{text-shadow:0 2px 8px #082c3c;font-size:10px;font-weight:1000;letter-spacing:.13em;color:#ecdc9f}
+.wg-strip-heading small{text-shadow:0 2px 8px #082c3c;font-size:12px;font-weight:1000;letter-spacing:.13em;color:#ecdc9f}
 .wg-strip-heading h2{text-shadow:0 2px 12px #082c3cd0;font-size:clamp(19px,2.8vw,29px);font-weight:1000;line-height:1.15;letter-spacing:-.035em}
 .wg-strip-progress{display:flex;align-items:center;gap:9px;min-width:145px}
 .wg-strip-track{width:110px;height:12px;border-radius:999px;background:#092c3566;border:1px solid #d3f3dc7d;overflow:hidden}
@@ -55,7 +55,7 @@
  background:linear-gradient(180deg,transparent,#0b344b33 65%,#0b344b61);z-index:0}
 .wg-card-top>.wg-card-index,.wg-card-top>.wg-card-status,.wg-card-top>.wg-card-art-icon{z-index:1}
 .wg-card-index,.wg-card-status{position:absolute;top:9px;display:grid;place-items:center;min-height:29px;border:1px solid #fff7de;border-radius:10px;background:#153f4cd9;color:#fff9df;box-shadow:0 2px 7px #082f355b}
-.wg-card-index{left:10px;width:32px;font-size:11px;font-weight:1000}
+.wg-card-index{left:10px;width:32px;font-size:12px;font-weight:1000}
 .wg-card-status{right:10px;min-width:33px;padding:3px 8px;font-size:17px;font-weight:1000}
 .wg-status-complete{background:#e3f8b9;color:#24614a}
 .wg-status-locked,.wg-status-error,.wg-status-loading{background:#293f54}
@@ -85,22 +85,22 @@
  .wg-shell{padding-left:9px;padding-right:9px}.wg-hud{gap:7px;padding:7px}
  .wg-back{width:45px;padding:0}.wg-back-label{display:none}
  .wg-hud-crest{width:37px;height:37px;font-size:22px}.wg-hud-identity strong{font-size:15px}
- .wg-hud-identity small{font-size:10px}.wg-hud-chip{padding:6px 8px;min-height:42px}
- .wg-hud-items{gap:5px}.wg-help-toggle{width:43px;min-height:43px}
+ .wg-hud-identity small{font-size:12px}.wg-hud-chip{padding:6px 8px;min-height:44px}
+ .wg-hud-items{gap:5px}.wg-help-toggle{width:44px;min-height:44px}
  .wg-play-strip{padding:16px 12px;gap:9px;flex-wrap:wrap;margin:10px 0;min-height:185px;
  background-image:linear-gradient(90deg,#092e3fe8,#113b4ebb 75%,#14374ca6),url('/assets/word-garden/premium-v2/cover_mobile.webp');
  background-position:center 48%}
  .wg-strip-heading{flex-basis:55%;gap:7px}.wg-strip-flower{font-size:32px}
- .wg-strip-heading small{font-size:8px;letter-spacing:.08em}.wg-strip-heading h2{font-size:17px}
+ .wg-strip-heading small{font-size:12px;letter-spacing:.08em}.wg-strip-heading h2{font-size:17px}
  .wg-strip-progress{min-width:0;flex:1;gap:6px}.wg-strip-track{width:60px;height:10px}.wg-strip-progress strong{font-size:12px}
  .wg-hero-primary{width:100%;min-height:47px;font-size:16px}
  .wg-main-map{padding:7px;border-radius:20px}.wg-map-heading{padding:5px 6px 9px}
  .wg-world-grid{gap:8px}.wg-card-top{height:135px}.wg-card-art-icon{width:36px;height:36px;font-size:19px;right:5px}
  .wg-card-body{padding:9px 10px 10px}.wg-card-body h3{font-size:15px}
- .wg-card-index{width:25px;min-height:25px;font-size:10px;left:5px;top:5px}
+ .wg-card-index{width:25px;min-height:25px;font-size:12px;left:5px;top:5px}
  .wg-card-status{font-size:13px;min-height:25px;min-width:26px;padding:2px 5px;right:5px;top:5px}
- .wg-card-stars,.wg-card-task{font-size:11px}.wg-card-meta{gap:5px;margin-top:7px}
- .wg-card-action{width:24px;height:24px;font-size:11px}.wg-tip-panel{padding:10px}
+ .wg-card-stars,.wg-card-task{font-size:12px}.wg-card-meta{gap:5px;margin-top:7px}
+ .wg-card-action{width:24px;height:24px;font-size:12px}.wg-tip-panel{padding:10px}
  .wg-tip-heading h2{font-size:17px}
 }
 @media(max-width:360px){.wg-hud-identity small{display:none}.wg-passport-label{display:none}.wg-card-top{height:100px}}

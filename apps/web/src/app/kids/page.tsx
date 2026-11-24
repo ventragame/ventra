@@ -47,6 +47,16 @@ import { EventBus, setWorldInputLocked } from '../../lib/game/EventBus';
 import './kids-world-premium.css';
 import './kids-course-entry.css';
 
+/** The home island's art starts downloading with the page, before the map's
+ * code arrives: the same file the map draws first (WorldScene uses the mobile
+ * picture below 768 px or on touch screens) and the placeholder shown while
+ * the map gets ready. */
+const ISLAND_PRELOAD=<>
+ <link rel="preload" as="image" href={ARCHIPELAGO_ISLANDS_CATALOG.word_garden.mobileAsset} media="(max-width: 767.98px), (pointer: coarse)" fetchPriority="high"/>
+ <link rel="preload" as="image" href={ARCHIPELAGO_ISLANDS_CATALOG.word_garden.desktopAsset} media="(min-width: 768px) and (pointer: fine)" fetchPriority="high"/>
+ <link rel="preload" as="image" href="/assets/kids-islands/thumbs/word_garden-320.webp" fetchPriority="high"/>
+</>;
+
 // PhaserGame dinamik olarak yüklenir (SSR hydration hatalarını önler)
 const DynamicPhaserGame = dynamic(
   () => import('../../components/game/PhaserGame').then((mod) => mod.PhaserGame),
@@ -415,6 +425,7 @@ export default function VentraKidsWorldPage() {
   if (bootState === 'loading' || bootState === 'error') {
     return (
       <div className="flex min-h-screen items-center justify-center bg-[#050914] p-6 text-center text-white">
+        {ISLAND_PRELOAD}
         <div className="max-w-sm space-y-4">
           <div className="text-5xl" aria-hidden="true">🏝️</div>
           <h1 className="text-2xl font-black">Ventra Kids</h1>
@@ -439,6 +450,7 @@ export default function VentraKidsWorldPage() {
   if (bootState === 'new') {
     return (
       <>
+        {ISLAND_PRELOAD}
         <KidsWelcomeGate onCreateProfile={handleFirstProfile} onOpenParent={() => setIsParentGateOpen(true)} />
         {isParentGateOpen && (
           <ParentalGateModal isOpen onClose={() => setIsParentGateOpen(false)} onSuccess={() => {
@@ -485,6 +497,8 @@ export default function VentraKidsWorldPage() {
       }}
     >
       <div className="kids-world-atmosphere" aria-hidden="true" />
+      {ISLAND_PRELOAD}
+      <h1 className="sr-only">Ventra Kids · Adalar Evreni</h1>
 
       {/* 1. ÜST GEZİNME VE PROFİL ÇUBUĞU */}
       <header

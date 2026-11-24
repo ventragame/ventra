@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useEffect, useRef, memo } from 'react';
+import React, { useEffect, useRef, useState, memo } from 'react';
 import Phaser from 'phaser';
 import { WorldScene } from './scenes/WorldScene';
 import { EventBus, isWorldInputLocked } from '@/lib/game/EventBus';
@@ -28,6 +28,10 @@ const PhaserGameComponent: React.FC<PhaserGameProps> = ({
 }) => {
   const containerRef = useRef<HTMLDivElement>(null);
   const gameRef = useRef<Phaser.Game | null>(null);
+  // Until the first frame is drawn the island art is still downloading; a
+  // small picture of the home island holds its place so the sky is never empty.
+  const [sceneReady, setSceneReady] = useState(false);
+  const [posterGone, setPosterGone] = useState(false);
 
   const callbacksRef = useRef({ onOpenLearningPath, onToast });
   callbacksRef.current = { onOpenLearningPath, onToast };
@@ -51,6 +55,8 @@ const PhaserGameComponent: React.FC<PhaserGameProps> = ({
     EventBus.on('SET_WORLD_INPUT_LOCKED',onWorldLock);
     // A scene can only sleep once it runs; a lock sent while it loaded applies then.
     EventBus.on('WORLD_SCENE_READY',applyFrameBudget);
+    const onSceneReady=()=>setSceneReady(true);
+    EventBus.on('WORLD_SCENE_READY',onSceneReady);
     document.addEventListener('visibilitychange',applyFrameBudget);
 
     const timer = setTimeout(() => {
@@ -83,6 +89,9 @@ const PhaserGameComponent: React.FC<PhaserGameProps> = ({
           mode: Phaser.Scale.RESIZE,
           autoCenter: Phaser.Scale.CENTER_BOTH
         },
+        // Image elements share the browser's image cache, so the island the
+        // page preloads (see app/kids/page.tsx) is not downloaded twice.
+        loader: { imageLoadType: 'HTMLImageElement' },
         scene: [WorldScene]
       };
 
@@ -118,6 +127,7 @@ const PhaserGameComponent: React.FC<PhaserGameProps> = ({
       EventBus.off('SHOW_TOAST', handleToast);
       EventBus.off('SET_WORLD_INPUT_LOCKED',onWorldLock);
       EventBus.off('WORLD_SCENE_READY',applyFrameBudget);
+      EventBus.off('WORLD_SCENE_READY',onSceneReady);
       document.removeEventListener('visibilitychange',applyFrameBudget);
 
       if (gameRef.current) {
@@ -155,6 +165,7 @@ const PhaserGameComponent: React.FC<PhaserGameProps> = ({
   },[harborCompletedLevels]);
 
   return (
+    <>
     <div
       ref={containerRef}
       id="phaser-game-container"
@@ -170,6 +181,18 @@ const PhaserGameComponent: React.FC<PhaserGameProps> = ({
         background: 'transparent' // CSS cinematic sky lives below this transparent Phaser canvas
       }}
     />
+    {!posterGone && (
+      <div
+        className="ventra-world-poster"
+        data-ready={sceneReady ? 'true' : 'false'}
+        onTransitionEnd={() => { if (sceneReady) setPosterGone(true); }}
+      >
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img src="/assets/kids-islands/thumbs/word_garden-320.webp" alt="" width={320} height={320} decoding="async" />
+        {!sceneReady && <span role="status" className="sr-only">Adalar yükleniyor…</span>}
+      </div>
+    )}
+    </>
   );
 };
 
