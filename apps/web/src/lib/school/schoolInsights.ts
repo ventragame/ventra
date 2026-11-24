@@ -176,6 +176,28 @@ export const TEACHER_NEVER_SEES=[
  'Oyun süresi ve doğru-yanlış oranı'
 ];
 
+/** Roles as people say them, and what each one can do. */
+export const ROLE_INFO={
+ owner:{label:'Yönetici',icon:'🗝️',can:'Okul ayarları, öğretmen daveti ve okuldaki bütün sınıflar.'},
+ teacher:{label:'Öğretmen',icon:'👩‍🏫',can:'Yalnızca atandığı sınıflar: sınıf açar, veli davet eder, öğrencilerini görür.'}
+} as const;
+
+/** A colleague's name, or the part of their address before "@" while they have none. */
+export function staffLabel(member:{displayName:string|null;email:string|null}):string{
+ return member.displayName??(member.email?member.email.split('@')[0]:'Adı eklenmemiş öğretmen');
+}
+
+export type StaffInviteMessage={schoolName:string;email:string;role:'owner'|'teacher';link:string|null;validUntil:string;inviter:string|null};
+/** What the owner sends a colleague: where to go, which address to use, until when. */
+export function staffInviteMessage({schoolName,email,role,link,validUntil,inviter}:StaffInviteMessage):string{
+ const what=role==='owner'?'yönetici':'öğretmen';
+ return [
+  `Merhaba! ${inviter?`${inviter}, sizi`:'Sizi'} Ventra'da ${schoolName} okul alanına ${what} olarak davet etti.`,
+  `${link?`${link}/school adresini açın`:'Ventra\'da Okul Paneli\'ni açın'}, “Öğretmenim” bölümünden ${email} adresiyle giriş yapın; davet orada sizi bekliyor. Şifre gerekmez, e-postanıza bir giriş kodu gelir.`,
+  `Davet ${formatDay(validUntil)} tarihine kadar geçerli.`
+ ].join('\n\n');
+}
+
 const INITIAL_COLORS=['#7c3aed','#0891b2','#16a34a','#ea580c','#db2777','#2563eb','#ca8a04','#0d9488'];
 /** A steady colour per child for the initial badge (no avatar is shared with teachers). */
 export function initialColor(id:string):string{

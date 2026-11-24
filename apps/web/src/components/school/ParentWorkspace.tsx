@@ -5,7 +5,7 @@ import Link from 'next/link';
 import {getSupabaseClient} from '@/lib/supabase/client';
 import {getProgressRepository} from '@/lib/progress';
 import {linkLocalSchoolCandidate,localSchoolCandidates,type LocalSchoolCandidate} from '@/lib/school/parentProfileBridge';
-import {enrollChild,leaveClassroom,normaliseInviteCode,parentLinkedChildren,parentMemberships,previewInvite,schoolApiVersion,
+import {enrollChild,leaveClassroom,normaliseInviteCode,parentLinkedChildren,parentMemberships,previewClassTeachers,previewInvite,schoolApiVersion,
  type InvitePreview,type LinkedChild,type ParentMembership,type SchoolApiVersion} from '@/lib/school/schoolService';
 import {TEACHER_NEVER_SEES,activity,formatDay,istanbulDay,skillProgress,teacherSees} from '@/lib/school/schoolInsights';
 import {friendlyAccountError} from '@/lib/profile/profileHub';
@@ -14,7 +14,7 @@ import {ConfirmBox,LoadProblem,LoadingBlocks,SkillBars,Initial,card,dangerOutlin
 
 type Data={version:SchoolApiVersion;children:LinkedChild[];memberships:ParentMembership[];
  candidates:LocalSchoolCandidate[];adultId:string;avatars:Record<string,string>};
-type Preview={code:string;state:'loading'|'ok'|'invalid'|'error';info?:InvitePreview};
+type Preview={code:string;state:'loading'|'ok'|'invalid'|'error';info?:InvitePreview;teachers?:string[]};
 
 function ChildFace({id,nickname,avatar}:{id:string;nickname:string;avatar?:string}){
  return avatar?<span aria-hidden="true" className="block h-11 w-11 shrink-0 overflow-hidden rounded-2xl"><AvatarPortrait id={avatar} size={44}/></span>
@@ -68,8 +68,9 @@ export function ParentWorkspace({email,act,busy,invite,fromLink,onInviteUsed}:Pr
   let alive=true;
   setPreview({code:typedCode,state:'loading'});
   const timer=window.setTimeout(()=>{
-   previewInvite(typedCode)
-    .then(info=>{if(alive)setPreview(info?{code:typedCode,state:'ok',info}:{code:typedCode,state:'invalid'});})
+   // Teacher names are a nice-to-have: the preview works without them.
+   Promise.all([previewInvite(typedCode),version>=3?previewClassTeachers(typedCode).catch(()=>[] as string[]):Promise.resolve([] as string[])])
+    .then(([info,teachers])=>{if(alive)setPreview(info?{code:typedCode,state:'ok',info,teachers}:{code:typedCode,state:'invalid'});})
     .catch(error=>{console.warn('[Okul paneli] davet önizleme',error);if(alive)setPreview({code:typedCode,state:'error'});});
   },250);
   return()=>{alive=false;window.clearTimeout(timer);};
@@ -160,6 +161,7 @@ export function ParentWorkspace({email,act,busy,invite,fromLink,onInviteUsed}:Pr
       <p className={`${eyebrow} text-lime-200`}>Bu kod şu sınıfı açıyor</p>
       <p className="mt-1 break-words text-lg font-black">🏫 {preview.info.schoolName} · {preview.info.className}</p>
       <p className="mt-0.5 text-sm text-slate-200">{preview.info.gradeLevel}. sınıf düzeyi{preview.info.validUntil?` · Son geçerlilik: ${formatDay(preview.info.validUntil)}`:''}</p>
+      {preview.teachers&&preview.teachers.length>0&&<p className="mt-1 text-sm text-sky-50">👩‍🏫 {preview.teachers.length>1?'Öğretmenler':'Öğretmen'}: <strong>{preview.teachers.join(', ')}</strong></p>}
       {preview.info.verified?<p className="mt-2 text-sm font-bold text-lime-100">✓ Doğrulanmış kurum</p>:
        <p className="mt-2 rounded-xl border border-amber-200/40 bg-amber-950/30 p-3 text-xs leading-relaxed text-amber-50">Bu okul alanı henüz kurum tarafından doğrulanmadı. Daveti tanıdığınız öğretmenden aldıysanız katılabilirsiniz.</p>}
       {already&&<p className="mt-2 text-sm font-black text-lime-100">✓ {chosen?.nickname} bu sınıfa zaten bağlı.</p>}
@@ -167,8 +169,9 @@ export function ParentWorkspace({email,act,busy,invite,fromLink,onInviteUsed}:Pr
     </div>}
     <div className="mt-5 grid gap-3 sm:grid-cols-2">
      <div className="rounded-2xl border border-lime-300/25 bg-lime-300/[.06] p-4">
-      <p className="text-xs font-black uppercase tracking-[.14em] text-lime-200">Öğretmenin göreceği</p>
+      <p className="text-xs font-black uppercase tracking-[.14em] text-lime-200">{version>=3?'Sınıf öğretmenlerinin göreceği':'Öğretmenin göreceği'}</p>
       <ul className="mt-2 space-y-1.5 text-sm leading-snug">{teacherSees(version).map(item=><li key={item} className="flex gap-2"><span aria-hidden="true" className="text-lime-200">✓</span>{item}</li>)}</ul>
+      {version>=3&&<p className="mt-2 text-xs leading-relaxed text-slate-300">Okul yöneticileri de aynı özeti görebilir; başka sınıfların öğretmenleri göremez.</p>}
      </div>
      <div className="rounded-2xl border border-white/12 bg-white/[.03] p-4">
       <p className="text-xs font-black uppercase tracking-[.14em] text-slate-300">Hiçbir zaman paylaşılmaz</p>
@@ -197,7 +200,7 @@ export function ParentWorkspace({email,act,busy,invite,fromLink,onInviteUsed}:Pr
       {pendingLeave!==key&&<button type="button" disabled={busy} onClick={()=>setPendingLeave(key)} className={dangerOutline}>Bağlantıyı Kaldır</button>}
      </div>
      {version>=2&&<div className="mt-3 rounded-xl border border-white/10 bg-[#0b1d35]/60 p-3">
-      <p className="text-xs font-black uppercase tracking-[.14em] text-sky-200">Öğretmenin gördüğü</p>
+      <p className="text-xs font-black uppercase tracking-[.14em] text-sky-200">{version>=3?'Öğretmenlerin gördüğü':'Öğretmenin gördüğü'}</p>
       <p className="mt-1 text-sm leading-relaxed"><strong>{nickname}</strong> · {m.completedLevels} görev · ⭐ {m.stars} · {seen.tone==='none'?seen.label:`Son görev: ${seen.label}`} · Son 7 gün: {m.levels7d??0} görev</p>
       <div className="mt-3"><SkillBars skills={skillProgress(m.worlds)} compact/></div>
      </div>}

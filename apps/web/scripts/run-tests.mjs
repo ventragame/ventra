@@ -37,8 +37,12 @@ if(files.length===0){
  process.exit(1);
 }
 
+// On GitHub Actions failing tests also become annotations (readable without
+// access to the job log); the usual spec output stays on stdout.
+const reporters=process.env.GITHUB_ACTIONS?['--test-reporter=spec','--test-reporter-destination=stdout',
+ '--test-reporter=./scripts/github-annotations-reporter.mjs','--test-reporter-destination=stdout']:[];
 const result=spawnSync(process.execPath,
- ['--test','--experimental-strip-types','--disable-warning=MODULE_TYPELESS_PACKAGE_JSON',...files],
+ ['--test','--experimental-strip-types','--disable-warning=MODULE_TYPELESS_PACKAGE_JSON',...reporters,...files],
  {cwd:root,stdio:'inherit'});
 if(result.error){
  console.error(result.error);

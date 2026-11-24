@@ -92,8 +92,14 @@ export default function SchoolPortal(){
     if(linked)window.sessionStorage.setItem(INVITE_KEY,linked);
     waiting=inviteFromHash('#davet='+(window.sessionStorage.getItem(INVITE_KEY)??''));
    }catch{waiting=linked;}
-   if(linked)window.history.replaceState(window.history.state,'',window.location.pathname+window.location.search);
-   if(waiting){setInvite(waiting);setFromLink(true);setMode('parent');}
+   // A fresh link opens the parent view and remembers that choice; a code
+   // kept from earlier never overrides a role the person picked since.
+   if(linked){
+    window.history.replaceState(window.history.state,'',window.location.pathname+window.location.search);
+    try{window.localStorage.setItem(ROLE_KEY,'parent');}catch{/* this visit only */}
+    setMode('parent');
+   }
+   if(waiting){setInvite(waiting);setFromLink(true);}
   };
   pick();
   window.addEventListener('hashchange',pick);

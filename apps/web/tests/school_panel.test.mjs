@@ -16,7 +16,7 @@ const roster=()=>read('../src/components/school/ClassRoster.tsx');
 const parent=()=>read('../src/components/school/ParentWorkspace.tsx');
 const signIn=()=>read('../src/components/school/SchoolSignIn.tsx');
 const schoolFiles=()=>[page(),teacher(),invites(),roster(),parent(),signIn(),read('../src/components/school/schoolUi.tsx'),
- read('../src/components/school/InviteShowcase.tsx')];
+ read('../src/components/school/InviteShowcase.tsx'),read('../src/components/school/TeamPanel.tsx')];
 
 test('School panel shows people what it does, not internal milestone notes',()=>{
  for(const ui of schoolFiles())assert.doesNotMatch(ui,/P6|kabul kapısı|güvenlik kabulü|kurumsal yayına/,'internal notes were shown to teachers and parents');
@@ -219,7 +219,8 @@ test('UI contract: invite links prefill the parent view, destructive steps ask f
  const p=page();
  assert.match(p,/const linked=inviteFromHash\(window\.location\.hash\);/);
  assert.match(p,/window\.history\.replaceState\(window\.history\.state,'',window\.location\.pathname\+window\.location\.search\)/,'the code leaves the address bar');
- assert.match(p,/if\(waiting\)\{setInvite\(waiting\);setFromLink\(true\);setMode\('parent'\);\}/);
+ assert.match(p,/if\(waiting\)\{setInvite\(waiting\);setFromLink\(true\);\}/);
+ assert.match(p,/try\{window\.localStorage\.setItem\(ROLE_KEY,'parent'\);\}/,'a fresh link remembers the parent view; a kept code never overrides a later choice');
  assert.match(p,/forgetIssuedInvites\(\);/,'codes shown in this tab are forgotten on sign-out');
  assert.match(p,/<div role="status" aria-live="polite"/);assert.match(p,/<div role="alert"/);
  const inv=invites();
@@ -237,4 +238,63 @@ test('UI contract: invite links prefill the parent view, destructive steps ask f
  const show=read('../src/components/school/InviteShowcase.tsx');
  assert.match(show,/role="dialog" aria-modal="true"/);assert.match(show,/useDialogFocus\(ref,true\)/);
  assert.match(show,/event\.key==='Escape'/);
+});
+
+test('Several teachers: version 3, roles per school, classes with teachers, invitations validated',async()=>{
+ const {mySchools,schoolClasses,staffList,inviteStaff,myStaffInvites,acceptStaffInvite,previewClassTeachers,isEmailAddress}=
+  await import('../src/lib/school/schoolService.ts');
+ let s=stub(()=>({data:3,error:null}));
+ assert.equal(await schoolApiVersion(s.client),3);
+ const school={id:klass,name:'Martı',brand_color:'javascript:x',verified_at:null,owner_id:adult};
+ const client={auth:{getUser:async()=>({data:{user:{id:adult}},error:null})},rpc:async()=>({data:null,error:null}),
+  from:name=>({select:()=>{const rows=name==='ventra_schools'?[school]:[{school_id:klass,role:'teacher'}];
+   const chain={order:()=>chain,eq:()=>chain,limit:async()=>({data:rows,error:null})};return chain;}})};
+ const v3=await mySchools(3,client);
+ assert.equal(v3[0].role,'teacher');assert.equal(v3[0].brand_color,'#2563eb','a bad colour never reaches a style');
+ assert.equal((await mySchools(2,client))[0].role,'owner','before version 3 every member is the owner');
+ s=stub(()=>({data:[{id:klass,school_id:adult,name:'3-A',grade_level:3,created_at:'x',student_count:2,active_invites:0,mine:false,
+  teachers:[{user_id:adult,name:'Ayşe Yılmaz'},{user_id:code,name:null},{bad:1}]}],error:null}));
+ const [c]=await schoolClasses(adult,s.client);
+ assert.deepEqual(c.teachers,[{userId:adult,name:'Ayşe Yılmaz'},{userId:code,name:null}]);assert.equal(c.mine,false);
+ s=stub(()=>({data:[{user_id:adult,display_name:'',email:null,role:'owner',joined_at:'2026-11-20T10:00:00Z',classroom_ids:[klass,'bad'],is_me:true,is_holder:true}],error:null}));
+ assert.deepEqual(await staffList(klass,s.client),[{userId:adult,displayName:null,email:null,role:'owner',joinedAt:'2026-11-20T10:00:00Z',
+  classroomIds:[klass],isMe:true,isHolder:true}]);
+ s=stub(()=>({data:[{invite_id:code,valid_until:'2026-12-08T10:00:00Z'}],error:null}));
+ await assert.rejects(inviteStaff(klass,'yanlış adres','teacher',[],s.client),/E-posta adresi geçersiz/);
+ await assert.rejects(inviteStaff(klass,'a@b.co','principal',[],s.client),/Rol geçersiz/);
+ assert.equal(s.log.length,0,'nothing sent before the address and role are right');
+ assert.deepEqual(await inviteStaff(klass,' Ogretmen@Okul.K12.tr ','teacher',[klass],s.client),{id:code,validUntil:'2026-12-08T10:00:00Z'});
+ assert.deepEqual(s.log[0].args,{p_school_id:klass,p_email:'ogretmen@okul.k12.tr',p_role:'teacher',p_classroom_ids:[klass]});
+ assert.ok(isEmailAddress('a.b@okul.k12.tr'));assert.ok(!isEmailAddress('a@b'));
+ s=stub(()=>({data:[{invite_id:code,school_id:klass,school_name:'Martı',brand_color:'#7c3aed',verified:false,role:'owner',invited_by_name:'Ayşe',
+  class_names:['3-A',4],valid_until:'2026-12-08T10:00:00Z'},{invite_id:'x'}],error:null}));
+ const invites=await myStaffInvites(s.client);
+ assert.equal(invites.length,1);assert.deepEqual([invites[0].role,invites[0].classNames],['owner',['3-A']]);
+ await assert.rejects(acceptStaffInvite(code,' A ',s.client),/2-60/,'a name is required to join');
+ s=stub(()=>({data:[{display_name:'Ayşe Yılmaz'},{display_name:''}],error:null}));
+ assert.deepEqual(await previewClassTeachers(code,s.client),['Ayşe Yılmaz']);
+});
+
+test('Several teachers: labels, the invitation message and what the screens promise',async()=>{
+ const {ROLE_INFO,staffLabel,staffInviteMessage}=await import('../src/lib/school/schoolInsights.ts');
+ assert.equal(ROLE_INFO.owner.label,'Yönetici');assert.equal(ROLE_INFO.teacher.label,'Öğretmen');
+ assert.equal(staffLabel({displayName:null,email:'mehmet.kaya@okul.k12.tr'}),'mehmet.kaya');
+ assert.equal(staffLabel({displayName:'Mehmet Kaya',email:null}),'Mehmet Kaya');
+ const msg=staffInviteMessage({schoolName:'Martı İlkokulu',email:'mehmet@okul.k12.tr',role:'teacher',link:'https://ventra.example',validUntil:'2026-12-08T10:00:00Z',inviter:'Ayşe Yılmaz'});
+ assert.match(msg,/^Merhaba! Ayşe Yılmaz, sizi Ventra'da Martı İlkokulu okul alanına öğretmen olarak davet etti\./);
+ assert.match(msg,/https:\/\/ventra\.example\/school adresini açın, “Öğretmenim” bölümünden mehmet@okul\.k12\.tr adresiyle giriş yapın/);
+ assert.match(msg,/Davet 8 Aralık tarihine kadar geçerli\./);
+ assert.doesNotMatch(staffInviteMessage({schoolName:'X Okulu',email:'a@b.co',role:'owner',link:null,validUntil:'2026-12-08T10:00:00Z',inviter:null}),/http/);
+ const team=read('../src/components/school/TeamPanel.tsx');
+ const ws=teacher();
+ assert.match(team,/const lastOwner=member\.role==='owner'&&owners<=1;/,'the last owner cannot be demoted or removed');
+ assert.match(team,/disabled=\{busy\|\|lastOwner\}/);
+ assert.match(team,/<ConfirmBox label=\{member\.isMe\?'Okuldan ayrılmak istiyor musunuz\?':`\$\{label\} okuldan çıkarılsın mı\?`\}/);
+ assert.match(team,/<ConfirmBox label="Davet reddedilsin mi\?"/);
+ assert.match(team,/href=\{`mailto:\$\{encodeURIComponent\(sent\.email\)\}/);
+ assert.match(ws,/role="tablist" aria-label="Okul bölümleri"/);assert.match(ws,/role="tabpanel" id="school-panel-team"/);
+ assert.match(ws,/\(version<3\|\|school\.role==='owner'\)&&<button type="button" onClick=\{\(\)=>setMode\('delete'\)\}/,'only owners delete a class');
+ assert.match(ws,/version>=2&&school\.role==='owner'&&!editing&&<button/,'only owners edit the school');
+ assert.match(parent(),/previewClassTeachers\(typedCode\)/);
+ assert.match(parent(),/Okul yöneticileri de aynı özeti görebilir; başka sınıfların öğretmenleri göremez\./);
 });

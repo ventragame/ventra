@@ -6,9 +6,20 @@ export type TeacherRosterEntry={profile_id:string;nickname:string;grade_level:nu
 export type ParentClassroom={profile_id:string;classroom_id:string;school_name:string;class_name:string};
 export type LinkedChild={id:string;nickname:string;grade_level:number|null;avatar_id?:string|null};
 /** 1: the original tools; 2: class management, invite list, roster detail
- * (supabase/migrations/20261124000000_school_panel_management.sql). */
-export type SchoolApiVersion=1|2;
-export type ClassOverview=VentraClassroom&{student_count:number|null;active_invites:number|null};
+ * (supabase/migrations/20261124000000_school_panel_management.sql);
+ * 3: several teachers per school (20261125000000_school_teachers.sql). */
+export type SchoolApiVersion=1|2|3;
+export type StaffRole='owner'|'teacher';
+/** A school the adult belongs to, with their role in it. */
+export type SchoolMembership=VentraSchool&{role:StaffRole};
+export type ClassTeacher={userId:string;name:string|null};
+export type ClassOverview=VentraClassroom&{student_count:number|null;active_invites:number|null;
+ teachers?:ClassTeacher[]|null;mine?:boolean|null};
+export type StaffMember={userId:string;displayName:string|null;email:string|null;role:StaffRole;joinedAt:string|null;
+ classroomIds:string[];isMe:boolean;isHolder:boolean};
+export type StaffInvite={id:string;email:string;role:StaffRole;classNames:string[];validUntil:string};
+export type MyStaffInvite={id:string;schoolId:string;schoolName:string;brandColor:string;verified:boolean;role:StaffRole;
+ invitedByName:string|null;classNames:string[];validUntil:string};
 export type IssuedInvite={code:string;validUntil:string;useLimit:number};
 export type ActiveInvite={id:string;validUntil:string;used:number;useLimit:number};
 /** The English summary a teacher sees (and the parent sees for their own child). */
@@ -88,8 +99,125 @@ function summary(row:Record<string,unknown>,detailed:boolean):EnglishSummary{
 /** Which tools this database offers (see SchoolApiVersion). */
 export async function schoolApiVersion(client?:SchoolApiClient):Promise<SchoolApiVersion>{
  const db=await schoolClient(client);
- try{return Number(await rpc<number>(db,'ventra_school_api_version',{}))>=2?2:1;}
+ try{const v=Number(await rpc<number>(db,'ventra_school_api_version',{}));return v>=3?3:v>=2?2:1;}
  catch(error){if(isMissingFunction(error))return 1;throw error;}
+}
+const role=(value:unknown):StaffRole=>value==='owner'?'owner':'teacher';
+const names=(value:unknown):string[]=>Array.isArray(value)?value.filter((x:unknown):x is string=>typeof x==='string'):[];
+const ids=(value:unknown):string[]=>names(value).filter(id=>uuid.test(id));
+const color=(value:unknown):string=>typeof value==='string'&&/^#[0-9a-fA-F]{6}$/.test(value)?value:'#2563eb';
+/** Schools the signed-in adult belongs to, with their role. Before version 3
+ * every member of a school is its owner. */
+export async function mySchools(version:SchoolApiVersion,client?:SchoolApiClient):Promise<SchoolMembership[]>{
+ const db=await schoolClient(client);
+ const {data:auth}=await db.auth.getUser();
+ const [schools,staff]=await Promise.all([
+  db.from('ventra_schools').select('id,name,brand_color,verified_at,owner_id').order('created_at',{ascending:true}).limit(20),
+  db.from('ventra_school_staff').select('school_id,role').eq('user_id',auth.user?.id??'').limit(50)
+ ]);
+ if(schools.error)throw new Error(schools.error.message);
+ if(staff.error)throw new Error(staff.error.message);
+ const roles=new Map<string,unknown>(((staff.data??[]) as {school_id:string;role:string}[]).map(row=>[row.school_id,row.role]));
+ return ((schools.data??[]) as VentraSchool[]).map(school=>({...school,brand_color:color(school.brand_color),
+  role:version>=3?role(roles.get(school.id)):'owner'}));
+}
+/** Classes the adult can open, with their teachers (version 3). */
+export async function schoolClasses(schoolId:string,client?:SchoolApiClient):Promise<ClassOverview[]>{
+ const db=await schoolClient(client);
+ const rows=await rpc<Record<string,unknown>[]>(db,'ventra_school_classes',{p_school_id:validUUID(schoolId)});
+ if(!Array.isArray(rows))throw new Error('Sınıf listesi doğrulanamadı.');
+ return rows.map(row=>({id:text(row.id),school_id:text(row.school_id),name:text(row.name),
+  grade_level:grade(row.grade_level)??1,created_at:text(row.created_at),
+  student_count:count(row.student_count),active_invites:count(row.active_invites),mine:row.mine===true,
+  teachers:Array.isArray(row.teachers)?row.teachers.flatMap((item:unknown)=>{
+   const t=item as {user_id?:unknown;name?:unknown}|null;
+   return t&&typeof t.user_id==='string'?[{userId:t.user_id,name:typeof t.name==='string'?t.name:null}]:[];
+  }):[]}));
+}
+export async function staffList(schoolId:string,client?:SchoolApiClient):Promise<StaffMember[]>{
+ const db=await schoolClient(client);
+ const rows=await rpc<Record<string,unknown>[]>(db,'ventra_school_staff_list',{p_school_id:validUUID(schoolId)});
+ if(!Array.isArray(rows))throw new Error('Öğretmen listesi doğrulanamadı.');
+ return rows.map(row=>({userId:text(row.user_id),displayName:text(row.display_name)||null,email:text(row.email)||null,
+  role:role(row.role),joinedAt:time(row.joined_at),classroomIds:ids(row.classroom_ids),isMe:row.is_me===true,isHolder:row.is_holder===true}));
+}
+export async function setMyDisplayName(schoolId:string,name:string,client?:SchoolApiClient):Promise<boolean>{
+ const db=await schoolClient(client);
+ return rpc<boolean>(db,'ventra_set_my_display_name',{p_school_id:validUUID(schoolId),p_name:checkedName(name,2,60,'Adınız')});
+}
+export function isEmailAddress(value:string):boolean{
+ const address=value.trim().toLowerCase();
+ return address.length<=254&&/^[^@\s]+@[^@\s]+\.[^@\s]{2,}$/.test(address);
+}
+export async function inviteStaff(schoolId:string,email:string,staffRole:StaffRole,classIds:string[],client?:SchoolApiClient):Promise<{id:string;validUntil:string}>{
+ const db=await schoolClient(client);
+ if(!isEmailAddress(email))throw new Error('E-posta adresi geçersiz.');
+ if(staffRole!=='owner'&&staffRole!=='teacher')throw new Error('Rol geçersiz.');
+ const rows=await rpc<Record<string,unknown>[]>(db,'ventra_invite_staff',{p_school_id:validUUID(schoolId),
+  p_email:email.trim().toLowerCase(),p_role:staffRole,p_classroom_ids:classIds.map(validUUID)});
+ const row=Array.isArray(rows)?rows[0]:null;
+ const validUntil=time(row?.valid_until);
+ if(!row||!validUntil||!uuid.test(text(row.invite_id)))throw new Error('Öğretmen daveti doğrulanamadı.');
+ return {id:text(row.invite_id),validUntil};
+}
+export async function pendingStaffInvites(schoolId:string,client?:SchoolApiClient):Promise<StaffInvite[]>{
+ const db=await schoolClient(client);
+ const rows=await rpc<Record<string,unknown>[]>(db,'ventra_staff_invites_pending',{p_school_id:validUUID(schoolId)});
+ if(!Array.isArray(rows))throw new Error('Öğretmen davetleri doğrulanamadı.');
+ return rows.flatMap(row=>{
+  const validUntil=time(row.valid_until);
+  return validUntil&&uuid.test(text(row.invite_id))?[{id:text(row.invite_id),email:text(row.email),role:role(row.role),
+   classNames:names(row.class_names),validUntil}]:[];
+ });
+}
+export async function cancelStaffInvite(inviteId:string,client?:SchoolApiClient):Promise<boolean>{
+ const db=await schoolClient(client);
+ return rpc<boolean>(db,'ventra_cancel_staff_invite',{p_invite_id:validUUID(inviteId)});
+}
+/** Invitations waiting for the signed-in adult's confirmed e-mail address. */
+export async function myStaffInvites(client?:SchoolApiClient):Promise<MyStaffInvite[]>{
+ const db=await schoolClient(client);
+ const rows=await rpc<Record<string,unknown>[]>(db,'ventra_my_staff_invites',{});
+ if(!Array.isArray(rows))throw new Error('Okul davetleri doğrulanamadı.');
+ return rows.flatMap(row=>{
+  const validUntil=time(row.valid_until);
+  return validUntil&&uuid.test(text(row.invite_id))?[{id:text(row.invite_id),schoolId:text(row.school_id),schoolName:text(row.school_name),
+   brandColor:color(row.brand_color),verified:row.verified===true,role:role(row.role),invitedByName:text(row.invited_by_name)||null,
+   classNames:names(row.class_names),validUntil}]:[];
+ });
+}
+export async function acceptStaffInvite(inviteId:string,name:string,client?:SchoolApiClient):Promise<string>{
+ const db=await schoolClient(client);
+ return validUUID(await rpc<string>(db,'ventra_accept_staff_invite',{p_invite_id:validUUID(inviteId),
+  p_display_name:checkedName(name,2,60,'Adınız')}));
+}
+export async function declineStaffInvite(inviteId:string,client?:SchoolApiClient):Promise<boolean>{
+ const db=await schoolClient(client);
+ return rpc<boolean>(db,'ventra_decline_staff_invite',{p_invite_id:validUUID(inviteId)});
+}
+export async function setStaffRole(schoolId:string,userId:string,staffRole:StaffRole,client?:SchoolApiClient):Promise<boolean>{
+ const db=await schoolClient(client);
+ if(staffRole!=='owner'&&staffRole!=='teacher')throw new Error('Rol geçersiz.');
+ return rpc<boolean>(db,'ventra_set_staff_role',{p_school_id:validUUID(schoolId),p_user_id:validUUID(userId),p_role:staffRole});
+}
+/** Owners remove a colleague; anyone passes their own id to leave. */
+export async function removeStaff(schoolId:string,userId:string,client?:SchoolApiClient):Promise<boolean>{
+ const db=await schoolClient(client);
+ return rpc<boolean>(db,'ventra_remove_staff',{p_school_id:validUUID(schoolId),p_user_id:validUUID(userId)});
+}
+export async function assignTeacher(classroomId:string,userId:string,client?:SchoolApiClient):Promise<boolean>{
+ const db=await schoolClient(client);
+ return rpc<boolean>(db,'ventra_assign_teacher',{p_classroom_id:validUUID(classroomId),p_user_id:validUUID(userId)});
+}
+export async function unassignTeacher(classroomId:string,userId:string,client?:SchoolApiClient):Promise<boolean>{
+ const db=await schoolClient(client);
+ return rpc<boolean>(db,'ventra_unassign_teacher',{p_classroom_id:validUUID(classroomId),p_user_id:validUUID(userId)});
+}
+/** Names of a class's teachers, for a parent holding its code (version 3). */
+export async function previewClassTeachers(code:string,client?:SchoolApiClient):Promise<string[]>{
+ const db=await schoolClient(client);
+ const rows=await rpc<Record<string,unknown>[]>(db,'ventra_preview_class_teachers',{p_code:validUUID(code.trim())});
+ return Array.isArray(rows)?rows.map(row=>text(row.display_name)).filter(Boolean):[];
 }
 export async function schoolDashboard(client?:SchoolApiClient){
  const db=await schoolClient(client);
