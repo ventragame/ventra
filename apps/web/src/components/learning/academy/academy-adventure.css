@@ -203,3 +203,10 @@
 @media(max-width:650px){.academy-root .academy-header{padding-top:max(8px,env(safe-area-inset-top,0px))}}
 /* Child legibility floor: the zone card's call to action was 10px at 320px. */
 .academy-root .academy-zone-text>span:last-child{font-size:12px}
+
+/* Phones: the last stop also carries the finale note; a three-column skill
+ * review and a smaller emblem keep its two actions on the first screen. */
+@media(max-width:650px){
+ .academy-finale .academy-review{grid-template-columns:repeat(3,minmax(0,1fr))}
+ .academy-finale .academy-final-icon{font-size:64px}
+}

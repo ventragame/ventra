@@ -13,6 +13,7 @@ import {GardenHelp} from '../GardenHelp';
 import { MobileColorGroveWorld } from './MobileColorGroveWorld';
 import './color-grove-premium.css';
 import {LearningMotion} from '@/components/learning/motion/LearningMotion';
+import {GameFinale} from '../GameFinale';
 
 type Word = (typeof COLOR_GROVE_WORDS)[number];
 type Step = 1 | 2 | 3;
@@ -357,6 +358,8 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
             <p className="mt-3 rounded-xl bg-lime-300/15 px-4 py-3 text-sm font-bold text-lime-100">
               ⭐ Bu görevdeki en iyi yıldızın: {progress.starsByLevel[step] ?? (mistakes === 0 ? 3 : mistakes <= 2 ? 2 : 1)} / 3
             </p>
+            {step === 3 && <GameFinale tone="dark" title="Renk Korusu tamamlandı!"
+              detail="Üç görevin hepsinde İngilizce renkleri çalıştın." />}
             <button onClick={() => {
               if (step === 3) onBack();
               else reset((step + 1) as Step);

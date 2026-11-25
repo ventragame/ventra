@@ -20,6 +20,7 @@ import {HarborSpeechAdultPanel} from './HarborSpeechAdultPanel';
 import './harbor-speech.css';
 import './harbor-premium-scene.css';
 import './harbor-captain-avatar.css';
+import {GameFinale} from '../GameFinale';
 
 type Props={profileId:string;englishLevel:HarborLevel;gradeLevel:number|null;onBack:()=>void;onSaved:()=>void};
 type Phase='map'|'playing'|'completed';
@@ -581,6 +582,8 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
       <span><strong>{summary?.score??0}%</strong> başarı</span>
      </div>
      <p className="harbor-finale-tip">Öğrendiğin ifadeleri günlük hayatta da kullanabilirsin.</p>
+     {episode===HARBOR_EPISODES.length&&<GameFinale tone="dark" title="Diyalog Limanı tamamlandı!"
+      detail="Beş bölümün bütün İngilizce diyaloglarını bitirdin."/>}
      <div className="harbor-finale-actions">
       {episode<HARBOR_EPISODES.length&&<button type="button" onClick={()=>start(episode+1)}>Sonraki Bölüm →</button>}
       <button type="button" className="harbor-finale-secondary" onClick={()=>start(episode)}>↻ Bu Bölümü Tekrar Oyna</button>

@@ -17,6 +17,7 @@ import {
 import {WordRecap,uniqueRecapWords} from '../WordRecap';
 import './alphabet-grove.css';
 import './alphabet-art-v2.css';
+import {GameFinale} from '../GameFinale';
 
 type Phase='home'|'playing'|'complete';
 interface Props{
@@ -200,11 +201,21 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
    mistakes:errors,hints:hintsUsed,sessionId:session.current
   });
   const active=run.current;
-  time.current=setTimeout(()=>{
+  const proceed=()=>{
    if(!alive.current||run.current!==active)return;
    if(step+1===deck.length)void save(rows,errors,hintsUsed);
    else advance();
-  },850);
+  };
+  let moved=false;
+  const move=(delay:number)=>{
+   if(moved)return;moved=true;
+   if(time.current)clearTimeout(time.current);
+   time.current=setTimeout(proceed,delay);
+  };
+  const word=task.kind==='introduce'?undefined:task.word?.word;
+  const voiced=word?soundService.speakEnglish(word,{rate:gradeLevel!=null&&gradeLevel<=2?0.79:0.9,
+   onEnd:()=>move(300),onError:()=>move(300)}):false;
+  if(!moved)time.current=setTimeout(()=>move(0),voiced?5000:850);
  };
  const addTile=(index:number)=>{
   if(!task||resolved||saving||selected.includes(index))return;
@@ -345,7 +356,7 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
     {pendingRetry&&<section className="ag-challenge ag-pending">
      <div aria-hidden="true" className="ag-finish-emblem">🗝️</div>
      <h2>Macera tamamlandı!</h2>
-     <p>Yanıtların hazır. Kaydı tamamlamak için aşağıdaki düğmeye dokun.</p>
+     <p role="status">{saving?'Yıldızların kaydediliyor…':'Yanıtların hazır. Kaydı tamamlamak için aşağıdaki düğmeye dokun.'}</p>
      {error&&<p role="alert" className="ag-error">{error}</p>}
      <button className="ag-primary-action" disabled={saving} onClick={()=>void save(answers,mistakes,hints)}>{saving?'Kaydediliyor…':'Kaydı tekrar dene'}</button>
     </section>}
@@ -357,6 +368,8 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
     <p>Yeni harfleri ve İngilizce kelimeleri çalıştın. Hatırlamak için başka bir gün tekrar gel.</p>
     <div className="ag-earned" aria-label={(result?.stars??0)+' yıldız kazandın'}>{'⭐'.repeat(result?.stars??1)}</div>
     <p className="ag-evidence">İlk denemede, yardımsız doğru: {result?.firstTry??0}. Tamamlamak tek başına İngilizce ustalığı kanıtı değildir.</p>
+    {progress.completed>=ALPHABET_TOTAL_LESSONS&&<GameFinale title="Harf Korusu tamamlandı!"
+     detail="12 dersin hepsini bitirdin: 26 harfi keşfettin, ilk İngilizce kelimelerini okudun."/>}
     <div className="ag-complete-buttons">
      <button type="button" className="ag-primary-action" onClick={()=>enter(Math.min(12,lesson+1))}>{lesson===12?'Başka bir tur →':'Sonraki ders →'}</button>
      <button type="button" className="ag-secondary-action" onClick={()=>enter(lesson)}>↻ Farklı görevlerle tekrar oyna</button>

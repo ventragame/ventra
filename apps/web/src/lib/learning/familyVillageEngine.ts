@@ -65,21 +65,21 @@ export const VILLAGE_WORDS:readonly VillageWord[]=[
   ['carpet','Halı','🧶',2,'I can see a carpet.','Touch the carpet.']
  ]),
  ...section('routines',[
-  ['wake up','Uyanmak','🌅',0,'I wake up.','Show me: wake up.'],
-  ['brush my teeth','Dişlerimi fırçalamak','🪥',0,'I brush my teeth.','Show me: brush my teeth.'],
-  ['wash my face','Yüzümü yıkamak','🧼',0,'I wash my face.','Show me: wash my face.'],
-  ['get dressed','Giyinmek','👕',0,'I get dressed.','Show me: get dressed.'],
-  ['eat breakfast','Kahvaltı etmek','🥞',0,'I eat breakfast.','Show me: eat breakfast.'],
-  ['go to school','Okula gitmek','🎒',0,'I go to school.','Show me: go to school.'],
-  ['read a book','Kitap okumak','📖',0,'I read a book.','Show me: read a book.'],
-  ['go to bed','Yatmak','🌙',0,'I go to bed.','Show me: go to bed.'],
-  ['do homework','Ödev yapmak','✏️',1,'I do homework.','Show me: do homework.'],
-  ['have lunch','Öğle yemeği yemek','🍱',1,'I have lunch.','Show me: have lunch.'],
-  ['play outside','Dışarıda oynamak','🛝',1,'I play outside.','Show me: play outside.'],
-  ['take a shower','Duş almak','🚿',1,'I take a shower.','Show me: take a shower.'],
-  ['tidy my room','Odamı toplamak','🧺',2,'I tidy my room.','Show me: tidy my room.'],
-  ['help at home','Ev işlerine yardım etmek','🧹',2,'I help at home.','Show me: help at home.'],
-  ['have dinner','Akşam yemeği yemek','🍽️',2,'I have dinner.','Show me: have dinner.']
+  ['wake up','Uyanmak','🌅',0,'I wake up.','Time to wake up!'],
+  ['brush my teeth','Dişlerimi fırçalamak','🪥',0,'I brush my teeth.','Time to brush your teeth!'],
+  ['wash my face','Yüzümü yıkamak','🧼',0,'I wash my face.','Time to wash your face!'],
+  ['get dressed','Giyinmek','👕',0,'I get dressed.','Time to get dressed!'],
+  ['eat breakfast','Kahvaltı etmek','🥞',0,'I eat breakfast.','Time to eat breakfast!'],
+  ['go to school','Okula gitmek','🎒',0,'I go to school.','Time to go to school!'],
+  ['read a book','Kitap okumak','📖',0,'I read a book.','Time to read a book!'],
+  ['go to bed','Yatmak','🌙',0,'I go to bed.','Time to go to bed!'],
+  ['do homework','Ödev yapmak','✏️',1,'I do homework.','Time to do your homework!'],
+  ['have lunch','Öğle yemeği yemek','🍱',1,'I have lunch.','Time to have lunch!'],
+  ['play outside','Dışarıda oynamak','🛝',1,'I play outside.','Time to play outside!'],
+  ['take a shower','Duş almak','🚿',1,'I take a shower.','Time to take a shower!'],
+  ['tidy my room','Odamı toplamak','🧺',2,'I tidy my room.','Time to tidy your room!'],
+  ['help at home','Ev işlerine yardım etmek','🧹',2,'I help at home.','Time to help at home!'],
+  ['have dinner','Akşam yemeği yemek','🍽️',2,'I have dinner.','Time to have dinner!']
  ])
 ];
 

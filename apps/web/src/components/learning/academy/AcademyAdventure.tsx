@@ -19,6 +19,7 @@ import {
 } from '@/lib/learning/academyCheckpoint';
 import './academy-adventure.css';
 import './academy-skill-system.css';
+import {GameFinale} from '../GameFinale';
 
 type AcademyMicPhase='idle'|'preparing'|'listening'|'heard'|'processing';
 function academyMicPhase(status:SpeechCaptureStatus):AcademyMicPhase{
@@ -495,7 +496,8 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
    </main>}
    {stage==='final'&&<main className="academy-finale">
     <div className="academy-final-icon" aria-hidden="true">🌠</div>
-    <span className="academy-eyebrow">{reviewSkill?'ÖĞRENME TEKRARI TAMAMLANDI':'ATLASIN BİR SAYFASI DAHA AYDINLANDI'}</span>
+    <span className="academy-eyebrow">{reviewSkill?'ÖĞRENME TEKRARI TAMAMLANDI':
+     zone===ACADEMY_ZONES.length?'YILDIZ ATLASI TAMAMLANDI':'ATLASIN BİR SAYFASI DAHA AYDINLANDI'}</span>
     <h1>{reviewSkill?'Üç küçük görevi tamamladın!':currentZone.ending}</h1>
     {!reviewSkill&&<div className="academy-final-stars" aria-label={earnedStars+' yıldız'}>
      {[1,2,3].map(n=><span key={n} className={n<=earnedStars?'earned':undefined}>★</span>)}</div>}
@@ -506,6 +508,8 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
       <span>{r.independent?'Bağımsız cevap':'Destekli çalışma'}</span></div>)}
     </div>
     <p className="academy-note">Bu görevler öğrenme alıştırmasıdır; resmî İngilizce seviye sınavı değildir.</p>
+    {!reviewSkill&&zone===ACADEMY_ZONES.length&&<GameFinale tone="dark" title="Yıldız Atlası tamamlandı!"
+     detail="Keşif Akademisi’nin altı durağının hepsini aydınlattın."/>}
     <div className="academy-final-actions">
      {!reviewSkill&&zone<ACADEMY_ZONES.length&&zone+1<=available&&<button type="button" className="academy-submit"
       onClick={()=>open(zone+1)}>Sıradaki Durak: {ACADEMY_ZONES[zone].name} →</button>}

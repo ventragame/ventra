@@ -140,7 +140,13 @@ export function planTempleMission(input:{chamber:TempleChamber;stage:TempleStage
  });
  const distinct:TempleWord[]=[],later:TempleWord[]=[];
  for(const w of unique)(distinct.some(d=>templeLookalike(d,w))?later:distinct).push(w);
- const chosen=[...distinct,...later].slice(0,count);
+ // Weakest words still come first, but practice keeps at least half of its
+ // words in the hall's own domain (food in Bereket Salonu, numbers in Yankı
+ // Galerisi, family and home in Hatıra Odaları); review fills the rest. The
+ // finale hall mixes every domain on purpose. Look-alikes stay last.
+ const own=CHAMBER_DOMAINS[chamber][0],ranked=[...distinct,...later];
+ const quota=stage===1||chamber==='crown'?[]:ranked.filter(w=>w.domain===own).slice(0,Math.ceil(count/2));
+ const chosen=[...quota,...ranked.filter(w=>!quota.includes(w))].slice(0,count);
  const words=chosen.map(w=>w.id);
  if(stage===1)return {chamber,stage,words,questions:[]};
  const rounds=stage===5?6:(gradeLevel!=null&&gradeLevel<=2?4:6);

@@ -10,6 +10,7 @@ export {uniqueRecapWords,type RecapWord} from '@/lib/learning/recapWords';
  * Kelime Bahçesi worlds: the round's English words, tap to hear each again.
  * It only reads the finished round; nothing is stored.
  */
+const bare=(text:string)=>text.replace(/[.!?]+$/,'');
 export function WordRecap({title,words,rate=.88}:{title:string;words:readonly RecapWord[];rate?:number}){
  const [playing,setPlaying]=useState<number|null>(null);
  const request=useRef(0);
@@ -27,7 +28,7 @@ export function WordRecap({title,words,rate=.88}:{title:string;words:readonly Re
   <div className="word-recap-list">
    {words.map((word,i)=><button key={word.en+i} type="button" className="word-recap-chip"
     data-playing={playing===i||undefined} onClick={()=>play(i)}
-    aria-label={word.tr+', İngilizce '+word.en+', dinle'}>
+    aria-label={bare(word.tr)+', İngilizce '+bare(word.en)+', dinle'}>
     {word.icon&&<span className="word-recap-icon" aria-hidden="true">{word.icon}</span>}
     <span className="word-recap-text"><span className="word-recap-en" lang="en">{word.en}</span>
      <span className="word-recap-tr">{word.tr}</span></span>

@@ -66,6 +66,7 @@ type Props={
  avatarMood:HarborCaptainMood;avatarCue:string;
 };
 export function HarborSceneStage({quest,questStep,resolved,selected,wrongObjects,onSelect,onSpeak,speakerLine,speaking,avatarMood,avatarCue}:Props){
+ const taskId=React.useId();
  const props=getHarborSceneObjects(quest);
  const sceneArt=HARBOR_SCENE_ASSETS[quest.place];
  const requiresItem=questStep===0&&quest.action!=='meet';
@@ -98,8 +99,8 @@ export function HarborSceneStage({quest,questStep,resolved,selected,wrongObjects
     <button type="button" onClick={onSpeak} disabled={speaking} className="hp-replay"
      aria-label="Konuşmayı tekrar dinle">🔊 Tekrar dinle</button>
    </div>
-   {requiresItem&&!selected&&<div className="hp-object-task" aria-label="Sahne görevi">
-    <strong>🔎 {quest.mission}</strong>
+   {requiresItem&&!selected&&<div className="hp-object-task" role="group" aria-labelledby={taskId}>
+    <strong id={taskId}>🔎 {quest.mission}</strong>
     <div className="hp-object-options">
      {props.map(id=><button key={id} type="button" onClick={()=>onSelect(id)}
       className="hp-object-choice" data-wrong={wrongObjects.includes(id)}

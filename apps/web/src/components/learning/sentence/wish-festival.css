@@ -208,7 +208,8 @@ linear-gradient(165deg,#242b52,#2d3d61 52%,#152c43);color:#fff9eb;font-family:in
  .wf-basket::before{top:-10px;height:19px;border-width:4px}.wf-basket-title{top:-29px;
  font-size:12px;padding:3px 5px}.wf-basket .wf-fruit-art{width:45px;height:45px}
  .wf-secondary-fruit .wf-fruit-art{width:32px;height:32px}
- .wf-guest-label{font-size:12px;padding:3px 8px}.wf-guest-label small{font-size:7px}
+ /* The decorative "Festival konuğu" subtitle was 7px here: phones show the name only. */
+ .wf-guest-label{font-size:12px;padding:3px 8px}.wf-guest-label small{display:none}
  .wf-market{padding:7px}.wf-market-heading{padding:4px}.wf-market-heading span{font-size:12px}
  .wf-market-heading small{font-size:12px}.wf-food-grid{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px}
  .wf-food-button{min-height:77px}.wf-food-button .wf-fruit-art{width:45px;height:45px}

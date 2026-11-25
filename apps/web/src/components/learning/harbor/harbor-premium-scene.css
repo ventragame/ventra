@@ -333,6 +333,17 @@
  color:#965447;font-size:16px;font-weight:900;
 }
 .hp-object-choice{position:relative}
+/* Phones: the tall picture cards (an unsized map SVG grew to ~115px) pushed the
+ * task panel up over the speaker's "Tekrar dinle" button. Side-by-side compact
+ * cards keep the cue replayable while the child looks for the object. */
+@media(max-width:640px){
+ .hp-object-task{bottom:3%;padding:8px 10px;gap:6px}
+ .hp-object-choice{flex-direction:row;width:auto;min-width:124px;min-height:56px;
+  padding:5px 12px 5px 6px;gap:8px;font-size:13px}
+ .hp-object-choice .hp-prop-art{height:44px;max-width:52px}
+ .hp-object-choice .hp-prop-vector{flex:none;width:52px;height:44px}
+ .hp-object-choice .hp-prop-icon{font-size:30px}
+}
 
 /* iOS notch / Dynamic Island: the root is fixed full-screen with viewport-fit=cover,
  * so the exit button must sit below the status bar safe area. */

@@ -20,6 +20,7 @@ import './temple-premium.css';
 import './garden-child-legibility.css';
 import {GardenHelp} from '../GardenHelp';
 import {LearningMotion} from '@/components/learning/motion/LearningMotion';
+import {GameFinale} from '../GameFinale';
 
 type Props={profileId:string;gradeLevel:number|null;englishLevel:EnglishPlacement;
  progress:TempleProgress;onBack:()=>void;
@@ -332,7 +333,6 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
      finished?<div className="tp-finished tp6-finished">
       <div className="tp-trophy">{chamber==='crown'&&stage===5?'👑':'🏆'}</div>
       <h2 ref={doneHeading} tabIndex={-1} lang="en">{chamber==='crown'&&stage===5?'The English Temple is yours!':'Crystal unlocked!'}</h2>
-      {chamber==='crown'&&stage===5&&<p>İngilizce maceranın büyük finalini tamamladın!</p>}
       <strong className="tp6-stars" aria-label={`${stars} yıldız kazanıldı`}>{'⭐'.repeat(stars)}</strong>
       <span className="tp6-performance">{stage===1?`${answers.length} kelimenin İngilizcesini dinledin`:
        `${practised.length} doğru · ${mistakes} yanlış deneme${aided?` · ${aided} destekli`:''}`}</span>
@@ -343,6 +343,8 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
          aria-label={`${templeWord(id).tr}, İngilizce ${templeWord(id).en}, dinle`}>
          <RuneArt id={id}/><span lang="en">{templeWord(id).en}</span></button>)}</div>
       </div>}
+      {chamber==='crown'&&stage===5&&<GameFinale title="Keşif Tapınağı tamamlandı!"
+       detail="Beş salonun 25 görevinin hepsini bitirdin. İngilizce maceranın büyük finali senin!"/>}
       <button className="tp-primary" onClick={()=>{
        if(stage<5)enter(chamber,(stage+1) as TempleStage);
        else if(chamber!=='crown')enter(TEMPLE_CHAMBERS[TEMPLE_CHAMBERS.findIndex(w=>w.id===chamber)+1].id,1);

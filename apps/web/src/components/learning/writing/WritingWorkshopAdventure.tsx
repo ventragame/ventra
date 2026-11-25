@@ -15,6 +15,7 @@ import {
 import {WritingDeskScene} from './WritingDeskScene';
 import {nextWorkshopHintStage,workshopHint} from '@/lib/learning/writingWorkshopGuidance';
 import './writing-workshop.css';
+import {GameFinale} from '../GameFinale';
 
 type Phase='map'|'playing'|'complete';
 type Props={
@@ -243,10 +244,21 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
     answers:rows,playIndex,taskIds:deck.map(item=>item.id)
    });
   }
-  timer.current=setTimeout(()=>{
+  const finishStep=()=>{
    if(step+1>=deck.length)void save(rows,mistakes,hints,indep,typedCount);
    else next();
-  },900);
+  };
+  // Hear what was just written, then move on when the voice ends. A cancelled
+  // voice (exit, hidden tab) never calls back; the safety timer covers silence.
+  let moved=false;
+  const move=(delay:number)=>{
+   if(moved)return;moved=true;
+   if(timer.current)clearTimeout(timer.current);
+   timer.current=setTimeout(finishStep,delay);
+  };
+  const voiced=soundService.speakEnglish(task.target,{rate:gradeLevel!==null&&gradeLevel<=2?.78:.88,
+   onEnd:()=>move(350),onError:()=>move(350)});
+  if(!moved)timer.current=setTimeout(()=>move(0),voiced?6000:900);
  };
  const removeTile=(key:number)=>{
   if(resolved||saving)return;
@@ -412,6 +424,8 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
       onChange={event=>setCreative(event.target.value)}/>
      <small>Bu not sadece şu ekranda görünür; kaydedilmez veya paylaşılmaz.</small>
     </div>
+    {chapter===WORKSHOP_CHAPTERS.length&&<GameFinale tone="dark" title="Yazı Atölyesi tamamlandı!"
+     detail="İlk harflerden küçük hikâyelere, beş bölümün hepsinde İngilizce yazdın."/>}
     <div className="writing-finale-buttons">
      {chapter<WORKSHOP_CHAPTERS.length&&<button type="button" onClick={()=>enter(chapter+1)}>
       Sonraki Bölüm →

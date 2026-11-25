@@ -22,6 +22,7 @@ import './story-sequence-comprehension.css';
 import './story-character-motion.css';
 import './story-motion-guards.css';
 import './story-scene-standard.css';
+import {GameFinale} from '../GameFinale';
 
 interface Props{
  profileId:string;
@@ -462,6 +463,8 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
      <StoryRewardSummary stars={earnedStars}
       mistakes={answers.reduce((n,a)=>n+a.mistakes,0)+checks.reduce((n,c)=>n+c.mistakes,0)}
       hints={answers.filter(a=>a.hintUsed).length+checks.filter(c=>c.hintUsed).length}/>
+     {episode===6&&<GameFinale title="Bütün hikâyeleri sıraladın!"
+      detail="Altı hikâyenin hepsinde olayları doğru sıraya koydun."/>}
      <div className="ss-bottom-actions">
        {episode<6&&<button type="button" className="ss-primary"
          onClick={()=>start((episode+1) as ForestEpisode)}>Yeni hikâye →</button>}

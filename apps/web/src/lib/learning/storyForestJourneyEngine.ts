@@ -65,6 +65,13 @@ const CHARACTER_NAMES:Record<string,string>={
  cat_white_bow:'white kitten',cat_gray_sleeping:'sleeping grey cat',
  dog:'dog',fish:'fish',butterfly:'butterfly'
 };
+/** Pre-A1 openings: each place takes its own natural verb and preposition
+ * (a child hears "walks along the forest path", never "along the tree house"). */
+const OPENING_MOVES:Readonly<Record<ForestScene,string>>={
+ path:'walks along the forest path',treehouse:'plays near the tree house',
+ pond:'walks by the pond',meadow:'walks through the flower meadow',
+ camp:'walks around the camp',bridge:'walks across the wooden bridge'
+};
 const OBJECT_NAMES:Readonly<Record<JourneyObject,string>>={
  key:'golden key',apple:'red apple',bird:'little blue bird',crystal:'glowing crystal'
 };
@@ -157,7 +164,7 @@ export function narrativeFor(plan:JourneyPlan,phase:JourneyPhase,branchScene?:Fo
   dest.scene==='pond'?'pond':dest.scene==='camp'?'camp':
   dest.scene==='bridge'?'bridge':'forest path';
  const pre:Record<JourneyPhase,string>={
-  opening:'One day, '+heroArticle+' '+hero+' walks along the '+landscape+'.',
+  opening:'One day, '+heroArticle+' '+hero+' '+OPENING_MOVES[route.scene]+'.',
   discover:'Oh! A '+object+'! Find it.',
   meet:'A friendly '+helper+' comes to help.',
   choose:'Where should they go? Choose a place.',
@@ -175,7 +182,7 @@ export function narrativeFor(plan:JourneyPlan,phase:JourneyPhase,branchScene?:Fo
   discover:'Something is shining nearby. Can you find the '+object+'?',
   meet:'Soon a kind '+helper+' joins the '+hero+'. Together they make a plan.',
   choose:'The friends must decide where to go next. Choose their destination.',
-  result:'They follow the path and arrive at the '+location+'. Their adventure continues.',
+  result:'They walk on and arrive at the '+location+'. Their adventure continues.',
   friend:'Who joined the '+hero+' on this adventure? Find the '+helper+'.',
   place:'Remember the story. Which forest place did the friends visit?',
   consequence:'What happened because of the discovery? Pick the ending.',
@@ -185,7 +192,7 @@ export function narrativeFor(plan:JourneyPlan,phase:JourneyPhase,branchScene?:Fo
    'They place the glowing crystal on a stone. The whole forest shines!'
  };
  const a2:Record<JourneyPhase,string>={
-  opening:'Early one morning, an adventurous '+hero+' sets off through the '+landscape+' to discover something new.',
+  opening:'Early one morning, an adventurous '+hero+' sets off from the '+landscape+' to discover something new.',
   discover:'A mysterious object catches their attention. Can you identify the '+object+' among the objects?',
   meet:'Just when the '+hero+' needs a little help, a friendly '+helper+' appears and offers to join the journey.',
   choose:'There are two possible routes ahead, and either could lead to an exciting discovery. Where should they explore?',

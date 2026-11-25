@@ -17,6 +17,7 @@ import {loadThemeCheckpoint,saveThemeCheckpoint,clearThemeCheckpoint} from '@/li
 import {WordRecap,uniqueRecapWords} from '../WordRecap';
 import './theme-town.css';
 import './theme-art-v2.css';
+import {GameFinale} from '../GameFinale';
 
 type Props={profileId:string;englishLevel:EnglishPlacement;gradeLevel:number|null;
  onBack:()=>void;onSaved?:()=>void;};
@@ -214,11 +215,21 @@ export function ThemeTownAdventure({profileId,englishLevel,gradeLevel,onBack,onS
    mistakes,hints
   });
   const run=runRef.current;
-  timerRef.current=setTimeout(()=>{
+  const proceed=()=>{
    if(!isMounted.current||runRef.current!==run)return;
    if(step+1===deck.tasks.length)void finish(nextAnswers,mistakes,hints);
    else next();
-  },750);
+  };
+  let moved=false;
+  const move=(delay:number)=>{
+   if(moved)return;moved=true;
+   if(timerRef.current)clearTimeout(timerRef.current);
+   timerRef.current=setTimeout(proceed,delay);
+  };
+  const english=task.kind==='discover'?undefined:task.audioText??task.word?.en;
+  const voiced=english?soundService.speakEnglish(english,{rate:gradeLevel!==null&&gradeLevel<=2?0.8:0.92,
+   onEnd:()=>move(300),onError:()=>move(300)}):false;
+  if(!moved)timerRef.current=setTimeout(()=>move(0),voiced?5000:750);
  };
  const selectedTiles=task?wordTiles(task,selected):[];
  const percent=deck&&count?Math.round(100*Math.min(step,count)/count):0;
@@ -364,6 +375,8 @@ export function ThemeTownAdventure({profileId,englishLevel,gradeLevel,onBack,onS
     <h2>{currentTheme.title}</h2><p>Bu temada yeni İngilizce kelimeleri ve ifadeleri çalıştın. Tekrar ederek daha iyi hatırlayabilirsin.</p>
     <div className="tt-stars" aria-label={(result?.stars??1)+' yıldız kazandın'}>{'⭐'.repeat(result?.stars??1)}</div>
     <small>Yardım almadan ilk denemede çözdüğün görev: {result?.independent??0}. Bu sayı tek başına dil yeterliği ölçümü değildir.</small>
+    {progress.completed>=progress.total&&<GameFinale title="Tema Kasabası tamamlandı!"
+     detail="Sekiz sokağın hepsini gezdin; her temada İngilizce kelimeler ve ifadeler çalıştın."/>}
     <div className="tt-complete-actions">
      <button type="button" className="tt-primary" onClick={()=>start(THEME_ORDER[(THEME_ORDER.indexOf(active)+1)%8])}>Sonraki Sokağa Geç →</button>
      <button type="button" className="tt-secondary" onClick={()=>start(active)}>↻ Farklı sorularla tekrar oyna</button>

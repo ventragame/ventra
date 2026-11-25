@@ -19,6 +19,7 @@ import './food-market-premium.css';
 import './garden-child-legibility.css';
 import {GardenHelp} from '../GardenHelp';
 import {LearningMotion} from '@/components/learning/motion/LearningMotion';
+import {GameFinale} from '../GameFinale';
 
 type Props={
  profileId:string;gradeLevel?:number|null;englishLevel:EnglishPlacement;
@@ -225,7 +226,7 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
   setFeedback(stage===4
    ?{good:true,text:handOver(id),lang:'en',detail:`${marketWord(id).tr} · Müşteri mutlu!`}
    :{good:true,text:`✓ ${upper(marketWord(id).id)}!`,lang:'en',detail:`${marketWord(id).tr} · ${stage===5?'Sepete girdi!':'Doğru!'}`});
-  if(stage===2)speak(id);
+  if(stage===2||stage===5)speak(id);
   if(stage===4)speak(handOver(id));
  }
  function advance(){
@@ -336,6 +337,8 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
            onClick={()=>speak(id)} disabled={!canHear} aria-label={`${marketWord(id).tr}, İngilizce ${id}, dinle`}>
            <FoodIllustration id={id} className="fm7-recap-art"/><span lang="en">{id}</span></button>)}</div>
        </div>}
+       {aisle==='cafe'&&stage===5&&<GameFinale title="Lezzet Pazarı tamamlandı!"
+        detail="Üç sokağın 15 görevinin hepsini bitirdin."/>}
        <button className="fm-cta" onClick={()=>{
          if(stage<5)changeStage((stage+1) as MarketStage);
          else if(aisle==='orchard')changeStage(1,'bakery');

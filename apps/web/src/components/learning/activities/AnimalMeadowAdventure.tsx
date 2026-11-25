@@ -19,6 +19,7 @@ import './animal-meadow.css';
 import './animal-meadow-premium.css';
 import './garden-child-legibility.css';
 import {gradeLevelLabel} from '@/lib/learning/gradeLabel';
+import {GameFinale} from '../GameFinale';
 
 /** Stars for one run: the value saved and the one shown on the completion scene. */
 const animalRunStars=(wrong:number):1|2|3=>wrong===0?3:wrong<=2?2:1;
@@ -372,6 +373,8 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
               onClick={()=>speak(word)} disabled={!canSpeak(word)} aria-label={`${word.tr}, İngilizce ${word.id}, dinle`}>
               <img src={word.image} alt="" width={64} height={64} draggable={false}/><span lang="en">{word.id}</span></button>)}</div>
           </div>}
+          {stage===5&&<GameFinale tone="dark" title="Hayvan Çayırı tamamlandı!"
+            detail="Beş görevin hepsinde hayvanların İngilizcesini çalıştın."/>}
           <button onClick={()=>{if(stage===5)onAllCompleted();else reset((stage+1) as Stage)}} className="am-cta mt-5 w-full">
             {stage===5?'Kelime Bahçesine Dön →':'Sonraki Görev →'}
           </button>

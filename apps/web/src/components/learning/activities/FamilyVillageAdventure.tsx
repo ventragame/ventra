@@ -25,6 +25,7 @@ import {GardenQuestNavigator} from './GardenQuestNavigator';
 import './garden-quest-navigation.css';
 import './family-village-premium.css';
 import './garden-child-legibility.css';
+import {GameFinale} from '../GameFinale';
 
 type Props={
  profileId:string;gradeLevel:number|null;englishLevel:EnglishPlacement;progress:FamilyVillageProgress;
@@ -337,6 +338,8 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
               aria-label={`${villageWord(id).tr}, İngilizce ${id}, dinle`}>
               <span className="fv7-recap-art" aria-hidden="true"><FamilyWordArt id={id}/></span><span lang="en">{id}</span></button>)}</div>
           </div>}
+          {district==='routines'&&stage===5&&<GameFinale tone="dark" title="Aile Köyü tamamlandı!"
+           detail="Dört mahallenin 20 görevinin hepsini bitirdin."/>}
           <button className="fv-primary" onClick={()=>{
            if(stage<5)start((stage+1) as VillageStage);
            else if(district==='family')start(1,'rooms');

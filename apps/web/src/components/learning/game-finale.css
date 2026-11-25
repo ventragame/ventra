@@ -1,0 +1,32 @@
+/* Final-chapter closing note, shared by every game's last reward screen.
+ * Doubled classes: game reward screens style their own children with
+ * rules like `.harbor-finale>div` (55px), which must not reach this note. */
+.game-finale.game-finale{display:flex;align-items:center;gap:12px;box-sizing:border-box;
+ width:min(100%,460px);margin:8px auto;padding:12px 16px;border-radius:20px;
+ text-align:left;font-size:14px;line-height:1.35;letter-spacing:normal;text-transform:none;
+ background:linear-gradient(135deg,#fffaf0 0%,#ffefc2 100%);color:#6a4310;
+ border:2px solid #f1c35f;box-shadow:0 5px 0 #dfb15a73,0 12px 22px #a8781f2e;
+ animation:game-finale-in .5s cubic-bezier(.2,.9,.3,1.25) both}
+.game-finale.game-finale[data-tone="dark"]{
+ background:linear-gradient(135deg,#173f66f2 0%,#0d2a4af7 100%);color:#fff3cf;
+ border-color:#f3cd6f;box-shadow:0 10px 24px #00000059,inset 0 0 0 1px #ffffff14}
+.game-finale .game-finale-medal{flex:none;display:grid;place-items:center;width:52px;height:52px;
+ border-radius:50%;font-size:30px;line-height:1;
+ background:radial-gradient(circle at 35% 30%,#fffbe9 0%,#ffd66b 58%,#efb13b 100%);
+ box-shadow:inset 0 -3px 0 #c98a2373,0 3px 8px #b07a1f40;
+ animation:game-finale-medal 2.8s ease-in-out .6s infinite}
+.game-finale .game-finale-copy{display:flex;flex-direction:column;gap:3px;min-width:0}
+.game-finale .game-finale-title{display:block;margin:0;font-size:17px;font-weight:950;line-height:1.2;color:#7a4808}
+.game-finale .game-finale-detail{display:block;margin:0;font-size:14px;font-weight:750;line-height:1.35;color:#7b5a28}
+.game-finale[data-tone="dark"] .game-finale-title{color:#ffe08a}
+.game-finale[data-tone="dark"] .game-finale-detail{color:#e8f1ff}
+@keyframes game-finale-in{from{opacity:0;transform:translateY(8px) scale(.96)}to{opacity:1;transform:none}}
+@keyframes game-finale-medal{0%,100%{transform:rotate(-7deg)}50%{transform:rotate(7deg) scale(1.05)}}
+@media(max-width:380px){
+ .game-finale.game-finale{gap:10px;padding:10px 12px}
+ .game-finale .game-finale-medal{width:44px;height:44px;font-size:25px}
+ .game-finale .game-finale-title{font-size:16px}
+}
+@media(prefers-reduced-motion:reduce){
+ .game-finale.game-finale,.game-finale .game-finale-medal{animation:none}
+}

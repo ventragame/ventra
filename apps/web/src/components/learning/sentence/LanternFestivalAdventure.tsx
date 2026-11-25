@@ -20,6 +20,7 @@ import {LANTERN_CHAPTERS,LANTERN_COLORS,LANTERN_PLACES,LANTERN_ANIMALS,
 import './lantern-festival.css';
 import './sentence-clarity-v3.css';
 import {gradeLevelLabel} from '@/lib/learning/gradeLabel';
+import {GameFinale} from '../GameFinale';
 
 type Phase='welcome'|'lesson'|'play'|'reward';
 interface Props{
@@ -346,8 +347,9 @@ export function LanternFestivalAdventure({profileId,gradeLevel,englishLevel,hist
     <SentenceQuestReward independent={independent}/>
     <div className="lf-final-stars" aria-label={stars+' yıldız'}>{'★'.repeat(stars)}</div>
     <h2>Fener Festivali Aydınlandı!</h2>
-    <p>Cümle Meydanı’nın altı görevini birleştiren bu finali tamamladın.
-     Yeni denemelerde farklı renk, nesne, yer, karakter ve İngilizce ifadeleri keşfedebilirsin.</p>
+    <GameFinale tone="dark" title="Cümle Meydanı tamamlandı!"
+     detail="Altı görevin hepsinde İngilizce cümleler kurdun."/>
+    <p>Yeni denemelerde farklı renk, nesne, yer, karakter ve İngilizce ifadeleri keşfedebilirsin.</p>
     <div className="lf-result-grid">
      <div><strong>{total}</strong>İngilizce cümle</div><div><strong>{independent}</strong>bağımsız çözüm</div>
      <div><strong>{bestStreak}</strong>en uzun seri</div><div><strong>{formatTime(seconds)}</strong>süre</div></div>

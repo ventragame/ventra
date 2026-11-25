@@ -29,6 +29,7 @@ import './story-detective-adventure.css';
 import './story-character-motion.css';
 import './story-motion-guards.css';
 import './story-scene-standard.css';
+import {GameFinale} from '../GameFinale';
 
 interface Props{
  profileId:string;gradeLevel:number|null;englishLevel:ForestPlacement;
@@ -512,6 +513,8 @@ export function StoryDetectiveAdventure({profileId,gradeLevel,englishLevel,onBac
    </div>
    <StoryRewardSummary stars={stars} mistakes={answers.reduce((n,a)=>n+a.mistakes,0)}
     hints={answers.filter(a=>a.hintUsed).length}/>
+   {chapter.episode===6&&<GameFinale title="Bütün gizemleri çözdün!"
+    detail="Hikâye Dedektifi’nin altı bölümünün hepsini tamamladın."/>}
    <div className="sd-reward-actions">
     <button type="button" className="sd-primary"
      onClick={()=>start(chapter.episode)}>↻ Başka Macera</button>
