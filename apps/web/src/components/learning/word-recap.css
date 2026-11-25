@@ -1,0 +1,19 @@
+/* End-of-lesson word recap (Harf Korusu, Tema Kasabası): tap a word to hear it. */
+.word-recap{width:100%;margin-top:16px;padding:12px;border-radius:20px;
+ background:#f3fbf4;border:1px solid #cfe9d8;text-align:center}
+.word-recap-title{margin:0 0 10px;font-size:13px;font-weight:900;color:#2d6a5c}
+.word-recap-list{display:flex;flex-wrap:wrap;justify-content:center;gap:8px}
+.word-recap-chip{display:inline-flex;align-items:center;gap:8px;min-height:48px;padding:6px 14px 6px 8px;
+ border-radius:999px;border:2px solid #cde8da;background:#fff;color:#1f5a4d;
+ box-shadow:0 3px 0 #bfe0cf;cursor:pointer;touch-action:manipulation;
+ transition:transform .14s ease,box-shadow .14s ease,border-color .14s ease}
+.word-recap-chip:hover{border-color:#94d4b6}
+.word-recap-chip:active{transform:translateY(2px);box-shadow:0 1px 0 #bfe0cf}
+.word-recap-chip[data-playing]{border-color:#6cc9a3;background:#effcf5}
+.word-recap-chip:focus-visible{outline:4px solid #f4c15d;outline-offset:3px}
+.word-recap-icon{width:32px;height:32px;display:grid;place-items:center;border-radius:999px;
+ background:#e3f6ec;font-size:18px}
+.word-recap-text{display:flex;flex-direction:column;align-items:flex-start;line-height:1.15;text-align:left}
+.word-recap-en{font-size:15px;font-weight:900}
+.word-recap-tr{font-size:12px;font-weight:700;color:#4e7f72}
+@media(prefers-reduced-motion:reduce){.word-recap-chip{transition:none}}

@@ -14,6 +14,7 @@ import {planThemeLesson,themeEffectiveTier,themeTaskHint,themeAnswerIndependent,
 import {getThemeTownProgress,recordThemeQuest,
  type ThemeTownProgress} from '@/lib/learning/themeQuestProgress';
 import {loadThemeCheckpoint,saveThemeCheckpoint,clearThemeCheckpoint} from '@/lib/learning/themeQuestCheckpoint';
+import {WordRecap,uniqueRecapWords} from '../WordRecap';
 import './theme-town.css';
 import './theme-art-v2.css';
 
@@ -368,6 +369,9 @@ export function ThemeTownAdventure({profileId,englishLevel,gradeLevel,onBack,onS
      <button type="button" className="tt-secondary" onClick={()=>start(active)}>↻ Farklı sorularla tekrar oyna</button>
      <button type="button" className="tt-secondary" onClick={leave}>Tema Kasabası haritasına dön</button>
     </div>
+    <WordRecap title="Bu sokağın İngilizcesi · dokun ve dinle"
+     rate={gradeLevel!==null&&gradeLevel<=2?0.8:0.92}
+     words={uniqueRecapWords((deck?.tasks??[]).flatMap(t=>[t.word,t.phrase]))}/>
    </main>}
    <footer className="tt-footer">🌿 Her çocuk kendi hızında öğrenir. Yanlışlar, bir sonraki denemeye hazırlıktır.</footer>
   </div>

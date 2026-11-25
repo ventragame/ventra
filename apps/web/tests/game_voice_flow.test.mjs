@@ -1,6 +1,7 @@
 import test from 'node:test';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
+import {uniqueRecapWords} from '../src/lib/learning/recapWords.ts';
 
 const src=p=>fs.readFileSync(new URL('../src/'+p,import.meta.url),'utf8').replace(/\r\n/g,'\n');
 
@@ -77,4 +78,20 @@ test('Diyalog Limanı finale buttons keep a readable size; Harf Korusu back butt
  assert.match(harbor,/\.harbor-finale-actions\{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;font-size:16px;line-height:1\.25\}/);
  assert.match(harbor,/\.harbor-finale-actions>button\{margin-top:5px;min-height:48px;font-size:16px\}/);
  assert.match(src('components/learning/alphabet/alphabet-grove.css'),/\.ag-back\{[^}]*min-height:47px;min-width:47px\}/);
+});
+
+test('Harf Korusu and Tema Kasabası end with the words of the round to hear again',()=>{
+ const words=uniqueRecapWords([{en:'book',tr:'kitap'},null,{en:'Book',tr:'kitap'},{en:'pencil',tr:'kurşun kalem'},undefined,{en:'',tr:'boş'}]);
+ assert.deepEqual(words.map(w=>w.en),['book','pencil'],'repeats and empty entries are dropped');
+ assert.equal(uniqueRecapWords(Array.from({length:20},(_,i)=>({en:'w'+i,tr:'k'+i}))).length,8,'at most eight chips');
+ const theme=src('components/learning/themes/ThemeTownAdventure.tsx');
+ assert.match(theme,/<WordRecap title="Bu sokağın İngilizcesi · dokun ve dinle"/);
+ assert.match(theme,/words=\{uniqueRecapWords\(\(deck\?\.tasks\?\?\[\]\)\.flatMap\(t=>\[t\.word,t\.phrase\]\)\)\}/);
+ const alphabet=src('components/learning/alphabet/AlphabetGroveAdventure.tsx');
+ assert.match(alphabet,/<WordRecap title="Bu dersin kelimeleri · dokun ve dinle"/);
+ // Letter lessons show each letter's anchor word.
+ assert.match(alphabet,/return letter\?\{en:letter\.anchor,tr:letter\.upper\+' harfi · '\+letter\.tr,icon:letter\.icon\}:null;/);
+ const recap=src('components/learning/WordRecap.tsx');
+ assert.match(recap,/useEffect\(\(\)=>\(\)=>\{request\.current\+\+;soundService\.cancelSpeech\(\);\},\[\]\);/);
+ assert.match(src('components/learning/word-recap.css'),/\.word-recap-chip\{display:inline-flex;align-items:center;gap:8px;min-height:48px;/);
 });

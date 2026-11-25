@@ -14,6 +14,7 @@ import {getAlphabetProgress,recordAlphabetLesson,type AlphabetProgress} from '@/
 import {
  loadAlphabetCheckpoint,saveAlphabetCheckpoint,clearAlphabetCheckpoint
 } from '@/lib/learning/alphabetCheckpoint';
+import {WordRecap,uniqueRecapWords} from '../WordRecap';
 import './alphabet-grove.css';
 import './alphabet-art-v2.css';
 
@@ -361,6 +362,14 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
      <button type="button" className="ag-secondary-action" onClick={()=>enter(lesson)}>↻ Farklı görevlerle tekrar oyna</button>
      <button type="button" className="ag-secondary-action" onClick={leave}>Harf Korusu haritasına dön</button>
     </div>
+    <WordRecap title="Bu dersin kelimeleri · dokun ve dinle"
+     rate={gradeLevel!=null&&gradeLevel<=2?0.79:0.9}
+     words={uniqueRecapWords(deck.map(t=>{
+      if(t.word)return {en:t.word.word,tr:t.word.tr,icon:t.word.icon};
+      // Letter tasks: the letter's anchor word ("A · apple").
+      const letter=ALPHABET_LETTERS.find(x=>x.id===t.letterId);
+      return letter?{en:letter.anchor,tr:letter.upper+' harfi · '+letter.tr,icon:letter.icon}:null;
+     }))}/>
    </main>}
    <footer className="ag-footer">🌿 Her çocuk kendi hızında öğrenir. Ses yoksa görselle devam edebilirsin.</footer>
   </div>
