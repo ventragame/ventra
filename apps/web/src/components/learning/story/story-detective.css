@@ -18,8 +18,8 @@
  background:linear-gradient(110deg,#fffaf0f8,#eaffedfa 74%,#fff7e9f7);
  border-bottom:2px solid #e0bc85;box-shadow:0 6px 25px #285d5652;
 }
-.sd-header>strong{
- font-size:clamp(15px,2.1vw,23px);font-weight:1000;letter-spacing:-.035em;
+.sd-header>strong,.sd-header>.sd-header-title{
+ margin:0;font-size:clamp(15px,2.1vw,23px);font-weight:1000;letter-spacing:-.035em;
  white-space:nowrap;overflow:hidden;text-overflow:ellipsis;
 }
 .sd-back{
@@ -313,7 +313,7 @@
  .sd-header{min-height:calc(59px + env(safe-area-inset-top,0px));
   padding:calc(5px + env(safe-area-inset-top,0px)) 9px 6px}
  .sd-back{width:44px;height:44px}
- .sd-header>strong{font-size:15px}
+ .sd-header>strong,.sd-header>.sd-header-title{font-size:15px}
  .sd-header-right{gap:6px}
  .sd-steps{gap:3px}
  .sd-steps i{width:10px;height:8px}

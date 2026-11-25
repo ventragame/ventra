@@ -70,6 +70,24 @@
    crystal is clipped to its shape, so the outline is drawn by its wrapper. */
 .tp8-screen .tp-rune-art:has(.tp6-color-crystal){filter:drop-shadow(0 0 1px #1d3f41b3) drop-shadow(0 4px 5px #2c4f4b40)}
 .tp8-screen .tp6-featured>span{font-size:14px;font-weight:900}
+/* Echo crystal for listening rounds: a cut gem whose rings spread while the
+   English word plays. Decorative; the answer choices stay the only targets. */
+.tp8-screen .tp9-echo{align-items:center;min-width:150px}
+.tp9-echo-orb{position:relative;width:96px;height:96px;display:grid;place-items:center}
+.tp9-echo-gem{width:52px;height:64px;clip-path:polygon(50% 0,100% 31%,81% 100%,19% 100%,0 31%);
+ background:linear-gradient(155deg,#f6fdff 0%,#a8ecf2 36%,#7f8cf3 74%,#5d4bd0 100%);
+ filter:drop-shadow(0 7px 9px rgba(93,75,208,.35));transition:transform .3s ease}
+.tp9-echo-orb>i{position:absolute;inset:4px;border-radius:50%;border:3px solid #8fd8e6;opacity:0;pointer-events:none}
+.tp9-echo[data-speaking] .tp9-echo-gem{transform:scale(1.08)}
+.tp9-echo[data-speaking] .tp9-echo-orb>i{animation:tp9-echo-ring 1.35s ease-out infinite}
+.tp9-echo[data-speaking] .tp9-echo-orb>i:nth-of-type(2){animation-delay:.45s}
+.tp9-echo[data-speaking] .tp9-echo-orb>i:nth-of-type(3){animation-delay:.9s}
+@keyframes tp9-echo-ring{from{transform:scale(.5);opacity:.9}to{transform:scale(1.2);opacity:0}}
+@media(prefers-reduced-motion:reduce){
+ .tp9-echo .tp9-echo-orb>i{animation:none!important}
+ .tp9-echo[data-speaking] .tp9-echo-orb>i:first-of-type{opacity:.6;transform:scale(1)}
+ .tp9-echo-gem{transition:none}
+}
 .tp8-screen .tp6-controls{margin:4px auto 6px}
 .tp8-screen .tp6-workbench .tp-help{min-height:44px;font-size:13px}
 .tp8-screen .tp8-hint-text{padding:6px 12px;border-radius:12px;background:#fff3d4;border:1px solid #f0cf96;

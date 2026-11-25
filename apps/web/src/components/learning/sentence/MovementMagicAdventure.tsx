@@ -25,6 +25,8 @@ type Phase='welcome'|'chapter'|'play'|'reward';
 interface Props{
  profileId:string;gradeLevel:number|null;englishLevel:EnglishPlacement;
  history:readonly SentenceAnswerEvidence[];onExit:()=>void;onComplete:(rows:SentenceAnswerEvidence[])=>void;
+ /** Opens the next Cümle Meydanı mission straight from the reward screen. */
+ onNext?:()=>void;nextLabel?:string;
 }
 const STAGE_ICONS:Record<MagicVerb,string>={fly:'🪽',jump:'✦',run:'➜',sleep:'☾'};
 const CLOCK=(seconds:number)=>String(Math.floor(seconds/60)).padStart(2,'0')+':'+String(seconds%60).padStart(2,'0');
@@ -61,7 +63,7 @@ function validCheckpoint(value:unknown,profileId:string,grade:number|null,level:
     typeof row.timestamp==='string'&&Number.isFinite(Date.parse(row.timestamp)))&&
   (c.answers.length===c.index||Boolean(c.awaitingFinalSave)&&c.answers.length===p.trials.length);
 }
-export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,history,onExit,onComplete}:Props){
+export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,history,onExit,onComplete,onNext,nextLabel}:Props){
  const [phase,setPhase]=useState<Phase>('welcome');
  const [resumed,setResumed]=useState(false);
  const [plan,setPlan]=useState<MovementPlan|null>(null);
@@ -71,6 +73,9 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
  const [repairFixed,setRepairFixed]=useState(false);
  const [picked,setPicked]=useState<string[]>([]);
  const [wrongSlot,setWrongSlot]=useState(-1);
+ /** Last wrong verb / place tap: shown red until the next choice. */
+ const [wrongVerb,setWrongVerb]=useState<MagicVerb|null>(null);
+ const [wrongPlace,setWrongPlace]=useState<MagicPlace|null>(null);
  const [mistakes,setMistakes]=useState(0);
  const [assisted,setAssisted]=useState(false);
  const [heardModel,setHeardModel]=useState(false);
@@ -92,6 +97,9 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
  const saveLock=useRef(false);
  const finishedRef=useRef<SentenceAnswerEvidence[]|null>(null);
  const rootRef=useRef<HTMLDivElement>(null);
+ // Each phase (welcome, play, reward) opens at its top, not where the child
+ // last scrolled to reach the build button.
+ useEffect(()=>{rootRef.current?.scrollTo({top:0,behavior:'instant'});},[phase]);
  const checkpointLoaded=useRef(false);
  const trial=plan?.trials[index]??null;
  const question=trial?.question??null;
@@ -189,6 +197,7 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
  const resetRound=()=>{
   setChosenAction(null);setChosenPlace(null);setRepairFixed(false);setPicked([]);
   setMistakes(0);setAssisted(false);setHeardModel(false);setWrongSlot(-1);
+  setWrongVerb(null);setWrongPlace(null);
   setFeedback('');setFeedbackError(false);setActivated(false);setSaveError('');
  };
  function begin(){
@@ -216,20 +225,22 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
  function actionChoice(action:MagicVerb){
   if(!trial||!requiredAction||chosenAction||advancing.current)return;
   if(!checkMagicAction(trial,action)){
+   setWrongVerb(action);
    incorrect('Bu hareket bu karaktere ait değil. İngilizce eylem ile hayvanın yapabileceği şeyi eşleştir.');
    return;
   }
-  setChosenAction(action);setFeedbackError(false);
+  setWrongVerb(null);setChosenAction(action);setFeedbackError(false);
   setFeedback('Hareketi buldun. '+(requiredPlace?'Şimdi sahnede konumu seç.':'İngilizce cümleyi oluştur.'));
   soundService.playSfx('tap',.42);
  }
  function placeChoice(place:MagicPlace){
   if(!trial||!requiredPlace||chosenPlace||advancing.current||requiredAction&&!chosenAction)return;
   if(!checkMagicPlace(trial,place)){
+   setWrongPlace(place);
    incorrect('Seçtiğin yer verilen konumla uyuşmuyor. Konum sözcüğünü ve sahneyi karşılaştır.');
    return;
   }
-  setChosenPlace(place);setFeedbackError(false);
+  setWrongPlace(null);setChosenPlace(place);setFeedbackError(false);
   setFeedback('Doğru konum! Şimdi hareketi İngilizce cümlede anlat.');
   soundService.playSfx('tap',.45);
  }
@@ -326,7 +337,7 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
  </div>);
  const visual=<MovementMagicStage chapter={stage} actor={trial?.actor??'bird'}
   verb={trial?.verb??'fly'} color={trial?.color??'blue'} place={trial?.place??'bridge'}
-  selectedPlace={chosenPlace} activated={activated} showTargets={phase==='play'&&Boolean(requiredPlace)&&(!requiredAction||Boolean(chosenAction))&&!chosenPlace}
+  selectedPlace={chosenPlace} wrongPlace={wrongPlace} activated={activated} showTargets={phase==='play'&&Boolean(requiredPlace)&&(!requiredAction||Boolean(chosenAction))&&!chosenPlace}
   onPlace={placeChoice} disabled={saving||advancing.current} sentence={question?.sentence}/>;
  const estimated=plan?.estimatedMinutes??(gradeLevel!==null&&gradeLevel<=2?[7,10]:gradeLevel!==null&&gradeLevel>=5?[11,16]:[9,13]);
  const estimatedText=estimated[0]+'–'+estimated[1]+' dk';
@@ -391,7 +402,8 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
     <div><strong>{bestStreak}</strong>En uzun seri</div>
     <div><strong>{CLOCK(seconds)}</strong>Öğrenme süresi</div>
    </div>
-   <button type="button" className="mm-primary" onClick={begin}>↻ Yeni Hareket Macerası</button>
+   {onNext&&<button type="button" className="mm-primary" onClick={onNext}>✦ Sıradaki Görev{nextLabel?': '+nextLabel:''} →</button>}
+   <button type="button" className={onNext?'mm-tool':'mm-primary'} style={onNext?{marginTop:15}:undefined} onClick={begin}>↻ Yeni Hareket Macerası</button>
    <button type="button" className="mm-tool" style={{marginTop:15}} onClick={onExit}>Cümle Meydanı’na Dön</button>
   </div>:<>
    <section className="mm-status">
@@ -439,7 +451,7 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
       {requiredAction&&<div className="mm-verb-grid" role="group" aria-label="İngilizce hareketi seç">
        {MAGIC_VERBS.map(item=><button key={item.id} type="button" className="mm-verb"
         disabled={Boolean(chosenAction)||activated||saving}
-        data-correct={chosenAction===item.id} aria-pressed={chosenAction===item.id}
+        data-correct={chosenAction===item.id} data-wrong={wrongVerb===item.id||undefined} aria-pressed={chosenAction===item.id}
         onClick={()=>actionChoice(item.id)}>
         <span className="mm-verb-icon" aria-hidden="true">{STAGE_ICONS[item.id]}</span>
         <span><strong>{item.en}</strong><small>{item.tr}</small></span>

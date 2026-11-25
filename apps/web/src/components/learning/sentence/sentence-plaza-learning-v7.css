@@ -45,6 +45,10 @@
   bottom:calc(100% + 4px);
  }
  .sp-v3 .sp-v7-visual-task{font-size:12px;padding:9px 11px;min-height:46px}
+ /* Phone: the low "under the tree" label sits below its marker, and the scene
+    caption moves right so the two never meet. */
+ .sp-v3 .sp-v7-location-scene .sp-v6-hotspot[data-tip=below] .sp-v6-hotspot-tooltip{bottom:auto;top:calc(100% + 4px)}
+ .sp-v3 .sp-v7-location-scene .sp-scene-caption{left:auto;right:7px}
 }
 /* Keep labels discoverable without hover on touch screens. */
 @media(hover:none){

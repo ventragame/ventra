@@ -218,6 +218,9 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
     setFeedback(stage===5
       ?{good:true,text:'✨ '+portalSentence(current.target),lang:'en',detail:`${current.target} yıldız görüyorum.`}
       :{good:true,text:'✨ '+englishNumber(current.target).toUpperCase()+'!',lang:'en',detail:`${current.target} · Harika!`});
+    // Every success is heard once in English: the word, or the whole portal
+    // sentence. Listening rounds already played the word as their question.
+    if(stage!==4)speak(current.target,stage===5);
     setAwaitingNext(true);
   }
   /** Spelling stars: the child builds an English word, not a numeric quantity. */
@@ -286,8 +289,16 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
   useAutoQuestionAdvance({
     ready:awaitingNext,
     blocked:saving||completed||Boolean(saveError)||!activePlan,
-    delayMs:1050,onAdvance:next
+    delayMs:1050,speaking:speaking&&!muted,onAdvance:next
   });
+  // Listening rounds play their number as soon as the question opens, as the
+  // other worlds do; the big button replays it. If a browser refuses speech
+  // without a tap, the button and the written help stay available.
+  useEffect(()=>{
+    if(stage!==4||!current||muted||!speechAvailable||awaitingNext||completed||saving)return;
+    const timer=window.setTimeout(()=>{soundService.unlockAudio();speak(current.target);},350);
+    return()=>window.clearTimeout(timer);
+  },[stage,question,current?.target,activePlan,muted,speechAvailable,awaitingNext,completed,saving]);
   // Finish discovery automatically only after every unique crystal is saved
   // into the local evidence array. Failed persistence remains retryable.
   useAutoQuestionAdvance({

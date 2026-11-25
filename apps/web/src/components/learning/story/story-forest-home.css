@@ -35,7 +35,7 @@
  padding:7px 12px;border-radius:15px;border:2px solid white;
  box-shadow:0 4px 14px #215d7077}
 .sfh-card-footer{display:flex;align-items:center;gap:12px;padding:16px 17px 9px}
-.sfh-number{display:grid;place-items:center;min-width:43px;width:43px;height:43px;
+.sfh-number{display:grid;place-items:center;min-width:44px;width:43px;height:43px;
  border-radius:13px;background:#d0f2e2;color:#1f766b;font-weight:1000;font-size:15px}
 .sfh-card-footer>div{flex:1;min-width:0}
 .sfh-card-footer strong{display:block;font-size:clamp(16px,2vw,22px);font-weight:1000;

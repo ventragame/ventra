@@ -138,6 +138,12 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
   });
   if(!worked)setAudioFailed(true);
  };
+ // Listening questions start with their sound (the buttons replay it).
+ useEffect(()=>{
+  if(phase!=='playing'||!task?.audioText||!questionNeedsAudio(task.kind)||resolved||saving)return;
+  const timer=window.setTimeout(()=>speak(task.audioText!,task.kind==='letter-name'?'name':'word'),450);
+  return()=>window.clearTimeout(timer);
+ },[phase,task?.id]);
  const showHint=()=>{
   if(saving||resolved||!task||hintVisible)return;
   setHintVisible(true);setHints(v=>v+1);

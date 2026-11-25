@@ -148,7 +148,7 @@
 .lf-builder-head{display:flex;justify-content:space-between;align-items:center;gap:8px;
  font-size:12px;color:#c5ede8;margin-bottom:10px}
 .lf-slots{display:flex;justify-content:center;align-items:center;flex-wrap:wrap;gap:6px;min-height:64px;padding:6px 0}
-.lf-slot{min-width:35px;min-height:43px;padding:8px;border:1px dashed #bed9e4a8;border-radius:11px;
+.lf-slot{min-width:35px;min-height:44px;padding:8px;border:1px dashed #bed9e4a8;border-radius:11px;
  background:#ffffff1b;color:#fff6e8;font-size:clamp(12px,1.1vw,14px);font-weight:950}
 .lf-slot[data-filled=true]{border:1px solid #fff4d0;color:#24475e;background:linear-gradient(110deg,#edf3bc,#aae7d6)}
 .lf-slot[data-error=true]{border-color:#ffb5c0;background:#994b69;color:#fff}

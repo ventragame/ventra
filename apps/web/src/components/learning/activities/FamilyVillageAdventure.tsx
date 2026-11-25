@@ -118,6 +118,15 @@ export function FamilyVillageAdventure({profileId,gradeLevel,englishLevel,progre
   dialogRef.current?.scrollTo({top:0,behavior:'instant'});
   setHeard(false);setSpeaking(false);
  },[district,stage,question,revision]);
+ // Listening rounds play their word, and "find it in the house" rounds their
+ // English instruction, as soon as a question opens (as Hayvan Çayırı does);
+ // the buttons replay them. Without a device voice the listening call opens
+ // the written support at once.
+ useEffect(()=>{
+  if((stage!==3&&stage!==4)||!task||muted||answered||busy||saved)return;
+  const timer=window.setTimeout(()=>{soundService.unlockAudio();speak(task.audio,stage===3);},450);
+  return()=>window.clearTimeout(timer);
+ },[district,stage,question,revision,task?.audio,muted,answered,busy,saved]);
 
  function speak(text:string,requireFullAudio=false){
    cancelSpeech();

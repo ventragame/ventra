@@ -143,6 +143,13 @@ export function ThemeTownAdventure({profileId,englishLevel,gradeLevel,onBack,onS
   });
   if(!worked)setSpeechFailed(true);
  };
+ // Listening questions and new-word cards start with their English (the
+ // buttons replay it); other tasks keep audio as a tap-only help.
+ useEffect(()=>{
+  if(phase!=='playing'||!task?.audioText||(task.kind!=='listen'&&task.kind!=='discover')||locked||saving)return;
+  const timer=window.setTimeout(()=>speak(task.audioText!),450);
+  return()=>window.clearTimeout(timer);
+ },[phase,task?.id]);
  const showHint=()=>{
   if(!task||hintVisible||saving||locked)return;
   setHintVisible(true);setHints(n=>n+1);

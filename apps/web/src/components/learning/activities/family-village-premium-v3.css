@@ -202,7 +202,7 @@
 @media(max-width:760px){
  .fv-screen.fv3-screen{padding:max(6px,env(safe-area-inset-top,0px)) 7px max(19px,env(safe-area-inset-bottom,0px))}
  .fv3-screen .fv3-top{flex-wrap:nowrap;gap:5px;padding:6px;border-radius:15px;margin-bottom:9px}
- .fv3-screen .fv3-back{padding:6px 9px;min-height:43px}
+ .fv3-screen .fv3-back{padding:6px 9px;min-height:44px}
  .fv3-back-label{display:none}
  .fv3-screen .fv3-heading{order:0;flex-basis:auto;text-align:center}
  .fv3-heading>span{font-size:12px;letter-spacing:.04em}
@@ -231,7 +231,7 @@
  .fv3-screen .fv3-panel{padding:10px 8px 15px}
  .fv3-panel-head h2{font-size:clamp(18px,4.6vw,24px)}
  .fv3-panel-head .fv-eyebrow{font-size:12px}
- .fv3-screen .fv3-audio-toggle{min-height:43px;min-width:43px;border-radius:11px}
+ .fv3-screen .fv3-audio-toggle{min-height:44px;min-width:44px;border-radius:11px}
  .fv3-screen .fv3-meter{margin-top:9px;height:7px}
  .fv3-screen .fv3-count{font-size:12px;margin-top:4px}
  .fv3-screen .fv3-prompt{margin:9px auto;padding:8px 9px;gap:7px;border-radius:13px}
@@ -260,7 +260,7 @@
  .fv3-screen .fv3-featured-label{font-size:12px}
  .fv3-screen .fv3-audio-task{margin:8px auto}
  .fv3-screen .fv3-audio-task .fv-listen{min-height:49px;font-size:13px;padding:9px}
- .fv3-screen .fv-hint-button{font-size:12px;min-height:43px;padding:8px 10px}
+ .fv3-screen .fv-hint-button{font-size:12px;min-height:44px;padding:8px 10px}
  .fv3-screen .fv-notice,.fv3-screen .fv3-discovery-status{padding:8px;font-size:12px}
  .fv3-screen .fv3-celebrate{min-height:260px;padding:13px 5px 19px}
  .fv3-screen .fv3-celebrate .fv-medal{width:73px;height:73px;font-size:32px}

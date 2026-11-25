@@ -5,7 +5,7 @@
 @media(max-width:1350px){.kids-course-floating{top:calc(93px + env(safe-area-inset-top,0px))}}
 @media(max-width:900px){.kids-course-floating{top:calc(81px + env(safe-area-inset-top,0px));right:12px;min-height:57px;padding:7px 11px;border-radius:15px}.kids-course-floating>span:first-child{width:33px;height:37px;font-size:22px}.kids-course-floating strong{font-size:12px}.kids-course-floating small{font-size:12px}}
 @media(max-width:390px){.kids-course-floating{right:10px;top:calc(78px + env(safe-area-inset-top,0px));padding:7px 10px;gap:7px}.kids-course-floating strong{font-size:12px}.kids-course-floating small{font-size:12px}.kids-course-floating>span:first-child{width:30px;height:34px}}
-@media(max-height:510px){.kids-course-floating{top:calc(62px + env(safe-area-inset-top,0px));min-height:43px}.kids-course-floating>span:first-child{width:29px;height:29px;font-size:18px}.kids-course-floating small{display:none}}
+@media(max-height:510px){.kids-course-floating{top:calc(62px + env(safe-area-inset-top,0px));min-height:44px}.kids-course-floating>span:first-child{width:29px;height:29px;font-size:18px}.kids-course-floating small{display:none}}
 @media(prefers-reduced-motion:reduce){.kids-course-floating{transition:none}}
 
 @media(min-width:1280px){.kids-hud-course{display:inline-flex}}

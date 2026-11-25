@@ -178,14 +178,14 @@
 }
 @media(max-width:640px){
  .kids-world-hud{grid-template-columns:1fr auto;padding:calc(7px + env(safe-area-inset-top,0px)) 9px 12px;gap:5px}
- .kids-hud-icon{min-height:43px;min-width:43px;padding:0}
+ .kids-hud-icon{min-height:44px;min-width:44px;padding:0}
  .kids-hud-profile{min-height:44px;padding:4px 8px 4px 4px;gap:7px}
  .kids-hud-profile .kids-profile-avatar{min-width:34px;min-height:34px}
  .kids-hud-profile .kids-profile-label{display:none}
  .kids-hud-profile .kids-profile-name{font-size:12px;max-width:77px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
- .kids-hud-stat{min-height:43px;min-width:46px;border-radius:13px;padding:5px 8px;font-size:12px}
+ .kids-hud-stat{min-height:44px;min-width:46px;border-radius:13px;padding:5px 8px;font-size:12px}
  .kids-hud-stat .kids-stat-icon{font-size:17px}
- .kids-hud-simple{min-width:43px;min-height:43px;padding:8px 10px;border-radius:13px}
+ .kids-hud-simple{min-width:44px;min-height:44px;padding:8px 10px;border-radius:13px}
  .kids-world-caption{display:none}
  .kids-island-detail{left:10px;bottom:calc(87px + env(safe-area-inset-bottom,0px));width:calc(100vw - 20px);max-width:390px}
  .kids-island-detail-inner{padding:10px 13px 12px;border-radius:18px}
@@ -233,7 +233,7 @@
  .kids-mobile-stars{display:flex;align-items:center;gap:4px;min-height:42px;
    padding:0 8px;border-radius:14px;background:rgba(7,39,65,.78);
    border:1px solid rgba(252,231,164,.5);color:#ffe9ac;font-weight:900;font-size:13px;white-space:nowrap}
- .kids-mobile-icon{display:grid;place-items:center;min-width:43px;min-height:43px;
+ .kids-mobile-icon{display:grid;place-items:center;min-width:44px;min-height:44px;
    border-radius:14px;border:1px solid rgba(226,252,255,.43);
    background:linear-gradient(140deg,rgba(12,58,87,.95),rgba(6,36,64,.94));
    color:#fff;font-size:21px;box-shadow:0 5px 15px rgba(10,36,57,.2)}
@@ -277,7 +277,7 @@
  .kids-dock-island{min-height:49px;min-width:122px}
 }
 @media(max-width:360px){
- .kids-hud-profile{min-width:43px;padding:4px}
+ .kids-hud-profile{min-width:44px;padding:4px}
  .kids-hud-profile .kids-profile-name{display:none}
  .kids-mobile-actions{gap:5px}
  .kids-mobile-stars{padding:0 6px}

@@ -70,6 +70,8 @@ export function LanternFestivalAdventure({profileId,gradeLevel,englishLevel,hist
  const [repairFixed,setRepairFixed]=useState(false),[picked,setPicked]=useState<string[]>([]);
  const [mistakes,setMistakes]=useState(0),[hintUsed,setHintUsed]=useState(false);
  const [modelHeard,setModelHeard]=useState(false),[wrongSlot,setWrongSlot]=useState(-1);
+ /** Last wrong tap ("color:red", "animal:cat", "place:tree", "repair:2"). */
+ const [wrongPick,setWrongPick]=useState<string|null>(null);
  const [feedback,setFeedback]=useState(''),[feedbackError,setFeedbackError]=useState(false);
  const [lit,setLit]=useState(false),[saving,setSaving]=useState(false),[saveError,setSaveError]=useState('');
  const [stars,setStars]=useState(0),[seconds,setSeconds]=useState(0);
@@ -79,6 +81,9 @@ export function LanternFestivalAdventure({profileId,gradeLevel,englishLevel,hist
  const timer=useRef<ReturnType<typeof setTimeout>|null>(null),lock=useRef(false);
  const savingLock=useRef(false),loaded=useRef(false),retryRows=useRef<SentenceAnswerEvidence[]|null>(null);
  const root=useRef<HTMLDivElement>(null);
+ // Each phase (welcome, play, reward) opens at its top, not where the child
+ // last scrolled to reach the build button.
+ useEffect(()=>{root.current?.scrollTo({top:0,behavior:'instant'});},[phase]);
  const trial=plan?.trials[index]??null,question=trial?.question??null;
  const chapter=trial?.chapter??1,meta=LANTERN_CHAPTERS[chapter-1];
  const per=plan?.roundsPerChapter??lanternRoundsForGrade(gradeLevel);
@@ -101,7 +106,7 @@ export function LanternFestivalAdventure({profileId,gradeLevel,englishLevel,hist
  const removeCheckpoint=()=>{try{window.localStorage.removeItem(KEY+profileId);}catch{}};
  function resetRound(){
   setSelectedColor(null);setSelectedPlace(null);setSelectedAnimal(null);setRepairFixed(false);
-  setPicked([]);setMistakes(0);setHintUsed(false);setModelHeard(false);setWrongSlot(-1);
+  setPicked([]);setMistakes(0);setHintUsed(false);setModelHeard(false);setWrongSlot(-1);setWrongPick(null);
   setFeedback('');setFeedbackError(false);setLit(false);setSaveError('');
  }
  useEffect(()=>{
@@ -183,26 +188,26 @@ export function LanternFestivalAdventure({profileId,gradeLevel,englishLevel,hist
  function pickColor(color:LanternColor){
   if(!trial||!requiresColor||selectedColor||lock.current||saving)return;
   if(!checkLanternColor(trial,color)){
-   wrong('Bu renk yönergedeki renk değil. Yönergedeki rengin İngilizce adını seç.');return;
+   setWrongPick('color:'+color);wrong('Bu renk yönergedeki renk değil. Yönergedeki rengin İngilizce adını seç.');return;
   }
-  setSelectedColor(color);soundService.playSfx('tap',.45);
+  setWrongPick(null);setSelectedColor(color);soundService.playSfx('tap',.45);
   setFeedbackError(false);setFeedback('Rengi doğru eşleştirdin. '+(requiresAnimal?'Karakteri ve yeri de seç.':'İngilizce cümleyi kur.'));
  }
  function pickAnimal(animal:LanternAnimal){
   if(!trial||!requiresAnimal||selectedAnimal||!selectedColor||lock.current||saving)return;
   if(!checkLanternAnimal(trial,animal)){
-   wrong('Yönergedeki karakter farklı. Yönergedeki hayvanın İngilizce adını seç.');return;
+   setWrongPick('animal:'+animal);wrong('Yönergedeki karakter farklı. Yönergedeki hayvanın İngilizce adını seç.');return;
   }
-  setSelectedAnimal(animal);soundService.playSfx('tap',.42);
+  setWrongPick(null);setSelectedAnimal(animal);soundService.playSfx('tap',.42);
   setFeedbackError(false);setFeedback('Karakter doğru. Şimdi doğru konumu sahnede göster.');
  }
  function pickPlace(place:LanternPlace){
   if(!trial||!requiresPlace||selectedPlace||lock.current||saving||
    requiresColor&&!selectedColor||requiresAnimal&&!selectedAnimal)return;
   if(!checkLanternPlace(trial,place)){
-   wrong('Bu konum yönergedeki yer değil. Yönergedeki yerin İngilizce adını seç.');return;
+   setWrongPick('place:'+place);wrong('Bu konum yönergedeki yer değil. Yönergedeki yerin İngilizce adını seç.');return;
   }
-  setSelectedPlace(place);soundService.playSfx('tap',.47);
+  setWrongPick(null);setSelectedPlace(place);soundService.playSfx('tap',.47);
   setFeedbackError(false);setFeedback('Doğru yere dokundun. Bu anlamı İngilizce cümleyle tamamla.');
  }
  function pickError(i:number){
@@ -291,6 +296,7 @@ export function LanternFestivalAdventure({profileId,gradeLevel,englishLevel,hist
  const stage=<LanternFestivalStage chapter={chapter} color={selectedColor??(lit?trial?.color??null:null)}
   animal={selectedAnimal??(lit?trial?.animal??null:null)} place={currentPlace}
   lit={lit} lights={lights} showPlaces={showPlaces} onPlace={pickPlace}
+  wrongPlace={wrongPick?.startsWith('place:')?wrongPick.slice(6) as LanternPlace:null}
   disabled={saving||lock.current} caption={question?.sentence}/>;
  const duration=plan?.estimatedMinutes??(gradeLevel!=null&&gradeLevel<=2?[8,12]:gradeLevel!=null&&gradeLevel>=5?[14,19]:[11,16]);
  const track=LANTERN_CHAPTERS.map(c=><div key={c.id} className="lf-chapter"
@@ -381,12 +387,14 @@ export function LanternFestivalAdventure({profileId,gradeLevel,englishLevel,hist
        <strong>✦ Işık kristalinin rengini seç</strong>
        <div className="lf-colors">{LANTERN_COLORS.map(c=><button type="button" key={c.id}
         className="lf-color-choice" style={{'--color':c.hex} as React.CSSProperties}
+        data-wrong={wrongPick==='color:'+c.id||undefined}
         disabled={lit||saving} onClick={()=>pickColor(c.id)}
         lang="en"><span aria-hidden="true">✦</span><small>{c.id}</small></button>)}</div></div>}
       {showAnimals&&<div className="lf-choice-block" role="group" aria-label="Festival karakterini seç">
        <strong>🐾 Doğru karakter kim?</strong>
        <div className="lf-animals">{LANTERN_ANIMALS.map(a=><button type="button" key={a.id}
         className="lf-animal-choice" onClick={()=>pickAnimal(a.id)} disabled={lit||saving}
+        data-wrong={wrongPick==='animal:'+a.id||undefined}
         lang="en"><span aria-hidden="true">{a.icon}</span><strong>{a.id}</strong></button>)}</div></div>}
       {requiresPlace&&<div className="lf-instruction">
        {selectedPlace?'✓ Konumu doğru seçtin.':

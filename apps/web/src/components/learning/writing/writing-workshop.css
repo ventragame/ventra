@@ -247,7 +247,7 @@
  .writing-tile{min-height:48px;min-width:44px;font-size:17px;padding:8px}
  .writing-tiles{gap:7px}
  .writing-paper{min-height:60px}
- .writing-written-tile{min-height:43px;min-width:37px;font-size:16px}
+ .writing-written-tile{min-height:44px;min-width:37px;font-size:16px}
  .writing-actions button{flex:1 1 135px;font-size:13px}
  .writing-finale{padding:20px 12px}
  .writing-finale-stats{gap:5px}

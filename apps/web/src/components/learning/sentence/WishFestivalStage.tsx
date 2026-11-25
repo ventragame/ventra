@@ -101,8 +101,10 @@ function GuestPortrait({guest,large=false}: {guest:WishGuest;large?:boolean}){
  </svg>;
 }
 export function WishFestivalStage({chapter,guest,chosen,secondary,served,avoided=false,dialogue,
-  onFood,disabled,activeChoice,avoidPrimary=false,ariaLabel}:{
+  onFood,disabled,activeChoice,avoidPrimary=false,ariaLabel,wrongFood=null}:{
   chapter:WishChapter;guest:WishGuest;chosen:WishFood|null;secondary:WishFood|null;
+  /** Food the child just tapped wrongly, marked red until the next tap. */
+  wrongFood?:WishFood|null;
   served:boolean;avoided?:boolean;avoidPrimary?:boolean;dialogue:string;activeChoice:boolean;disabled:boolean;
   onFood?:(id:WishFood)=>void;ariaLabel?:string;
 }){
@@ -161,7 +163,7 @@ export function WishFestivalStage({chapter,guest,chosen,secondary,served,avoided
     {WISH_FOODS.map(item=><button key={item.id} type="button" className="wf-food-button"
      onClick={()=>onFood?.(item.id)} disabled={disabled||!activeChoice}
      aria-label={item.label+' seç'} aria-pressed={chosen===item.id||secondary===item.id}
-     data-selected={chosen===item.id||secondary===item.id}>
+     data-selected={chosen===item.id||secondary===item.id} data-wrong={wrongFood===item.id||undefined}>
       <WishFruitArtwork food={item.id} size={56}/><span>{item.label}</span>
      </button>)}
    </div>

@@ -416,6 +416,7 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
      {chapter<WORKSHOP_CHAPTERS.length&&<button type="button" onClick={()=>enter(chapter+1)}>
       Sonraki Bölüm →
      </button>}
+     <button type="button" className="writing-secondary" onClick={()=>enter(chapter)}>↻ Bu Bölümü Tekrar Oyna</button>
      <button type="button" className="writing-secondary" onClick={back}>Bölüm Haritası</button>
     </div>
    </section>}

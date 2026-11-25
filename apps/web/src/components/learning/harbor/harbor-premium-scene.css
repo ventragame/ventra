@@ -294,8 +294,10 @@
 }
 .harbor-finale-stats strong{font-size:22px;color:#fff3ba}
 .harbor-finale .harbor-finale-tip{max-width:510px;margin:14px auto;line-height:1.55}
-.harbor-finale-actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center}
-.harbor-finale-actions>button{margin-top:5px;min-height:48px}
+/* .harbor-finale>div sets 55px for the old emoji icon; the stats and the
+   buttons are divs too, so they set their own readable size. */
+.harbor-finale-actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;font-size:16px;line-height:1.25}
+.harbor-finale-actions>button{margin-top:5px;min-height:48px;font-size:16px}
 .harbor-finale-actions .harbor-finale-secondary{
  background:#124d76;color:#eaffec;border:1px solid #b0e8d7;
 }

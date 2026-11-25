@@ -156,7 +156,7 @@
 .ss-hint-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;
  width:min(100%,1050px);margin:auto;min-height:42px}
 .ss-hint-button{padding:8px 13px;background:#faffef;border:1px solid #a5d4bc;
- color:#2b6d69;border-radius:13px;min-height:43px;font-weight:1000}
+ color:#2b6d69;border-radius:13px;min-height:44px;font-weight:1000}
 .ss-feedback{font-weight:1000;font-size:13px;color:#c26a6c;min-height:17px}
 .ss-feedback.correct{color:#358369}
 .ss-save-error{background:#fff5e9;border:2px solid #ecb3aa;padding:12px;
@@ -183,7 +183,7 @@
  .ss-screen{height:min(51vh,490px);min-height:258px;border-radius:22px}
  .ss-story-content{gap:8px}
  .ss-narration{min-height:53px;padding:6px 8px}
- .ss-speak,.ss-text-toggle{min-width:43px;width:43px;height:43px}
+ .ss-speak,.ss-text-toggle{min-width:44px;width:43px;height:43px}
  .ss-story-top{font-size:12px}
  .ss-primary,.ss-secondary{min-height:48px;padding:9px 16px}
  .ss-slots{min-height:54px}

@@ -23,6 +23,7 @@ import {DetectiveClueArt,DetectiveLostItem} from './StoryDetectiveArt';
 import {LearningMotion} from '@/components/learning/motion/LearningMotion';
 import {StoryNarrationPanel,StorySceneGuide,storyDecisionFeedback} from './StorySceneStandard';
 import {useQuestionFocus} from '@/components/learning/activities/useQuestionFocus';
+import {StoryRewardLines,StoryRewardSummary} from './StoryRewardRecap';
 import './story-detective.css';
 import './story-detective-adventure.css';
 import './story-character-motion.css';
@@ -322,7 +323,9 @@ export function StoryDetectiveAdventure({profileId,gradeLevel,englishLevel,onBac
   <header className="sd-header">
    <button type="button" className="sd-back" onClick={back} disabled={busy}
     aria-label={view==='chapters'?"Hikâye Ormanı'na dön":'Bölümlere dön'}>←</button>
-   <strong>{view==='chapters'?'🔍 Hikâye Dedektifi':chapter?.title??'Hikâye Dedektifi'}</strong>
+   {/* The chapter list has its own cover h1; a case in play is titled here. */}
+   {view==='chapters'?<strong>🔍 Hikâye Dedektifi</strong>:
+    <h1 className="sd-header-title">{chapter?.title??'Hikâye Dedektifi'}</h1>}
    <div className="sd-header-right">
     {view==='playing'&&<div className="sd-steps sd-adventure-pips"
       aria-label={'Macera adımı '+(position+1)+' / '+(visualCount+2)}>
@@ -507,6 +510,8 @@ export function StoryDetectiveAdventure({profileId,gradeLevel,englishLevel,onBac
    <div className="sd-reward-stars" aria-label={stars+' yıldız'}>
     {[1,2,3].map(n=><span className={n<=stars?'earned':''} key={n}>★</span>)}
    </div>
+   <StoryRewardSummary stars={stars} mistakes={answers.reduce((n,a)=>n+a.mistakes,0)}
+    hints={answers.filter(a=>a.hintUsed).length}/>
    <div className="sd-reward-actions">
     <button type="button" className="sd-primary"
      onClick={()=>start(chapter.episode)}>↻ Başka Macera</button>
@@ -514,6 +519,13 @@ export function StoryDetectiveAdventure({profileId,gradeLevel,englishLevel,onBac
      onClick={()=>start((chapter.episode+1) as ForestEpisode)}>Sonraki Bölüm →</button>}
     <button type="button" className="sd-secondary" onClick={back}>Bölümler</button>
    </div>
+   {/* The case retold: opening, the helper and clue lines, the happy ending. */}
+   <StoryRewardLines rate={detectiveVoiceRate(englishLevel,gradeLevel)} lines={[
+    detectiveAdventureNarration(plan,'opening'),
+    ...plan.steps.filter(item=>item.kind==='friend'||item.kind==='clue')
+     .map(item=>detectiveAdventurePrompt(plan,item,route??undefined)),
+    detectiveAdventureNarration(plan,'ending',route??undefined)
+   ]}/>
   </main>}
  </div>;
 }

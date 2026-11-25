@@ -18,7 +18,7 @@
 .fm4-brand>span{display:block;color:#e4f5c9;font-size:12px;font-weight:900;letter-spacing:.15em;white-space:nowrap}
 .fm4-brand h1{font-weight:1000;letter-spacing:-.03em;line-height:1.08;
  font-size:clamp(21px,3.3vw,31px);margin:2px 0;color:#fff7d7;text-shadow:0 3px 12px #123c50}
-.fm4-screen .fm4-score{padding:9px 12px;min-height:43px;flex-shrink:0;
+.fm4-screen .fm4-score{padding:9px 12px;min-height:44px;flex-shrink:0;
  border:1px solid #ffe6ad;background:#fff5dceb;color:#714e2f;
  font-size:13px;font-weight:950;white-space:nowrap;box-shadow:none}
 .fm4-screen .fm4-map{margin:0 0 9px;grid-template-columns:repeat(3,minmax(0,1fr));gap:9px}
@@ -257,7 +257,7 @@
  .fm4-screen .fm-audio-button{min-width:min(100%,220px);min-height:50px;
   margin:0 5px 8px 0;font-size:13px}
  .fm4-screen .fm-hint-row{gap:5px}
- .fm4-screen .fm-text-hint{font-size:12px;min-height:43px;padding:7px 10px}
+ .fm4-screen .fm-text-hint{font-size:12px;min-height:44px;padding:7px 10px}
  .fm4-screen .fm4-dialogue-choices{gap:6px;margin:8px auto}
  .fm4-screen .fm4-dialogue-option{min-height:68px;padding:6px 9px;font-size:12px;gap:8px;border-radius:12px}
  .fm4-dialogue-option .fm4-food-svg{width:49px;height:49px}

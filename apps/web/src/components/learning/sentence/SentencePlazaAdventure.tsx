@@ -123,6 +123,9 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
   soundService.setMusicScene('plaza');
   return()=>{soundService.setMusicScene('archipelago');soundService.cancelSpeech();};
  },[]);
+ // A new screen (map, lesson, play, reward) starts at its top, not where the
+ // child last scrolled to reach the build button.
+ useEffect(()=>{root.current?.scrollTo({top:0,behavior:'instant'});},[screen,mission]);
  useEffect(()=>{if(screen==='play')root.current?.querySelector<HTMLElement>('.sp-cue')?.focus();},[screen,step]);
  function back(){
   if(savingLock.current)return;
@@ -299,6 +302,7 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
   return <WishFestivalAdventure profileId={profileId} gradeLevel={gradeLevel}
     englishLevel={englishLevel} history={history} knownFoods={knownWords}
     onExit={()=>setWishOpen(false)}
+    onNext={()=>{setWishOpen(false);openMission(6);}} nextLabel={SENTENCE_PLAZA_MISSIONS[5].title}
     onComplete={(rows)=>{
       setHistory(old=>[...old,...rows]);
       void getSentencePlazaProgress(getProgressRepository(),profileId).then(setProgress)
@@ -310,6 +314,7 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
   return <MovementMagicAdventure profileId={profileId} gradeLevel={gradeLevel}
     englishLevel={englishLevel} history={history}
     onExit={()=>setMovementOpen(false)}
+    onNext={()=>{setMovementOpen(false);openMission(5);}} nextLabel={SENTENCE_PLAZA_MISSIONS[4].title}
     onComplete={(newRows)=>{
       setHistory(old=>[...old,...newRows]);
       void getSentencePlazaProgress(getProgressRepository(),profileId).then(setProgress)
@@ -455,7 +460,7 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
        </div>
       {visualLocation&&<div className="sp-v7-visual-task" role="status">
         <span aria-hidden="true">👀</span>
-        <span>{selectedScene?'Yeri buldun. Şimdi İngilizce cümleyi kur.':'Soldaki sahnede hayvanı bul. Bulunduğu yerin işaretine dokun.'}</span>
+        <span>{selectedScene?'Yeri buldun. Şimdi İngilizce cümleyi kur.':'Sahnede hayvanı bul. Bulunduğu yerin işaretine dokun.'}</span>
        </div>}
       {task.mode==='scene'&&task.sceneChoices&&!visualLocation&&
        <div className={`sp-interaction ${mission===2?'sp-v9-animal-interaction':''}`} role="group" aria-label={mission===2?'Resimdeki hayvanı seç':'Anlamla eşleşen görsel sahne seçimi'}>

@@ -8,6 +8,8 @@ export interface LanternSceneProps{
  chapter:LanternChapter;color:LanternColor|null;place:LanternPlace|null;
  animal:LanternAnimal|null;lit:boolean;lights:number;showPlaces:boolean;
  onPlace?:(place:LanternPlace)=>void;disabled?:boolean;caption?:string;
+ /** Place the child just tapped wrongly, marked red until the next tap. */
+ wrongPlace?:LanternPlace|null;
 }
 const PINS:{id:LanternPlace;x:number;y:number}[]=[
  {id:'tree',x:26,y:76},{id:'bridge',x:49,y:75},
@@ -30,7 +32,7 @@ function useCompactPlaces():boolean{
 }
 const HEX:Record<LanternColor,string>=Object.fromEntries(LANTERN_COLORS.map(c=>[c.id,c.hex])) as Record<LanternColor,string>;
 export function LanternFestivalStage({chapter,color,place,animal,lit,lights,showPlaces,
- onPlace,disabled,caption}:LanternSceneProps){
+ onPlace,disabled,caption,wrongPlace=null}:LanternSceneProps){
  const theme=color?HEX[color]:'#ffdfaa';
  const offset=place?PINS.find(p=>p.id===place):null;
  const selectedAnimal=LANTERN_ANIMALS.find(a=>a.id===animal);
@@ -154,6 +156,7 @@ export function LanternFestivalStage({chapter,color,place,animal,lit,lights,show
     const p=LANTERN_PLACES.find(l=>l.id===pin.id)!;
     return <button key={p.id} type="button" className="lf-hotspot" tabIndex={compact?-1:undefined}
      disabled={disabled} data-selected={place===p.id} aria-pressed={place===p.id}
+     data-wrong={wrongPlace===p.id||undefined}
      onClick={()=>onPlace?.(p.id)} style={{left:pin.x+'%',top:pin.y+'%'}}>
      <span aria-hidden="true">{p.icon}</span><small>{p.label}</small></button>;
    })}
@@ -169,7 +172,8 @@ export function LanternFestivalStage({chapter,color,place,animal,lit,lights,show
   {PINS.map(pin=>{
    const p=LANTERN_PLACES.find(l=>l.id===pin.id)!;
    return <button key={p.id} type="button" className="lf-place" disabled={disabled}
-    data-selected={place===p.id} aria-pressed={place===p.id} onClick={()=>onPlace?.(p.id)}>
+    data-selected={place===p.id} aria-pressed={place===p.id} onClick={()=>onPlace?.(p.id)}
+    data-wrong={wrongPlace===p.id||undefined}>
     <span aria-hidden="true">{p.icon}</span>{p.label}</button>;
   })}
  </div>}

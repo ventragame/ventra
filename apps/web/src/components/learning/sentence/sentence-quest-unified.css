@@ -6,7 +6,10 @@
 .sq-builder-heading strong{font-size:clamp(15px,2vw,18px);font-weight:950}
 .sq-builder-heading span{border-radius:11px;background:#15536b;padding:7px 10px;color:#fff;
  font-size:13px;font-weight:850;font-variant-numeric:tabular-nums}
-.sq-builder-instruction{margin:0;color:#27565a;font-size:clamp(12px,1.8vw,14px);line-height:1.5}
+/* The four scenes put the builder on light and on dark panels: the hint
+   carries its own light pill so it stays readable on both. */
+.sq-builder-instruction{margin:0;padding:7px 12px;border-radius:12px;background:rgba(255,253,242,.94);
+ border:1px solid rgba(191,215,194,.9);color:#27565a;font-size:clamp(12px,1.8vw,14px);font-weight:700;line-height:1.45}
 .sq-word-slots,.sq-word-tiles{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px;min-width:0}
 .sq-builder .sq-word-slot,.sq-builder .sq-word-tile{min-height:46px;min-width:44px;
  touch-action:manipulation;font-size:clamp(14px,2vw,17px);line-height:1.3;overflow-wrap:anywhere}
@@ -19,9 +22,20 @@
 .sq-success{display:grid;gap:4px;margin:10px 0;padding:12px;border:1px solid #80caa8;border-radius:14px;
  background:linear-gradient(120deg,#e0f9e6,#f5fff0);color:#205c4c;font-size:13px;line-height:1.45}
 .sq-success strong{font-size:15px}
-.sq-reward-note{border:1px solid #a3d5a3;background:#e7fae8;color:#245a48;
+/* Doubled class: reward panels style their own <p> text light for dark
+   backgrounds (.sp-reward p …), which made this light card unreadable. */
+.sq-reward-note.sq-reward-note{border:1px solid #a3d5a3;background:#e7fae8;color:#245a48;
  border-radius:14px;padding:11px 13px;font-weight:850;font-size:14px;line-height:1.45}
 @media(max-width:520px){.sq-builder{gap:8px}.sq-builder-heading{padding:8px 10px}
  .sq-builder-heading strong{font-size:15px}.sq-builder-heading span{padding:6px 8px;font-size:12px}
  .sq-builder .sq-word-slot,.sq-builder .sq-word-tile{min-height:46px;font-size:15px}}
-@media(prefers-reduced-motion:reduce){.sq-builder .sq-word-slot,.sq-builder .sq-word-tile{transition:none!important}}
+/* A wrong pick in the festival games turns red with a short shake on the
+   option itself; hover (sticky after a tap on phones) must not hide it. */
+:is(.wf-food-button,.wf-intent-choice,.lf-color-choice,.lf-animal-choice,.lf-place)[data-wrong=true],
+:is(.wf-food-button,.wf-intent-choice,.lf-color-choice,.lf-animal-choice,.lf-place)[data-wrong=true]:hover:not(:disabled){
+ border-color:#ff9f9f!important;box-shadow:0 0 0 3px #ff9f9f8c!important;animation:sq-wrong-shake .42s ease-in-out}
+.lf-hotspot[data-wrong=true]{border-color:#ff9f9f!important;box-shadow:0 0 0 3px #ff9f9f8c!important;animation:sq-wrong-shake-pin .42s ease-in-out}
+@keyframes sq-wrong-shake{0%,100%{translate:0}25%{translate:-5px}50%{translate:4px}75%{translate:-2px}}
+@keyframes sq-wrong-shake-pin{0%,100%{margin-left:0}25%{margin-left:-5px}50%{margin-left:4px}75%{margin-left:-2px}}
+@media(prefers-reduced-motion:reduce){.sq-builder .sq-word-slot,.sq-builder .sq-word-tile{transition:none!important}
+ [data-wrong=true]:is(.wf-food-button,.wf-intent-choice,.lf-color-choice,.lf-animal-choice,.lf-place,.lf-hotspot){animation:none}}

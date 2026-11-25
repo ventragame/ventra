@@ -257,10 +257,16 @@ export function validateJourneyRecord(record:JourneyRecord,plan:JourneyPlan):boo
    validateJourneyChallenges(record.learningChecks??[],plan,record.destination):
    !record.learningChecks);
 }
+/** Wrong taps and hints across the whole story (both finds and the checks). */
+export function journeyEffort(record:JourneyRecord):{mistakes:number;hints:number}{
+ return {
+  mistakes:record.firstMistakes+record.secondMistakes+
+   (record.learningChecks??[]).reduce((n,a)=>n+a.mistakes,0),
+  hints:Number(record.firstHint)+Number(record.secondHint)+
+   (record.learningChecks??[]).filter(a=>a.hintUsed).length
+ };
+}
 export function journeyStars(record:JourneyRecord):1|2|3{
- const errors=record.firstMistakes+record.secondMistakes+
-  (record.learningChecks??[]).reduce((n,a)=>n+a.mistakes,0);
- const hints=Number(record.firstHint)+Number(record.secondHint)+
-  (record.learningChecks??[]).filter(a=>a.hintUsed).length;
+ const {mistakes:errors,hints}=journeyEffort(record);
  return errors===0&&hints===0?3:errors<=2&&hints<=1?2:1;
 }

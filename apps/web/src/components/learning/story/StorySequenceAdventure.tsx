@@ -16,6 +16,7 @@ import {StorySequenceFrame} from './StorySequenceFrame';
 import {LearningMotion} from '@/components/learning/motion/LearningMotion';
 import {StoryNarrationPanel,StorySceneGuide,storyDecisionFeedback} from './StorySceneStandard';
 import {useQuestionFocus} from '@/components/learning/activities/useQuestionFocus';
+import {StoryRewardLines,StoryRewardSummary} from './StoryRewardRecap';
 import './story-sequence.css';
 import './story-sequence-comprehension.css';
 import './story-character-motion.css';
@@ -458,11 +459,17 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
      <div className="ss-reward-stars" aria-label={earnedStars+' yıldız'}>
        {[1,2,3].map(i=><span key={i} className={earnedStars>=i?'earned':''}>★</span>)}
      </div>
+     <StoryRewardSummary stars={earnedStars}
+      mistakes={answers.reduce((n,a)=>n+a.mistakes,0)+checks.reduce((n,c)=>n+c.mistakes,0)}
+      hints={answers.filter(a=>a.hintUsed).length+checks.filter(c=>c.hintUsed).length}/>
      <div className="ss-bottom-actions">
        {episode<6&&<button type="button" className="ss-primary"
          onClick={()=>start((episode+1) as ForestEpisode)}>Yeni hikâye →</button>}
+       <button type="button" className="ss-secondary" onClick={()=>start(episode)}>↻ Tekrar Oyna</button>
        <button type="button" className="ss-secondary" onClick={back}>Hikâyelere dön</button>
      </div>
+     <StoryRewardLines rate={voiceRate}
+      lines={deck?deck.frames.map(frame=>frame.narration[deck.englishLevel]):[]}/>
   </main>}
  </div>;
 }

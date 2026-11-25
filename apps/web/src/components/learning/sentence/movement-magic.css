@@ -81,6 +81,15 @@
 .mm-hotspot:hover:not(:disabled){transform:translate(-50%,-55%);filter:brightness(1.16)}
 .mm-hotspot[data-active=true]{background:linear-gradient(135deg,#448f8a,#346c82);border-color:#e4fac0}
 .mm-hotspot:disabled:not([data-active=true]){opacity:.58}
+/* A wrong verb or place turns red with a short shake, as in the other games;
+   hover (sticky after a tap on phones) must not make it look chosen. */
+.mm-verb[data-wrong=true],.mm-verb[data-wrong=true]:hover:not(:disabled){
+ border-color:#ffb1b1;background:linear-gradient(125deg,#7d3b4f,#5b2f48);animation:mm-wrong-shake .42s ease-in-out}
+.mm-hotspot[data-wrong=true],.mm-hotspot[data-wrong=true]:hover:not(:disabled){
+ border-color:#ffb1b1;background:linear-gradient(135deg,#8a4256,#633050);animation:mm-wrong-shake-place .42s ease-in-out}
+@keyframes mm-wrong-shake{0%,100%{translate:0}25%{translate:-5px}50%{translate:4px}75%{translate:-2px}}
+@keyframes mm-wrong-shake-place{0%,100%{margin-left:0}25%{margin-left:-5px}50%{margin-left:4px}75%{margin-left:-2px}}
+@media(prefers-reduced-motion:reduce){.mm-verb[data-wrong=true],.mm-hotspot[data-wrong=true]{animation:none}}
 .mm-canvas-caption{display:flex;align-items:center;gap:9px;justify-content:space-between;
  border-top:1px solid #c2eef278;background:linear-gradient(105deg,#163556,#254f70);
  padding:10px 17px;min-height:44px;color:#eef7e7;font-size:12px;font-weight:850}

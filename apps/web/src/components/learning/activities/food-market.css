@@ -31,7 +31,7 @@
 .fm-check{position:absolute;right:8px;top:7px;background:#2d865a;color:#fff;border-radius:100%;font-size:12px;font-weight:900;padding:2px 7px}
 .fm-featured{display:flex;align-items:center;flex-direction:column;color:#ffecc9;margin:8px 0}.fm-featured>span{font-size:clamp(76px,14vw,120px);filter:drop-shadow(0 9px 8px #0004)}.fm-featured p{font-size:12px}
 .fm-hint-row{display:flex;justify-content:center;flex-wrap:wrap;align-items:center;gap:10px;margin-top:14px;font-size:12px}
-.fm-text-hint{background:#2e5565;color:#f5faf8;border:1px solid #ace4cd80;padding:10px 14px;border-radius:11px;font-weight:800;min-height:43px}
+.fm-text-hint{background:#2e5565;color:#f5faf8;border:1px solid #ace4cd80;padding:10px 14px;border-radius:11px;font-weight:800;min-height:44px}
 .fm-audio-panel{text-align:center;margin:16px auto}.fm-audio-button{min-height:68px;min-width:min(100%,260px);background:#ffd993;color:#69464c;border:3px solid #fff3d6;border-radius:18px;font-size:18px;font-weight:1000;margin-right:9px;box-shadow:0 6px 0 #ae786776}.fm-audio-panel p{margin-top:14px}
 .fm-instruction{text-align:center;color:#d1e9e6;font-size:12px;margin:12px}
 .fm-cta{display:block;margin:17px auto 5px;min-height:56px;background:linear-gradient(115deg,#cafa86,#7ee0b9);color:#174843;border:3px solid #e4ffb7;padding:12px 24px;border-radius:15px;font-size:16px;font-weight:1000;max-width:380px;width:100%;box-shadow:0 6px 0 #063d35}

@@ -26,8 +26,10 @@ const CHAPTER_ART:readonly string[]=[
  '/assets/sentence-plaza/scenes-v6/scene-5-market.webp',
  '/assets/sentence-plaza/scenes-v6/scene-6-lanterns.webp'
 ];
-const LOCATION_HOTSPOTS:Record<string,{left:string;top:string}>={
- 'under the tree':{left:'16%',top:'71%'},
+/** `tip:'below'` puts the label under the marker: on a phone the label of
+ * "under the tree" otherwise slides beneath the "near the tree" marker. */
+const LOCATION_HOTSPOTS:Record<string,{left:string;top:string;tip?:'below'}>={
+ 'under the tree':{left:'16%',top:'71%',tip:'below'},
  'behind the house':{left:'63%',top:'43%'},
  'next to the fountain':{left:'44%',top:'70%'},
  'near the tree':{left:'25%',top:'40%'}
@@ -175,7 +177,7 @@ export function SentencePlazaScene({effect,preview=null,previewAtTarget=false,aw
    const point=LOCATION_HOTSPOTS[choice.id];
    if(!point)return null;
    return <button key={choice.id} type="button"
-     className="sp-v6-hotspot" data-selected={selectedChoice===choice.id}
+     className="sp-v6-hotspot" data-selected={selectedChoice===choice.id} data-tip={point.tip}
      style={{left:point.left,top:point.top}}
      aria-label={`Sahnede ${choice.label} konumunu seç`}
      aria-pressed={selectedChoice===choice.id}

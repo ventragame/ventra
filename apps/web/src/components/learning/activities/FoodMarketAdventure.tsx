@@ -137,6 +137,14 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
   dialog.current?.scrollTo({top:0,behavior:'instant'});
   setHeard(false);setSpeaking(false);
  },[aisle,stage,q,revision]);
+ // Listening and order rounds play their English as soon as a question opens,
+ // as Hayvan Çayırı does; the big button replays it. Without a device voice
+ // the same call opens the written support at once.
+ useEffect(()=>{
+  if((stage!==3&&stage!==4)||!task||muted||success||busy||finished)return;
+  const timer=window.setTimeout(()=>{soundService.unlockAudio();speak(task.audio,true);},450);
+  return()=>window.clearTimeout(timer);
+ },[aisle,stage,q,revision,task?.audio,muted,success,busy,finished]);
  function speak(text:string,listenGate=false){
   cancelVoice();
   if(muted||!soundService.hasEnglishSpeech()){

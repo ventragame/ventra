@@ -4,7 +4,7 @@ import React,{useEffect,useRef,useState} from 'react';
 import type {ForestActorId,ForestEpisode,ForestPlacement,ForestScene} from '@/lib/learning/storyForestEngine';
 import {FOREST_EPISODES,FOREST_ACTOR_NAMES} from '@/lib/learning/storyForestEngine';
 import {
- JOURNEY_ROUTES,JOURNEY_OUTCOMES,planJourneyStory,narrativeFor,journeyStars,journeyPlaceLabel,
+ JOURNEY_ROUTES,JOURNEY_OUTCOMES,planJourneyStory,narrativeFor,journeyStars,journeyEffort,journeyPlaceLabel,
  type JourneyObject,type JourneyPlan,type JourneyPhase,type JourneyRecord,
  type JourneyChallengeAnswer
 } from '@/lib/learning/storyForestJourneyEngine';
@@ -15,6 +15,7 @@ import {StoryForestActor,StoryForestScenery,STORY_FOREST_PREMIUM_COVER} from './
 import {LearningMotion} from '@/components/learning/motion/LearningMotion';
 import {StoryNarrationPanel,StorySceneGuide,storyDecisionFeedback} from './StorySceneStandard';
 import {useQuestionFocus} from '@/components/learning/activities/useQuestionFocus';
+import {StoryRewardLines,StoryRewardSummary} from './StoryRewardRecap';
 import './story-forest-journey.css';
 import './story-forest-object-staging.css';
 import './story-forest-mobile-cast.css';
@@ -105,6 +106,8 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
  const [wrong,setWrong]=useState<string|null>(null);
  const [correct,setCorrect]=useState(false);
  const [earnedStars,setEarnedStars]=useState(0);
+ /** The finished story, for the reward summary (stats and lines to hear again). */
+ const [rewardRecord,setRewardRecord]=useState<JourneyRecord|null>(null);
  const [busy,setBusy]=useState(false);
  const alive=useRef(true);
  const generation=useRef(0);
@@ -148,7 +151,7 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
    });
    if(!alive.current)return;
    setProgress(p);setHistory(h=>[...h,record]);
-   setEarnedStars(journeyStars(record));setScreen('reward');
+   setEarnedStars(journeyStars(record));setRewardRecord(record);setScreen('reward');
    soundService.playSfx('fanfare',.72);onSaved();
   }catch(error){
    console.error('[StoryJourney] save',error);
@@ -445,12 +448,15 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
     <div className="sj-earned-stars" aria-label={earnedStars+' yıldız'}>
      {[1,2,3].map(n=><span key={n} className={n<=earnedStars?'earned':''}>★</span>)}
     </div>
+    {rewardRecord&&<StoryRewardSummary stars={earnedStars} {...journeyEffort(rewardRecord)}/>}
     <div className="sj-reward-actions">
      <button type="button" className="sj-primary" onClick={()=>start(episode)}>🔄 Başka Macera</button>
      {episode<6&&<button type="button" className="sj-primary"
        onClick={()=>start((episode+1) as ForestEpisode)}>Sonraki Dünya →</button>}
      <button type="button" className="sj-secondary" onClick={exitToChapters}>Hikâyeler</button>
     </div>
+    <StoryRewardLines rate={englishLevel==='Pre-A1'?.82:englishLevel==='A1'?.9:.96}
+     lines={(['opening','meet','result','ending'] as const).map(step=>narrativeFor(plan,step,rewardRecord?.destination??destination??undefined))}/>
    </main>
   </>}
  </div>;

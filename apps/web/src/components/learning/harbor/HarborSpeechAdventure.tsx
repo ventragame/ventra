@@ -583,6 +583,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
      <p className="harbor-finale-tip">Öğrendiğin ifadeleri günlük hayatta da kullanabilirsin.</p>
      <div className="harbor-finale-actions">
       {episode<HARBOR_EPISODES.length&&<button type="button" onClick={()=>start(episode+1)}>Sonraki Bölüm →</button>}
+      <button type="button" className="harbor-finale-secondary" onClick={()=>start(episode)}>↻ Bu Bölümü Tekrar Oyna</button>
       <button type="button" className="harbor-finale-secondary" onClick={backToMap}>Bölüm Haritası</button>
      </div>
     </div>

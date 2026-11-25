@@ -26,6 +26,8 @@ interface Props{
  profileId:string;gradeLevel:number|null;englishLevel:EnglishPlacement;
  history:readonly SentenceAnswerEvidence[];knownFoods:readonly string[];
  onExit:()=>void;onComplete:(rows:SentenceAnswerEvidence[])=>void;
+ /** Opens the next Cümle Meydanı mission straight from the reward screen. */
+ onNext?:()=>void;nextLabel?:string;
 }
 interface WishDraft{
  version:1;profileId:string;gradeLevel:number|null;englishLevel:EnglishPlacement;
@@ -59,7 +61,7 @@ function recoverable(value:unknown,profileId:string,grade:number|null,level:Engl
    row.firstTryCorrect===(row.mistakes===0&&!row.hintUsed&&!row.modelHeard)&&
    Number.isFinite(Date.parse(row.timestamp)));
 }
-export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history,knownFoods,onExit,onComplete}:Props){
+export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history,knownFoods,onExit,onComplete,onNext,nextLabel}:Props){
  const [screen,setScreen]=useState<Screen>('welcome');
  const [plan,setPlan]=useState<WishPlan|null>(null);
  const [index,setIndex]=useState(0);
@@ -73,6 +75,8 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
  const [hintUsed,setHintUsed]=useState(false);
  const [modelHeard,setModelHeard]=useState(false);
  const [wrongSlot,setWrongSlot]=useState(-1);
+ /** Last wrong tap ("food:apples", "intent:like", "polite:now", "reason:sweet"). */
+ const [wrongPick,setWrongPick]=useState<string|null>(null);
  const [feedback,setFeedback]=useState('');
  const [feedbackError,setFeedbackError]=useState(false);
  const [served,setServed]=useState(false);
@@ -93,6 +97,9 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
  const savingLock=useRef(false);
  const retryRows=useRef<SentenceAnswerEvidence[]|null>(null);
  const root=useRef<HTMLDivElement>(null);
+ // Each screen (welcome, play, reward) opens at its top, not where the child
+ // last scrolled to reach the build button.
+ useEffect(()=>{root.current?.scrollTo({top:0,behavior:'instant'});},[screen]);
  const trial=plan?.trials[index]??null,question=trial?.question??null;
  const chapter=trial?.chapter??1,meta=WISH_CHAPTERS[chapter-1];
  const rounds=plan?.roundsPerChapter??wishRoundsForGrade(gradeLevel);
@@ -113,7 +120,7 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
  function resetRound(){
   setChosenFood(null);setChosenSecond(null);setChosenIntent(null);setChosenReason(null);
   setPoliteChosen(false);setPicked([]);setMistakes(0);setHintUsed(false);setModelHeard(false);
-  setWrongSlot(-1);setFeedback('');setFeedbackError(false);setServed(false);setSaveError('');
+  setWrongSlot(-1);setWrongPick(null);setFeedback('');setFeedbackError(false);setServed(false);setSaveError('');
  }
  useEffect(()=>{
   soundService.setMusicScene('wishes');
@@ -201,35 +208,35 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
  function foodChoice(food:WishFood){
   if(!trial||locked.current||saving||served)return;
   if(!chosenFood){
-   if(!checkWishFood(trial,food)){wrong('Bu ürün, festival konuğunun istediği yiyecek değil. Yönergedeki yiyeceği tekrar oku.');return;}
-   setChosenFood(food);soundService.playSfx('tap',.52);setFeedbackError(false);
+   if(!checkWishFood(trial,food)){setWrongPick('food:'+food);wrong('Bu ürün, festival konuğunun istediği yiyecek değil. Yönergedeki yiyeceği tekrar oku.');return;}
+   setWrongPick(null);setChosenFood(food);soundService.playSfx('tap',.52);setFeedbackError(false);
    setFeedback(chapter===4?'Ürünü buldun. Şimdi ikinci anlamlı seçimini yap.':'Doğru ürün! Şimdi İngilizceyle ne söyleyeceğini belirle.');
    return;
   }
   if(chapter===4&&needsSecond&&!chosenSecond){
    if(food===chosenFood){wrong('İkinci seçim farklı bir yiyecek olmalı.');return;}
-   if(!checkWishSecond(trial,food)){wrong('Bu ikinci ürün verilen karşılaştırma veya birleşimle uyuşmuyor.');return;}
-   setChosenSecond(food);soundService.playSfx('tap',.45);setFeedbackError(false);
+   if(!checkWishSecond(trial,food)){setWrongPick('food:'+food);wrong('Bu ikinci ürün verilen karşılaştırma veya birleşimle uyuşmuyor.');return;}
+   setWrongPick(null);setChosenSecond(food);soundService.playSfx('tap',.45);setFeedbackError(false);
    setFeedback(needsReason?'Doğru! Şimdi İngilizce nedenini seç.':'İki ürün hazır. İngilizce cümleyi kur.');
   }
  }
  function intentChoice(intent:WishIntent){
   if(!trial||!chosenFood||chosenIntent||locked.current||saving)return;
-  if(!checkWishIntent(trial,intent)){wrong('Bu cevap isteğin anlamını değiştirdi. Like, want ve not like farklıdır.');return;}
-  setChosenIntent(intent);setFeedbackError(false);soundService.playSfx('tap',.45);
+  if(!checkWishIntent(trial,intent)){setWrongPick('intent:'+intent);wrong('Bu cevap isteğin anlamını değiştirdi. Like, want ve not like farklıdır.');return;}
+  setWrongPick(null);setChosenIntent(intent);setFeedbackError(false);soundService.playSfx('tap',.45);
   setFeedback('Anlamı doğru belirledin. İngilizce cümleyi tamamla.');
  }
  function politeChoice(word:string){
   if(!trial||!chosenFood||politeChosen||locked.current)return;
-  if(word!=='please'){wrong('Kibar rica cümlesini tamamlayan kelimeyi seç: lütfen.');return;}
-  setPoliteChosen(true);soundService.playSfx('tap',.45);
+  if(word!=='please'){setWrongPick('polite:'+word);wrong('Kibar rica cümlesini tamamlayan kelimeyi seç: lütfen.');return;}
+  setWrongPick(null);setPoliteChosen(true);soundService.playSfx('tap',.45);
   setFeedback('Kibar seçimi yaptın. Şimdi tam sipariş cümlesini oluştur.');
   setFeedbackError(false);
  }
  function reasonChoice(reason:WishReason){
   if(!trial||!chosenFood||needsSecond&&!chosenSecond||chosenReason||locked.current)return;
-  if(reason!==trial.reason){wrong('Bu yiyeceğin özelliğine tekrar bak: tatlı, sulu veya çıtır mı?');return;}
-  setChosenReason(reason);setFeedbackError(false);soundService.playSfx('tap',.45);
+  if(reason!==trial.reason){setWrongPick('reason:'+reason);wrong('Bu yiyeceğin özelliğine tekrar bak: tatlı, sulu veya çıtır mı?');return;}
+  setWrongPick(null);setChosenReason(reason);setFeedbackError(false);soundService.playSfx('tap',.45);
   setFeedback('Nedenini buldun. Şimdi because ile cümleyi kur.');
  }
  function pickWord(id:string){
@@ -324,6 +331,7 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
   chosen={chosenFood} secondary={chosenSecond}
   avoidPrimary={trial?.intent==='dislike'} avoided={chapter===4&&englishLevel==='A1'}
   served={served} dialogue={dialogue} activeChoice={foodAllowed} disabled={saving||locked.current}
+  wrongFood={wrongPick?.startsWith('food:')?wrongPick.slice(5) as WishFood:null}
   onFood={foodChoice}/>;
  const estimates=plan?.estimatedMinutes??(gradeLevel!=null&&gradeLevel<=2?[8,12]:gradeLevel!=null&&gradeLevel>=5?[14,19]:[11,16]);
  const chapterTrack=WISH_CHAPTERS.map(item=><div key={item.id} className="wf-chapter"
@@ -378,7 +386,8 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
     <div className="wf-summary">
      <div><strong>{total}</strong>cümle</div><div><strong>{independent}</strong>bağımsız</div>
      <div><strong>{bestStreak}</strong>en iyi seri</div><div><strong>{clock(elapsed)}</strong>süre</div></div>
-    <button className="wf-primary" type="button" onClick={begin}>↻ Farklı Festival Macerası</button>
+    {onNext&&<button className="wf-primary" type="button" onClick={onNext}>✦ Sıradaki Görev{nextLabel?': '+nextLabel:''} →</button>}
+    <button className={onNext?'wf-back':'wf-primary'} style={onNext?{marginTop:14}:undefined} type="button" onClick={begin}>↻ Farklı Festival Macerası</button>
     <button className="wf-back" style={{marginTop:14}} type="button" onClick={onExit}>Cümle Meydanı’na Dön</button>
    </div>:<>
     <section className="wf-status"><div>
@@ -414,12 +423,13 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
       {(chapter===1||chapter===3)&&chosenFood&&<div className="wf-intent" role="group" aria-label="İngilizce iletişim niyeti">
        <strong>İngilizceyle ne söyleyeceksin?</strong>
        <div>{wishIntentOptions(englishLevel).map(o=><button key={o.id} type="button"
-        className="wf-intent-choice" data-selected={chosenIntent===o.id}
+        className="wf-intent-choice" data-selected={chosenIntent===o.id} data-wrong={wrongPick==='intent:'+o.id||undefined}
         disabled={Boolean(chosenIntent)||served||saving}
         onClick={()=>intentChoice(o.id)}><b>{o.en}</b><small>{o.tr}</small></button>)}</div></div>}
       {chapter===2&&chosenFood&&!politeChosen&&<div className="wf-intent" role="group" aria-label="Kibar İngilizce rica sözcüğünü seç">
        <strong>Rica ederken hangi kelimeyi kullanırsın?</strong>
        <div>{['now','please','never'].map(o=><button key={o} type="button" className="wf-intent-choice"
+        data-wrong={wrongPick==='polite:'+o||undefined}
         disabled={served||saving} onClick={()=>politeChoice(o)}><b>{o}</b></button>)}</div></div>}
       {chapter===4&&chosenFood&&needsSecond&&!chosenSecond&&
        <div className="wf-intent"><strong>Şimdi tezgâhtan ikinci yiyeceği seç.</strong>
@@ -431,6 +441,7 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
         <strong>Bu yiyeceği neden seviyorsun?</strong>
         <div>{[{id:'sweet',tr:'tatlı'},{id:'juicy',tr:'sulu'},{id:'crunchy',tr:'çıtır'}].map(o=>
          <button type="button" key={o.id} className="wf-intent-choice" disabled={served||saving}
+          data-wrong={wrongPick==='reason:'+o.id||undefined}
           onClick={()=>reasonChoice(o.id as WishReason)}><b>{o.id}</b><small>{o.tr}</small></button>)}</div>
        </div>}
       {ready&&<div className="wf-builder">

@@ -103,7 +103,7 @@
 .sj-spoken p{font-size:clamp(12px,1.8vw,17px);font-weight:900;color:#205067;
  overflow-wrap:anywhere;line-height:1.32;margin-top:3px}
 .sj-waves{font-size:20px;color:#65ba9f;letter-spacing:5px;line-height:1.2}
-.sj-text{width:43px;height:43px;min-width:43px;border-radius:13px;
+.sj-text{width:43px;height:43px;min-width:44px;border-radius:13px;
  background:#dff2df;border:1px solid #acd6be;color:#337367;font-weight:1000}
 .sj-objects,.sj-friend-choices{position:absolute;bottom:clamp(55px,9%,95px);
  left:8%;right:8%;z-index:2;display:flex;justify-content:center;align-items:end;

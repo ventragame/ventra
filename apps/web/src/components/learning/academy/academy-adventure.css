@@ -74,7 +74,7 @@
 .academy-built,.academy-tiles{min-height:64px;display:flex;align-content:center;flex-wrap:wrap;gap:9px;padding:12px;border-radius:14px;background:#e9ecf8}
 .academy-built span{font-size:13px;color:#647397;align-self:center}
 .academy-tiles{background:transparent;margin-top:11px}
-.academy-built button,.academy-tiles button{border:1px solid #b4bfdc;border-radius:11px;padding:11px 14px;font-weight:800;color:#33466c;background:#fff;min-height:43px}
+.academy-built button,.academy-tiles button{border:1px solid #b4bfdc;border-radius:11px;padding:11px 14px;font-weight:800;color:#33466c;background:#fff;min-height:44px}
 .academy-tiles button{background:#fff2d5;border-color:#edd49e}
 .academy-touch-write{margin-top:20px;padding:12px;border:1px solid #cdd6f0;border-radius:16px;background:#f4f5fc}
 .academy-touch-write p{font-size:12px;font-weight:650;color:#596a92;line-height:1.5;margin:0 0 10px}
@@ -88,6 +88,8 @@
 .academy-alert button{border:1px solid #df9572;border-radius:9px;background:#fff;margin-left:10px;padding:7px}
 .academy-finale{max-width:760px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px}
 .academy-final-icon{font-size:85px;animation:academy-float 5s ease-in-out infinite}
+.academy-final-stars{display:flex;gap:8px;font-size:clamp(38px,9vw,52px);line-height:1;color:#ffffff3d}
+.academy-final-stars .earned{color:#ffd76a;text-shadow:0 4px 0 #c48a35,0 0 18px #ffd76a66}
 .academy-finale>p{color:#d6e5ff;line-height:1.6}
 .academy-review{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin-top:14px;width:100%}
 .academy-review>div{background:#ffffff1d;border:1px solid #ffffff50;padding:13px 7px;border-radius:13px;display:flex;flex-direction:column;gap:9px;min-width:0}

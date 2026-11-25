@@ -131,6 +131,14 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
   scrollRef.current?.scrollTo({top:0,behavior:'instant'});
   setHeard(false);setSpeaking(false);
  },[chamber,stage,question,revision]);
+ // Echo rounds play their English word as soon as a question opens, as
+ // Hayvan Çayırı does; the big button replays it. Without a device voice the
+ // same call opens the written help at once.
+ useEffect(()=>{
+  if(stage!==3||!task||muted||correct||busy||finished)return;
+  const timer=window.setTimeout(()=>{soundService.unlockAudio();speak(task.audio,true);},450);
+  return()=>window.clearTimeout(timer);
+ },[chamber,stage,question,revision,task?.audio,muted,correct,busy,finished]);
  function speak(text:string,requireFullAudio=false){
   stopAudio();
   if(muted||!soundService.hasEnglishSpeech()){
@@ -368,6 +376,12 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
        {stage===2&&<div className="tp6-featured" role="img" aria-label={`Kavram: ${templeWord(task.target).tr}`}>
          <Rune id={task.target} disabled/>
          <span>{templeWord(task.target).tr}</span>
+        </div>}
+       {/* Listening rounds show no picture (it would give the answer away):
+           an echo crystal that rings while the English plays fills its place. */}
+       {stage===3&&<div className="tp6-featured tp9-echo" aria-hidden="true" data-speaking={speaking||undefined}>
+         <span className="tp9-echo-orb"><span className="tp9-echo-gem"/><i/><i/><i/></span>
+         <span>{speaking?'Yankı çalıyor…':'Yankı Kristali'}</span>
         </div>}
        {stage===3&&<div className="tp-listen-panel tp6-listen-panel">
         <button className="tp-listen" disabled={busy||correct} onClick={()=>speak(task.audio,true)}>

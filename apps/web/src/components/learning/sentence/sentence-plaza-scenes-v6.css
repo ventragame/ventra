@@ -116,7 +116,7 @@
  .sp-v3 .sp-v6-hotspot>span:first-child{font-size:22px}
 }
 @media(max-width:400px){
- .sp-v3 .sp-v6-hotspot{width:43px;height:43px;min-width:43px;min-height:43px}
+ .sp-v3 .sp-v6-hotspot{width:43px;height:43px;min-width:44px;min-height:44px}
  .sp-v3 .sp-v6-hotspot>span:first-child{font-size:20px}
  .sp-v3 .sp-v6-hotspot-tooltip{max-width:100px;min-width:76px;font-size:12px}
 }

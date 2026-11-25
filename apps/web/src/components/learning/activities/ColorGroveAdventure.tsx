@@ -217,6 +217,9 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
     setAnswerHighlight(target);
     if (step === 3) setPaintedIds(list => [...list, target]);
     setFeedback({ text: '✨ ' + target.toUpperCase() + '!', good: true, lang: 'en', detail: getWord(target).tr });
+    // Matching rounds show a colour and ask for its name: the right answer is
+    // also heard once, as in the other worlds. Painting rounds already played it.
+    if (step === 2 && !muted) pronounce(target);
     setAwaitingAdvance(true);
     if (question + 1 >= activePlan.questions.length) {
       setFinishedAnswers(nextEvidence);

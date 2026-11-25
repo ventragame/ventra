@@ -178,7 +178,7 @@
 .sp-v2 .sp-scene-choice[data-selected=true]{border-color:#5dddab;background:#d1f5ca}
 .sp-v2 .sp-scene-choice:disabled:not([data-selected=true]){opacity:.52}
 .sp-v2 .sp-repair-words{display:flex;flex-wrap:wrap;gap:7px;justify-content:center}
-.sp-v2 .sp-repair-word{min-height:43px;padding:7px 10px;border:1px solid #dfc5a2;border-radius:10px;
+.sp-v2 .sp-repair-word{min-height:44px;padding:7px 10px;border:1px solid #dfc5a2;border-radius:10px;
  background:#fff5d9;color:#215764;font-weight:900}
 .sp-v2 .sp-repair-word[data-selected=true]{background:#c4edca;border-color:#66c59a}
 .sp-v2 .sp-v2-vocab{margin:9px 0;background:#104359ab}

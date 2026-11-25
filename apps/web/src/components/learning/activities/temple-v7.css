@@ -195,7 +195,7 @@
  color:#764e3a;
 }
 .tp7-screen .tp6-command>span{
- display:grid;place-items:center;min-width:43px;min-height:43px;
+ display:grid;place-items:center;min-width:44px;min-height:44px;
  border-radius:13px;background:linear-gradient(150deg,#e0faec,#b3e7df);
  border:1px solid #fff9d6;
  box-shadow:0 3px 0 #91c5b1;

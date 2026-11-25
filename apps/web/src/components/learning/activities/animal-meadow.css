@@ -122,7 +122,7 @@
  padding:7px 9px;gap:4px;min-height:56px;backdrop-filter:blur(16px)}
  .am-hud-title{gap:7px}.am-hud-icon{width:35px;height:35px;font-size:18px;border-radius:11px}
  .am-hud-title strong{font-size:14px}.am-hud-title small{font-size:12px}
- .am-hud-actions{gap:5px}.am-hud-btn{min-height:43px;min-width:43px;
+ .am-hud-actions{gap:5px}.am-hud-btn{min-height:44px;min-width:44px;
  border-radius:12px;font-size:15px;padding:6px}
  .am-hud-btn[data-mobile-hide=true]{display:none}
  .am-intro{padding:8px 0 5px}.am-intro h1{font-size:22px;margin:0}

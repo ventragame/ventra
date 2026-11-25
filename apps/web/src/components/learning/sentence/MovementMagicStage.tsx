@@ -5,6 +5,8 @@ import type {MagicActor,MagicChapter,MagicPlace,MagicVerb} from '@/lib/learning/
 interface Props{
  chapter:MagicChapter;actor:MagicActor;verb:MagicVerb;color:string;
  place:MagicPlace;selectedPlace:MagicPlace|null;activated:boolean;showTargets:boolean;
+ /** Place the child just tapped wrongly, marked red until the next tap. */
+ wrongPlace?:MagicPlace|null;
  onPlace?:(place:MagicPlace)=>void;disabled:boolean;sentence?:string;
 }
 const COLORS:Record<string,string>={
@@ -21,7 +23,7 @@ const HOTSPOTS:[MagicPlace,string,string,number,number][]=[
  ['tower','Kule','🏰',82,60]
 ];
 export function MovementMagicStage({chapter,actor,verb,color,place,selectedPlace,activated,
- showTargets,onPlace,disabled,sentence}:Props){
+ showTargets,onPlace,disabled,sentence,wrongPlace=null}:Props){
  const target=POS[activated?place:selectedPlace??'bridge'];
  const shade=COLORS[color]??'#ffd89a';
  return <div className={'mm-visual mm-chapter-'+chapter+(activated?' mm-active mm-motion-'+verb:'')}
@@ -124,7 +126,7 @@ export function MovementMagicStage({chapter,actor,verb,color,place,selectedPlace
   {showTargets&&<div className="mm-hotspots" aria-label="Oyun dünyasında hedef konumu seç">
    {HOTSPOTS.map(([id,label,symbol,left,top])=><button key={id} type="button" disabled={disabled}
     aria-label={label+' konumuna git'} aria-pressed={selectedPlace===id}
-    className="mm-hotspot" data-active={selectedPlace===id} style={{left:left+'%',top:top+'%'}}
+    className="mm-hotspot" data-active={selectedPlace===id} data-wrong={wrongPlace===id||undefined} style={{left:left+'%',top:top+'%'}}
     onClick={()=>onPlace?.(id)}><span aria-hidden="true">{symbol}</span><small>{label}</small></button>)}
   </div>}
   <div className="mm-canvas-caption">

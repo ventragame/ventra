@@ -1,0 +1,36 @@
+/* Story Forest reward summary: praise, round stats and the story's English
+   sentences to hear again. Shared by Hikâyeyi Keşfet, Sonra Ne Oldu? and
+   Hikâye Dedektifi. */
+.story-recap-summary{display:flex;flex-direction:column;align-items:center;gap:4px;
+ width:min(92vw,560px);text-align:center}
+.story-recap-praise{margin:0;font-size:clamp(15px,2.2vw,18px);font-weight:950;line-height:1.3;color:#235e5b}
+.story-recap-stats{margin:0;font-size:13px;font-weight:850;color:#3f7371}
+.story-recap-lines{width:min(92vw,560px);padding:12px;border-radius:20px;text-align:left;
+ background:rgba(255,253,240,.74);border:2px solid rgba(255,255,255,.9);
+ box-shadow:0 10px 22px rgba(43,104,99,.14)}
+.story-recap-title{margin:0 0 9px;font-size:13px;font-weight:950;color:#2f6d68;text-align:center}
+.story-recap-lines ol{list-style:none;margin:0;padding:0;display:grid;gap:7px}
+.story-recap-line{width:100%;min-height:44px;display:flex;align-items:center;gap:10px;
+ padding:8px 12px;border-radius:14px;border:2px solid #d6eee2;background:#fff;
+ color:#1f5552;font-size:15px;font-weight:850;line-height:1.3;text-align:left;
+ box-shadow:0 3px 0 #b9ddd0;transition:transform .14s ease,box-shadow .14s ease,border-color .14s ease;
+ touch-action:manipulation;cursor:pointer}
+.story-recap-line:hover{border-color:#9fd8c3}
+.story-recap-line:active{transform:translateY(2px);box-shadow:0 1px 0 #b9ddd0}
+.story-recap-line[data-playing]{border-color:#7fd0b4;background:#f1fff8}
+.story-recap-icon{flex:0 0 30px;height:30px;display:grid;place-items:center;border-radius:999px;
+ background:linear-gradient(135deg,#a2eda8,#7fd8c4);color:#1e6457;font-size:13px}
+.story-recap-line:focus-visible{outline:4px solid #ffd275;outline-offset:3px}
+
+/* The reward screens grow with the summary: they scroll instead of clipping,
+   and stay centred while everything fits. Auto margins, unlike
+   justify-content:center, never push the top out of reach. */
+.sj-root .sj-reward,.sd-root .sd-reward{overflow-y:auto;overscroll-behavior:contain;justify-content:flex-start;
+ padding-bottom:calc(20px + env(safe-area-inset-bottom,0px))}
+/* .ss-reward is already the scrolling <main> of the sequence game. */
+.ss-root .ss-reward{justify-content:flex-start;
+ padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
+.sj-root .sj-reward>*,.sd-root .sd-reward>*,.ss-root .ss-reward>*{flex-shrink:0}
+.sj-root .sj-reward-scene,.ss-root .ss-reward-visual,.sd-root .sd-reward-illustration{margin-top:auto}
+.sj-root .sj-reward>:last-child,.sd-root .sd-reward>:last-child,.ss-root .ss-reward>:last-child{margin-bottom:auto}
+@media(prefers-reduced-motion:reduce){.story-recap-line{transition:none}}

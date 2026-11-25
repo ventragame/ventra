@@ -105,7 +105,7 @@ color:#fff2ad!important;box-shadow:0 0 16px #fff7a366,inset 0 0 14px #f8ffc63d!i
 }
 .nv-forge-output{background:rgba(4,31,57,.65);border:1px solid rgba(184,243,247,.32);}
 .nv-forge-slot{
- display:inline-flex;min-width:36px;min-height:43px;align-items:center;justify-content:center;
+ display:inline-flex;min-width:36px;min-height:44px;align-items:center;justify-content:center;
  padding:6px 10px;border:1px dashed rgba(206,237,255,.5);border-radius:12px;
  background:rgba(78,127,164,.33);font-size:clamp(12px,3vw,20px);font-weight:900;color:#defbfa;
 }

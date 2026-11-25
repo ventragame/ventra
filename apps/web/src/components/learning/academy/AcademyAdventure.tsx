@@ -66,6 +66,8 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
  const [message,setMessage]=useState('');
  const [resolved,setResolved]=useState(false);
  const [busy,setBusy]=useState(false);
+ /** Stars saved for the finished zone, shown on the final screen. */
+ const [earnedStars,setEarnedStars]=useState<1|2|3>(1);
  // What the microphone is doing right now, so a ~73 MB first-time model
  // download is never presented as "listening" (P1 audit).
  const [micPhase,setMicPhase]=useState<AcademyMicPhase>('idle');
@@ -111,6 +113,14 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
   if(!scroller||!target)return;
   const outer=scroller.getBoundingClientRect(),inner=target.getBoundingClientRect();
   scroller.scrollTo({top:Math.max(0,inner.top-outer.top+scroller.scrollTop-12),behavior:'auto'});
+ },[stage,task.id]);
+ // Listening tasks play their English line as soon as they open, as the
+ // garden worlds do; "Dinle / Tekrar Dinle" replays it. A resumed task whose
+ // audio was already tried is left alone.
+ useEffect(()=>{
+  if(stage!=='quest'||task.kind!=='hear'||audioAttempted||busy||resolved)return;
+  const timer=window.setTimeout(()=>readLine(),500);
+  return()=>window.clearTimeout(timer);
  },[stage,task.id]);
 
  useEffect(()=>{
@@ -223,7 +233,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
    if(!alive.current)return;
    if(version!==runVersion.current)return;
    setLevels(updated);setRecorded(history=>[...history,...rows]);setBusy(false);setSaveError('');
-   setStage('final');soundService.playSfx('fanfare',.65);onSaved();
+   setEarnedStars(stars);setStage('final');soundService.playSfx('fanfare',.65);onSaved();
   }catch{
    if(!alive.current)return;
    setBusy(false);setSaveError('Kayıt tamamlanamadı. Bağlantıyı kontrol edip yeniden dene.');
@@ -487,6 +497,8 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
     <div className="academy-final-icon" aria-hidden="true">🌠</div>
     <span className="academy-eyebrow">{reviewSkill?'ÖĞRENME TEKRARI TAMAMLANDI':'ATLASIN BİR SAYFASI DAHA AYDINLANDI'}</span>
     <h1>{reviewSkill?'Üç küçük görevi tamamladın!':currentZone.ending}</h1>
+    {!reviewSkill&&<div className="academy-final-stars" aria-label={earnedStars+' yıldız'}>
+     {[1,2,3].map(n=><span key={n} className={n<=earnedStars?'earned':undefined}>★</span>)}</div>}
     <p>{plan.result}</p>
     <div className="academy-review">
      {review.filter(r=>r.attempts>0).map(r=><div key={r.skill}><strong>{r.skill==='listening'?'Dinleme':r.skill==='reading'?'Okuma':
@@ -495,7 +507,10 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
     </div>
     <p className="academy-note">Bu görevler öğrenme alıştırmasıdır; resmî İngilizce seviye sınavı değildir.</p>
     <div className="academy-final-actions">
-     <button type="button" className="academy-submit" onClick={()=>{setStage('map');setMessage('');}}>Bölümleri Gör</button>
+     {!reviewSkill&&zone<ACADEMY_ZONES.length&&zone+1<=available&&<button type="button" className="academy-submit"
+      onClick={()=>open(zone+1)}>Sıradaki Durak: {ACADEMY_ZONES[zone].name} →</button>}
+     <button type="button" className={!reviewSkill&&zone<ACADEMY_ZONES.length&&zone+1<=available?'academy-again':'academy-submit'}
+      onClick={()=>{setStage('map');setMessage('');}}>Bölümleri Gör</button>
      <button type="button" className="academy-again" onClick={()=>reviewSkill?startSkillReview(reviewSkill):open(zone)}>{reviewSkill?'Tekrar Çalış ↻':'Yeniden Keşfet ↻'}</button>
     </div>
    </main>}
