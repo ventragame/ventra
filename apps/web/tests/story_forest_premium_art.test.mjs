@@ -11,14 +11,16 @@ const root=path.resolve(path.dirname(fileURLToPath(import.meta.url)),'..');
 const assets=path.join(root,'public/assets/story-forest/premium');
 const characters=[
  'rabbit_adventurer','squirrel_acorn','blue_bird_flying','hedgehog_happy',
- 'cat_orange','cat_gray_sleeping','cat_white_bow'
+ 'cat_orange','cat_gray_sleeping','cat_white_bow',
+ 'rabbit_reading','rabbit_tree','rabbit_rock','rabbit_pond','fox_orange','fox_running',
+ 'deer_antlers','bear_cub','bear_sleeping','dog_puppy','fish_orange','butterfly_colourful'
 ];
 const scenes=[
  'forest_clearing','forest_path','forest_treehouse','forest_pond',
  'forest_meadow','forest_bridge','forest_camp'
 ];
 const code=fs.readFileSync(path.join(root,'src/components/learning/story/StoryForestArt.tsx'),'utf8');
-test('All 14 premium WebP assets are real image bytes and have budgeted sizes',()=>{
+test('All 26 premium WebP assets are real image bytes and have budgeted sizes',()=>{
  for(const name of characters){
   const p=path.join(assets,'characters',name+'.webp');
   assert.ok(fs.existsSync(p),'Missing character asset: '+name);
@@ -57,7 +59,7 @@ test('Art stays as separate, responsive layers in both games and island menu',()
  const css=fs.readFileSync(path.join(root,'src/components/learning/story/premium-story-art.css'),'utf8');
  assert.match(code,/export function StoryForestActor/);
  assert.match(code,/export function StoryForestScenery/);
- assert.match(code,/if\(premium\)return <img className=/);
+ assert.match(code,/return <img className=\{'sf-actor-illustration sf-premium-actor'/);
  assert.match(code,/sf-actor-illustration sf-premium-actor/);
  assert.match(code,/motionClass/);
  assert.ok(code.includes("className={'sf-scenery sf-premium-scenery"));
@@ -120,7 +122,7 @@ test('All six story backgrounds have unique WebP mappings, with no SVG fallback'
   assert.ok(code.includes(scene+":'scenes/forest_"),'Missing environment: '+scene);
  }
  const scenery=code.slice(code.indexOf('export function StoryForestScenery'),
-  code.indexOf('const ANIMAL_COLORS:'));
+  code.indexOf('export type StoryActorMotion'));
  assert.match(scenery,/<img className=/);
  assert.doesNotMatch(scenery,/<svg|linearGradient|treeXs/);
  const css=fs.readFileSync(path.join(root,'src/components/learning/story/premium-story-art.css'),'utf8');
@@ -140,4 +142,39 @@ test('Tent, moon and lantern clue art is WebP, not the old flat SVG',()=>{
   assert.ok(!clue.includes("id==='"+name+"'&&<>"));
  }
  assert.match(seq,/assets\/story-forest\/premium\/clues\/moon\.webp/);
+});
+
+/** Reads the canvas size and alpha flag of an extended (VP8X) WebP. */
+function webpInfo(bytes){
+ assert.equal(bytes.toString('ascii',12,16),'VP8X','extended WebP with alpha');
+ return {alpha:(bytes[20]&0x10)!==0,width:1+bytes.readUIntLE(24,3),height:1+bytes.readUIntLE(27,3)};
+}
+test('Every story animal is painted art of its own identity; vectors remain only for objects',()=>{
+ const objects=['red_apple','yellow_star','blue_balloon','pink_flower','purple_flower','green_leaf'];
+ const animals=Object.keys(FOREST_ACTOR_NAMES).filter(id=>!objects.includes(id));
+ assert.equal(animals.length,20);
+ assert.match(code,/PREMIUM_STORY_CHARACTERS:Readonly<Record<StoryAnimalId,string>>/);
+ for(const id of animals){
+  const m=code.match(new RegExp('\\n '+id+":'characters/([a-z_]+)\\.webp'"));
+  assert.ok(m,'painted art for '+id);
+  const info=webpInfo(fs.readFileSync(path.join(assets,'characters',m[1]+'.webp')));
+  assert.ok(info.alpha,id+' has a transparent background');
+  assert.ok(Math.max(info.width,info.height)>=600&&Math.max(info.width,info.height)<=800,id+' is sized like the set');
+ }
+ // Identity: each species keeps its own picture (a fox is never the cat, a deer never the dog).
+ for(const [id,file] of [['fox','fox_orange'],['fox_running','fox_running'],['deer','deer_antlers'],
+  ['bear','bear_cub'],['bear_sleeping','bear_sleeping'],['dog','dog_puppy'],['fish','fish_orange'],
+  ['butterfly','butterfly_colourful'],['rabbit_reading','rabbit_reading'],['rabbit_pond','rabbit_pond']]){
+  assert.ok(code.includes(id+":'characters/"+file+".webp'"),id);
+ }
+ const vector=code.slice(code.indexOf('// Only simple objects reach the vector art.'));
+ assert.doesNotMatch(vector,/deer|fox|bear|dog|fish|butterfly|rabbit|ANIMAL_COLORS/);
+ assert.doesNotMatch(code,/ANIMAL_COLORS|kind==='/);
+});
+test('Generated story art is documented with its models, licences and prompts',()=>{
+ const doc=fs.readFileSync(path.join(root,'../../docs/STORY_FOREST_ANIMAL_ART_V2.md'),'utf8');
+ for(const word of ['stable-diffusion-xl-base-1.0','RAIL++','IP-Adapter','Apache-2.0','BiRefNet','MIT',
+  'deer_antlers','fox_running','rabbit_pond','butterfly_colourful']){
+  assert.ok(doc.includes(word),word);
+ }
 });

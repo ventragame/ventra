@@ -122,7 +122,9 @@ test('Story Forest sequence and detective effects track validated choices and sa
  assert.match(frame,/characterMotion\?:StoryActorMotion/);
  assert.match(frame,/motion=\{characterMotion\}/);
  assert.doesNotMatch(frame,/frame,scene\}\:\{frame:SequenceFrame;scene:ForestScene/);
- assert.match(art,/motion&&premium/);
+ // Motion classes exist only on the painted-animal branch; vector objects never move.
+ assert.match(art,/if\(!isStoryObject\(id\)\)\{[\s\S]*?const motionClass=motion\?/);
+ assert.doesNotMatch(art.slice(art.indexOf('// Only simple objects reach the vector art.')),/motion/);
  assert.match(motion,/prefers-reduced-motion:reduce/);
  assert.match(guards,/isolation:isolate/);
  assert.match(guards,/learning-motion/);

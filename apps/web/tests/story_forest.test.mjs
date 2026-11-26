@@ -118,7 +118,7 @@ test('Story UI ships independent illustration layers, offline audio and no manua
  assert.match(art,/All six worlds use unique illustrated WebP scenes/);
  assert.match(art,/Readonly<Record<ForestScene,string>>/);
  assert.doesNotMatch(art.slice(art.indexOf('export function StoryForestScenery'),
-  art.indexOf('const ANIMAL_COLORS:')),/<svg/);
+  art.indexOf('export type StoryActorMotion')),/<svg/);
  assert.match(css,/touch-action:manipulation/);
  assert.match(css,/@media\(max-width:700px\)/);
  assert.match(css,/sj-path-choices/);
