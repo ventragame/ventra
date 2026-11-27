@@ -83,13 +83,10 @@ jobs:
             node -e "const fs=require('node:fs');const a=JSON.parse(fs.readFileSync('/tmp/ventra-${guide}.json','utf8'));if(a.op!==420||a.layers.length<20||a.markers?.length!==7||a.assets?.length!==0)process.exit(1);console.log('HTTP character ${guide}: valid self-hosted animated vector');"
             curl -fsSI "http://127.0.0.1:3217/assets/characters/${guide}.svg" > /dev/null
           done
-          curl -fsS "http://127.0.0.1:3217/assets/characters/harbor-captain-leo.json" -o /tmp/ventra-harbor-captain.json
-          node -e "const fs=require('node:fs');const a=JSON.parse(fs.readFileSync('/tmp/ventra-harbor-captain.json','utf8'));if(a.w!==320||a.h!==380||a.layers.length<40||a.markers?.length!==6||a.assets?.length!==0)process.exit(1);console.log('HTTP Captain Leo: original articulated Lottie asset');"
-          curl -fsSI "http://127.0.0.1:3217/assets/characters/harbor-captain-leo.svg" > /dev/null
-          for cast in harbor-mimi harbor-nino harbor-fox harbor-luna; do
-            curl -fsS "http://127.0.0.1:3217/assets/characters/${cast}.json" -o "/tmp/ventra-${cast}.json"
-            node -e "const fs=require('node:fs');const a=JSON.parse(fs.readFileSync('/tmp/ventra-${cast}.json','utf8'));if(a.fr!==30||a.op!==432||a.layers.length<27||a.markers?.length!==6||a.assets?.length!==0)process.exit(1);console.log('HTTP harbor character ${cast}: self-hosted animated vector');"
-            curl -fsSI "http://127.0.0.1:3217/assets/characters/${cast}.svg" > /dev/null
+          # Harbor speakers and Writing Workshop chapters are painted WebPs (docs/VENTRA_ISLAND_HOMES_V1.md).
+          for art in characters/painted/harbor-leo characters/painted/harbor-luna characters/painted/writing-postcat                      animals/painted/parrot animals/painted/turtle story-forest/premium/characters/fox_orange                      writing-workshop/chapter-1 writing-workshop/chapter-5; do
+            curl -fsS "http://127.0.0.1:3217/assets/${art}.webp" -o /tmp/ventra-art.webp
+            node -e "const b=require('node:fs').readFileSync('/tmp/ventra-art.webp');if(b.toString('ascii',0,4)!=='RIFF'||b.toString('ascii',8,12)!=='WEBP'||b.length<12000)process.exit(1);console.log('HTTP painted art ${art}: '+b.length+' bytes');"
           done
       - name: Build static mobile web bundle (no deployment)
         run: npm --workspace=apps/web run export
