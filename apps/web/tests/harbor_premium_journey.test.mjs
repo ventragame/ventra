@@ -88,8 +88,9 @@ test('Scene is layered and uses real existing artwork, with separate mobile comp
   'assets/story-forest/premium/clues/lantern.webp',
   'assets/story-forest/premium/characters/rabbit_adventurer.webp',
   'assets/story-forest/premium/objects/gold_key.webp',
-  'assets/animals/fluent-3d/parrot.png',
-  'assets/animals/fluent-3d/turtle.png'
+  'assets/animals/painted/parrot.webp',
+  'assets/animals/painted/turtle.webp',
+  'assets/animals/painted/fish.webp'
  ];
  for(const asset of artwork){
   const abs=new URL(asset,publicRoot);

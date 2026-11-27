@@ -10,15 +10,15 @@ export const HARBOR_PROPS:Record<HarborPropId,{name:string;image:string|null;fal
  boat:{name:'Yelkenli',image:null,fallback:'⛵'},
  water:{name:'Su',image:null,fallback:'💧'},
  apple:{name:'Elma',image:'/assets/story-forest/premium/objects/apple.webp',fallback:'🍎'},
- fish:{name:'Balık',image:'/assets/animals/fluent-3d/fish.png',fallback:'🐟'},
+ fish:{name:'Balık',image:'/assets/animals/painted/fish.webp',fallback:'🐟'},
  map:{name:'Harita',image:null,fallback:'🗺️'},
  key:{name:'Anahtar',image:'/assets/story-forest/premium/objects/gold_key.webp',fallback:'🗝️'},
  lantern:{name:'Fener',image:'/assets/story-forest/premium/clues/lantern.webp',fallback:'🏮'},
  crystal:{name:'Kristal',image:'/assets/story-forest/premium/objects/crystal.webp',fallback:'💎'},
- parrot:{name:'Papağan',image:'/assets/animals/fluent-3d/parrot.png',fallback:'🦜'},
+ parrot:{name:'Papağan',image:'/assets/animals/painted/parrot.webp',fallback:'🦜'},
  cat:{name:'Kedi',image:'/assets/story-forest/premium/characters/cat_orange.webp',fallback:'🐈'},
  rabbit:{name:'Tavşan',image:'/assets/story-forest/premium/characters/rabbit_adventurer.webp',fallback:'🐇'},
- turtle:{name:'Kaplumbağa',image:'/assets/animals/fluent-3d/turtle.png',fallback:'🐢'}
+ turtle:{name:'Kaplumbağa',image:'/assets/animals/painted/turtle.webp',fallback:'🐢'}
 };
 export const HARBOR_OBJECT_PAIRS:Record<HarborQuest['action'],readonly HarborPropId[]>={
  meet:['parrot','boat'],crew:['parrot','cat'],board:['boat','map'],deliver:['water','fish'],

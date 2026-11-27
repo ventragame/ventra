@@ -22,9 +22,9 @@ export const FIRST_PLAY_LESSONS:Record<TutorialWorld,TutorialLesson>={
     steps:[{choiceId:'cat',prompt:'Parlayan kediye dokun ve İngilizce adını dinle!',done:'Harika! CAT, İngilizce kedi demek.'}],
     // The same 3D animals the child meets in the meadow.
     choices:[
-      {id:'dog',label:'Köpek',english:'Dog',image:'/assets/animals/fluent-3d/dog.png'},
-      {id:'cat',label:'Kedi',english:'Cat',image:'/assets/animals/fluent-3d/cat.png'},
-      {id:'rabbit',label:'Tavşan',english:'Rabbit',image:'/assets/animals/fluent-3d/rabbit.png'}
+      {id:'dog',label:'Köpek',english:'Dog',image:'/assets/animals/painted/dog.webp'},
+      {id:'cat',label:'Kedi',english:'Cat',image:'/assets/animals/painted/cat.webp'},
+      {id:'rabbit',label:'Tavşan',english:'Rabbit',image:'/assets/animals/painted/rabbit.webp'}
     ],completion:'Hazırsın! Oyunda hayvanlara dokunup İngilizce adlarını dinle.'
   },
   colors:{

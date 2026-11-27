@@ -54,7 +54,7 @@ This instruction file does not itself establish a new delivery/deployment author
 
 ### Mobile-first Hayvan Çayırı acceptance (2026-11-03)
 - Implementation: `apps/web/src/components/learning/activities/AnimalMeadowAdventure.tsx` + `MobileMeadowWorld.tsx` + `animal-meadow.css`; teaching contract [docs/HAYVAN_CAYIRI_MOBILE_FIRST_ACCEPTANCE.md](docs/HAYVAN_CAYIRI_MOBILE_FIRST_ACCEPTANCE.md).
-- At <=767px, lightweight accessible HTML animal/habitat selection uses the *same* callback as desktop Phaser; do not create a separate progress/reward system. Preserve existing 40 SVG animals, optimized `word_garden_mobile.webp`, audio/TTS fallback, Pre-A1/A1/A2 placement independent of grade.
+- At <=767px, lightweight accessible HTML animal/habitat selection uses the *same* callback as desktop Phaser; do not create a separate progress/reward system. Preserve the 40 painted WebP animals (`assets/animals/painted`, provenance [docs/ANIMAL_MEADOW_PAINTED_ART_V4.md](docs/ANIMAL_MEADOW_PAINTED_ART_V4.md)), optimized `word_garden_mobile.webp`, audio/TTS fallback, Pre-A1/A1/A2 placement independent of grade.
 - Real Android APK / iOS WebView acceptance is a separate gate; no production deploy or live DB migrations without user approval.
 
 ## Harf Korusu P1 — 16 November 2026

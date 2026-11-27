@@ -21,6 +21,8 @@
 .am3-focus{position:relative;z-index:2;display:flex;align-items:center;justify-content:center;
  min-height:175px;margin-bottom:6px}
 .am3-focus-frame{position:relative;display:grid;place-items:center;width:170px;height:170px;
+ /* A fixed track: tall painted animals (giraffe, horse) are fitted, not stretched past the card. */
+ grid-template:minmax(0,1fr)/minmax(0,1fr);
  padding:9px;border:3px solid #fff7de;border-radius:33px;
  background:linear-gradient(158deg,#fffbeeec,#d3f4e0f2);
  box-shadow:0 7px 0 #377e659c,0 10px 25px #124d487c}
@@ -66,6 +68,7 @@
  box-shadow:0 5px 0 #287853,0 0 23px #f6ffc4c0}
 .am3-choice[data-wrong=true]{border-color:#ff8ea5;background:linear-gradient(156deg,#fff4ed,#ffd4d4)}
 .am3-portrait{box-sizing:border-box;display:grid;place-items:center;flex:1 1 auto;
+ grid-template:minmax(0,1fr)/minmax(0,1fr);
  width:100%;height:clamp(105px,15vw,176px);max-height:176px;min-height:0;
  margin:0;padding:3px;overflow:hidden!important;position:relative}
 .am3-stage .am3-choice .am3-portrait>img{

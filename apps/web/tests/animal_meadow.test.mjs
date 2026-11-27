@@ -20,8 +20,8 @@ test('Animal Meadow catalog contains forty unique animals and preserves existing
   for(const id of ['cat','dog','bird','rabbit']){
     const animal=findAnimal(id);
     assert.ok(animal.audio?.endsWith('.wav'));
-    assert.ok(animal.image?.endsWith('.png'));
-    assert.ok(animal.image?.startsWith('/assets/animals/fluent-3d/'));
+    assert.ok(animal.image?.endsWith('.webp'));
+    assert.ok(animal.image?.startsWith('/assets/animals/painted/'));
   }
 });
 test('All animal words have mobile native speech and browser fallback instead of silent audio null',()=>{
@@ -125,15 +125,14 @@ test('Muted listening fallback and optional hints are neutral, not permanent wea
   assert.deepEqual(getWeakAnimalIds([assisted,missed]),['cow']);
 });
 
-test('Every lesson animal uses a safe local 3D PNG instead of font emoji fallback',()=>{
+test('Every lesson animal uses a safe local painted WebP instead of font emoji fallback',()=>{
  for(const word of ANIMAL_MEADOW_WORDS){
-  assert.match(word.image,/^\/assets\/animals\/fluent-3d\/[a-z]+\.png$/);
+  assert.match(word.image,/^\/assets\/animals\/painted\/[a-z]+\.webp$/);
   const file=path.join(process.cwd(),'public',word.image.replace(/^\//,''));
   const b=fs.readFileSync(file);
-  assert.equal(b.subarray(0,8).toString('hex'),'89504e470d0a1a0a',word.id);
-  assert.equal(b.readUInt32BE(16),256);
-  assert.equal(b.readUInt32BE(20),256);
-  assert.ok(b.length>12000);
+  assert.equal(b.toString('ascii',0,4),'RIFF',word.id);
+  assert.equal(b.toString('ascii',8,12),'WEBP',word.id);
+  assert.ok(b.length>12000,word.id);
  }
 });
 test('Animal Meadow uses one accessible visual stage for every mission on every screen',()=>{

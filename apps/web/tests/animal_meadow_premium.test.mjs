@@ -81,9 +81,9 @@ test('The reward screen recaps the mission words; the album shows silhouettes an
  assert.match(ui,/\{albumCount\}\/\{ANIMAL_MEADOW_WORDS\.length\} dost keşfedildi/);
 });
 
-test('The first-play lesson uses the meadow\'s own 3D animals and promises only what the game does',()=>{
+test('The first-play lesson uses the meadow\'s own painted animals and promises only what the game does',()=>{
  const lesson=FIRST_PLAY_LESSONS.animals;
- for(const choice of lesson.choices)assert.match(choice.image,/^\/assets\/animals\/fluent-3d\/[a-z]+\.png$/);
+ for(const choice of lesson.choices)assert.match(choice.image,/^\/assets\/animals\/painted\/[a-z]+\.webp$/);
  assert.ok(lesson.choices.every(choice=>fs.existsSync(new URL('../public'+choice.image,import.meta.url))));
  assert.doesNotMatch(lesson.steps[0].prompt,/yürüyecek/);
 });

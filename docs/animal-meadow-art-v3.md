@@ -1,5 +1,7 @@
 # Animal Meadow visual assets & layout v3
 
+> **2026-11-27:** The Fluent Emoji PNG set described below was replaced by 40 painted WebP animals; see [ANIMAL_MEADOW_PAINTED_ART_V4.md](ANIMAL_MEADOW_PAINTED_ART_V4.md). The render contract and QA list below still apply.
+
 ## What changed
 - All 40 catalog entries now point to one **consistent Microsoft Fluent Emoji
   3D** illustration family, each with a 256x256 RGBA PNG committed locally
