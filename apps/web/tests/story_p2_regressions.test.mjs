@@ -44,7 +44,7 @@ test('P2 Detective: every English caption sentence starts with a capital on both
 });
 
 test('P2 Story load errors offer a child-friendly retry that runs the load again',()=>{
- for(const file of ['StoryForestAdventure.tsx','StoryDetectiveAdventure.tsx','StorySequenceAdventure.tsx','StoryForestHome.tsx']){
+ for(const file of ['StoryForestAdventure.tsx','StoryDetectiveAdventure.tsx','StorySequenceAdventure.tsx']){
   const ui=story(file);
   assert.match(ui,/const \[loadAttempt,setLoadAttempt\]=useState\(0\);/,file);
   assert.match(ui,/\},\[profileId,loadAttempt\]\);/,file+': the load effect re-runs on retry');
@@ -55,6 +55,17 @@ test('P2 Story load errors offer a child-friendly retry that runs the load again
    assert.doesNotMatch(message,/error|exception|\d|\[|:/i,file+': no technical text for children: '+message);
   }
  }
+ // The forest home hands its error and retry to the shared island home.
+ const home=story('StoryForestHome.tsx');
+ const shared=fs.readFileSync(new URL('../src/components/learning/island/IslandHome.tsx',import.meta.url),'utf8');
+ assert.match(home,/const \[loadAttempt,setLoadAttempt\]=useState\(0\);/);
+ assert.match(home,/\},\[profileId,loadAttempt\]\);/);
+ assert.match(home,/status=\{loadError\?'error':loaded\?'ready':'loading'\} errorText=\{loadError\|\|undefined\}/);
+ assert.match(home,/onRetry=\{\(\)=>setLoadAttempt\(n=>n\+1\)\}/);
+ assert.match(shared,/status==='error'&&<div className="ih-alert" role="alert">/);
+ assert.match(shared,/onClick=\{props\.onRetry\}>↻ Tekrar dene<\/button>/);
+ for(const [,message] of home.matchAll(/setLoadError\('([^']+)'\)/g))
+  assert.doesNotMatch(message,/error|exception|\d|\[|:/i,'no technical text for children: '+message);
 });
 
 test('P2 Sequence: the first play keeps the original excerpt; completed replays rotate story versions and the A1 check',()=>{

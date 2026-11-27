@@ -1,123 +1,66 @@
 'use client';
 
-import {useEffect,useRef,useState} from 'react';
-import type {AnimationItem} from 'lottie-web';
+import {useEffect,useRef} from 'react';
 import './harbor-captain-avatar.css';
 
-/** Kaptan Leo is the speaking character in the original harbor scenes. */
+/** The harbor speakers, painted in the same style as the harbor scenes and the
+ * other islands' characters. Moods are body language (breathing, talking bob,
+ * listening lean, hop, gentle shake, celebration jump), not lip sync. */
 export type HarborCaptainMood='idle'|'listen'|'talk'|'happy'|'try_again'|'celebrate';
-export const HARBOR_CAPTAIN_SEGMENTS:Readonly<Record<HarborCaptainMood,readonly [number,number]>>={
- idle:[0,90],listen:[90,150],talk:[150,240],
- happy:[240,294],try_again:[294,348],celebrate:[348,432]
-};
-const LOOPING=new Set<HarborCaptainMood>(['idle','listen','talk']);
+export const HARBOR_CAPTAIN_MOODS:readonly HarborCaptainMood[]=['idle','listen','talk','happy','try_again','celebrate'];
 export type HarborActorId='leo'|'parrot'|'turtle'|'fox'|'rabbit';
-const HARBOR_CAST:Readonly<Record<HarborActorId,string>>={
- leo:'harbor-captain-leo',parrot:'harbor-mimi',turtle:'harbor-nino',
- fox:'harbor-fox',rabbit:'harbor-luna'
+
+/** Leo and Luna are harbor originals; Mimi, Nino and the shopkeeper fox are the
+ * same painted animals children meet in Hayvan Çayırı and Hikâye Ormanı. */
+export const HARBOR_CAST_ART:Readonly<Record<HarborActorId,string>>={
+ leo:'/assets/characters/painted/harbor-leo.webp',
+ parrot:'/assets/animals/painted/parrot.webp',
+ turtle:'/assets/animals/painted/turtle.webp',
+ fox:'/assets/story-forest/premium/characters/fox_orange.webp',
+ rabbit:'/assets/characters/painted/harbor-luna.webp'
 };
-const characterSrc=(actor:HarborActorId)=>'/assets/characters/'+HARBOR_CAST[actor];
+
+/** One-shot reactions; looping moods (idle/listen/talk) live in CSS. */
+const REACTIONS:Partial<Record<HarborCaptainMood,{frames:Keyframe[];duration:number}>>={
+ happy:{duration:700,frames:[
+  {transform:'translateY(0) scale(1,1)'},{transform:'translateY(0) scale(1.06,.92)',offset:.18},
+  {transform:'translateY(-9%) scale(.97,1.04)',offset:.48},{transform:'translateY(0) scale(1.03,.97)',offset:.8},
+  {transform:'translateY(0) scale(1,1)'}]},
+ try_again:{duration:760,frames:[
+  {transform:'rotate(0)'},{transform:'rotate(-4deg)',offset:.2},{transform:'rotate(3.5deg)',offset:.45},
+  {transform:'rotate(-2deg)',offset:.7},{transform:'rotate(0)'}]},
+ celebrate:{duration:1100,frames:[
+  {transform:'translateY(0) rotate(0) scale(1)'},{transform:'translateY(0) scale(1.07,.9)',offset:.12},
+  {transform:'translateY(-14%) rotate(-6deg) scale(1.03)',offset:.38},{transform:'translateY(0) scale(1.05,.94)',offset:.6},
+  {transform:'translateY(-6%) rotate(5deg)',offset:.8},{transform:'translateY(0) rotate(0) scale(1)'}]}
+};
 
 interface Props {
  mood:HarborCaptainMood;
+ /** Changes when something new happens, so the same reaction can play again. */
  cue?:string|number;
  className?:string;
 }
 interface CastProps extends Props{ actor:HarborActorId; }
 
-/** Original segmented Lottie puppet, not a floating static WebP.
- * Every view owns at most one Lottie instance. The self-hosted matching SVG
- * is shown while loading, when reduced-motion is requested, or upon failure.
- * This visual component has no access to child recordings or transcripts.
- */
+/** Decorative only: the spoken line is always in the speech card next to it.
+ * This visual component has no access to child recordings or transcripts. */
 export function HarborCharacterAvatar({actor,mood,cue,className=''}:CastProps){
- const base=characterSrc(actor);
- const host=useRef<HTMLSpanElement|null>(null);
- const player=useRef<AnimationItem|null>(null);
- const desired=useRef(mood);
- desired.current=mood;
- const [reduced,setReduced]=useState(false);
- const [ready,setReady]=useState(false);
- const [failed,setFailed]=useState(false);
-
+ const body=useRef<HTMLSpanElement|null>(null);
  useEffect(()=>{
-  const query=window.matchMedia('(prefers-reduced-motion: reduce)');
-  const update=()=>setReduced(query.matches);
-  update();
-  if(typeof query.addEventListener==='function')query.addEventListener('change',update);
-  else query.addListener(update);
-  return()=>{
-   if(typeof query.removeEventListener==='function')query.removeEventListener('change',update);
-   else query.removeListener(update);
-  };
- },[]);
-
- useEffect(()=>{
-  setReady(false);setFailed(false);
-  if(reduced)return;
-  let active=true;
-  let animation:AnimationItem|null=null;
-  let detach=()=>{};
-  const playMood=()=>{
-   if(!active||!animation?.isLoaded||document.hidden)return;
-   const state=desired.current;
-   animation.setLoop(LOOPING.has(state));
-   animation.playSegments([...HARBOR_CAPTAIN_SEGMENTS[state]],true);
-  };
-  void import('lottie-web').then(module=>{
-   if(!active||!host.current)return;
-   try{
-    animation=module.default.loadAnimation({
-     container:host.current,renderer:'svg',loop:false,autoplay:false,
-     path:base+'.json',rendererSettings:{preserveAspectRatio:'xMidYMid meet'}
-    });
-    player.current=animation;
-    const onLoaded=()=>{if(active){setReady(true);playMood();}};
-    const onError=()=>{if(active){setFailed(true);setReady(false);animation?.stop();}};
-    const onComplete=()=>{
-     if(!active||!animation?.isLoaded||document.hidden||LOOPING.has(desired.current))return;
-     // Return from a brief smile/try-again/celebration to natural breathing
-     // instead of leaving a child's character frozen at its final keyframe.
-     animation.setLoop(true);
-     animation.playSegments([...HARBOR_CAPTAIN_SEGMENTS.idle],true);
-    };
-    const onVisibility=()=>{
-     if(!active||!animation)return;
-     if(document.hidden)animation.pause();
-     else playMood();
-    };
-    animation.addEventListener('DOMLoaded',onLoaded);
-    animation.addEventListener('complete',onComplete);
-    animation.addEventListener('data_failed',onError);
-    animation.addEventListener('error',onError);
-    document.addEventListener('visibilitychange',onVisibility);
-    detach=()=>document.removeEventListener('visibilitychange',onVisibility);
-    if(animation.isLoaded)onLoaded();
-   }catch(error){
-    console.error('[HarborCaptain] Failed to initialize local animation',error);
-    if(active)setFailed(true);
-   }
-  }).catch(error=>{
-   console.error('[HarborCaptain] Local animation unavailable',error);
-   if(active)setFailed(true);
-  });
-  return()=>{active=false;detach();animation?.destroy();player.current=null;};
- },[actor,reduced]);
-
- useEffect(()=>{
-  const animation=player.current;
-  if(reduced||!animation?.isLoaded||document.hidden)return;
-  animation.setLoop(LOOPING.has(mood));
-  animation.playSegments([...HARBOR_CAPTAIN_SEGMENTS[mood]],true);
- },[mood,cue,reduced]);
-
- const showStatic=reduced||failed||!ready;
+  const reaction=REACTIONS[mood];
+  const element=body.current;
+  if(!reaction||!element||typeof element.animate!=='function'||document.hidden)return;
+  if(window.matchMedia('(prefers-reduced-motion: reduce)').matches)return;
+  const animation=element.animate(reaction.frames,{duration:reaction.duration,easing:'cubic-bezier(.3,.7,.3,1)'});
+  return()=>animation.cancel();
+ },[mood,cue]);
  return <span className={'harbor-captain-avatar '+className}
-  aria-hidden="true" data-actor={actor} data-mood={mood} data-ready={ready&&!failed}>
-   <img src={base+'.svg'} alt="" draggable={false} className="harbor-captain-avatar-static"
-    style={{opacity:showStatic?1:0}}/>
-   <span ref={host} className="harbor-captain-avatar-motion"
-    style={{opacity:showStatic?0:1}}/>
+  aria-hidden="true" data-actor={actor} data-mood={mood}>
+   <span ref={body} className="harbor-captain-avatar-motion">
+    <img src={HARBOR_CAST_ART[actor]} alt="" draggable={false} decoding="async"
+     className="harbor-captain-avatar-static"/>
+   </span>
   </span>;
 }
 

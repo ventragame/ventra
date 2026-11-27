@@ -66,7 +66,7 @@ test('Guided 2.2 uses spoken examples, honest hints, stateful wrong options and 
  assert.match(css,/height:100dvh/);
 });
 
-test('Incorrect scene objects are taught and tracked once; transient Lottie moods return to idle',()=>{
+test('Incorrect scene objects are taught and tracked once; transient reactions return to idle',()=>{
  const game=read('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
  const stage=read('../src/components/learning/harbor/HarborSceneStage.tsx');
  const avatar=read('../src/components/learning/harbor/HarborCaptainAvatar.tsx');
@@ -78,7 +78,7 @@ test('Incorrect scene objects are taught and tracked once; transient Lottie mood
  assert.match(game,/wrongObjects=\{wrongSceneObjects\}/);
  assert.match(stage,/data-wrong=\{wrongObjects\.includes\(id\)\}/);
  assert.match(css,/hp-object-choice\[data-wrong="true"\]/);
- assert.match(avatar,/addEventListener\('complete',onComplete\)/);
- assert.match(avatar,/HARBOR_CAPTAIN_SEGMENTS\.idle/);
- assert.match(avatar,/LOOPING.has\(desired.current\)/);
+ // One-shot reactions are short animations on top of the looping idle breath.
+ assert.match(avatar,/element\.animate\(reaction\.frames,\{duration:reaction\.duration/);
+ assert.match(avatar,/return\(\)=>animation\.cancel\(\);/);
 });

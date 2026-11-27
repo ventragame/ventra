@@ -223,7 +223,7 @@ test('Cümle Meydanı V2 visual-first scene, 6 genuine WebP covers and compact t
  const css=read('../src/components/learning/sentence/sentence-plaza-v2.css');
  assert.match(ui,/sentence-plaza-v2\.css/);
  assert.match(ui,/className="sp-overlay sp-v2 sp-v3"/);
- assert.match(ui,/sp-v2-card-art/);
+ assert.match(ui,/<IslandHome island=\"sentence\"/);
  assert.match(ui,/aria-label="Oyunun dört adımı"/);
  assert.match(ui,/sp-v2-vocab/);
  assert.match(ui,/sp-v2-steps/);
@@ -241,43 +241,36 @@ test('Cümle Meydanı V2 visual-first scene, 6 genuine WebP covers and compact t
  assert.match(css, /prefers-reduced-motion:reduce/);
 });
 
-test('V4 sentence plaza home has no oversized artwork; all mission covers and game scenes stay intact',()=>{
+test('Plaza home uses the shared island home; lesson and play keep the plaza scene',()=>{
  const ui=fs.readFileSync(new URL('../src/components/learning/sentence/SentencePlazaAdventure.tsx',import.meta.url),'utf8');
- const style=fs.readFileSync(new URL('../src/components/learning/sentence/sentence-plaza-home-v4.css',import.meta.url),'utf8');
- const first=ui.indexOf("screen==='map'?<>");
- const last=ui.indexOf("</>:screen==='lesson'?<>",first);
- assert.ok(first>=0&&last>first,'map and lesson must remain separate');
+ const first=ui.indexOf("if(screen==='map')return <IslandHome island=\"sentence\"");
+ const last=ui.indexOf('</IslandHome>;',first);
+ assert.ok(first>=0&&last>first,'the overview is its own screen');
  const map=ui.slice(first,last);
  const game=ui.slice(last);
  assert.doesNotMatch(map,/<SentencePlazaScene/,'do not render the giant home image');
  assert.doesNotMatch(map,/plaza-world\.webp/);
- assert.match(map,/className="sp-v4-home sp-v5-home"/);
  assert.match(map,/aria-label="Oyunun dört adımı"/);
  for(const word of ['Gör','Dinle','Kur','Canlandır'])assert.ok(map.includes(word));
- assert.match(map,/role="progressbar"/);
- assert.match(map,/aria-valuenow=\{progress\.completedLevels\}/);
- assert.match(map,/openMission\(Math\.min\(6,progress\.completedLevels\+1\) as PlazaMission\)/);
  assert.match(map,/SENTENCE_PLAZA_MISSIONS\.map/);
- assert.match(map,/src=\{`\/assets\/sentence-plaza\/v5\/mission-\$\{item\.id\}\.webp`\}/);
- assert.match(map,/data-status=\{done\?'completed':unlocked\?'available':'locked'\}/);
- assert.match(map,/aria-label=\{`\$\{item\.title\}/);
+ assert.match(map,/art:`\/assets\/sentence-plaza\/v5\/mission-\$\{item\.id\}\.webp`/);
+ // Sequential unlocking and stars come from saved progress, never invented.
+ assert.match(map,/done:item\.id<=progress\.completedLevels,unlocked:item\.id<=progress\.completedLevels\+1/);
+ assert.match(map,/stars:progress\.starsByLevel\[item\.id\]/);
+ assert.match(map,/onOpen=\{id=>openMission\(id as PlazaMission\)\}/);
+ assert.match(map,/status=\{loading\?'loading':loadError\?'error':'ready'\}/);
+ assert.match(map,/onRetry=\{\(\)=>setLoadAttempt\(n=>n\+1\)\}/);
+ for(const name of ['FUTURE.map','Yakında'])assert.ok(map.includes(name),'future regions stay visible and locked');
+ assert.match(ui,/if\(loading\|\|loadError\|\|savingLock\.current\|\|m>progress\.completedLevels\+1\)return;/,'openMission still blocks skipping');
  assert.match(game,/screen==='play'/);
  assert.equal((game.match(/<SentencePlazaScene/g)??[]).length,2,'lesson and play keep scene');
  assert.match(ui,/saveSentencePlazaMission/);
  assert.match(ui,/nextTimer\.current=setTimeout/);
- assert.match(ui,/sentence-plaza-home-v4\.css/);
- assert.match(style,/\.sp-v4-home \.sp-v4-intro/);
- assert.match(style,/\.sp-v4-home \.sp-v4-mission/);
- assert.match(style,/@media\(max-width:900px\)/);
- assert.match(style,/@media\(max-width:610px\)/);
- assert.match(style,/@media\(max-width:359px\)/);
- assert.match(style,/prefers-reduced-motion:reduce/);
 });
 
-test('V5 premium covers are 6 distinct real WebPs; responsive cards preserve progression',()=>{
+test('V5 premium covers are 6 distinct real WebPs used as the plaza chapter cards',()=>{
  const read=p=>fs.readFileSync(new URL(p,import.meta.url),'utf8');
  const page=read('../src/components/learning/sentence/SentencePlazaAdventure.tsx');
- const css=read('../src/components/learning/sentence/sentence-plaza-covers-v5.css');
  const base=new URL('../public/assets/sentence-plaza/v5/',import.meta.url);
  const hashes=new Set();
  for(let n=1;n<=6;n++){
@@ -289,28 +282,8 @@ test('V5 premium covers are 6 distinct real WebPs; responsive cards preserve pro
   hashes.add(bytes.toString('base64').slice(0,200));
  }
  assert.equal(hashes.size,6,'six worlds must have different images');
- const mapStart=page.indexOf("screen==='map'?<>");
- const mapEnd=page.indexOf("</>:screen==='lesson'?<>",mapStart);
- const overview=page.slice(mapStart,mapEnd);
- assert.ok(mapStart>=0&&mapEnd>mapStart);
- assert.match(overview,/className="sp-v4-home sp-v5-home"/);
- assert.match(overview,/className="sp-map-grid sp-v4-grid sp-v5-grid"/);
- assert.match(overview,/className="sp-mission sp-v4-mission sp-v5-mission"/);
- assert.match(overview,/src=\{`\/assets\/sentence-plaza\/v5\/mission-\$\{item\.id\}\.webp`\}/);
- assert.match(overview,/width=\{1120\} height=\{390\}/);
- assert.match(overview,/data-status=\{done\?'completed':unlocked\?'available':'locked'\}/);
- assert.match(overview,/disabled=\{!unlocked\}/);
- assert.match(overview,/progress\.completedLevels\+1/);
- assert.doesNotMatch(overview,/<SentencePlazaScene/,'do not reintroduce large plaza image');
- assert.match(page,/sentence-plaza-covers-v5\.css/);
- assert.match(css,/aspect-ratio:1120 \/ 390/);
- assert.match(css,/@media\(max-width:960px\)/);
- assert.match(css,/@media\(max-width:560px\)/);
- assert.match(css,/\.sp-v2 \.sp-v5-home \.sp-v5-grid\{/,'V5 grid must override V4 mobile CSS');
- assert.match(css,/grid-template-columns:minmax\(0,1fr\)/);
- assert.match(css,/prefers-reduced-motion:reduce/);
+ assert.match(page,/art:`\/assets\/sentence-plaza\/v5\/mission-\$\{item\.id\}\.webp`/);
  assert.match(page,/saveSentencePlazaMission/);
- assert.match(page,/nextTimer\.current=setTimeout/);
 });
 
 test('V6 all six missions have distinct local optimized scenic WebPs and no shared plaza scene',()=>{

@@ -20,6 +20,8 @@ import {
 import './academy-adventure.css';
 import './academy-skill-system.css';
 import {GameFinale} from '../GameFinale';
+import {IslandHome} from '../island/IslandHome';
+import {gradeLevelLabel} from '@/lib/learning/gradeLabel';
 
 type AcademyMicPhase='idle'|'preparing'|'listening'|'heard'|'processing';
 function academyMicPhase(status:SpeechCaptureStatus):AcademyMicPhase{
@@ -74,6 +76,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
  const [micPhase,setMicPhase]=useState<AcademyMicPhase>('idle');
  const [modelProgress,setModelProgress]=useState<number|null>(null);
  const [loading,setLoading]=useState(true);
+ const [loadFailed,setLoadFailed]=useState(false);
  const [saveError,setSaveError]=useState('');
  const [levels,setLevels]=useState<Record<number,{completedCount:number;bestStars:number}>>({});
  const [capability,setCapability]=useState<SpeechCapability|null>(null);
@@ -97,7 +100,6 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
  const completed=ACADEMY_ZONES.filter(z=>(levels[z.id]?.completedCount??0)>0).length;
  const available=completed+1;
  const currentZone=ACADEMY_ZONES[zone-1];
- const zonePhoto='/assets/kids-islands/language_academy.webp';
  const recommended=academyReviewPriority(recorded,englishLevel);
  const recommendationText=recommended?({listening:'Dinleme',reading:'Okuma',dialogue:'Konuşma',sentence:'Cümle kurma',writing:'Yazma'} as const)[recommended.skill]:null;
  const wordTiles=useMemo(()=>academyShuffle(academyWords(task.answer),task.id+'-order'),[task]);
@@ -130,7 +132,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
   void getProgressRepository().getAllLevelProgress(ACADEMY_GAME_ID,profileId).then(rows=>{
    if(!live)return;
    setLevels(rows);setLoading(false);
-  }).catch(()=>{if(live){setLoading(false);setSaveError('İlerleme okunamadı. Yeniden dene.');}});
+  }).catch(()=>{if(live){setLoading(false);setLoadFailed(true);}});
   void getProgressRepository().getAcademyAnswerHistory(profileId).then(rows=>{
    if(live)setRecorded(rows);
   }).catch(()=>{});
@@ -139,6 +141,13 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
    if(advanceTimer.current)clearTimeout(advanceTimer.current);
    audioEpoch.current++;stopSpeechCapture();soundService.cancelSpeech();soundService.setCaptureActive(false);};
  },[profileId]);
+ function reloadProgress(){
+  setLoading(true);setLoadFailed(false);
+  void getProgressRepository().getAllLevelProgress(ACADEMY_GAME_ID,profileId).then(rows=>{
+   if(!alive.current)return;
+   setLevels(rows);setLoading(false);
+  }).catch(()=>{if(alive.current){setLoading(false);setLoadFailed(true);}});
+ }
  const stop=()=>{audioEpoch.current++;stopSpeechCapture();soundService.setCaptureActive(false);soundService.cancelSpeech();};
  const cancelAdvance=()=>{runVersion.current++;
   if(advanceTimer.current)clearTimeout(advanceTimer.current);
@@ -336,53 +345,39 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
  }
  function exit(){cancelAdvance();stop();onBack();}
  const review=academySkillReview(answers,Date.now(),englishLevel);
+ if(stage==='map')return <IslandHome island="academy" ariaLabel="Keşif Akademisi"
+  eyebrow="KAYIP YILDIZ ATLASI" title="Keşif Akademisi" crest="✦" onBack={exit}
+  chips={[gradeLevelLabel(gradeLevel)+' · '+englishLevel,'⭐ '+(loading||loadFailed?'…':completed)+'/'+ACADEMY_ZONES.length]}
+  heroArt="/assets/kids-islands/language_academy.webp" heroArtMobile="/assets/kids-islands/language_academy_mobile.webp"
+  tagline="İngilizce öğren, yeni dostlara yardım et, atlasın altı sayfasını ışıkla doldur."
+  guide={{src:'/assets/animals/painted/owl.webp',alt:'Bilge baykuş'}}
+  chapterNoun="Durak" sectionTitle="Macera durakların"
+  chapters={ACADEMY_ZONES.map(z=>({id:z.id,title:z.name,subtitle:z.subtitle,icon:z.icon,
+   art:z.art,artMobile:z.mobileArt,meta:'3 hikâye',
+   done:(levels[z.id]?.completedCount??0)>0,unlocked:z.id<=available,
+   stars:levels[z.id]?.bestStars,resumable:Boolean(readAcademyCheckpoint(profileId,englishLevel,z.id))}))}
+  onOpen={open} status={loading?'loading':loadFailed?'error':'ready'} busy={busy}
+  errorText="İlerleme okunamadı. Bağlantını kontrol edip yeniden dene." onRetry={reloadProgress}>
+  {saveError&&<p className="ih-alert" role="alert">{saveError}</p>}
+  {recommended&&<section className="ih-panel academy-today" aria-label="Öğrenme önerisi">
+   <span aria-hidden="true">🪄</span>
+   <div><strong>Bugünün keşif önerisi: {recommendationText}</strong>
+    <p>Son cevaplarına göre bu beceride üç yeni alıştırma yapabilirsin. Bu tur yeni yıldız kazandırmaz.</p>
+   </div>
+   <button type="button" onClick={()=>startSkillReview(recommended.skill)}>
+     3 Görevlik Tekrar</button>
+  </section>}
+  <p className="ih-note">Her bölgede üç farklı hikâye var. Yeniden oynadığında yeni bir durumla karşılaşırsın. Dokunarak verilen diyalog cevapları konuşma başarısı sayılmaz.</p>
+ </IslandHome>;
  return (
   <div className="academy-root" role="dialog" aria-modal="true" aria-label="Keşif Akademisi">
    <div className="academy-stars" aria-hidden="true"/>
    <header className="academy-header">
-    <button type="button" className="academy-back" onClick={stage==='map'?exit:()=>{cancelAdvance();stop();setStage('map');setBusy(false);}}>
-     ← {stage==='map'?'Adalara Dön':'Bölümlere Dön'}</button>
+    <button type="button" className="academy-back" onClick={()=>{cancelAdvance();stop();setStage('map');setBusy(false);}}>
+     ← Bölümlere Dön</button>
     <div className="academy-brand"><span aria-hidden="true">✦</span> KEŞİF AKADEMİSİ <small>Kayıp Yıldız Atlası</small></div>
     <span className="academy-level">{englishLevel} · {gradeLevel?gradeLevel+'. sınıf':'Keşif'}</span>
    </header>
-   {stage==='map'&&<main className="academy-map">
-    <section className="academy-hero">
-     <div className="academy-hero-copy">
-      <span className="academy-eyebrow">VENTRA · SON BÜYÜK MACERA</span>
-      <h1>Yıldız Atlası seni bekliyor!</h1>
-      <p>İngilizce öğren, yeni dostlara yardım et ve atlasın altı sayfasını ışıkla doldur.</p>
-      <div className="academy-hero-status">{completed} / 6 bölge keşfedildi <span aria-hidden="true">✦</span></div>
-     </div>
-     <img src={zonePhoto} alt="Keşif Akademisi adasının büyülü manzarası" className="academy-hero-image"/>
-    </section>
-    {saveError&&<p className="academy-alert" role="alert">{saveError}</p>}
-    <h2 className="academy-section-title">Macera durakların</h2>
-    <div className="academy-zone-grid">
-     {ACADEMY_ZONES.map(z=>{
-      const unlocked=z.id<=available,done=(levels[z.id]?.completedCount??0)>0;
-      return <button className={'academy-zone-card '+(!unlocked?'is-locked':'')}
-        type="button" key={z.id} disabled={!unlocked||loading} onClick={()=>open(z.id)}
-        style={{'--zone-tint':z.tint,'--zone-light':z.light} as React.CSSProperties}>
-       <span className="academy-zone-art" aria-hidden="true"><picture>
-        <source media="(max-width: 650px)" srcSet={z.mobileArt}/>
-        <img src={z.art} alt="" loading="lazy"/></picture><span>{z.icon}</span></span>
-       <span className="academy-zone-text"><strong>{z.name}</strong><small>{z.subtitle}</small>
-        <span>{unlocked?(done?'↻ Tekrar keşfet · '+(levels[z.id]?.completedCount??0)+' tur':'✦ Maceraya gir'):'🔒 Önceki bölümü tamamla'}</span>
-       </span>
-       {done&&<span className="academy-zone-star" aria-label="Tamamlandı">★</span>}
-      </button>;
-     })}
-    </div>
-    {recommended&&<section className="academy-today" aria-label="Öğrenme önerisi">
-     <span aria-hidden="true">🪄</span>
-     <div><strong>Bugünün keşif önerisi: {recommendationText}</strong>
-      <p>Son cevaplarına göre bu beceride üç yeni alıştırma yapabilirsin. Bu tur yeni yıldız kazandırmaz.</p>
-     </div>
-     <button type="button" onClick={()=>startSkillReview(recommended.skill)}>
-       3 Görevlik Tekrar</button>
-    </section>}
-    <p className="academy-note">Her bölgede üç farklı hikâye var. Yeniden oynadığında yeni bir durumla karşılaşırsın. Dokunarak verilen diyalog cevapları konuşma başarısı sayılmaz.</p>
-   </main>}
    {stage==='quest'&&<main className="academy-quest" ref={questScroller}>
     <AcademySkillJourney tasks={plan.tasks} activeStep={step} review={reviewSkill!==null}/>
     <section className="academy-scene" style={{'--zone-tint':currentZone.tint,'--zone-light':currentZone.light} as React.CSSProperties}>

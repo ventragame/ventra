@@ -144,7 +144,7 @@ test('Speech button only starts actual word recognition and profile level stays 
  assert.match(ui,/Konuşarak Cevapla/);
  assert.doesNotMatch(ui,/Sesli Pratik Yap/);
  assert.match(ui,/ParentalGateModal isOpen=\{parentGateOpen\}/);
- assert.match(ui,/\},\[profileId,englishLevel\]\);/);
+ assert.match(ui,/\},\[profileId,englishLevel,loadAttempt\]\);/);
 });
 
 test('Five unique 3D WebP worlds include responsive mobile scenes with valid bitstreams',()=>{
@@ -177,7 +177,8 @@ test('Five unique 3D WebP worlds include responsive mobile scenes with valid bit
  assert.equal(all.size,10);
  const ui=game('../src/components/learning/harbor/HarborSpeechAdventure.tsx');
  const stage=game('../src/components/learning/harbor/HarborSceneStage.tsx');
- assert.match(ui,/HARBOR_SCENE_ASSETS\[getHarborEpisodeQuests\(item.id\)\[0\]\.place\]\.desktop/);
+ assert.match(ui,/const quests=getHarborEpisodeQuests\(item\.id\);\s*const art=HARBOR_SCENE_ASSETS\[quests\[0\]\.place\];/);
+ assert.match(ui,/art:art\.desktop,artMobile:art\.mobile/);
  assert.match(stage,/sceneArt\.mobile/);
  assert.match(stage,/sceneArt\.desktop/);
 });

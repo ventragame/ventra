@@ -16,6 +16,8 @@ import {soundService} from '@/lib/audio/SoundService';
 import './story-sequence.css';
 import './story-forest-home.css';
 import './premium-story-art.css';
+import {IslandHome} from '../island/IslandHome';
+import {gradeLevelLabel} from '@/lib/learning/gradeLabel';
 
 type Game='home'|'discover'|'sequence'|'detective';
 interface Props{
@@ -34,6 +36,7 @@ export function StoryForestHome({profileId,gradeLevel,englishLevel,onBack,onSave
  const [sequence,setSequence]=useState<SequenceProgress>(EMPTY);
  const [detective,setDetective]=useState<DetectiveProgress>(DETECTIVE_EMPTY);
  const [loadError,setLoadError]=useState('');
+ const [loaded,setLoaded]=useState(false);
  const [loadAttempt,setLoadAttempt]=useState(0);
  const refresh=useCallback(async()=>{
   const [d,s,x]=await Promise.all([
@@ -49,7 +52,7 @@ export function StoryForestHome({profileId,gradeLevel,englishLevel,onBack,onSave
    getStoryForestProgress(getProgressRepository(),profileId),
    getSequenceProgress(getProgressRepository(),profileId),
    getDetectiveProgress(getProgressRepository(),profileId)
-  ]).then(([d,s,x])=>{if(active){setDiscover(d);setSequence(s);setDetective(x);}})
+  ]).then(([d,s,x])=>{if(active){setDiscover(d);setSequence(s);setDetective(x);setLoaded(true);}})
   .catch(error=>{console.error('[StoryForestHome] progress',error);
    if(active)setLoadError('İlerleme okunamadı.');});
   return()=>{active=false;};
@@ -62,71 +65,36 @@ export function StoryForestHome({profileId,gradeLevel,englishLevel,onBack,onSave
    englishLevel={englishLevel} onBack={back} onSaved={saved}/>;
  if(game==='detective')return <StoryDetectiveAdventure profileId={profileId} gradeLevel={gradeLevel}
    englishLevel={englishLevel} onBack={back} onSaved={saved}/>;
- return <div className="ss-root sfh-root" role="dialog" aria-modal="true" aria-label="Hikâye Ormanı oyunları">
-   <header className="ss-head">
-    <div className="ss-head-side">
-     <button type="button" className="ss-round" onClick={onBack} aria-label="Adalar Evreni'ne dön">←</button>
-     <h1>Hikâye Ormanı</h1>
-    </div>
-    <span className="ss-count">★ {discover.completedLevels+sequence.completedLevels+detective.completedLevels}/18</span>
-   </header>
-   <main className="ss-main sfh-main">
-    <div className="sfh-hero">
-     <img src={STORY_FOREST_PREMIUM_COVER} alt="" className="sfh-hero-art"/>
-     <div className="sfh-hero-text">
-      <span>VENTRA · İNGİLİZCE HİKÂYELER</span>
-      <h2>Masal Başlıyor!</h2>
-      <p>Dinle · Keşfet · Hatırla</p>
-     </div>
-    </div>
-    <div className="sfh-games" aria-label="Hikâye Ormanı oynanabilir oyunları">
-     <button type="button" className="sfh-card" onClick={()=>{soundService.unlockAudio();setGame('discover');}}>
-      <div className="sfh-card-art sfh-card-art-discover">
-       <StoryForestScenery scene="meadow"/>
-       <div className="sfh-character sfh-bunny"><StoryForestActor id="rabbit"/></div>
-       <div className="sfh-character sfh-squirrel"><StoryForestActor id="squirrel"/></div>
-       <div className="sfh-card-bubble">🔊</div>
-      </div>
-      <div className="sfh-card-footer">
-       <span className="sfh-number">01</span>
-       <div><strong>Hikâyeyi Keşfet</strong><small>Dinle, doğru resmi bul</small></div>
-       <span className="sfh-bonus">✦ {discover.completedLevels}/6</span>
-      </div>
-      <span className="sfh-card-go">Oyuna Gir <span aria-hidden="true">→</span></span>
-     </button>
-     <button type="button" className="sfh-card" onClick={()=>{soundService.unlockAudio();setGame('sequence');}}>
-      <div className="sfh-card-art">
-       <StorySequenceFrame frame={SEQUENCE_STORIES[0].frames[4]} scene="path"/>
-       <span className="sfh-order-badge" aria-hidden="true">❶ ❷ ❸</span>
-      </div>
-      <div className="sfh-card-footer">
-       <span className="sfh-number">02</span>
-       <div><strong>Sonra Ne Oldu?</strong><small>Resimlerle hikâye sırala</small></div>
-       <span className="sfh-bonus">✦ {sequence.completedLevels}/6</span>
-      </div>
-      <span className="sfh-card-go">Oyuna Gir <span aria-hidden="true">→</span></span>
-     </button>
-     <button type="button" className="sfh-card" onClick={()=>{soundService.unlockAudio();setGame('detective');}}>
-      <div className="sfh-card-art sfh-card-art-detective">
-       <StoryForestScenery scene="pond"/>
-       <div className="sfh-character sfh-detective-rabbit"><StoryForestActor id="rabbit"/></div>
-       <div className="sfh-character sfh-detective-bird"><StoryForestActor id="bird"/></div>
-       <span className="sfh-detective-magnifier" aria-hidden="true">⌕</span>
-      </div>
-      <div className="sfh-card-footer">
-       <span className="sfh-number">03</span>
-       <div><strong>Hikâye Dedektifi</strong><small>İpuçlarını bul, gizemi çöz</small></div>
-       <span className="sfh-bonus">✦ {detective.completedLevels}/6</span>
-      </div>
-      <span className="sfh-card-go">Oyuna Gir <span aria-hidden="true">→</span></span>
-     </button>
-    </div>
-    {loadError&&<div className="ss-status" role="alert">{loadError}{' '}
-     <button type="button" className="ss-secondary" onClick={()=>setLoadAttempt(n=>n+1)}>↻ Tekrar dene</button>
-    </div>}
-    <p className="sfh-next" aria-label="Gelecek oyunlar hazırlanıyor">
-     ✨ Yeni maceralar hazırlanıyor
-    </p>
-   </main>
- </div>;
+ const games=[
+  {id:1,game:'discover' as const,title:'Hikâyeyi Keşfet',subtitle:'Dinle, doğru resmi bul',icon:'🔊',progress:discover,
+   art:<div className="sfh-card-art sfh-card-art-discover">
+    <StoryForestScenery scene="meadow"/>
+    <div className="sfh-character sfh-bunny"><StoryForestActor id="rabbit"/></div>
+    <div className="sfh-character sfh-squirrel"><StoryForestActor id="squirrel"/></div>
+   </div>},
+  {id:2,game:'sequence' as const,title:'Sonra Ne Oldu?',subtitle:'Resimlerle hikâye sırala',icon:'🧩',progress:sequence,
+   art:<div className="sfh-card-art"><StorySequenceFrame frame={SEQUENCE_STORIES[0].frames[4]} scene="path"/></div>},
+  {id:3,game:'detective' as const,title:'Hikâye Dedektifi',subtitle:'İpuçlarını bul, gizemi çöz',icon:'🔎',progress:detective,
+   art:<div className="sfh-card-art sfh-card-art-detective">
+    <StoryForestScenery scene="pond"/>
+    <div className="sfh-character sfh-detective-rabbit"><StoryForestActor id="rabbit"/></div>
+    <div className="sfh-character sfh-detective-bird"><StoryForestActor id="bird"/></div>
+   </div>}
+ ];
+ const played=discover.completedLevels+sequence.completedLevels+detective.completedLevels;
+ return <IslandHome island="story" ariaLabel="Hikâye Ormanı oyunları"
+  eyebrow="VENTRA · İNGİLİZCE HİKÂYELER" title="Hikâye Ormanı" crest="🌳" onBack={onBack}
+  chips={[gradeLevelLabel(gradeLevel)+' · '+englishLevel,'★ '+(loaded?played:'…')+'/18']}
+  heroArt={STORY_FOREST_PREMIUM_COVER}
+  tagline="Dinle · Keşfet · Hatırla"
+  guide={{src:'/assets/story-forest/premium/characters/rabbit_adventurer.webp',alt:'Maceracı tavşan'}}
+  chapterNoun="Oyun" sectionTitle="Bir hikâye oyunu seç"
+  progress={{done:played,total:18,noun:'hikâye'}}
+  chapters={games.map(g=>({id:g.id,title:g.title,subtitle:g.subtitle,icon:g.icon,art:g.art,
+   meta:g.progress.completedLevels+'/'+g.progress.totalLevels+' hikâye',
+   done:g.progress.completedLevels>=g.progress.totalLevels,unlocked:true,
+   resumable:g.progress.completedLevels>0&&g.progress.completedLevels<g.progress.totalLevels}))}
+  onOpen={id=>{const g=games.find(x=>x.id===id);if(g)setGame(g.game);}}
+  status={loadError?'error':loaded?'ready':'loading'} errorText={loadError||undefined}
+  onRetry={()=>setLoadAttempt(n=>n+1)}/>;
 }

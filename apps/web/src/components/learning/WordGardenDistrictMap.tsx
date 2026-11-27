@@ -13,6 +13,8 @@ import './themes/theme-entry.css';
 import './word-garden-modular-v4.css';
 import './word-garden-hub-v5.css';
 import {describeLearnerRoute} from '@/lib/learning/learningJourney';
+import {IslandGreetingPill} from './island/IslandGreeting';
+import './island/island-home.css';
 import type {EnglishPlacement} from '@/lib/learning/gradeAwareLearningPolicy';
 
 const ExplorerCanvas=dynamic(()=>import('./world/ExplorerCanvas').then(x=>x.ExplorerCanvas),{
@@ -108,6 +110,7 @@ export const WordGardenDistrictMap:React.FC<WordGardenDistrictMapProps>=({
       {playerName&&<small>{playerName}</small>}</div>
     </div>
     <div className="wg-hud-items">
+     <IslandGreetingPill island="word_garden"/>
      <span className="wg-hud-chip wg-star-chip" aria-label={`Toplam ${summary.stars} yıldız`}>
        <span aria-hidden="true">⭐</span> {summary.stars}</span>
      {onOpenPassport&&<button type="button" onClick={onOpenPassport}

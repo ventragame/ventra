@@ -16,6 +16,12 @@ import {WritingDeskScene} from './WritingDeskScene';
 import {nextWorkshopHintStage,workshopHint} from '@/lib/learning/writingWorkshopGuidance';
 import './writing-workshop.css';
 import {GameFinale} from '../GameFinale';
+import {IslandHome} from '../island/IslandHome';
+import {gradeLevelLabel} from '@/lib/learning/gradeLabel';
+
+/** Painted chapter scenes and guide (provenance: docs/VENTRA_ISLAND_HOMES_V1.md). */
+const WRITING_ART='/assets/writing-workshop/';
+export const WRITING_GUIDE_ART='/assets/characters/painted/writing-postcat.webp';
 
 type Phase='map'|'playing'|'complete';
 type Props={
@@ -47,6 +53,8 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
  const [saving,setSaving]=useState(false);
  const [saveError,setSaveError]=useState('');
  const [loading,setLoading]=useState(true);
+ const [loadFailed,setLoadFailed]=useState(false);
+ const [loadAttempt,setLoadAttempt]=useState(0);
  const [score,setScore]=useState<Score|null>(null);
  const [creative,setCreative]=useState('');
  const [exampleVisible,setExampleVisible]=useState(false);
@@ -86,11 +94,11 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
 
  useEffect(()=>{
   let active=true;
-  setLoading(true);
-  void refresh().catch(()=>{if(active)setSaveError('İlerleme okunamadı. Bağlantıyı kontrol edip tekrar dene.');})
+  setLoading(true);setLoadFailed(false);
+  void refresh().catch(()=>{if(active)setLoadFailed(true);})
     .finally(()=>{if(active)setLoading(false);});
   return()=>{active=false;};
- },[refresh]);
+ },[refresh,loadAttempt]);
 
  const stop=useCallback(()=>{
   if(timer.current)clearTimeout(timer.current);
@@ -273,41 +281,33 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
   if(resolved||saving)return;
   setSelected([]);setInput('');setMessage('');
  };
+ if(phase==='map')return <IslandHome island="writing" ariaLabel="Yazı Atölyesi"
+  eyebrow="VENTRA · İNGİLİZCE YAZMA" title="Yazı Atölyesi" crest="✏️" onBack={exit}
+  chips={[gradeLevelLabel(gradeLevel)+' · '+englishLevel,'⭐ '+(loading||loadFailed?'…':completed)+'/'+WORKSHOP_CHAPTERS.length]}
+  heroArt="/assets/kids-islands/sentence_workshop.webp" heroArtMobile="/assets/kids-islands/sentence_workshop_mobile.webp"
+  tagline="Kelimeleri kur, cümleleri tamamla, kendi notlarını yaz."
+  guide={{src:WRITING_GUIDE_ART,alt:'Postacı kedi'}}
+  chapters={WORKSHOP_CHAPTERS.map(ch=>({id:ch.id,title:ch.title,subtitle:ch.subtitle,icon:ch.icon,
+   art:WRITING_ART+'chapter-'+ch.id+'.webp',meta:workshopTaskCount(gradeLevel)+' görev',
+   done:ch.id<=completed,unlocked:ch.id<=completed+1,stars:starMap[ch.id],
+   resumable:Boolean(readWorkshopCheckpoint(profileId,englishLevel,ch.id))}))}
+  onOpen={enter} status={loading?'loading':loadFailed?'error':'ready'} busy={saving}
+  errorText="İlerleme okunamadı. Bağlantıyı kontrol edip tekrar dene."
+  onRetry={()=>setLoadAttempt(n=>n+1)}>
+  {saveError&&<p className="ih-alert" role="alert">{saveError}</p>}
+  <p className="ih-note">🔄 Her turda {workshopTaskCount(gradeLevel)} görev, üç yazma becerisi ve yeni kelime-cümle eşleşmeleri. İlerlemen bölüm bölüm korunur.</p>
+  <p className="ih-note">🛡️ Yazdığın serbest metin saklanmaz. Yalnızca öğrenme ilerlemen kaydedilir.</p>
+ </IslandHome>;
  return <div className="writing-root" role="dialog" aria-modal="true" aria-label="Yazı Atölyesi"
   data-keyboard-open={keyboardOpen} style={{'--writing-keyboard-inset':keyboardInset+'px'} as React.CSSProperties}>
   <header className="writing-header">
-   <button type="button" onClick={phase==='map'?exit:back} className="writing-back"
-    aria-label={phase==='map'?'Adalara dön':'Bölüm haritasına dön'}>←</button>
+   <button type="button" onClick={back} className="writing-back"
+    aria-label="Bölüm haritasına dön">←</button>
    <div className="writing-brand"><small>VENTRA · İNGİLİZCE YAZMA</small><h1>Yazı Atölyesi</h1></div>
    <span className="writing-badge">⭐ {completed}/5</span>
   </header>
   <main className="writing-main">
-   {phase==='map'?<div className="writing-map">
-    <section className="writing-hero">
-     <div className="writing-hero-copy">
-      <span>✏️ KENDİ KELİMELERİNLE YAZ</span>
-      <h2>Harflerin Büyüsü Başlıyor!</h2>
-      <p>Kelimeleri kur, cümleleri tamamla, kendi notlarını yaz. Her bölümde yeni bir hikâye seni bekliyor.</p>
-      <div className="writing-level-pill">{englishLevel} · {gradeLevel?gradeLevel+'. sınıf':'Sınıf seçilmedi'} · Her tur {workshopTaskCount(gradeLevel)} farklı yazma görevi</div>
-     </div>
-    </section>
-    {saveError&&<p className="writing-alert" role="alert">{saveError}</p>}
-    <section className="writing-chapters" aria-label="Yazı Atölyesi bölümleri">
-     {WORKSHOP_CHAPTERS.map(ch=><button key={ch.id} type="button" className="writing-chapter"
-      onClick={()=>enter(ch.id)} disabled={loading||saving||ch.id>completed+1}
-      style={{'--chapter-accent':ch.color} as React.CSSProperties}>
-      <span className="writing-chapter-icon">{ch.icon}</span>
-      <span className="writing-chapter-index">BÖLÜM {String(ch.id).padStart(2,'0')}</span>
-      <strong>{ch.title}</strong><small>{ch.subtitle}</small>
-      <span className="writing-chapter-status">
-       {ch.id<=completed?'↻ Yeniden oyna · '+'⭐'.repeat(starMap[ch.id]??1):
-        ch.id===completed+1?'✦ Maceraya Gir':'🔒 Önceki Bölümü Bitir'}
-      </span>
-     </button>)}
-    </section>
-    <p className="writing-replay-note">🔄 Her turda {workshopTaskCount(gradeLevel)} görev, üç yazma becerisi ve yeni kelime-cümle eşleşmeleri. İlerlemen bölüm bölüm korunur.</p>
-    <p className="writing-privacy">🛡️ Yazdığın serbest metin saklanmaz. Yalnızca öğrenme ilerlemen kaydedilir.</p>
-   </div>:phase==='playing'?<div className="writing-play">
+   {phase==='playing'?<div className="writing-play">
     <div className="writing-topline">
      <span>{current.icon} {current.title}</span>
      <span>{englishLevel} · {step+1}/{deck.length} · Tur {playIndex+1}</span>

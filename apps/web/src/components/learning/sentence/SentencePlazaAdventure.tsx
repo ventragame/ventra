@@ -22,12 +22,11 @@ import {LanternFestivalAdventure} from './LanternFestivalAdventure';
 import './sentence-plaza.css';
 import './sentence-plaza-v2.css';
 import './sentence-clarity-v3.css';
-import './sentence-plaza-home-v4.css';
-import './sentence-plaza-covers-v5.css';
 import './sentence-plaza-scenes-v6.css';
 import './sentence-plaza-learning-v7.css';
 import './sentence-plaza-friends-v9.css';
 import {gradeLevelLabel} from '@/lib/learning/gradeLabel';
+import {IslandHome} from '../island/IslandHome';
 
 interface Props{
  profileId:string;gradeLevel:number|null;englishLevel:EnglishPlacement;
@@ -35,6 +34,11 @@ interface Props{
 }
 type Screen='map'|'lesson'|'play'|'reward';
 const FUTURE=['Büyülü Yapı Atölyesi','Konumlar Parkı','Soru İstasyonu','Gökyüzü Köprüsü'] as const;
+/** What each mission's English does, in a child's words (home cards). */
+const PLAZA_SKILL_LINE:Readonly<Record<typeof SENTENCE_PLAZA_MISSIONS[number]['skill'],string>>={
+ describing:'Renkleri cümleyle anlat',introducing:'Yeni dostları tanıt',location:'Nerede olduklarını söyle',
+ action:'Ne yapabildiklerini söyle',preference:'Ne istediğini söyle',transfer:'Hepsini birlikte kullan'
+};
 const EMPTY:SentencePlazaProgress={completedLevels:0,totalLevels:6,starsByLevel:{}};
 function sessionId(profileId:string,mission:PlazaMission):string{
  return `plaza:${profileId}:${mission}:${Date.now()}:${Math.random().toString(36).slice(2)}`;
@@ -322,6 +326,32 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
       onSaved();
     }}/>;
  }
+ // The overview shares one home grammar with every island; the lesson,
+ // play and reward screens below keep the plaza's own scene.
+ if(screen==='map')return <IslandHome island="sentence" ariaLabel="Cümle Meydanı İngilizce macerası"
+  eyebrow="BÖLGE 1 / 5 · UYANAN MEYDAN" title="Cümle Meydanı" crest="🏰" onBack={back}
+  chips={[gradeLevelLabel(gradeLevel)+' · '+englishLevel,'⭐ '+(loading||loadError?'…':starsTotal)+' / 18']}
+  heroArt="/assets/kids-islands/story_castle.webp" heroArtMobile="/assets/kids-islands/story_castle_mobile.webp"
+  tagline="Bir cümle kur, meydanı canlandır!"
+  guide={{src:'/assets/story-forest/premium/characters/dog_puppy.webp',alt:'Meydanın köpek dostu'}}
+  chapterNoun="Görev" sectionTitle="Bir macera seç"
+  chapters={SENTENCE_PLAZA_MISSIONS.map(item=>({id:item.id,title:item.title,subtitle:PLAZA_SKILL_LINE[item.skill],icon:item.icon,
+   art:`/assets/sentence-plaza/v5/mission-${item.id}.webp`,
+   done:item.id<=progress.completedLevels,unlocked:item.id<=progress.completedLevels+1,
+   stars:progress.starsByLevel[item.id]}))}
+  onOpen={id=>openMission(id as PlazaMission)}
+  status={loading?'loading':loadError?'error':'ready'} errorText={loadError||undefined}
+  onRetry={()=>setLoadAttempt(n=>n+1)}
+  onPointerDown={event=>event.stopPropagation()}
+  beforeChapters={<ol className="ih-steps" aria-label="Oyunun dört adımı">
+   <li><span aria-hidden="true">👀</span>Gör</li><li><span aria-hidden="true">🔊</span>Dinle</li>
+   <li><span aria-hidden="true">🧩</span>Kur</li><li><span aria-hidden="true">✨</span>Canlandır</li>
+  </ol>}>
+  <details className="ih-panel ih-future">
+   <summary>🔒 Diğer bölgeler <span aria-hidden="true">⌄</span></summary>
+   <ul>{FUTURE.map((name,i)=><li key={name}>🔒 {i+2}. {name} · Yakında</li>)}</ul>
+  </details>
+ </IslandHome>;
  return <div ref={root} role="dialog" aria-modal="true" aria-label="Cümle Meydanı İngilizce macerası"
   className="sp-overlay sp-v2 sp-v3" onPointerDown={event=>event.stopPropagation()}>
   <div className="sp-wrap">
@@ -335,7 +365,7 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
      <span className="sp-chip">🎓 {gradeLevelLabel(gradeLevel)} · {englishLevel}</span>
      <span className="sp-chip">⭐ {starsTotal} / 18</span>
      <button type="button" className="sp-back" onClick={back} disabled={busy}>
-      ← {screen==='map'?'Adalar Evreni':'Meydana Dön'}
+      ← Meydana Dön
      </button>
     </div>
    </header>
@@ -344,73 +374,7 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
     <button type="button" onClick={()=>setLoadAttempt(n=>n+1)} className="sp-primary">↻ Tekrar dene</button>
     <button type="button" onClick={onBack} className="sp-primary">Adalar Evreni'ne Dön</button>
    </div>:
-   screen==='map'?<>
-    <section className="sp-v4-home sp-v5-home" aria-labelledby="sp-v4-title">
-     <div className="sp-v4-intro">
-      <div className="sp-v4-intro-copy">
-       <div className="sp-v4-kicker"><span aria-hidden="true">✦</span> BÖLGE 1 / 5 · CÜMLELER ŞEHRİ</div>
-       <h2 id="sp-v4-title">Uyanan Meydan</h2>
-       <p>Bir cümle kur, meydanı canlandır!</p>
-      </div>
-      <div className="sp-v4-intro-side">
-       <div className="sp-v4-progress" aria-label={`${progress.completedLevels} / 6 görev tamamlandı`}>
-        <span>GÖREV İLERLEMESİ</span>
-        <strong>{progress.completedLevels}<small> / 6</small></strong>
-        <div className="sp-v4-progress-track" role="progressbar"
-         aria-label="Tamamlanan görevler" aria-valuemin={0} aria-valuemax={6}
-         aria-valuenow={progress.completedLevels}>
-         <span style={{width:`${Math.min(100,(progress.completedLevels/6)*100)}%`}}/>
-        </div>
-       </div>
-       <button type="button" className="sp-v4-start" onClick={()=>
-        openMission(Math.min(6,progress.completedLevels+1) as PlazaMission)}>
-        <span aria-hidden="true">{progress.completedLevels>=6?'↻':'▶'}</span>
-        {progress.completedLevels>=6?'Tekrar Oyna':progress.completedLevels>0?'Devam Et':'Başla'}
-       </button>
-      </div>
-      <div className="sp-v4-journey" aria-label="Oyunun dört adımı">
-       <div><span aria-hidden="true">👀</span> Gör</div>
-       <span className="sp-v4-journey-arrow" aria-hidden="true">→</span>
-       <div><span aria-hidden="true">🔊</span> Dinle</div>
-       <span className="sp-v4-journey-arrow" aria-hidden="true">→</span>
-       <div><span aria-hidden="true">🧩</span> Kur</div>
-       <span className="sp-v4-journey-arrow" aria-hidden="true">→</span>
-       <div><span aria-hidden="true">✨</span> Canlandır</div>
-      </div>
-     </div>
-     <div className="sp-v4-quests">
-      <div className="sp-v4-quests-head">
-       <div>
-        <span className="sp-v4-quests-overline">GÖREVLER</span>
-        <h3>Bir macera seç</h3>
-       </div>
-       <span className="sp-v4-quests-counter">✦ {progress.completedLevels}/6 tamamlandı</span>
-      </div>
-      <div className="sp-map-grid sp-v4-grid sp-v5-grid" aria-label="Uyanan Meydan öğrenme görevleri">
-       {SENTENCE_PLAZA_MISSIONS.map(item=>{
-        const unlocked=item.id<=progress.completedLevels+1,done=item.id<=progress.completedLevels;
-        return <button type="button" key={item.id} className="sp-mission sp-v4-mission sp-v5-mission" disabled={!unlocked}
-         data-status={done?'completed':unlocked?'available':'locked'}
-         aria-label={`${item.title}. ${done?'Tamamlandı, tekrar oyna':unlocked?'Oynamaya hazır':'Kilitli'}`}
-         onClick={()=>openMission(item.id)}>
-         <img className="sp-v2-card-art" alt="" aria-hidden="true" decoding="async"
-          loading={item.id<=3?'eager':'lazy'} draggable={false} width={1120} height={390}
-          src={`/assets/sentence-plaza/v5/mission-${item.id}.webp`}/>
-         <div className="sp-mission-top"><span aria-hidden="true">{item.icon}</span>
-          <span>{done?'✓':unlocked?'✦':'🔒'}</span></div>
-         <strong>{item.id}. {item.title}</strong>
-         <small>{done?'✓ Tamamlandı':unlocked?'▶ Oyna':'🔒 Kilitli'}</small>
-        </button>;
-       })}
-      </div>
-     </div>
-     <details className="sp-v4-future">
-      <summary>🔒 Diğer bölgeler <span aria-hidden="true">⌄</span></summary>
-      <div className="sp-future-grid">{FUTURE.map((name,i)=>
-       <div className="sp-future-item" key={name}>🔒 {i+2}. {name} · Yakında</div>)}</div>
-     </details>
-    </section>
-   </>:screen==='lesson'?<>
+   screen==='lesson'?<>
     <section className="sp-hero sp-v2-hero"><div><div className="sp-eyebrow">ÖNCE ÖĞREN · GÖREV {mission} / {chapterTotal}</div>
      <h2>{rule.icon} {rule.title}</h2><p>{rule.story}</p></div></section>
     <div className="sp-layout">

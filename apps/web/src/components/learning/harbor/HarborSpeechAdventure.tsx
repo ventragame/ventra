@@ -21,6 +21,9 @@ import './harbor-speech.css';
 import './harbor-premium-scene.css';
 import './harbor-captain-avatar.css';
 import {GameFinale} from '../GameFinale';
+import {IslandHome} from '../island/IslandHome';
+import {gradeLevelLabel} from '@/lib/learning/gradeLabel';
+import {HARBOR_CAST_ART} from './HarborCaptainAvatar';
 
 type Props={profileId:string;englishLevel:HarborLevel;gradeLevel:number|null;onBack:()=>void;onSaved:()=>void};
 type Phase='map'|'playing'|'completed';
@@ -36,6 +39,9 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  const [levelPlays,setLevelPlays]=useState<Record<number,number>>({});
  const [replayIndex,setReplayIndex]=useState(0);
  const [checkpointed,setCheckpointed]=useState<Record<number,boolean>>({});
+ // The home never shows a failed or pending read as "nothing completed".
+ const [progressState,setProgressState]=useState<'loading'|'ready'|'error'>('loading');
+ const [loadAttempt,setLoadAttempt]=useState(0);
  const [capability,setCapability]=useState<SpeechCapability>(EMPTY_CAPABILITY);
  const [independentEnabled,setIndependentEnabled]=useState(false);
  const [listening,setListening]=useState(false);
@@ -93,9 +99,11 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
  useEffect(()=>{
   let live=true;
   void speechCapability().then(result=>{if(live)setCapability(result);});
+  setProgressState('loading');
   void getProgressRepository().getAllLevelProgress(HARBOR_GAME_ID,profileId)
    .then(levels=>{
     if(!live)return;
+    setProgressState('ready');
     let count=0;
     for(let index=1;index<=HARBOR_EPISODES.length;index++){
      if(!levels[index]||levels[index].completedCount<=0)break;
@@ -109,7 +117,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
      Array.from({length:HARBOR_EPISODES.length},(_,i)=>
       [i+1,Boolean(readHarborCheckpoint(profileId,englishLevel,i+1))])
     ));
-   }).catch(()=>{if(live)setSaveError('Kayıtlı görevler okunamadı. Sonraki bölüm için önce bağlantını kontrol et.');});
+   }).catch(()=>{if(live)setProgressState('error');});
   const stopOnBackground=()=>{if(document.hidden){
    generation.current++;narrationRun.current++;setNarrating(false);soundService.cancelSpeech();
    stopSpeechCapture();soundService.setCaptureActive(false);setListening(false);
@@ -121,7 +129,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
    if(timer.current)clearTimeout(timer.current);
    soundService.cancelSpeech();
   };
- },[profileId,englishLevel]);
+ },[profileId,englishLevel,loadAttempt]);
  const start=(id:number)=>{
   if(id>completed+1||busy)return;
   generation.current++;narrationRun.current++;setNarrating(false);
@@ -459,41 +467,48 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   feedback.startsWith('🎤 Tekrar')?'try_again':'idle';
  const captainCue=episode+':'+question+':'+Number(sceneSelected)+':'+
   Number(sceneResolved)+':'+Number(listening)+':'+Number(narrating)+':'+feedback;
+ const adultDialogs=<>
+  <ParentalGateModal isOpen={parentGateOpen} zIndex={130}
+   description="Konuşma motorları ve teknik hata bilgileri yetişkinlere özeldir."
+   onClose={()=>setParentGateOpen(false)}
+   onSuccess={()=>{setParentGateOpen(false);setParentToolsOpen(true);}}/>
+  {parentToolsOpen&&<HarborSpeechAdultPanel capability={capability} activeCapability={activeCapability}
+   diagnostic={parentDiagnostic} diagnosticCode={speechDiagnosticCode}
+   independentEnabled={independentEnabled} independentConfigured={independentSttConfigured()}
+   busy={busy} listening={listening} onClose={closeAdultSettings}
+   onRecheck={()=>void recheckSpeech()} onSelectBrowser={()=>void selectBrowserEngine()}
+   onSelectLocal={()=>void selectSherpaEngine()} onChooseOffline={()=>void chooseOffline()}
+   onInstall={()=>void install()} onToggleIndependent={()=>void toggleIndependent()}/>}
+ </>;
+ if(phase==='map')return <IslandHome island="harbor" ariaLabel="Diyalog Limanı"
+  eyebrow="VENTRA · KONUŞARAK İNGİLİZCE" title="Diyalog Limanı" crest="⚓" onBack={close}
+  chips={[gradeLevelLabel(gradeLevel)+' · '+englishLevel,'⭐ '+(progressState==='ready'?completed:'…')+'/'+HARBOR_EPISODES.length]}
+  heroArt="/assets/kids-islands/speaking_harbor.webp" heroArtMobile="/assets/kids-islands/speaking_harbor_mobile.webp"
+  tagline="Kaptan Leo ile İngilizce konuş, dinle ve maceraya katıl."
+  guide={{src:HARBOR_CAST_ART.leo,alt:'Kaptan Leo'}}
+  chapters={HARBOR_EPISODES.map(item=>{
+   const quests=getHarborEpisodeQuests(item.id);
+   const art=HARBOR_SCENE_ASSETS[quests[0].place];
+   return {id:item.id,title:item.title,subtitle:item.subtitle,icon:item.icon,
+    art:art.desktop,artMobile:art.mobile,meta:quests.length+' görev',
+    done:item.id<=completed,unlocked:item.id<=completed+1,resumable:Boolean(checkpointed[item.id])};
+  })}
+  onOpen={start} status={progressState} busy={busy}
+  errorText="Kayıtlı bölümler okunamadı. Bağlantını kontrol edip tekrar dene."
+  onRetry={()=>setLoadAttempt(n=>n+1)}
+  overlays={adultDialogs}>
+  <p className="ih-note">🎤 Mikrofon isteğe bağlı; her görevi dokunarak da tamamlayabilirsin. Sesin cihaz veya tarayıcı tarafından işlenebilir.</p>
+  <div className="ih-note"><button type="button" className="ih-secondary" onClick={openAdultSettings} disabled={busy}>⚙ Yetişkinler için ses ayarları</button></div>
+ </IslandHome>;
  return <div className="harbor-root" role="dialog" aria-modal="true" aria-label="Diyalog Limanı">
   <header className="harbor-header">
-   <button type="button" className="harbor-back" onClick={phase==='map'?close:backToMap} aria-label={phase==='map'?'Adalar Evreni’ne dön':'Bölümlere dön'}>←</button>
+   <button type="button" className="harbor-back" onClick={backToMap} aria-label="Bölümlere dön">←</button>
    <div><small>VENTRA · KONUŞARAK İNGİLİZCE</small><h1>Diyalog Limanı</h1></div>
    <div className="harbor-progress">⭐ {completed}/{HARBOR_EPISODES.length}</div>
   </header>
   <main className="harbor-main">
    <div className="harbor-cover" aria-hidden="true"/>
-   {phase==='map'?<>
-    <div className="harbor-intro harbor-intro-character">
-     <div className="harbor-intro-captain">
-      <HarborCaptainAvatar mood="idle" cue="harbor-map"/>
-     </div>
-     <div className="harbor-intro-copy">
-      <span>⚓ KAPTAN LEO SENİ BEKLİYOR!</span>
-      <h2>Konuş, Dinle, Maceraya Katıl!</h2>
-      <p>Beş eğlenceli yolculukta İngilizce konuşmayı keşfet. Mikrofon isteğe bağlı; her görevi dokunarak da tamamlayabilirsin.</p>
-     </div>
-    </div>
-    <div className="harbor-episode-grid">
-     {HARBOR_EPISODES.map(item=><button type="button" key={item.id}
-       disabled={item.id>completed+1||busy}
-       onClick={()=>start(item.id)} className="harbor-episode-card">
-       <span className="harbor-episode-thumb"><img
-        src={HARBOR_SCENE_ASSETS[getHarborEpisodeQuests(item.id)[0].place].desktop} alt=""
-        loading="lazy" draggable={false}/></span>
-       <span className="harbor-episode-icon">{item.icon}</span>
-       <span className="harbor-episode-number">BÖLÜM {String(item.id).padStart(2,'0')}</span>
-       <strong>{item.title}</strong>
-       <small>{getHarborEpisodeQuests(item.id).length} görev · {item.subtitle}</small>
-       <span className="harbor-episode-state">{checkpointed[item.id]?'▶ Kaldığın Yerden':item.id<=completed?'✓ Tekrar Oyna':item.id===completed+1?'Maceraya Gir →':'🔒 Önceki Bölüm'}</span>
-      </button>)}
-    </div>
-    <div className="harbor-adult-entry"><button type="button" className="harbor-adult-open" onClick={openAdultSettings} disabled={busy}>⚙ Yetişkinler için ses ayarları</button></div>
-   </>:phase==='playing'?<>
+   {phase==='playing'?<>
     <div className="harbor-level-title"><span>{mission.icon} {mission.title}</span>
       <span>{englishLevel} · {question+1}/{script.length}</span>
      </div>
@@ -593,16 +608,6 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
    </>}
   </main>
   <footer className="harbor-footer">🎤 Konuşmak isteğe bağlı. Sesin cihaz veya tarayıcı tarafından işlenebilir; dokunarak da oynayabilirsin.</footer>
-  <ParentalGateModal isOpen={parentGateOpen} zIndex={120}
-   description="Konuşma motorları ve teknik hata bilgileri yetişkinlere özeldir."
-   onClose={()=>setParentGateOpen(false)}
-   onSuccess={()=>{setParentGateOpen(false);setParentToolsOpen(true);}}/>
-  {parentToolsOpen&&<HarborSpeechAdultPanel capability={capability} activeCapability={activeCapability}
-   diagnostic={parentDiagnostic} diagnosticCode={speechDiagnosticCode}
-   independentEnabled={independentEnabled} independentConfigured={independentSttConfigured()}
-   busy={busy} listening={listening} onClose={closeAdultSettings}
-   onRecheck={()=>void recheckSpeech()} onSelectBrowser={()=>void selectBrowserEngine()}
-   onSelectLocal={()=>void selectSherpaEngine()} onChooseOffline={()=>void chooseOffline()}
-   onInstall={()=>void install()} onToggleIndependent={()=>void toggleIndependent()}/>} 
+  {adultDialogs}
   </div>;
 }
