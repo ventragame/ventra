@@ -10,23 +10,7 @@
 .mm-root button:disabled{cursor:default}
 .mm-root button:focus-visible{outline:3px solid #fff0b2;outline-offset:4px}
 .mm-container{width:min(1490px,100%);padding:clamp(11px,2.1vw,29px);margin:auto}
-.mm-top{display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:13px;
- padding:11px clamp(12px,1.8vw,22px);background:linear-gradient(120deg,#244b72ed,#242d59ed);
- border:1px solid #d9e4f286;border-radius:22px;box-shadow:0 10px 38px #0b133c80,inset 0 1px #ffffff39;
- backdrop-filter:blur(15px)}
-.mm-titlebar{display:flex;align-items:center;gap:12px}
-.mm-seal{width:55px;height:55px;display:grid;place-items:center;border:2px solid #ffdc99b8;
- border-radius:17px;background:radial-gradient(circle at 30% 20%,#dbb1ef,#7660a9 65%,#393b81);
- box-shadow:0 4px 13px #11194a9c;font-size:30px}
 .mm-eyebrow{letter-spacing:2px;color:#b2f0f4;font-size:12px;font-weight:950;text-transform:uppercase}
-.mm-main-title{font-size:clamp(20px,2.5vw,32px);line-height:1.1;font-weight:1000;letter-spacing:-.03em;
- color:#ffedbd;margin:4px 0 1px;text-shadow:0 3px 10px #10183b80}
-.mm-top-pills{display:flex;gap:8px;align-items:center;flex-wrap:wrap}
-.mm-pill{border:1px solid #d4efef8e;background:#1d4f6cba;border-radius:999px;
- min-height:39px;padding:8px 12px;display:inline-flex;align-items:center;font-weight:850;font-size:12px;white-space:nowrap}
-.mm-back,.mm-sound{border:1px solid #dceef5ae;background:#ffffff22;color:#fff;border-radius:13px;
- min-height:46px;padding:9px 13px;font-weight:900;font-size:12px}
-.mm-back:hover,.mm-sound:hover{background:#ffffff34}
 .mm-status{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;
  margin:18px 0 12px}
 .mm-section-title{font-size:clamp(24px,3.1vw,43px);font-weight:1000;color:#ffedbd;letter-spacing:-.04em;
@@ -35,15 +19,7 @@
 .mm-progress{border:1px solid #f7ddad7b;border-radius:17px;padding:10px 16px;
  color:#fff0c1;font-weight:950;background:linear-gradient(130deg,#554870cc,#2d4777b6)}
 .mm-progress strong{font-size:22px}
-.mm-chapter-track{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px;margin-bottom:12px}
-.mm-chapter-pill{min-height:65px;border:1px solid #badbf257;border-radius:15px;padding:10px 12px;
- display:flex;gap:9px;align-items:center;background:#294872b3;color:#e8f4ed;transition:background .2s}
-.mm-chapter-pill[data-active=true]{background:linear-gradient(125deg,#6473ae,#2d8a9c);border-color:#fce4a2;
- box-shadow:0 0 0 1px #ffe1a64a,inset 0 1px #ffffff6b}
-.mm-chapter-pill[data-complete=true]{background:#286b73aa;border-color:#b6efbe79}
-.mm-chapter-symbol{font-size:23px;color:#ffe5b3}
-.mm-chapter-text{font-size:12px;font-weight:850;line-height:1.4}
-.mm-chapter-text strong{display:block;color:#fff1c5}
+.mm-chapter-rail{margin-bottom:12px}
 .mm-main-layout{display:grid;grid-template-columns:minmax(0,1.42fr) minmax(340px,.88fr);align-items:start;gap:15px}
 .mm-visual{position:relative;overflow:hidden;border:2px solid #ffe6b18e;border-radius:26px;
  background:linear-gradient(120deg,#4c8dac,#d99cad);
@@ -142,22 +118,10 @@
 .mm-tile:hover:not(:disabled){filter:brightness(1.14);transform:translateY(-2px)}
 .mm-tile:disabled{opacity:.3}
 .mm-tools{display:flex;flex-wrap:wrap;gap:8px;margin:13px 0}
-.mm-tool{min-height:45px;padding:8px 12px;border:1px solid #c3e5eaa1;border-radius:12px;
- background:#ffffff22;color:white;font-size:12px;font-weight:900}
-.mm-tool:hover:not(:disabled){background:#ffffff39}
-.mm-primary{min-height:55px;width:100%;padding:12px 19px;border-radius:16px;
- border:2px solid #f9f7c9;background:linear-gradient(120deg,#e4f9ae,#8cdfc2);
- color:#1b4650;font-weight:1000;font-size:15px;
- box-shadow:0 5px 0 #43877b,0 11px 18px #07153266}
-.mm-primary:hover:not(:disabled){filter:brightness(1.07)}
-.mm-primary:disabled{opacity:.48}
+.mm-primary{width:100%;min-height:55px}
 .mm-feedback{min-height:44px;padding:10px 13px;border-radius:13px;border:1px solid #b6ebd49a;
  background:#275e69a6;font-size:12px;line-height:1.58;color:#edffed;font-weight:800;margin-top:10px}
 .mm-feedback[data-error=true]{border-color:#ffc2bb9c;background:#804565ba;color:#fff0d9}
-.mm-progress-bar{height:10px;border:1px solid #b4e4df79;border-radius:99px;overflow:hidden;
- background:#132e4c;margin:12px 0}
-.mm-progress-bar span{display:block;height:100%;border-radius:99px;
- background:linear-gradient(90deg,#5dd6cd,#f5eb9a);transition:width .4s}
 .mm-preview-stats{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;margin:17px 0}
 .mm-stat{text-align:center;border:1px solid #cbe3eb79;border-radius:14px;padding:12px;
  background:#ffffff14;font-weight:900;font-size:12px;color:#e7f4f8}
@@ -168,25 +132,13 @@
 .mm-learning-summary div{border:1px solid #c8e7e878;background:#2046679e;
  border-radius:13px;padding:12px;font-size:12px;color:#eff8e9}
 .mm-learning-summary strong{display:block;font-size:17px;color:#ffedb6}
-.mm-final-card{max-width:880px;margin:38px auto;text-align:center;border-radius:29px;padding:clamp(20px,4vw,45px);
- border:1px solid #ffe1ada8;
- background:radial-gradient(circle at 50% 0,#8e7caf7d,transparent 57%),#293a60;
- box-shadow:0 21px 70px #08142eac}
-.mm-final-card h2{font-size:clamp(29px,5vw,46px);font-weight:1000;color:#fff0b8;margin:9px 0}
-.mm-final-card p{color:#dcebf1;font-size:14px;line-height:1.65;margin:10px 0}
-.mm-final-stars{font-size:clamp(45px,7vw,85px);color:#fce6a4;text-shadow:0 5px 30px #ffe5ab8b}
 .mm-caption-text{font-size:12px;line-height:1.5;color:#c9e0e7}
 .mm-right-badge{border:1px solid #f7e3be7e;padding:8px 12px;border-radius:999px;
  background:#524875a8;font-size:12px;font-weight:900;color:#fff3cc}
 @media(max-width:1070px){.mm-main-layout{grid-template-columns:1fr}.mm-sidebar{padding:17px}
 .mm-scene-svg{min-height:220px}}
-@media(max-width:665px){.mm-container{padding:8px}.mm-top{border-radius:17px;padding:9px}
-.mm-seal{width:42px;height:42px;font-size:22px}.mm-main-title{font-size:20px}
-.mm-pill{font-size:12px;min-height:33px;padding:6px 8px}.mm-top-pills{gap:5px}
-.mm-status{margin:12px 2px 10px}.mm-chapter-track{gap:5px}
-.mm-chapter-pill{padding:7px 4px;min-height:59px;gap:5px;justify-content:center;flex-direction:column}
-.mm-chapter-symbol{font-size:18px}.mm-chapter-text{font-size:12px;text-align:center}
-.mm-chapter-text strong{display:none}.mm-scene-svg{min-height:195px}
+@media(max-width:665px){.mm-container{padding:8px}
+.mm-status{margin:12px 2px 10px}.mm-scene-svg{min-height:195px}
 .mm-hotspot{min-height:48px;min-width:53px;padding:4px 7px;font-size:16px;border-radius:12px}
 .mm-hotspot small{font-size:12px}.mm-sidebar{padding:12px;border-radius:17px}
 .mm-challenge{padding:12px}.mm-verb{padding:8px;min-height:58px}
@@ -200,5 +152,12 @@
  animation-duration:.01ms!important;animation-iteration-count:1!important;
  transition-duration:.01ms!important;scroll-behavior:auto!important}}
 
-/* iOS notch / Dynamic Island: full-screen scroll root starts below the status bar (0 elsewhere). */
-.mm-root{padding-top:env(safe-area-inset-top,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+/* Shared game frame: the sticky .gf-bar takes the iOS status-bar inset (env(safe-area-inset-top)),
+ * so the scroll root only keeps the side insets. */
+.mm-root{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.mm-root .gf-bar{--gf-max:1490px}
+.mm-result{max-width:880px}
+.mm-result .gf-result-art{aspect-ratio:16/7;min-height:0}
+.mm-result .gf-result-art>img{height:100%;max-height:none}
+.mm-result .mm-learning-summary{width:100%}
+.mm-tools .gf-btn{flex:1 1 auto}

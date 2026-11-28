@@ -1,28 +1,20 @@
 'use client';
-import React,{useEffect,useRef} from 'react';
-type Props={areaTitle:string;stageTitle:string;stage:number;totalStages:number;children:React.ReactNode};
-/** UI-only: original buttons, locks, session state and progress callbacks stay unchanged. */
-export function GardenQuestNavigator({areaTitle,stageTitle,stage,totalStages,children}:Props){
- const root=useRef<HTMLDivElement>(null);
- useEffect(()=>{
-  const nav=root.current?.querySelector<HTMLElement>('.gg-quest-stage-nav');
-  const active=nav?.querySelector<HTMLElement>('[aria-current="step"]');
-  if(!nav||!active)return;
-  const frame=window.requestAnimationFrame(()=>{
-   const outer=nav.getBoundingClientRect(),inner=active.getBoundingClientRect();
-   const offset=inner.left-outer.left-(nav.clientWidth-inner.width)/2;
-   if(Math.abs(offset)>2)nav.scrollLeft+=offset;
-  });
-  return()=>window.cancelAnimationFrame(frame);
- },[stage,areaTitle]);
- return <div className="gg-quest-navigation" aria-label="Bölüm ve görev gezinmesi">
-  <div className="gg-quest-location" aria-live="polite" aria-atomic="true">
-   <div className="gg-quest-location-copy">
-    <span className="gg-quest-location-kicker">ŞİMDİ OYNADIĞIN</span>
-    <strong><span>{areaTitle}</span><span aria-hidden="true" className="gg-quest-separator">›</span><span>{stageTitle}</span></strong>
-   </div>
-   <span className="gg-quest-counter" aria-label={'Görev '+stage+' / '+totalStages}>{stage}/{totalStages}</span>
-  </div>
-  <div className="gg-quest-navigation-lists" ref={root}>{children}</div>
+import React from 'react';
+import {GameStepRail,type GameStep} from '../game/GameFrame';
+
+type Props={zoneLabel:string;stageLabel:string;zones:GameStep[];stages:GameStep[]};
+
+/**
+ * UI-only: Lezzet Pazarı, Aile Köyü and Keşif Tapınağı keep their own locks,
+ * session state and progress callbacks. This draws their two levels of choice
+ * — the zone (street, district, chamber) and that zone's five language tasks —
+ * as the shared game step rails, so all three read like every other game.
+ */
+export function GardenQuestNavigator({zoneLabel,stageLabel,zones,stages}:Props){
+ return <div className="gg-quest-navigation">
+  <GameStepRail island="garden" className="gg-quest-zone-nav" ariaLabel={zoneLabel} showNotes
+   steps={zones.map(zone=>({...zone,className:'gg-quest-zone gg-game-control'+(zone.className?' '+zone.className:'')}))}/>
+  <GameStepRail island="garden" className="gg-quest-stage-nav" ariaLabel={stageLabel}
+   steps={stages.map(item=>({...item,className:'gg-quest-step gg-game-control'+(item.className?' '+item.className:'')}))}/>
  </div>;
 }

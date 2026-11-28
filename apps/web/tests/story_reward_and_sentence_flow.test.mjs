@@ -36,7 +36,7 @@ test('All three story games end with the summary and the story sentences to hear
  assert.match(detective,/<StoryRewardSummary stars=\{stars\} mistakes=\{answers\.reduce\(\(n,a\)=>n\+a\.mistakes,0\)\}/);
  assert.match(detective,/detectiveAdventureNarration\(plan,'ending',route\?\?undefined\)/);
  // A case in play has a page heading; the chapter list keeps its cover h1.
- assert.match(detective,/<h1 className="sd-header-title">\{chapter\?\.title\?\?'Hikâye Dedektifi'\}<\/h1>\}/);
+ assert.match(detective,/title=\{view==='chapters'\?'Hikâye Dedektifi':chapter\?\.title\?\?'Hikâye Dedektifi'\}\n\s*titleAs=\{view==='chapters'\?'p':'h1'\}/);
  const recap=src('components/learning/story/StoryRewardRecap.tsx');
  // Lines are spoken on demand only and speech stops when the screen closes.
  assert.match(recap,/useEffect\(\(\)=>\(\)=>\{request\.current\+\+;soundService\.cancelSpeech\(\);\},\[\]\);/);
@@ -63,7 +63,9 @@ test('Cümle Meydanı: screens open at their top and the scene copy fits phones'
  const scene=src('components/learning/sentence/SentencePlazaScene.tsx');
  assert.match(scene,/'under the tree':\{left:'16%',top:'71%',tip:'below'\}/);
  assert.match(src('components/learning/sentence/sentence-plaza-learning-v7.css'),/\.sp-v6-hotspot\[data-tip=below\] \.sp-v6-hotspot-tooltip\{bottom:auto;top:calc\(100% \+ 4px\)\}/);
- assert.match(src('components/learning/sentence/sentence-plaza.css'),/\.sp-reward>\.learning-motion\{bottom:auto;height:min\(440px,62%\)\}/);
+ // The victory burst stays on the reward's painted cover, above the result cards.
+ assert.match(src('components/learning/sentence/sentence-plaza.css'),/\.sp-result \.gf-result-art>\.learning-motion\{bottom:auto;height:100%\}/);
+ assert.match(plaza,/<LearningMotion variant="victory" trigger=\{'sentence-reward-'\+mission\}\/><\/>\}/);
 });
 
 test('Cümle Meydanı: Hareket Büyüsü and İstekler Meydanı lead straight to the next mission',()=>{

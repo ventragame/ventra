@@ -11,11 +11,9 @@
 .tt-root .tt-scenario-v2{position:relative;overflow:hidden;isolation:isolate}
 .tt-root .tt-scenario-theme{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;opacity:.2;z-index:-1;pointer-events:none}
 .tt-root .tt-sound-options{display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:9px}
-.tt-root .tt-sound-options .tt-speak{margin:0;min-height:49px}
-.tt-root .tt-sound-options .tt-speak-slow{background:#fff1d2;border-color:#e9d5a9;color:#745b42}
 .tt-root .tt-world-card:focus-visible,.tt-root .tt-sound-options button:focus-visible{outline:3px solid #3b9c84;outline-offset:4px}
 @media(max-width:640px){.tt-root .tt-hero-illustration-v2{inset:9% -10% 0 35%;opacity:.36}.tt-root .tt-world-card{min-height:213px}.tt-root .tt-world-emoji.tt-world-scene{height:89px}.tt-root .tt-play-scene{width:54px;height:48px}.tt-root .tt-word-illustration{width:146px;height:146px}.tt-root .tt-sound-options{width:100%}}
-@media(max-width:355px){.tt-root .tt-world-emoji.tt-world-scene{height:72px}.tt-root .tt-world-card{min-height:200px}.tt-root .tt-sound-options .tt-speak{flex:1;min-width:0;padding:9px 10px;font-size:12px}}
+@media(max-width:355px){.tt-root .tt-world-emoji.tt-world-scene{height:72px}.tt-root .tt-world-card{min-height:200px}}
 @media(prefers-reduced-motion:reduce){.tt-root .tt-scene-mosaic img,.tt-root .tt-word-illustration{transition:none}}
 
 /* Context cues are not labelled as object illustrations. */
@@ -29,3 +27,14 @@
 @media(max-width:355px){.tt-root .tt-semantic-cue{width:122px;height:122px}}
 
 .tt-root .tt-art-load-warning{display:block;max-width:220px;font-size:12px;line-height:1.45;text-align:center;color:#805a39;font-weight:750}
+
+/* Shared game frame: the town is a daylight page, so its result card is too. */
+.tt-root .gf-bar{--gf-max:1220px}
+.tt-root .gf-result.gf-theme{--ih-ink:#174a3d;--ih-card-ink:#20363c;--ih-card-muted:#4d6a70;--ih-accent:#e0952e;
+ background:linear-gradient(180deg,#fffdf6,#fff6e6);box-shadow:0 13px 34px #6b4a1e26}
+.tt-complete{max-width:760px;margin:20px auto}
+.tt-root .tt-task-stages{margin:0 auto 4px;max-width:760px}
+.tt-evidence{font-size:13px;color:var(--ih-card-muted)}
+/* The step rail sits on the daylight page: light cards, dark ink. */
+.tt-root .tt-task-stages.gf-steps{--ih-card:#ffffffd9;--ih-card-hover:#fff;--ih-card-ink:#20363c;--ih-card-muted:#4d6a70;
+ --ih-line:#1d5a4a2e;--ih-chip:#eef7f3;--ih-ring:#e0952e;--ih-accent:#ffc76b}

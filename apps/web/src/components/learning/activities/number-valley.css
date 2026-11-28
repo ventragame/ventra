@@ -5,9 +5,7 @@
 .nv-orb-two{width:33rem;height:33rem;background:#bb95ff;right:-12rem;top:25%}
 .nv-orb-three{width:25rem;height:25rem;background:#ffd878;left:20%;bottom:-13rem}
 .nv-sky-stars{position:absolute;top:12%;left:20%;font-size:2rem;letter-spacing:3.5rem;color:#c8ffff;opacity:.35}
-.nv-control,.nv-chapter,.nv-panel{border:1px solid rgba(196,244,255,.23);background:rgba(6,37,75,.65);box-shadow:0 8px 32px rgba(0,7,30,.14)}
-.nv-control:hover:enabled,.nv-chapter:hover:enabled{background:rgba(47,105,143,.75)}
-.nv-chapter-current{border-color:#e0fd9c;background:linear-gradient(155deg,rgba(46,128,146,.94),rgba(45,80,129,.9));box-shadow:inset 0 0 15px #b7f7ff22,0 6px 22px #0b173c55}
+.nv-panel{border:1px solid rgba(196,244,255,.23);background:rgba(6,37,75,.65);box-shadow:0 8px 32px rgba(0,7,30,.14)}
 .nv-landscape{background:radial-gradient(circle at 50% 0%,#a8effc 0%,#67b8e6 27%,#6579bd 57%,#375d99 100%);border:1px solid #b4f8ff77}
 .nv-mountain{position:absolute;bottom:0;clip-path:polygon(0% 100%,50% 0%,100% 100%);opacity:.65}
 .nv-mountain-one{left:-10%;width:75%;height:60%;background:linear-gradient(#a0cef5,#426d9b)}
@@ -21,10 +19,8 @@
 .nv-gem-found{background:linear-gradient(130deg,#fff6b0,#afea9a 44%,#3bbfa4)}
 .nv-crystal-tile{border:1px solid #ffffff66;background:#053b7ba8;min-height:128px;transition:transform .18s,background .18s;animation:nv-appear .44s both}
 .nv-crystal-tile:hover{transform:translateY(-4px);background:#155c91cc}
-.nv-crystal-tile:focus-visible,.nv-control:focus-visible,.nv-choice:focus-visible,.nv-chapter:focus-visible{outline:3px solid #f6f7a4;outline-offset:3px}
+.nv-crystal-tile:focus-visible,.nv-choice:focus-visible{outline:3px solid #f6f7a4;outline-offset:3px}
 .nv-discovered{border-color:#e4fd9a;background:#187b82dd}
-.nv-primary{color:#063b49;background:linear-gradient(110deg,#f6f5a0,#b4f9b3,#6cddd5);box-shadow:0 7px 23px #011e3c77}
-.nv-primary:hover:enabled{filter:brightness(1.08)}
 .nv-choice,.nv-counting{border:1px solid #ffffff66;background:linear-gradient(160deg,#123b83de,#174d70e6);box-shadow:inset 0 2px 12px #afeaff1a,0 6px 17px #09203e66}
 .nv-choice:hover:enabled{transform:translateY(-3px);border-color:#f0fbb0;background:linear-gradient(160deg,#246aab,#287874)}
 .nv-stars{display:flex;max-width:100%;min-height:50px;flex-wrap:wrap;justify-content:center;align-items:center;gap:4px}
@@ -76,15 +72,11 @@ color:#fff2ad!important;box-shadow:0 0 16px #fff7a366,inset 0 0 14px #f8ffc63d!i
 .nv-world-5 .nv-choice{background:linear-gradient(145deg,#3f3f96d9,#1d7c8dd9)}
 @media(prefers-reduced-motion:reduce){.nv-echo-active span{animation:none!important}.nv-bridge-lit{transition:none!important}}
 
-.nv-band-card{background:linear-gradient(155deg,#0f4470c9,#102b5aeb);border:1px solid #a0dbf155;min-height:86px;box-shadow:0 4px 18px #08213d55;transition:background .2s,transform .2s}
-.nv-band-card:hover:enabled{transform:translateY(-2px);background:#236585e8}
-.nv-band-selected{border:2px solid #faf1ad!important;background:linear-gradient(130deg,#236790e9,#2e817fd9);box-shadow:0 0 20px #bdeada33,inset 0 1px 0 #fff9}
 .nv-place-tower{border:1px solid #9ff1f488;background:linear-gradient(165deg,#1f5986dd,#14445dcd);box-shadow:inset 0 0 14px #d9faff16}
 .nv-place-icon{color:#fcf0ae;text-shadow:0 2px 14px #7bf3d0bb}
 .nv-place-button{min-height:46px;background:#275e85e0;border:1px solid #b7dffd90;color:#fff}
 .nv-place-button:hover:enabled{background:#3a8fa4}
-.nv-place-button:focus-visible,.nv-band-card:focus-visible{outline:3px solid #fff9a3;outline-offset:3px}
-@media(prefers-reduced-motion:reduce){.nv-band-card{transition:none!important}}
+.nv-place-button:focus-visible{outline:3px solid #fff9a3;outline-offset:3px}
 
 /* NV English Star Forge: tap/assemble words rather than perform arithmetic. */
 .nv-word-forge,.nv-portal-language{

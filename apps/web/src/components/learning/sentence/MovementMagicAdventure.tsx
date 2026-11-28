@@ -20,6 +20,7 @@ import {MAGIC_VERBS,MOVEMENT_CHAPTERS,checkMagicAction,checkMagicPlace,
 import './movement-magic.css';
 import './sentence-clarity-v3.css';
 import {gradeLevelLabel} from '@/lib/learning/gradeLabel';
+import {GameTopBar,GameStepRail,GameResult} from '../game/GameFrame';
 
 type Phase='welcome'|'chapter'|'play'|'reward';
 interface Props{
@@ -116,7 +117,6 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
  const prepared=Boolean(trial&&(!requiredAction||chosenAction===trial.verb)
   &&(!requiredPlace||chosenPlace===trial.place)&&(!needsRepair||repairFixed));
  const isComplete=Boolean(trial&&picked.length===trial.question.tokens.length);
- const percent=plan?100*(index+(activated?1:0))/plan.trials.length:0;
  const clearPending=()=>{if(pending.current!==null){clearTimeout(pending.current);pending.current=null;}};
  const speak=(text:string,fullAnswer=false,events?:{onEnd:()=>void;onError:()=>void}):boolean=>{
   soundService.unlockAudio();
@@ -330,11 +330,10 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
    }
   });
  }
- const chapterCards=MOVEMENT_CHAPTERS.map(c=><div className="mm-chapter-pill" key={c.id}
-   data-active={phase!=='welcome'&&c.id===stage} data-complete={phase!=='welcome'&&c.id<stage}>
-   <span className="mm-chapter-symbol">{c.icon}</span>
-   <span className="mm-chapter-text"><strong>SAHNE {c.id}</strong>{c.short}</span>
- </div>);
+ const chapterRail=<GameStepRail island="sentence" className="mm-chapter-rail" showNotes
+  ariaLabel="Hareket Büyüsü sahneleri"
+  steps={MOVEMENT_CHAPTERS.map(c=>({key:String(c.id),label:c.title,short:c.short,icon:c.icon,
+   state:phase==='welcome'?'upcoming':c.id<stage?'done':c.id===stage?'current':'upcoming'}))}/>;
  const visual=<MovementMagicStage chapter={stage} actor={trial?.actor??'bird'}
   verb={trial?.verb??'fly'} color={trial?.color??'blue'} place={trial?.place??'bridge'}
   selectedPlace={chosenPlace} wrongPlace={wrongPlace} activated={activated} showTargets={phase==='play'&&Boolean(requiredPlace)&&(!requiredAction||Boolean(chosenAction))&&!chosenPlace}
@@ -344,18 +343,12 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
  return <div className="mm-root" ref={rootRef} role="dialog" aria-modal="true"
   aria-label="Hareket Büyüsü İngilizce öğrenme macerası"
   onPointerDown={event=>event.stopPropagation()}>
+ <GameTopBar island="sentence" onBack={()=>{if(saving)return;clearPending();soundService.cancelSpeech();onExit();}}
+  backLabel="Görevler" backAriaLabel="Meydan görevlerine dön" crest="🪽"
+  eyebrow="Cümle Meydanı · Görev 4" title="Hareket Büyüsü"
+  progress={phase!=='welcome'&&phase!=='reward'&&plan?{current:index+1,total:plan.trials.length}:undefined}
+  chips={[gradeLevelLabel(gradeLevel)+' · '+englishLevel,'⏳ '+CLOCK(seconds)+' · Süre cezası yok']}/>
  <div className="mm-container">
-  <header className="mm-top">
-   <div className="mm-titlebar"><div className="mm-seal" aria-hidden="true">✦</div>
-    <div><div className="mm-eyebrow">VENTRA · CÜMLE MEYDANI · ÖZGÜN MACERA</div>
-     <h1 className="mm-main-title">Hareket Büyüsü</h1></div></div>
-   <div className="mm-top-pills">
-    <span className="mm-pill">🎓 {gradeLevelLabel(gradeLevel)} · {englishLevel}</span>
-    <span className="mm-pill">⏳ {CLOCK(seconds)} · Süre cezası yok</span>
-    <button type="button" className="mm-back" onClick={()=>{if(saving)return;clearPending();soundService.cancelSpeech();onExit();}}
-     disabled={saving}>← Cümle Meydanı</button>
-   </div>
-  </header>
   {resumed&&phase!=='reward'&&<div role="status" className="mm-feedback" style={{marginTop:12}}>
     ↺ Yarım kalan Hareket Büyüsü oturumun bu cihazda korundu; kaldığın görevden devam ediyorsun.
    </div>}
@@ -366,7 +359,7 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
     <p className="mm-section-subtitle">Hangi hayvan ne yapabilir? Nereye gidiyor? İngilizce cümlede ne yanlış?
      Kelimeleri sıraya koymanın ötesine geç: sahneye dokun, karakterleri yönlendir, gerçek cümle kur.</p>
     </div><div className="mm-progress">Tahmini <strong>{estimatedText}</strong></div></section>
-   <div className="mm-chapter-track">{chapterCards}</div>
+   {chapterRail}
    <div className="mm-main-layout">
     {visual}
     <aside className="mm-sidebar">
@@ -385,37 +378,34 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
      <p className="mm-caption-text">Süre geri saymaz. Yavaş okuma cezalandırılmaz. Yarım kalan görevler bu cihazda saklanır. İpucu ve ses desteği her görevde bulunur;
       ancak bunlar bağımsız öğrenme başarısından ayrı kaydedilir.</p>
      {feedback&&<p role="alert" className="mm-feedback" data-error={feedbackError}>{feedback}</p>}
-     <button type="button" className="mm-primary" style={{marginTop:17}}
+     <button type="button" className="mm-primary gf-btn gf-btn--primary" style={{marginTop:17}}
       onClick={begin}>✦ Hareket Macerasına Başla</button>
     </aside>
    </div>
-  </>:phase==='reward'?<div className="mm-final-card" role="status">
-   <div className="mm-eyebrow">DÖRT BÖLÜM · GERÇEK PROFİL KAYDI</div>
+  </>:phase==='reward'?<GameResult island="sentence" className="mm-result"
+   art={<img src="/assets/sentence-plaza/v5/mission-4.webp" alt="" decoding="async"/>}
+   kicker="Dört bölüm · Gerçek profil kaydı" title="Hareket Büyüsü Tamamlandı!"
+   stars={{earned:rewardStars}}
+   message="Karakterleri doğru İngilizceyle yönlendirdin. Öğrenme kanıtların profiline kaydedildi; aynı görev tekrar oynandığında yeni cümleler ve sahne seçimleri seni bekliyor."
+   actions={<>
+    {onNext&&<button type="button" className="gf-btn gf-btn--primary" onClick={onNext}>✦ Sıradaki Görev{nextLabel?': '+nextLabel:''} →</button>}
+    <button type="button" className={'gf-btn '+(onNext?'gf-btn--secondary':'gf-btn--primary')} onClick={begin}>↻ Yeni Hareket Macerası</button>
+    <button type="button" className="gf-btn gf-btn--secondary" onClick={onExit}>Cümle Meydanı’na Dön</button>
+   </>}>
    <SentenceQuestReward independent={independentCount}/>
-    <h2>Hareket Büyüsü Tamamlandı!</h2>
-   <div className="mm-final-stars" aria-label={rewardStars+' yıldız'}>{'★'.repeat(rewardStars)}</div>
-   <p>Karakterleri doğru İngilizceyle yönlendirdin. Öğrenme kanıtların profiline kaydedildi;
-    aynı görev tekrar oynandığında yeni cümleler ve sahne seçimleri seni bekliyor.</p>
    <div className="mm-learning-summary">
     <div><strong>{plan?.trials.length}</strong>İngilizce cümle</div>
     <div><strong>{independentCount}</strong>Bağımsız çözüm</div>
     <div><strong>{bestStreak}</strong>En uzun seri</div>
     <div><strong>{CLOCK(seconds)}</strong>Öğrenme süresi</div>
    </div>
-   {onNext&&<button type="button" className="mm-primary" onClick={onNext}>✦ Sıradaki Görev{nextLabel?': '+nextLabel:''} →</button>}
-   <button type="button" className={onNext?'mm-tool':'mm-primary'} style={onNext?{marginTop:15}:undefined} onClick={begin}>↻ Yeni Hareket Macerası</button>
-   <button type="button" className="mm-tool" style={{marginTop:15}} onClick={onExit}>Cümle Meydanı’na Dön</button>
-  </div>:<>
+  </GameResult>:<>
    <section className="mm-status">
     <div><div className="mm-eyebrow">HAREKET BÜYÜSÜ · SAHNE {stage} / 4</div>
      <h2 className="mm-section-title">{meta.icon} {meta.title}</h2>
      <p className="mm-section-subtitle">{meta.objective}</p></div>
-    <div className="mm-progress"><strong>{index+1}</strong> / {plan?.trials.length??12} görev</div>
    </section>
-   <div className="mm-chapter-track">{chapterCards}</div>
-   {plan&&<div className="mm-progress-bar" role="progressbar" aria-label="Hareket Büyüsü ilerlemesi"
-    aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(percent)}>
-    <span style={{width:percent+'%'}}/></div>}
+   {chapterRail}
    <div className="mm-main-layout">
     {visual}
     <aside className="mm-sidebar">
@@ -427,12 +417,12 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
        <strong>İNGİLİZCE ÖRNEĞİ</strong><span>{meta.example}</span>
        <small>{meta.exampleTr}</small></div>
       <div className="mm-tools">
-       <button type="button" className="mm-tool" onClick={()=>speak(meta.example)}>
+       <button type="button" className="mm-tool gf-btn gf-btn--tool" onClick={()=>speak(meta.example)}>
         🔊 Örneği Dinle</button>
       </div>
       <p className="mm-caption-text">Doğru ya da yanlış kelimeleri işaretlemek için sadece tahmin etmeye gerek yok.
        Önce anlamı öğren; takıldığında ipucu iste. İngilizce seviyen ve sınıfın görev uzunluğunu belirler.</p>
-      <button type="button" className="mm-primary" style={{marginTop:18}}
+      <button type="button" className="mm-primary gf-btn gf-btn--primary" style={{marginTop:18}}
        onClick={()=>{resetRound();setPhase('play');soundService.playSfx('whoosh',.4);}}>
        ✨ {meta.title} Başlasın</button>
      </>:trial&&question?<>
@@ -475,19 +465,19 @@ export function MovementMagicAdventure({profileId,gradeLevel,englishLevel,histor
  slotRowClass="mm-sentence-slots" slotClass="mm-slot" tileRowClass="mm-tile-tray" tileClass="mm-tile"/>
       </div>:<p className="mm-inline-help">Hareketi ve/veya yeri doğru seçtikten sonra İngilizce cümle atölyesi açılır.</p>}
       <div className="mm-tools">
-       <button type="button" className="mm-tool" disabled={!picked.length||activated||saving}
+       <button type="button" className="mm-tool gf-btn gf-btn--tool" disabled={!picked.length||activated||saving}
         onClick={()=>removeWord(picked.length-1)}>↶ Geri Al</button>
-       <button type="button" className="mm-tool" disabled={activated||saving}
+       <button type="button" className="mm-tool gf-btn gf-btn--tool" disabled={activated||saving}
         onClick={()=>{soundService.unlockAudio();speak(question.sentence,true);}}>🔊 Dinle</button>
-       <button type="button" className="mm-tool" disabled={activated||saving}
+       <button type="button" className="mm-tool gf-btn gf-btn--tool" disabled={activated||saving}
         onClick={hint}>💡 İpucu Al</button>
       </div>
       {feedback&&<div className="mm-feedback" data-error={feedbackError} role="status" aria-live="polite">{feedback}</div>}
       {saveError&&<div className="mm-feedback" data-error="true" role="alert">{saveError}
-       <button type="button" className="mm-primary" style={{marginTop:10}}
+       <button type="button" className="mm-primary gf-btn gf-btn--primary" style={{marginTop:10}}
         disabled={saving} onClick={()=>{if(finishedRef.current)void finish(finishedRef.current);}}>
         Kaydı Yeniden Dene</button></div>}
-      {!activated&&<button type="button" className="mm-primary" style={{marginTop:10}}
+      {!activated&&<button type="button" className="mm-primary gf-btn gf-btn--primary" style={{marginTop:10}}
        disabled={!prepared||!isComplete||saving||Boolean(saveError)}
        onClick={advanceWithSuccess}>✦ Canlandır</button>}
       {activated&&<SentenceQuestSuccess detail="Hareket canlanıyor; sıradaki görev otomatik başlayacak."/>}

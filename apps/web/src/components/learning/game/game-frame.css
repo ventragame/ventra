@@ -1,0 +1,156 @@
+/* Ventra in-game frame: one top bar, one step rail, one button family and one
+ * result card for every game. Colours come from island-palette.css. */
+
+.gf-sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* ---------- top bar ---------- */
+.gf-bar{position:sticky;top:0;z-index:30;flex:none;width:100%;color:var(--ih-ink);
+ padding-top:env(safe-area-inset-top,0px);
+ background:linear-gradient(180deg,color-mix(in srgb,var(--ih-bg1) 97%,transparent),color-mix(in srgb,var(--ih-bg2) 94%,transparent));
+ backdrop-filter:blur(16px) saturate(1.2);-webkit-backdrop-filter:blur(16px) saturate(1.2);
+ border-bottom:1px solid var(--ih-line);box-shadow:0 10px 26px #0000002b;
+ animation:gf-drop .45s cubic-bezier(.2,.8,.2,1) both}
+.gf-bar-inner{display:flex;align-items:center;gap:12px;max-width:var(--gf-max,1180px);margin:0 auto;
+ padding:9px max(clamp(12px,3vw,28px),env(safe-area-inset-right,0px)) 9px max(clamp(12px,3vw,28px),env(safe-area-inset-left,0px))}
+.gf-back{display:inline-flex;align-items:center;justify-content:center;gap:7px;flex:none;min-width:46px;min-height:46px;
+ padding:0 15px;border-radius:16px;border:1.5px solid var(--ih-line);background:var(--ih-chip);color:var(--ih-ink);
+ font:inherit;font-size:14px;font-weight:850;cursor:pointer;transition:transform .18s,background .18s,border-color .18s}
+.gf-back:hover{transform:translateX(-2px);background:var(--ih-card-hover);border-color:color-mix(in srgb,var(--ih-ring) 55%,transparent)}
+.gf-back>span:first-child{font-size:19px;line-height:1}
+.gf-back:disabled{opacity:.55;cursor:not-allowed;transform:none}
+.gf-identity{display:flex;align-items:center;gap:11px;min-width:0;flex:1}
+.gf-identity>div{min-width:0}
+.gf-crest{display:grid;place-items:center;flex:none;width:44px;height:44px;border-radius:14px;font-size:22px;overflow:hidden;
+ background:linear-gradient(145deg,color-mix(in srgb,var(--ih-accent) 42%,transparent),var(--ih-chip));
+ border:1.5px solid color-mix(in srgb,var(--ih-accent) 55%,transparent);box-shadow:0 6px 16px #0003}
+.gf-crest img{width:100%;height:100%;object-fit:cover}
+.gf-identity small{display:block;font-size:12px;font-weight:850;letter-spacing:.1em;text-transform:uppercase;color:var(--ih-muted);
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gf-title{margin:1px 0 0;font-size:clamp(18px,2.1vw,23px);font-weight:950;line-height:1.15;letter-spacing:-.01em;color:inherit;outline:none;
+ white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.gf-meta{display:flex;align-items:center;gap:8px;flex:none}
+.gf-chip{display:inline-flex;align-items:center;gap:4px;min-height:36px;padding:0 12px;border-radius:999px;white-space:nowrap;
+ border:1px solid var(--ih-line);background:var(--ih-chip);font-size:12.5px;font-weight:800;color:var(--ih-ink)}
+.gf-chip b{font-weight:950}
+.gf-chip--progress{background:color-mix(in srgb,var(--ih-accent) 20%,var(--ih-chip));border-color:color-mix(in srgb,var(--ih-accent) 45%,transparent)}
+.gf-tools{display:flex;align-items:center;gap:8px;flex:none}
+/* Tool buttons (help, sound, album) — and GardenHelp's summary — share one round shape. */
+.gf-tool,.gf-tools .wg-game-help>summary,.gf-tools details>summary.gf-tool{display:inline-grid;place-items:center;flex:none;width:46px;min-width:46px;height:46px;min-height:46px;padding:0;
+ border-radius:15px;border:1.5px solid var(--ih-line);background:var(--ih-chip);color:var(--ih-ink);
+ font:inherit;font-size:19px;font-weight:900;line-height:1;cursor:pointer;list-style:none;transition:transform .16s,background .16s}
+.gf-tools details>summary::-webkit-details-marker{display:none}
+.gf-tool:hover,.gf-tools .wg-game-help>summary:hover{transform:translateY(-1px);background:var(--ih-card-hover)}
+.gf-tool[aria-pressed="true"]{background:color-mix(in srgb,var(--ih-accent) 30%,var(--ih-chip));border-color:color-mix(in srgb,var(--ih-accent) 60%,transparent)}
+.gf-bar-progress{position:absolute;left:0;right:0;bottom:-1px;height:4px;background:color-mix(in srgb,var(--ih-ink) 10%,transparent);overflow:hidden}
+.gf-bar-progress span{display:block;height:100%;border-radius:0 999px 999px 0;
+ background:linear-gradient(90deg,var(--ih-accent),#9ff0c4);box-shadow:0 0 12px color-mix(in srgb,var(--ih-accent) 70%,transparent);
+ transition:width .7s cubic-bezier(.2,.8,.2,1)}
+.gf-back:focus-visible,.gf-tool:focus-visible,.gf-tools summary:focus-visible,.gf-step:focus-visible,.gf-btn:focus-visible{outline:3px solid #fff09c;outline-offset:3px}
+.gf-theme[data-island="story"] :is(.gf-back,.gf-tool,.gf-step,.gf-btn):focus-visible,.gf-theme[data-island="story"].gf-bar summary:focus-visible{outline-color:#1d7f62}
+
+/* The bar is sticky: whatever a game focuses or scrolls to must land below it, not under it. */
+:where(:has(>.gf-bar)) :is(h1,h2,h3,[tabindex="-1"],section){scroll-margin-top:calc(88px + env(safe-area-inset-top,0px))}
+
+/* ---------- step rail ---------- */
+.gf-steps{display:flex;gap:8px;padding:3px 2px 5px;margin-top:0;list-style:none;overflow-x:auto;scrollbar-width:none;
+ -webkit-overflow-scrolling:touch;scroll-behavior:smooth;color:var(--ih-ink)}
+.gf-steps::-webkit-scrollbar{display:none}
+.gf-steps>li{display:flex;flex:1 0 auto;min-width:0}
+.gf-step{position:relative;display:flex;align-items:center;gap:9px;width:100%;min-height:50px;padding:6px 14px 6px 6px;
+ border-radius:999px;border:1.5px solid var(--ih-line);background:var(--ih-card);color:var(--ih-card-ink);
+ font:inherit;font-size:14px;font-weight:850;text-align:left;white-space:nowrap;
+ transition:transform .18s,background .18s,border-color .18s,box-shadow .18s}
+button.gf-step{cursor:pointer}
+button.gf-step:hover:not(:disabled){transform:translateY(-1px);background:var(--ih-card-hover)}
+button.gf-step:disabled{cursor:not-allowed}
+.gf-step-mark{display:grid;place-items:center;flex:none;width:36px;height:36px;border-radius:50%;font-size:15px;font-weight:950;
+ background:var(--ih-chip);border:1.5px solid var(--ih-line);color:var(--ih-card-ink)}
+.gf-step-mark img{width:24px;height:24px;object-fit:contain}
+.gf-step-copy{display:flex;flex-direction:column;min-width:0;line-height:1.15}
+.gf-step-copy small{font-size:12px;font-weight:750;color:var(--ih-card-muted)}
+.gf-step-short{display:none}
+.gf-step[data-state="current"]{border-color:var(--ih-ring);
+ background:linear-gradient(135deg,color-mix(in srgb,var(--ih-accent) 30%,var(--ih-card)),var(--ih-card));
+ box-shadow:0 0 0 3px color-mix(in srgb,var(--ih-ring) 28%,transparent),0 8px 18px #00000026}
+.gf-step[data-state="current"] .gf-step-mark{background:linear-gradient(145deg,#ffe49a,#ffb867);border-color:#fff3c4;color:#3b2410;
+ box-shadow:0 3px 10px #ffb86766;animation:gf-pulse 2.2s ease-in-out infinite}
+.gf-step[data-state="done"] .gf-step-mark{background:#2fae74;border-color:#c9ffe2;color:#fff}
+.gf-step[data-state="upcoming"],.gf-step[data-state="locked"]{color:var(--ih-card-muted)}
+.gf-step[data-state="locked"]{opacity:.7}
+.gf-theme[data-island="story"] .gf-step[data-state="current"]{background:linear-gradient(135deg,#fff4d6,#fffdf6)}
+
+/* ---------- buttons ---------- */
+.gf-btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;min-height:50px;padding:0 22px;border-radius:17px;
+ font:inherit;font-size:16px;font-weight:900;line-height:1.1;text-align:center;cursor:pointer;border:1.5px solid transparent;
+ transition:transform .16s,box-shadow .16s,background .16s,opacity .16s}
+.gf-btn:disabled{cursor:not-allowed;opacity:.55;transform:none!important}
+.gf-btn--primary{color:#173a35;border-color:#ffffffb3;
+ background:linear-gradient(135deg,#fff4c6,#c8f3d9);
+ box-shadow:0 5px 0 #1d4a4033,0 12px 24px #0000002e,inset 0 1px 0 #fff}
+.gf-btn--primary:hover:not(:disabled){transform:translateY(-2px);box-shadow:0 7px 0 #1d4a4033,0 16px 30px #00000038,inset 0 1px 0 #fff}
+.gf-btn--primary:active:not(:disabled){transform:translateY(3px);box-shadow:0 2px 0 #1d4a4033,0 6px 14px #0000002e}
+/* Secondary and tool buttons follow the surface they sit on (dark stage or light card). */
+.gf-btn--secondary,.gf-btn--tool{color:inherit;background:color-mix(in srgb,currentColor 8%,transparent);
+ border-color:color-mix(in srgb,currentColor 24%,transparent)}
+.gf-btn--secondary:hover:not(:disabled),.gf-btn--tool:hover:not(:disabled){transform:translateY(-1px);background:color-mix(in srgb,currentColor 14%,transparent)}
+.gf-btn--tool{min-height:46px;padding:0 16px;font-size:14.5px;font-weight:850;border-radius:15px}
+.gf-btn--tool[aria-pressed="true"]{background:color-mix(in srgb,#ffcf6b 26%,transparent);border-color:#ffcf6b}
+
+/* ---------- stars ---------- */
+.gf-stars{display:flex;justify-content:center;gap:clamp(6px,1.4vw,12px);margin:2px 0}
+.gf-star{font-size:clamp(40px,6vw,56px);line-height:1;color:color-mix(in srgb,var(--ih-card-muted) 45%,transparent);
+ text-shadow:0 2px 0 #0000001f;animation:gf-star-in .5s cubic-bezier(.3,1.6,.5,1) both;animation-delay:calc(.25s + var(--i)*.16s)}
+.gf-star[data-earned="true"]{color:#ffc93c;text-shadow:0 3px 0 #d48a1a,0 0 22px #ffd76a99}
+
+/* ---------- result card ---------- */
+.gf-result{width:min(100%,760px);margin:clamp(12px,3vw,28px) auto;overflow:hidden;color:var(--ih-card-ink);
+ border-radius:32px;border:2px solid color-mix(in srgb,var(--ih-ring) 55%,transparent);
+ background:linear-gradient(180deg,color-mix(in srgb,var(--ih-bg2) 70%,#ffffff14),color-mix(in srgb,var(--ih-bg1) 88%,transparent));
+ box-shadow:0 24px 54px #00000047,inset 0 1px 0 #ffffff33;animation:gf-rise .55s cubic-bezier(.2,.8,.2,1) both}
+.gf-result[data-island="story"]{background:linear-gradient(180deg,#fffdf6,#f2fbf5)}
+.gf-result-art{position:relative;display:grid;place-items:center;min-height:120px;overflow:hidden;
+ background:radial-gradient(circle at 50% 30%,color-mix(in srgb,var(--ih-accent) 26%,transparent),transparent 60%)}
+.gf-result-art>img{display:block;width:100%;max-height:min(42vh,340px);object-fit:cover}
+.gf-result-body{display:flex;flex-direction:column;align-items:center;gap:10px;padding:clamp(18px,3vw,30px);text-align:center}
+.gf-result-kicker{display:inline-flex;align-items:center;gap:6px;margin:0;padding:6px 12px;border-radius:999px;
+ font-size:12px;font-weight:900;letter-spacing:.13em;text-transform:uppercase;color:var(--ih-ink);
+ background:color-mix(in srgb,var(--ih-accent) 22%,transparent);border:1px solid color-mix(in srgb,var(--ih-accent) 45%,transparent)}
+.gf-result-kicker::before{content:"✦";color:var(--ih-accent)}
+.gf-result[data-island="story"] .gf-result-kicker{color:#174a3d}
+.gf-result-title{margin:0;font-size:clamp(26px,3.6vw,38px);font-weight:950;line-height:1.08;letter-spacing:-.015em;outline:none}
+.gf-result-message{margin:0;max-width:560px;font-size:15px;font-weight:700;line-height:1.5;color:var(--ih-card-muted)}
+.gf-result-actions{display:flex;flex-wrap:wrap;justify-content:center;gap:10px;margin-top:8px;width:100%}
+.gf-result-actions>.gf-btn{flex:0 1 auto;min-width:min(100%,180px)}
+
+/* ---------- motion ---------- */
+@keyframes gf-drop{from{opacity:0;transform:translateY(-12px)}to{opacity:1;transform:none}}
+@keyframes gf-rise{from{opacity:0;transform:translateY(16px)}to{opacity:1;transform:none}}
+@keyframes gf-pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.08)}}
+@keyframes gf-star-in{0%{opacity:0;transform:scale(.3) rotate(-30deg)}70%{opacity:1;transform:scale(1.18) rotate(6deg)}100%{transform:none}}
+
+/* ---------- phones ---------- */
+@media(max-width:640px){
+ .gf-bar-inner{gap:8px;padding-top:7px;padding-bottom:7px}
+ .gf-back{padding:0;width:46px}
+ .gf-back-label{display:none}
+ .gf-crest{display:none}
+ .gf-identity small{font-size:12px;letter-spacing:.06em}
+ .gf-title{font-size:17px}
+ .gf-chip--extra,.gf-chip--stars{display:none}
+ .gf-chip{min-height:32px;padding:0 9px;font-size:12px}
+ .gf-tools~.gf-meta .gf-chip-label,.gf-meta:has(~.gf-tools) .gf-chip-label{display:none}
+ .gf-tools{gap:6px}
+ .gf-tool,.gf-tools .wg-game-help>summary{width:44px;min-width:44px;height:44px;min-height:44px;border-radius:14px;font-size:17px}
+ .gf-steps>li{flex:0 0 auto}
+ .gf-step{min-height:46px;padding:5px 12px 5px 5px;font-size:13px}
+ .gf-step-mark{width:32px;height:32px;font-size:13px}
+ .gf-step-long{display:none}.gf-step-short{display:inline}
+ .gf-btn{min-height:48px;padding:0 18px;font-size:15px}
+ .gf-result{border-radius:26px}
+ .gf-result-actions>.gf-btn{flex:1 1 100%}
+}
+@media(prefers-reduced-motion:reduce){
+ .gf-bar,.gf-result,.gf-star,.gf-step-mark{animation:none!important}
+ .gf-bar-progress span,.gf-btn,.gf-step,.gf-back,.gf-tool{transition:none!important}
+ .gf-steps{scroll-behavior:auto}
+}

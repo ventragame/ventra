@@ -50,7 +50,8 @@ test('P2 Story load errors offer a child-friendly retry that runs the load again
   assert.match(ui,/\},\[profileId,loadAttempt\]\);/,file+': the load effect re-runs on retry');
   const alert=ui.slice(ui.indexOf('{loadError&&'),ui.indexOf('</div>}',ui.indexOf('{loadError&&')));
   assert.match(alert,/role="alert"/,file);
-  assert.match(alert,/<button type="button" className="s[jds]-secondary" onClick=\{\(\)=>setLoadAttempt\(n=>n\+1\)\}>↻ Tekrar dene<\/button>/,file);
+  // The retry is the shared game-frame secondary button.
+  assert.match(alert,/<button type="button" className="gf-btn gf-btn--secondary" onClick=\{\(\)=>setLoadAttempt\(n=>n\+1\)\}>↻ Tekrar dene<\/button>/,file);
   for(const [,message] of ui.matchAll(/setLoadError\('([^']+)'\)/g)){
    assert.doesNotMatch(message,/error|exception|\d|\[|:/i,file+': no technical text for children: '+message);
   }
@@ -158,13 +159,13 @@ test('P2 Story accessibility: Turkish place names, honest lock text and focus th
  const focus={
   'StoryForestAdventure.tsx':[/useQuestionFocus<HTMLDivElement>\(screen==='playing'\?'play:'\+phase:screen\)/,
    /className="sj-scene" role="group" aria-label="[^"]+"\n\s*ref=\{sceneFocus\} tabIndex=\{-1\}/,
-   /<h1 ref=\{rewardHeading\} tabIndex=\{-1\}>/],
+   /title=\{active\.title\+' macerasını tamamladın!'\} titleRef=\{rewardHeading\}/],
   'StoryDetectiveAdventure.tsx':[/useQuestionFocus<HTMLHeadingElement>\(\n\s*view==='playing'\?phase\+':'\+stepIndex:view\)/,
-   /<h2 ref=\{stepHeading\} tabIndex=\{-1\}>/,/<h2 ref=\{rewardHeading\} tabIndex=\{-1\}>Gizem Çözüldü!<\/h2>/],
+   /<h2 ref=\{stepHeading\} tabIndex=\{-1\}>/,/title="Gizem Çözüldü!" titleRef=\{rewardHeading\}/],
   'StorySequenceAdventure.tsx':[/useQuestionFocus<HTMLDivElement>\(\n\s*page==='order'\?'order:'\+slot:page==='check'\?'check:'\+checkIndex:page\)/,
    /className="ss-cards" role="group" aria-label="[^"]+"\n\s*ref=\{stepFocus\} tabIndex=\{-1\}/,
    /className="ss-check-cards" role="group" aria-label="[^"]+"\n\s*ref=\{stepFocus\} tabIndex=\{-1\}/,
-   /<h2 ref=\{rewardHeading\} tabIndex=\{-1\}>/]
+   /title=\{currentStory\.title\} titleRef=\{rewardHeading\}/]
  };
  for(const [file,patterns] of Object.entries(focus)){
   const ui=story(file);

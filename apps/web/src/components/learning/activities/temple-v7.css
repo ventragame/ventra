@@ -20,88 +20,7 @@
 .tp7-screen[data-chamber=feast]{--tp7-seal:#ea9f6c;--tp7-violet:#b485e6}
 .tp7-screen[data-chamber=home]{--tp7-seal:#6bc8ac;--tp7-violet:#83b6fb}
 .tp7-screen[data-chamber=crown]{--tp7-seal:#f4c365;--tp7-violet:#d7a4f4}
-.tp7-screen .tp7-header{
- border:2px solid #f9dc9c;
- border-radius:21px;
- background:
-  radial-gradient(ellipse at 50% 0,#2a7c7d55,transparent 65%),
-  linear-gradient(130deg,#083a49f5,#0b4c58f4 48%,#0a2b43f7);
- box-shadow:0 5px 0 #08222d,0 16px 30px #031524a6,
-  inset 0 1px #fcf3ce7c,inset 0 0 0 3px #124c58;
-}
-.tp7-screen .tp6-header{border:2px solid #f4dc9d;
- background:linear-gradient(130deg,#0b4450fa,#116477f3 56%,#0a3548f8);
- box-shadow:0 5px 0 #082532,0 15px 28px #041925af,
- inset 0 1px #fff8e08a;
- border-radius:20px;}
-.tp7-screen .tp6-return{border:2px solid #ffe8ab;
- border-radius:13px;color:#fff9e8;
- background:linear-gradient(145deg,#155b66,#073844);
- box-shadow:0 4px 0 #082f3c,0 8px 13px #041b2896;
- font-size:12px;}
-.tp7-screen .tp6-return:hover:enabled{filter:brightness(1.13)}
-.tp7-screen .tp6-title>span{color:#addbd8;font-size:12px;letter-spacing:.15em}
-.tp7-screen .tp6-title h1{
- color:#fff3d5;
- font-size:clamp(25px,3.8vw,38px);
- letter-spacing:-.035em;
- text-shadow:0 2px #8b5b40,0 4px #704d3b,0 9px 18px #051e32;
-}
-.tp7-screen .tp6-score{
- color:#664629;
- border:2px solid #fff5cb;
- background:linear-gradient(145deg,#fff9e6,#ffde97);
- box-shadow:0 4px 0 #bd8849,0 9px 15px #041f2785;
- border-radius:15px;font-weight:1000;
-}
 /* Hall selector: miniature previews of the REAL panorama, without baked labels. */
-.tp7-screen .tp6-chambers{gap:10px;margin-bottom:12px;}
-.tp7-screen .tp6-chambers .tp-chamber{
- position:relative;isolation:isolate;overflow:hidden;min-height:95px;
- border:2px solid #d9e6d1;border-radius:17px;
- background:#103e4c;color:#fff9e7;
- box-shadow:0 5px 0 #0a2c3d,0 10px 17px #03192c8c,
- inset 0 1px #fff9e687;gap:3px;padding:7px 6px 6px;
-}
-.tp7-screen .tp6-chambers .tp-chamber:before{
- content:'';position:absolute;inset:0;z-index:1;
- background:linear-gradient(180deg,#072b3a18 3%,#072b3aca 52%,#042331f4 100%);
- pointer-events:none;
-}
-.tp7-screen .tp7-chamber-art{
- position:absolute;z-index:0;inset:0;
- width:100%;height:100%;object-fit:cover;object-position:center 46%;
- pointer-events:none;filter:saturate(1.15);
-}
-.tp7-screen .tp6-chambers .tp-chamber>span,
-.tp7-screen .tp6-chambers .tp-chamber>strong,
-.tp7-screen .tp6-chambers .tp-chamber>small{position:relative;z-index:2;color:#fff9e8;text-shadow:0 2px 4px #021f30}
-.tp7-screen .tp6-chambers .tp-chamber>span{font-size:24px;filter:drop-shadow(0 2px 3px #061a27)}
-.tp7-screen .tp6-chambers .tp-chamber>strong{font-size:clamp(12px,1.3vw,14px)}
-.tp7-screen .tp6-chambers .tp-chamber>small{color:#ffe8b2;font-size:12px}
-.tp7-screen .tp6-chambers .tp-chamber.tp-active-chamber{
- border-color:#fff3a1;background:#2f5950;
- box-shadow:0 6px 0 #c39346,0 11px 23px #061d2e99,0 0 0 2px #f8df9a80;
-}
-.tp7-screen .tp6-chambers .tp-chamber.tp-active-chamber:before{
- background:linear-gradient(180deg,#0f35411a,#103c51a3 50%,#07303fe0 100%);
-}
-.tp7-screen .tp6-chambers .tp-chamber:disabled{opacity:.67;filter:saturate(.69);}
-.tp7-screen .tp6-trials{gap:8px;margin-bottom:13px}
-.tp7-screen .tp6-trials .tp-trial{
- border:2px solid #88b8b3;border-radius:14px;
- background:linear-gradient(150deg,#125467,#0a3b4e);
- box-shadow:0 4px 0 #092b3c,0 9px 14px #041d3191;
- color:#e5f9e7;min-height:68px;
-}
-.tp7-screen .tp6-trials .tp-trial.tp-active-trial{
- border:2px solid #fff0aa;
- background:linear-gradient(150deg,#fff9d8,#f2d78f 70%,#cde6cc);
- color:#164e54;
- box-shadow:0 5px 0 #d4aa5c,0 12px 20px #072b3d85;
-}
-.tp7-screen .tp6-trials .tp-trial.tp-active-trial small{color:#1b4d53}
-.tp7-screen .tp6-trials .tp-trial:disabled{opacity:.65;filter:grayscale(.22)}
 /* Scene imagery is now 5 original locally bundled panoramic WebPs. */
 .tp7-screen .tp6-quest{
  border:3px solid #f5d68d;
@@ -172,21 +91,6 @@
 }
 .tp7-screen .tp6-panel-head .tp-eyebrow{color:#ab834c;font-size:12px}
 .tp7-screen .tp6-panel-head p{color:#647a6e}
-.tp7-screen .tp6-panel-head .tp-mute{
- border:2px solid #fff0c5;border-radius:15px;
- background:linear-gradient(140deg,#ffe9b4,#e9cf8e);
- box-shadow:0 4px 0 #c4a678,0 8px 12px #466f6670;
- color:#254d53;
-}
-.tp7-screen .tp6-meter{
- margin-top:12px;height:11px;
- border:2px solid #fffbef;
- background:#b4d3c7;box-shadow:inset 0 2px 3px #446c6252;
-}
-.tp7-screen .tp6-meter span{
- background:linear-gradient(90deg,#199d9a,#5dcaa4 58%,#ffd46a 88%,#ffe68c);
- box-shadow:0 0 8px #64e0aa60;
-}
 .tp7-screen .tp6-step-count{color:#517d74;font-weight:900}
 .tp7-screen .tp6-command{
  border:2px solid #e9c38a;border-radius:19px;
@@ -231,18 +135,9 @@
  box-shadow:0 4px 0 #cfa3a0;
 }
 .tp7-screen .tp6-play .tp-rune .tp-rune-text{color:#154d54;font-size:clamp(16px,2.05vw,21px)}
-.tp7-screen .tp6-workbench .tp-help{
- min-height:44px;border:2px solid #b6d9c4;border-radius:13px;
- background:linear-gradient(130deg,#f3fff1,#d7f0e0);
- color:#216a67;box-shadow:0 3px 0 #a3cbb2;
-}
 .tp7-screen .tp6-listen-panel{
  border:2px solid #f0ce95;border-radius:18px;
  background:linear-gradient(140deg,#fffae8,#edf6e7);
-}
-.tp7-screen .tp6-listen-panel .tp-listen{
- border:2px solid #fff6d0;background:linear-gradient(135deg,#ffe29f,#f1c67f);
- color:#7d5136;box-shadow:0 5px 0 #c99a60;
 }
 .tp7-screen .tp6-sentence .tp-sentence-line{
  border:2px dashed #bcbb8a;background:#e5f4e6;
@@ -253,22 +148,6 @@
  color:#18575b;
  box-shadow:0 4px 0 #afc6ac;
 }
-.tp7-screen .tp6-workbench .tp-primary{
- border:2px solid #fff5bf;
- border-radius:17px;
- background:linear-gradient(135deg,#ffea99,#c6e7ac);
- box-shadow:0 6px 0 #ad9b5a,0 13px 19px #50706449;
- color:#275852;
-}
-.tp7-screen .tp6-workbench .tp-secondary{
- border:2px solid #b9d5c5;background:#e5f3e8;
- color:#255c5f;box-shadow:0 3px 0 #a6c1b4;
-}
-.tp7-screen .tp6-finished{
- background:linear-gradient(130deg,#fffbe4,#e5f6dc);
- border:2px solid #e6c481;
- box-shadow:0 6px 0 #b5c99e,0 16px 27px #4a6e6055;
-}
 .tp7-screen .tp6-workbench .tp-notice{border-color:#b4d5b7;background:#e7f9e7}
 .tp7-screen .tp6-workbench button:focus-visible{
  outline:3px solid #e5a933!important;outline-offset:3px!important;
@@ -276,18 +155,6 @@
 @keyframes tp7-drift{0%{transform:scale(1)}100%{transform:scale(1.035)}}
 @media(max-width:740px){
  .tp7-screen{padding:8px 6px max(24px,env(safe-area-inset-bottom,0px));}
- .tp7-screen .tp6-header{border-radius:15px;margin-bottom:10px;padding:7px;}
- .tp7-screen .tp6-title h1{font-size:clamp(18px,5vw,25px)}
- .tp7-screen .tp6-chambers{gap:6px;margin-bottom:10px;}
- .tp7-screen .tp6-chambers .tp-chamber{
-  flex:0 0 112px;min-height:77px;gap:1px;
-  border-radius:13px;padding:5px 4px;
- }
- .tp7-screen .tp6-chambers .tp-chamber>span{font-size:21px}
- .tp7-screen .tp6-chambers .tp-chamber>strong{font-size:12px}
- .tp7-screen .tp6-chambers .tp-chamber>small{font-size:12px}
- .tp7-screen .tp6-trials{gap:5px;margin-bottom:10px}
- .tp7-screen .tp6-trials .tp-trial{border-radius:11px;min-height:51px;padding:5px 2px}
  .tp7-screen .tp6-quest{border-width:2px;border-radius:17px}
  .tp7-screen .tp6-scenery{height:clamp(145px,39vw,205px);border-bottom-width:3px}
  .tp7-screen .tp7-scene-img{object-position:center 50%}
@@ -307,7 +174,6 @@
  .tp7-screen .tp6-play .tp-grid{gap:6px}
 }
 @media(max-width:359px){
- .tp7-screen .tp6-chambers .tp-chamber{flex-basis:104px}
  .tp7-screen .tp6-scenery{height:142px}
  .tp7-screen .tp6-play .tp-rune{min-height:68px}
  .tp7-screen .tp6-featured{max-width:143px}
@@ -318,10 +184,8 @@
 @media(prefers-reduced-motion:reduce){
  .tp7-screen .tp7-scene-img{animation:none!important}
  .tp7-screen .tp7-scene-embers{animation:none!important}
- .tp7-screen .tp6-play .tp-rune,.tp7-screen .tp6-chambers .tp-chamber,.tp7-screen .tp6-trials .tp-trial{
+ .tp7-screen .tp6-play .tp-rune{
   transition:none!important;
  }
- .tp7-screen .tp6-play .tp-rune:hover:enabled,
- .tp7-screen .tp6-chambers .tp-chamber:hover:enabled,
- .tp7-screen .tp6-trials .tp-trial:hover:enabled{transform:none!important}
+ .tp7-screen .tp6-play .tp-rune:hover:enabled{transform:none!important}
 }

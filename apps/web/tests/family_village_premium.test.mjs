@@ -47,42 +47,39 @@ test('Feedback lives in the scene strip; a wrong answer names what was picked, n
 
 test('Navigation art is legible: district icons render, crops without stray letters, crisp step icons',()=>{
  const code=ui();
- assert.match(code,/fv5-district-icon-\$\{part\.id\}/);
- assert.match(code,/<span className=\{`fv3-step-icon fv5-step-icon fv5-step-icon-\$\{item\.stage\}`\} aria-hidden="true">\{item\.icon\}<\/span>/);
+ // Districts keep their painted village icons inside the shared step rail.
+ assert.match(code,/icon:<span className=\{`fv-district-art fv-district-art-\$\{part\.id\}`\}\/>/);
+ // Stages use the crisp stage emoji (the reference crops were half a house, half a speech bubble).
+ assert.match(code,/stages=\{VILLAGE_STAGES\.map\(item=>\(\{key:String\(item\.stage\),label:item\.title,icon:item\.icon,/);
  const style=css();
- // The V4 tile background (0,3,0) hid the V5 sprite (0,2,0): blank circles.
- assert.match(style,/\.fv5-screen\.fv7-screen \.fv3-district \.fv-district-icon\.fv5-district-icon\{\n width:46px;height:46px;border:0;border-radius:0;box-shadow:none;background-color:transparent;\n background-image:url\('\/assets\/family-village\/reference-v5\/village-ref-icons\.webp'\);/);
- assert.match(style,/\.fv5-district-icon-objects\{width:30px;\n background-size:1380% 100%;background-position:23\.96% 50%\}/,'"E Ö" letters next to the backpack');
- assert.match(style,/\.fv5-stepnav \.fv3-step-icon\{display:grid;place-items:center;width:auto;height:auto;\n background:none;/,'half a house and half a speech bubble');
- assert.match(style,/\.fv5-screen\.fv7-screen \.fv5-top:after\{background:linear-gradient\(90deg,#062859 0%,#082e62 31%,transparent 40%,/,'"…esi" behind the back button');
- assert.match(style,/\.fv5-screen\.fv7-screen \.fv5-top-actions \.wg-game-help summary\{width:auto;height:auto;/,'the label overflowed a 44px circle onto the stars');
+ assert.match(style,/\.fv7-screen \.gf-step \.fv-district-art\{display:block;width:28px;height:28px;\n background:url\('\/assets\/family-village\/reference-v5\/village-ref-icons\.webp'\) no-repeat;background-size:900% 100%\}/);
+ assert.match(style,/\.fv7-screen \.fv-district-art-objects\{width:18px;background-size:1380% 100%;background-position:23\.96% 50%\}/,'"E Ö" letters next to the backpack');
 });
 
 test('One help in the header with the sound button; reward is honest with a tap-to-hear recap',()=>{
  const code=ui();
  assert.equal((code.match(/<GardenHelp/g)||[]).length,1,'two help buttons on one screen');
- const top=code.slice(code.indexOf('<div className="fv5-top-actions">'),code.indexOf('</header>'));
+ const top=code.slice(code.indexOf('<GameTopBar island="garden"'),code.indexOf('<div className="fv-shell'));
  assert.match(top,/<GardenHelp label="Nasıl Oynanır\?">/);
- assert.match(top,/className="fv-audio-toggle fv3-audio-toggle fv5-audio-toggle"/);
+ assert.match(top,/className="gf-tool fv-audio-toggle"/);
  assert.doesNotMatch(code,/className="fv-footer|Görev ilerlemen kaydedildi/);
  assert.match(code,/\{stage===1\?`\$\{answers\.length\} kelimenin İngilizcesini dinledin`:/);
  assert.match(code,/`\$\{practised\.length\} doğru · \$\{mistakes\} yanlış deneme\$\{assisted\?` · \$\{assisted\} destekli`:''\}`/);
  assert.match(code,/onClick=\{\(\)=>speak\(stage===5\?villageWord\(id\)\.phrase:id\)\} disabled=\{!canHear\}/);
  assert.match(code,/<FamilyWordArt id=\{id\}\/><\/span><span lang="en">\{id\}<\/span><\/button>\)\}/);
- assert.match(css(),/@media\(max-height:940px\)\{\n \.fv7-screen \.fv3-celebrate\{display:flex;flex-direction:column;align-items:center\}\n \.fv7-screen \.fv3-celebrate \.fv7-recap\{order:10;width:100%\}/);
+ assert.match(css(),/@media\(max-height:940px\)\{\n \.fv7-screen \.fv3-celebrate \.fv7-recap\{order:10;width:100%\}/);
 });
 
-test('English marked English, location bar for screen readers only, phone fill and 12px floor',()=>{
+test('English marked English, place in the shared top bar, phone fill and 12px floor',()=>{
  const code=ui();
  for(const english of ['<strong lang="en">Explore and listen!</strong>','<strong lang="en">What\'s this in English?</strong>',
   '<strong lang="en">Listen and find it!</strong>','<strong className="fv-english" lang="en">{task.prompt}</strong>',
   '<strong lang="en">Say it in English!</strong>','<strong lang="en">{id}</strong><small>{villageWord(id).tr}</small>'])assert.ok(code.includes(english),english);
  const style=css();
- assert.match(style,/\.fv7-screen \.gg-quest-location\{position:absolute;width:1px;height:1px;/);
- assert.match(style,/\.fv5-screen\.fv7-screen \.fv5-hud-progress\{width:100%;/,'auto margins shrank the meter to a dot in the flex column');
+ // Place and progress are in the shared top bar; the old location bar and meter are gone.
+ assert.doesNotMatch(code,/gg-quest-location|fv5-hud-progress|fv7-scene-count/);
  assert.match(style,/min-height:calc\(100dvh - var\(--fv7-chrome,238px\) - env\(safe-area-inset-bottom,0px\)\)/);
  assert.match(style,/\.fv5-screen\.fv7-screen \.fv5-activity>\.fv5-answer-grid,\.fv5-screen\.fv7-screen \.fv5-activity>\.fv-grid-discover\{width:100%;margin-top:auto\}/);
- assert.match(style,/\.fv5-screen\.fv7-screen \.fv5-district-nav \.fv3-district small\{font-size:12px;/);
  const imports=[...code.matchAll(/^import '\.\/([^']+\.css)';/gm)].map(m=>m[1]);
  assert.deepEqual(imports.slice(-3),['garden-quest-navigation.css','family-village-premium.css','garden-child-legibility.css']);
 });

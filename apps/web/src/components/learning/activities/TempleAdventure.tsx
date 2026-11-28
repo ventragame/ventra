@@ -21,6 +21,7 @@ import './garden-child-legibility.css';
 import {GardenHelp} from '../GardenHelp';
 import {LearningMotion} from '@/components/learning/motion/LearningMotion';
 import {GameFinale} from '../GameFinale';
+import {GameTopBar,GameResult} from '../game/GameFrame';
 
 type Props={profileId:string;gradeLevel:number|null;englishLevel:EnglishPlacement;
  progress:TempleProgress;onBack:()=>void;
@@ -268,47 +269,34 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
  const pairQuestions=stage===5&&current?current.questions.slice(Math.floor(question/2)*2,Math.floor(question/2)*2+2):[];
  return <div className="tp-screen tp6-screen tp7-screen gg-quest-screen tp8-screen" data-chamber={chamber} data-stage={stage} role="dialog" aria-modal="true"
   aria-label="Keşif Tapınağı İngilizce final dünyası" ref={scrollRef}>
+  <GameTopBar island="garden" gameExit backDisabled={busy} onBack={()=>{stopAudio();onBack()}}
+   backLabel="Bölgeler" backAriaLabel="Kelime Bahçesi bölgelerine dön" crest="✨" accent="#ffd479"
+   eyebrow={'Kelime Bahçesi · '+roomInfo.title} title="Keşif Tapınağı" titleAs="p"
+   progress={current&&!finished?{current:stage===1?stepCount:Math.min(stepCount+1,Math.max(1,stepTotal)),total:Math.max(1,stepTotal),label:stage===1?'Keşif':'Görev'}:undefined}
+   stars={{earned:Object.values(progress.starsByLevel).reduce((sum,v)=>sum+v,0),total:75}}
+   tools={<>
+    <GardenHelp label="Keşif Tapınağı nasıl oynanır?">
+     <p><strong>{stageInfo.title}:</strong> {stageInfo.desc}</p>
+     <p>Tapınak, bahçedeki bütün dünyaların kelimelerini bir araya getirir. Her salonda beş görev var; Kristal Taht büyük finaldir.</p>
+    </GardenHelp>
+    <button type="button" className="gf-tool tp-mute" aria-label={muted?'Sesi aç':'Sesi kapat'} aria-pressed={muted}
+     onClick={()=>{const m=!muted;setMuted(m);soundService.toggleMute();if(m)stopAudio();}}>
+     {muted?'🔇':'🔊'}</button>
+   </>}/>
   <div className="tp-shell tp6-shell">
-   <header className="tp-header tp6-header">
-    <button type="button" data-game-exit className="tp-return tp6-return" disabled={busy} aria-label="Kelime Bahçesine dön"
-     onClick={()=>{stopAudio();onBack()}}><span className="tp6-back-icon" aria-hidden="true">‹</span>
-     <span className="tp6-back-text">Kelime Bahçesi</span></button>
-    <div className="tp-title tp6-title"><span>VENTRA • THE ENGLISH TEMPLE</span>
-     <h1><span className="tp8-title-spark" aria-hidden="true">✨</span> Keşif Tapınağı</h1><p className="sr-only">Explore · Listen · Build · Unlock</p>
-    </div>
-    <div className="tp8-hud-tools">
-     <div className="tp-score tp6-score">⭐ {Object.values(progress.starsByLevel).reduce((sum,v)=>sum+v,0)} / 75</div>
-     <GardenHelp label="Keşif Tapınağı nasıl oynanır?">
-      <p><strong>{stageInfo.title}:</strong> {stageInfo.desc}</p>
-      <p>Tapınak, bahçedeki bütün dünyaların kelimelerini bir araya getirir. Her salonda beş görev var; Kristal Taht büyük finaldir.</p>
-     </GardenHelp>
-     <button className="tp-mute" aria-label={muted?'Sesi aç':'Sesi kapat'}
-      onClick={()=>{const m=!muted;setMuted(m);soundService.toggleMute();if(m)stopAudio();}}>
-      {muted?'🔇':'🔊'}</button>
-    </div>
-   </header>
-   <GardenQuestNavigator areaTitle={roomInfo.title} stageTitle={stageInfo.title} stage={stage} totalStages={5}>
-   <nav className="tp-chambers tp6-chambers gg-quest-zone-nav" aria-label="Keşif Tapınağı bölümleri">
-    {TEMPLE_CHAMBERS.map((room,i)=><button type="button" key={room.id}
-       disabled={!canEnter(i)||busy} aria-pressed={chamber===room.id} aria-current={chamber===room.id?'true':undefined}
-       className={`tp-chamber gg-quest-zone ${chamber===room.id?'tp-active-chamber':''}`}
-       onClick={()=>enter(room.id,Math.min(5,progress.completedByChamber[room.id]+1) as TempleStage)}>
-       <img className="tp7-chamber-art" src={`/assets/temple/temple-${room.id}-v7.webp`} alt="" draggable={false} decoding="async" loading="lazy"/>
-       <span aria-hidden="true">{room.icon}</span>
-       <strong>{room.title}</strong>
-       <small>{canEnter(i)?`${progress.completedByChamber[room.id]}/5 görev`:'Kilitli 🔒'}</small>
-     </button>)}
-   </nav>
-   <nav className="tp-trials tp6-trials gg-quest-stage-nav" aria-label="Bölümün beş dil görevi">
-    {TEMPLE_STAGES.map(trial=><button type="button" key={trial.stage}
-     disabled={trial.stage>completedSteps+1||busy} aria-pressed={trial.stage===stage} aria-current={trial.stage===stage?'step':undefined}
-     className={`tp-trial gg-quest-step ${trial.stage===stage?'tp-active-trial':''}`}
-     onClick={()=>enter(chamber,trial.stage as TempleStage)}>
-     <span aria-hidden="true">{trial.icon}</span><small>{trial.stage}. {trial.title}</small><small className="tp6-trial-index">{trial.stage}/5</small>
-     {progress.starsByLevel[TEMPLE_OFFSETS[chamber]+trial.stage]>0&&<b>★</b>}
-    </button>)}
-   </nav>
-   </GardenQuestNavigator>
+   <div className="tp-title sr-only"><h1>Keşif Tapınağı</h1><p>Explore · Listen · Build · Unlock</p></div>
+   <GardenQuestNavigator zoneLabel="Keşif Tapınağı bölümleri" stageLabel="Bölümün beş dil görevi"
+    zones={TEMPLE_CHAMBERS.map((room,i)=>({key:room.id,label:room.title,className:'tp-chamber',
+     icon:<img src={`/assets/temple/temple-${room.id}-v7.webp`} alt="" loading="lazy" decoding="async" draggable={false}/>,
+     note:canEnter(i)?`${progress.completedByChamber[room.id]}/5 görev`:'Kilitli',
+     state:chamber===room.id?'current':!canEnter(i)?'locked':progress.completedByChamber[room.id]===5?'done':'upcoming',
+     disabled:busy,onSelect:()=>enter(room.id,Math.min(5,progress.completedByChamber[room.id]+1) as TempleStage),
+     ariaLabel:room.title+(canEnter(i)?` · ${progress.completedByChamber[room.id]}/5 görev`:' · kilitli')}))}
+    stages={TEMPLE_STAGES.map(trial=>({key:String(trial.stage),label:trial.title,icon:trial.icon,className:'tp-trial',
+     state:trial.stage===stage?'current':trial.stage>completedSteps+1?'locked':
+      progress.starsByLevel[TEMPLE_OFFSETS[chamber]+trial.stage]>0?'done':'upcoming',
+     disabled:busy,onSelect:()=>enter(chamber,trial.stage as TempleStage),
+     ariaLabel:`${trial.stage}. ${trial.title}${trial.stage>completedSteps+1?' (henüz açılmadı)':''}`}))}/>
    <section className="tp-quest tp6-quest">
     <div className="tp-scenery tp6-scenery">
      <TempleScenery chamber={chamber} cleared={completedSteps}/>
@@ -317,25 +305,30 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
        correct?'temple-correct-'+chamber+'-'+stage+'-'+question:null}/>
      <div className="tp-scene-label tp6-scene-label"><span>{roomInfo.icon}</span><div>
       <strong>{roomInfo.title}</strong><small lang="en">{roomInfo.subtitle}</small></div></div>
-     <span className="tp8-scene-count" aria-label={`Görev ilerlemesi ${stepCount} / ${stepTotal}`}>{stepCount}/{stepTotal}</span>
      {toast&&<p className="tp8-toast" data-good={toast.good} role="status" aria-live="polite">
       <span lang={toast.lang}>{toast.text}</span>{toast.detail&&<small>{toast.detail}</small>}
      </p>}
     </div>
     <div className="tp-workbench tp6-workbench">
      <h2 className="sr-only">{stageInfo.title}</h2>
-     <div className="tp-meter tp6-meter" role="progressbar" aria-label="Görev ilerlemesi" aria-valuemin={0}
-       aria-valuemax={Math.max(1,stepTotal)} aria-valuenow={stepCount}>
-       <span style={{width:`${100*stepCount/Math.max(1,stepTotal)}%`}}/></div>
      {loadError?<div className="tp-error" role="alert">Tapınak planı yüklenemedi.
-      <button onClick={()=>enter(chamber,stage)}>Tekrar Dene</button></div>:
+      <button type="button" className="gf-btn gf-btn--primary" onClick={()=>enter(chamber,stage)}>Tekrar Dene</button></div>:
      !current?<p className="tp-loading" role="status">Tapınağın kristalleri hazırlanıyor…</p>:
-     finished?<div className="tp-finished tp6-finished">
-      <div className="tp-trophy">{chamber==='crown'&&stage===5?'👑':'🏆'}</div>
-      <h2 ref={doneHeading} tabIndex={-1} lang="en">{chamber==='crown'&&stage===5?'The English Temple is yours!':'Crystal unlocked!'}</h2>
-      <strong className="tp6-stars" aria-label={`${stars} yıldız kazanıldı`}>{'⭐'.repeat(stars)}</strong>
-      <span className="tp6-performance">{stage===1?`${answers.length} kelimenin İngilizcesini dinledin`:
-       `${practised.length} doğru · ${mistakes} yanlış deneme${aided?` · ${aided} destekli`:''}`}</span>
+     finished?<GameResult island="garden" className="tp-finished tp6-finished" titleRef={doneHeading}
+      art={<img src={`/assets/temple/temple-${chamber}-v7.webp`} alt="" decoding="async" draggable={false}/>}
+      kicker={roomInfo.title+' · '+stageInfo.title}
+      title={chamber==='crown'&&stage===5?'The English Temple is yours!':'Crystal unlocked!'} titleLang="en"
+      stars={{earned:stars}}
+      message={<span className="tp6-performance">{stage===1?`${answers.length} kelimenin İngilizcesini dinledin`:
+       `${practised.length} doğru · ${mistakes} yanlış deneme${aided?` · ${aided} destekli`:''}`}</span>}
+      actions={<>
+       <button type="button" className="tp-primary gf-btn gf-btn--primary" onClick={()=>{
+        if(stage<5)enter(chamber,(stage+1) as TempleStage);
+        else if(chamber!=='crown')enter(TEMPLE_CHAMBERS[TEMPLE_CHAMBERS.findIndex(w=>w.id===chamber)+1].id,1);
+        else onBack();
+       }}>{stage<5?'Sonraki Görev →':chamber==='crown'?'Bahçeye Dön':'Yeni Salonu Aç →'}</button>
+       <button type="button" className="tp-secondary gf-btn gf-btn--secondary" onClick={()=>enter(chamber,stage)}>↻ Tekrar Oyna</button>
+      </>}>
       {recap.length>0&&<div className="tp8-recap" role="group" aria-label="Bu görevin İngilizce kelimeleri">
        <p className="tp8-recap-title">Bu görevin kelimeleri · {stage===4?'dokun, cümleyi dinle':'dokun ve dinle'}</p>
        <div className="tp8-recap-list">{recap.map(id=><button key={id} type="button" className="tp8-recap-word"
@@ -345,13 +338,7 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
       </div>}
       {chamber==='crown'&&stage===5&&<GameFinale title="Keşif Tapınağı tamamlandı!"
        detail="Beş salonun 25 görevinin hepsini bitirdin. İngilizce maceranın büyük finali senin!"/>}
-      <button className="tp-primary" onClick={()=>{
-       if(stage<5)enter(chamber,(stage+1) as TempleStage);
-       else if(chamber!=='crown')enter(TEMPLE_CHAMBERS[TEMPLE_CHAMBERS.findIndex(w=>w.id===chamber)+1].id,1);
-       else onBack();
-      }}>{stage<5?'Sonraki Görev →':chamber==='crown'?'Bahçeye Dön':'Yeni Salonu Aç →'}</button>
-      <button className="tp-secondary" onClick={()=>enter(chamber,stage)}>↻ Tekrar Oyna</button>
-     </div>:<div className="tp-play tp6-play">
+     </GameResult>:<div className="tp-play tp6-play">
       {stage===1?<><div className="tp-command tp6-command"><span>🗺️</span><div>
         <strong>Keşfet ve Dinle!</strong><small>Her rüne dokun, İngilizcesini dinle.</small>
        </div></div>
@@ -386,16 +373,16 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
          <span>{speaking?'Yankı çalıyor…':'Yankı Kristali'}</span>
         </div>}
        {stage===3&&<div className="tp-listen-panel tp6-listen-panel">
-        <button className="tp-listen" disabled={busy||correct} onClick={()=>speak(task.audio,true)}>
+        <button type="button" className="tp-listen gf-btn gf-btn--tool" disabled={busy||correct} onClick={()=>speak(task.audio,true)}>
          {speaking?'🔉 Listening…':'▶ Listen in English'}</button>
-        <button className="tp-help" disabled={busy||correct} onClick={()=>{setHint(true);setNotice({good:true,text:'Yazılı yardım açık',detail:'Bu cevap destekli sayılır.'});}}>
+        <button type="button" className="tp-help gf-btn gf-btn--tool" disabled={busy||correct} onClick={()=>{setHint(true);setNotice({good:true,text:'Yazılı yardım açık',detail:'Bu cevap destekli sayılır.'});}}>
          Yazılı yardım</button>
         {hint&&<p>English: <strong lang="en">{templeWord(task.target).en}</strong></p>}
         {!heard&&!hint&&<p className="tp8-listen-status">Önce dinle: kristaller sesi duyduktan sonra açılır.</p>}
        </div>}
        {stage!==3&&<div className="tp-controls tp6-controls">
-        <button className="tp-help" disabled={busy||correct} onClick={()=>{setHint(true);setNotice({good:true,text:'💡 İpucu açık',detail:'Bu cevap destekli sayılır.'});}}>💡 İpucu</button>
-        <button className="tp-help" disabled={busy||correct} onClick={()=>{setHint(true);speak(task.audio);}}>🔊 İngilizceyi Duy</button>
+        <button type="button" className="tp-help gf-btn gf-btn--tool" disabled={busy||correct} onClick={()=>{setHint(true);setNotice({good:true,text:'💡 İpucu açık',detail:'Bu cevap destekli sayılır.'});}}>💡 İpucu</button>
+        <button type="button" className="tp-help gf-btn gf-btn--tool" disabled={busy||correct} onClick={()=>{setHint(true);speak(task.audio);}}>🔊 İngilizceyi Duy</button>
         {hint&&<span className="tp8-hint-text">İpucu: {stage===4?task.sentenceAnswer?.join(' '):
          // Stage 5 already prints the English words; the help is their meaning.
          stage===5?'Anlamı: '+templeWord(task.target).tr:templeWord(task.target).en}</span>}
@@ -410,7 +397,7 @@ export function TempleAdventure({profileId,gradeLevel,englishLevel,progress,onBa
            onClick={()=>chooseToken(i)} disabled={chosenTokens.includes(i)||correct||busy}
            className="tp-word-token">{word}</button>)}
         </div>
-        {!correct&&chosenTokens.length>0&&<button className="tp-secondary"
+        {!correct&&chosenTokens.length>0&&<button type="button" className="tp-secondary gf-btn gf-btn--secondary"
           onClick={()=>{tokensRef.current=[];setChosenTokens([]);}}>↺ Baştan Dene</button>}
        </div>:
        <div className={`tp-grid ${stage===5?'tp-seal-grid':''}`} role="group" aria-label="İngilizce büyülü seçenekler">

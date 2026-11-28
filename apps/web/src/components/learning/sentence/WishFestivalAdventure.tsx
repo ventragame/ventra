@@ -19,6 +19,7 @@ import {WISH_CHAPTERS,WISH_GUESTS,WISH_FOODS,wishRoundsForGrade,planWishFestival
 import './wish-festival.css';
 import './sentence-clarity-v3.css';
 import {gradeLevelLabel} from '@/lib/learning/gradeLabel';
+import {GameTopBar,GameStepRail,GameResult} from '../game/GameFrame';
 
 type Screen='welcome'|'lesson'|'play'|'reward';
 type WishReason='sweet'|'juicy'|'crunchy';
@@ -114,7 +115,6 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
   (chapter!==2||politeChosen)&&
   (chapter!==4||(!needsSecond||chosenSecond===trial.second)&&
     (!needsReason||chosenReason===trial.reason)));
- const progress=plan?100*(index+(served?1:0))/plan.trials.length:0;
  const clearTimer=()=>{if(timer.current!==null){clearTimeout(timer.current);timer.current=null;}};
  const clearDraft=()=>{try{window.localStorage.removeItem(STORAGE_PREFIX+profileId);}catch{}};
  function resetRound(){
@@ -334,23 +334,18 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
   wrongFood={wrongPick?.startsWith('food:')?wrongPick.slice(5) as WishFood:null}
   onFood={foodChoice}/>;
  const estimates=plan?.estimatedMinutes??(gradeLevel!=null&&gradeLevel<=2?[8,12]:gradeLevel!=null&&gradeLevel>=5?[14,19]:[11,16]);
- const chapterTrack=WISH_CHAPTERS.map(item=><div key={item.id} className="wf-chapter"
-  data-current={screen!=='welcome'&&item.id===chapter}
-  data-past={screen!=='welcome'&&item.id<chapter}>
-  <span className="wf-chapter-ico">{item.icon}</span>
-  <span><strong>{item.id}. {item.title}</strong><small>{item.short}</small></span></div>);
+ const chapterRail=<GameStepRail island="sentence" className="wf-chapter-rail" showNotes
+  ariaLabel="Festival durakları"
+  steps={WISH_CHAPTERS.map(item=>({key:String(item.id),label:item.title,short:item.short,icon:item.icon,
+   state:screen==='welcome'?'upcoming':item.id<chapter?'done':item.id===chapter?'current':'upcoming'}))}/>;
  return <div className="wf-root" role="dialog" aria-modal="true" aria-label="İstekler Meydanı İngilizce festival oyunu"
   onPointerDown={e=>e.stopPropagation()} ref={root}>
+  <GameTopBar island="sentence" onBack={()=>{if(saving)return;locked.current=false;clearTimer();soundService.cancelSpeech();onExit();}}
+   backLabel="Görevler" backAriaLabel="Meydan görevlerine dön" crest="🍎"
+   eyebrow="Cümle Meydanı · Görev 5" title="İstekler Meydanı"
+   progress={screen!=='welcome'&&screen!=='reward'&&total>0?{current:index+1,total}:undefined}
+   chips={[gradeLevelLabel(gradeLevel)+' · '+englishLevel,'◷ '+clock(elapsed)+' · Süre sınırı yok']}/>
   <div className="wf-shell">
-   <header className="wf-header">
-    <div className="wf-title-line"><div className="wf-emblem" aria-hidden="true">❧</div>
-     <div><div className="wf-overline">VENTRA · CÜMLE MEYDANI · BÖLÜM 5</div>
-      <h1>İstekler Meydanı</h1><small>Konuş, anlaş, paylaş. İngilizceyle canlanan festival.</small></div></div>
-    <div className="wf-header-actions"><span className="wf-pill">🎓 {gradeLevelLabel(gradeLevel)} · {englishLevel}</span>
-     <span className="wf-pill">◷ {clock(elapsed)} · Süre sınırı yok</span>
-     <button type="button" className="wf-back" disabled={saving}
-      onClick={()=>{locked.current=false;clearTimer();soundService.cancelSpeech();onExit();}}>← Cümle Meydanı</button></div>
-   </header>
    {resumed&&screen!=='reward'&&<div role="status" className="wf-notice">
     ↻ Yarım kalan festivalin bu cihazda kayıtlı. Kaldığın İngilizce görevine geri döndün.</div>}
    {screen==='welcome'?<>
@@ -359,7 +354,7 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
      <p>Dört özel durak, dört farklı iletişim becerisi. Bir ürünü seçmek yetmez: neyi sevdiğini,
       ne istediğini ve nedenini anlaşılır İngilizceyle anlat.</p></div>
      <div className="wf-duration"><strong>{estimates[0]}–{estimates[1]}</strong><span>dakika · tahmini</span></div></section>
-    <div className="wf-chapter-track">{chapterTrack}</div>
+    {chapterRail}
     <div className="wf-layout">{visual}<aside className="wf-panel">
      <div className="wf-overline">SENİN FESTİVAL KARNEN</div><h2>Gerçek konuşmalar, gerçek tepkiler.</h2>
      <p>Festival misafirleri farklı yiyecekler seviyor. Tezgâhlara dokun, kibarca rica et,
@@ -374,30 +369,28 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
      <p className="wf-fine">Süre baskısı yok; ses ve ipuçları isteğe bağlı. Yarım kalan görevler aynı cihazda saklanır.
       Destekli cevaplar bağımsız başarılardan ayrı kaydedilir.</p>
      {feedback&&<p role="alert" className="wf-feedback" data-error={feedbackError}>{feedback}</p>}
-     <button className="wf-primary" type="button" onClick={begin}>✦ Dilekler Festivaline Gir</button>
+     <button className="wf-primary gf-btn gf-btn--primary" type="button" onClick={begin}>✦ Dilekler Festivaline Gir</button>
     </aside></div>
-   </>:screen==='reward'?<div className="wf-reward" role="status">
-    <div className="wf-overline">DİLEKLER FESTİVALİ TAMAMLANDI · PROFİL KAYDI</div>
-    <div className="wf-reward-stars" aria-label={stars+' yıldız'}>{'★'.repeat(stars)}</div>
+   </>:screen==='reward'?<GameResult island="sentence" className="wf-result"
+    art={<img src="/assets/sentence-plaza/v5/mission-5.webp" alt="" decoding="async"/>}
+    kicker="Dilekler festivali tamamlandı · Profil kaydı" title="Festival senin İngilizcenle canlandı!"
+    stars={{earned:stars}}
+    message="Beğenilerini, isteklerini, kibar ricayı ve karşılaştırmaları kullanarak gerçek iletişim görevlerini tamamladın. Kayıtların kendi profiline eklendi."
+    actions={<>
+     {onNext&&<button className="gf-btn gf-btn--primary" type="button" onClick={onNext}>✦ Sıradaki Görev{nextLabel?': '+nextLabel:''} →</button>}
+     <button className={'gf-btn '+(onNext?'gf-btn--secondary':'gf-btn--primary')} type="button" onClick={begin}>↻ Farklı Festival Macerası</button>
+     <button className="gf-btn gf-btn--secondary" type="button" onClick={onExit}>Cümle Meydanı’na Dön</button>
+    </>}>
     <SentenceQuestReward independent={independent}/>
-     <h2>Festival senin İngilizcenle canlandı!</h2>
-    <p>Beğenilerini, isteklerini, kibar ricayı ve karşılaştırmaları kullanarak gerçek
-     iletişim görevlerini tamamladın. Kayıtların kendi profiline eklendi.</p>
     <div className="wf-summary">
      <div><strong>{total}</strong>cümle</div><div><strong>{independent}</strong>bağımsız</div>
      <div><strong>{bestStreak}</strong>en iyi seri</div><div><strong>{clock(elapsed)}</strong>süre</div></div>
-    {onNext&&<button className="wf-primary" type="button" onClick={onNext}>✦ Sıradaki Görev{nextLabel?': '+nextLabel:''} →</button>}
-    <button className={onNext?'wf-back':'wf-primary'} style={onNext?{marginTop:14}:undefined} type="button" onClick={begin}>↻ Farklı Festival Macerası</button>
-    <button className="wf-back" style={{marginTop:14}} type="button" onClick={onExit}>Cümle Meydanı’na Dön</button>
-   </div>:<>
+   </GameResult>:<>
     <section className="wf-status"><div>
      <div className="wf-overline">DURAK {chapter}/4 · {screen==='play'?round+'/'+rounds+' görev':'ÖĞRENME KILAVUZU'}</div>
      <h2>{meta.icon} {meta.title}</h2><p>{meta.objective}</p>
-    </div><div className="wf-duration"><strong>{index+1}/{total}</strong><span>görev</span></div></section>
-    <div className="wf-chapter-track">{chapterTrack}</div>
-    <div className="wf-progress-bar" role="progressbar" aria-label="Festival ilerlemesi"
-     aria-valuemin={0} aria-valuemax={100} aria-valuenow={Math.round(progress)}>
-     <span style={{width:progress+'%'}}/></div>
+    </div></section>
+    {chapterRail}
     <div className="wf-layout">{visual}<aside className="wf-panel">
      {screen==='lesson'?<>
       <div className="wf-overline">ÖNCE ÖĞREN · SONRA GERÇEK FESTİVALDE UYGULA</div>
@@ -406,11 +399,11 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
       <div className="wf-teacher"><strong>BU DURAKTA ÖĞRENİYORUZ</strong><span>{meta.rule}</span></div>
       <div className="wf-teacher"><strong>ÖRNEK CÜMLE</strong><span>{meta.sample}</span>
        <small>{meta.translation}</small></div>
-      <div className="wf-toolbar"><button type="button" className="wf-minor" onClick={()=>speech(meta.sample)}>
+      <div className="wf-toolbar"><button type="button" className="wf-minor gf-btn gf-btn--tool" onClick={()=>speech(meta.sample)}>
        🔊 İngilizce örneği dinle</button></div>
       <p className="wf-fine">Bu örnek, bir sonraki görevin cevabı değil.
        Öğrendiğin yapıyı yeni yiyecek ve karakterlerle kendi başına kullanacaksın.</p>
-      <button type="button" className="wf-primary" onClick={()=>{resetRound();setScreen('play');soundService.playSfx('whoosh',.48);}}>
+      <button type="button" className="wf-primary gf-btn gf-btn--primary" onClick={()=>{resetRound();setScreen('play');soundService.playSfx('whoosh',.48);}}>
        ✨ {meta.title} Başlasın</button>
      </>:trial&&question?<>
       <SentenceQuestProgress index={index+1} total={total} label={WISH_GUESTS.find(g=>g.id===trial.guest)?.name??meta.title}/>
@@ -453,17 +446,17 @@ export function WishFestivalAdventure({profileId,gradeLevel,englishLevel,history
       {!ready&&<p className="wf-guide">Önce festivalin içindeki yiyecek ve anlam seçimlerini tamamla.
        İngilizce cümle atölyesi ardından açılır.</p>}
       <div className="wf-toolbar">
-       <button className="wf-minor" type="button" disabled={!picked.length||served||saving}
+       <button className="wf-minor gf-btn gf-btn--tool" type="button" disabled={!picked.length||served||saving}
         onClick={()=>{setPicked(old=>old.slice(0,-1));setWrongSlot(-1);}}>↶ Geri Al</button>
-       <button className="wf-minor" type="button" disabled={served||saving}
+       <button className="wf-minor gf-btn gf-btn--tool" type="button" disabled={served||saving}
         onClick={()=>speech(question.sentence,true)}>🔊 Dinle</button>
-       <button className="wf-minor" type="button" disabled={served||saving} onClick={hint}>💡 İpucu Al</button>
+       <button className="wf-minor gf-btn gf-btn--tool" type="button" disabled={served||saving} onClick={hint}>💡 İpucu Al</button>
       </div>
       {feedback&&<div className="wf-feedback" data-error={feedbackError} role="status" aria-live="polite">{feedback}</div>}
       {saveError&&<div role="alert" className="wf-feedback" data-error="true">{saveError}
-       <button type="button" className="wf-primary" disabled={saving}
+       <button type="button" className="wf-primary gf-btn gf-btn--primary" disabled={saving}
         onClick={()=>{if(retryRows.current)void finish(retryRows.current);}}>Kaydı Güvenle Tekrar Dene</button></div>}
-      {!served&&<button type="button" className="wf-primary" disabled={!ready||picked.length!==question.tokens.length||saving||Boolean(saveError)}
+      {!served&&<button type="button" className="wf-primary gf-btn gf-btn--primary" disabled={!ready||picked.length!==question.tokens.length||saving||Boolean(saveError)}
        onClick={submit}>✦ Canlandır</button>}
       {served&&<SentenceQuestSuccess detail="Dileğin gerçekleşti; sıradaki görev otomatik başlıyor."/>}
       <details className="wf-compact-help"><summary>📖 Öğrenme yardımı</summary>

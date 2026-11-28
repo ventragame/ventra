@@ -20,6 +20,7 @@ import {
 import './academy-adventure.css';
 import './academy-skill-system.css';
 import {GameFinale} from '../GameFinale';
+import {GameTopBar,GameResult} from '../game/GameFrame';
 import {IslandHome} from '../island/IslandHome';
 import {gradeLevelLabel} from '@/lib/learning/gradeLabel';
 
@@ -372,12 +373,12 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
  return (
   <div className="academy-root" role="dialog" aria-modal="true" aria-label="Keşif Akademisi">
    <div className="academy-stars" aria-hidden="true"/>
-   <header className="academy-header">
-    <button type="button" className="academy-back" onClick={()=>{cancelAdvance();stop();setStage('map');setBusy(false);}}>
-     ← Bölümlere Dön</button>
-    <div className="academy-brand"><span aria-hidden="true">✦</span> KEŞİF AKADEMİSİ <small>Kayıp Yıldız Atlası</small></div>
-    <span className="academy-level">{englishLevel} · {gradeLevel?gradeLevel+'. sınıf':'Keşif'}</span>
-   </header>
+   <GameTopBar island="academy" onBack={()=>{cancelAdvance();stop();setStage('map');setBusy(false);}}
+    backLabel="Duraklar" backAriaLabel="Duraklara dön" crest={currentZone.icon}
+    eyebrow={reviewSkill?'Keşif Akademisi · Hedefli tekrar':'Keşif Akademisi · Durak '+zone}
+    title={reviewSkill?'Üç küçük alıştırma':currentZone.name}
+    progress={stage==='quest'?{current:step+1,total:plan.tasks.length}:undefined}
+    chips={[englishLevel+' · '+(gradeLevel?gradeLevel+'. sınıf':'Keşif')]}/>
    {stage==='quest'&&<main className="academy-quest" ref={questScroller}>
     <AcademySkillJourney tasks={plan.tasks} activeStep={step} review={reviewSkill!==null}/>
     <section className="academy-scene" style={{'--zone-tint':currentZone.tint,'--zone-light':currentZone.light} as React.CSSProperties}>
@@ -402,7 +403,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
     </section>
     <section className="academy-task" ref={taskTarget}>
      <div className="academy-task-head"><AcademyTaskIdentity kind={task.kind} current={step+1} total={plan.tasks.length}/>
-      <button type="button" className="academy-hint" disabled={inputLocked||hintLevel===2} onClick={showHint}
+      <button type="button" className="academy-hint gf-btn gf-btn--tool" disabled={inputLocked||hintLevel===2} onClick={showHint}
        aria-label={hintLevel===0?'İpucu göster':hintLevel===1?'Bir ipucu daha göster':'Tüm ipuçları gösterildi'}><Lightbulb size={18} aria-hidden="true"/>
        <span>{hintLevel===0?'İpucu':hintLevel===1?'Bir İpucu Daha':'İpucu Kullanıldı'}</span></button>
      </div>
@@ -411,7 +412,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
      {task.line&&<p className={'academy-line '+(task.kind==='hear'?'academy-line-hidden':'')}>
       {task.kind==='hear'&&!hintOnStep?'Önce sesi dinle.':'“'+task.line+'”'}</p>}
      {(task.kind==='hear'||task.kind==='talk')&&
-      <button className="academy-audio" type="button" onClick={readLine} disabled={inputLocked}> <span aria-hidden="true">🔊</span> {task.kind==='hear'?'Dinle / Tekrar Dinle':'Soruyu Dinle'}</button>}
+      <button className="academy-audio gf-btn gf-btn--tool" type="button" onClick={readLine} disabled={inputLocked}> <span aria-hidden="true">🔊</span> {task.kind==='hear'?'Dinle / Tekrar Dinle':'Soruyu Dinle'}</button>}
      {task.kind==='hear'&&!audioAttempted&&<p className="academy-listen-note">🔊 İlk olarak İngilizce sesi dinle.</p>}
      {kinds.slice(0,3).includes(task.kind as 'hear'|'read'|'talk')&&<div className="academy-choices">
       {academyRoundOptions(task,levels[zone]?.completedCount??0).map(o=>{
@@ -441,7 +442,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
       <small>{hasSpeech?'Mikrofon isteğe bağlıdır; dokunarak da ilerleyebilirsin.':'Cihaz içi konuşma tanıma kullanılamıyor. Dokunarak devam et.'}</small>
      </div>}
      {(task.kind==='build'||task.kind==='write')&&
-      <button type="button" className="academy-audio academy-audio-support" onClick={readLine} disabled={inputLocked}>🔊 Sesli Örnek Dinle (yardımlı)</button>}
+      <button type="button" className="academy-audio academy-audio-support gf-btn gf-btn--tool" onClick={readLine} disabled={inputLocked}>🔊 Sesli Örnek Dinle (yardımlı)</button>}
      {task.kind==='build'&&<div className="academy-build">
       <div className="academy-built" aria-label="Kurulan İngilizce cümle">
        {picked.length?picked.map(i=><button key={i} type="button" onClick={()=>setPicked(old=>old.filter(x=>x!==i))} disabled={inputLocked}>
@@ -451,14 +452,14 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
        {wordTiles.filter(w=>!picked.includes(w.key)).map(w=><button type="button" key={w.key}
         disabled={inputLocked} onClick={()=>setPicked(old=>[...old,w.key])}>{w.word}</button>)}
       </div>
-      <button type="button" className="academy-submit" disabled={inputLocked||picked.length===0} onClick={()=>submit()}>Cümleyi Kontrol Et</button>
+      <button type="button" className="academy-submit gf-btn gf-btn--primary" disabled={inputLocked||picked.length===0} onClick={()=>submit()}>Cümleyi Kontrol Et</button>
      </div>}
      {task.kind==='write'&&<div className="academy-writing">
       <label htmlFor="academy-write">İngilizce cevabını yaz</label>
       <input id="academy-write" value={typed} maxLength={150} autoComplete="off" autoCapitalize="none" autoCorrect="off" spellCheck={false} inputMode="text" enterKeyHint="done"
        onChange={e=>setTyped(e.target.value)} placeholder={englishLevel==='Pre-A1'?'English word…':'English sentence…'}
        disabled={inputLocked} onKeyDown={e=>{if(e.key==='Enter'&&typed.trim()){e.preventDefault();submit();}}}/>
-      <button type="button" className="academy-submit" disabled={inputLocked||!typed.trim()} onClick={()=>submit()}>Mesajı Kontrol Et</button>
+      <button type="button" className="academy-submit gf-btn gf-btn--primary" disabled={inputLocked||!typed.trim()} onClick={()=>submit()}>Mesajı Kontrol Et</button>
       {englishLevel==='Pre-A1'&&<div className="academy-touch-write">
        <p>Klavye zor mu? Kelime kartlarıyla da tamamlayabilirsin. Bu, bağımsız yazma olarak sayılmaz.</p>
        <div className="academy-built">{picked.length?picked.map(i=><button type="button" key={i}
@@ -466,7 +467,7 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
          {wordTiles.find(w=>w.key===i)?.word}</button>):<span>Kelimeleri sıraya koy…</span>}</div>
        <div className="academy-tiles">{wordTiles.filter(w=>!picked.includes(w.key)).map(w=>
         <button type="button" key={w.key} disabled={inputLocked} onClick={()=>setPicked(old=>[...old,w.key])}>{w.word}</button>)}</div>
-       <button type="button" className="academy-submit" disabled={inputLocked||picked.length===0} onClick={()=>submit(true)}>
+       <button type="button" className="academy-submit gf-btn gf-btn--primary" disabled={inputLocked||picked.length===0} onClick={()=>submit(true)}>
         Kartlarla Tamamla
        </button>
       </div>}
@@ -479,39 +480,38 @@ export function AcademyAdventure({profileId,englishLevel,gradeLevel,onBack,onSav
     </section>
    </main>}
    {stage==='pending'&&<main className="academy-finale">
-    <div className="academy-final-icon" aria-hidden="true">💾</div>
-    <span className="academy-eyebrow">ATLAS KAYIT KONTROLÜ</span>
-    <h1>Maceran tamamlandı!</h1>
-    <p>Önceki oturumunda bütün görevleri bitirdin. Yıldızlarını kaydetmek için devam et.</p>
-    {saveError&&<p className="academy-alert" role="alert">{saveError}</p>}
-    <button className="academy-submit" type="button" disabled={busy}
+    <GameResult island="academy" kicker="Atlas kayıt kontrolü" title="Maceran tamamlandı!"
+     art={<img src={currentZone.art} alt="" decoding="async"/>}
+     message="Önceki oturumunda bütün görevleri bitirdin. Yıldızlarını kaydetmek için devam et."
+     actions={<button className="academy-submit gf-btn gf-btn--primary" type="button" disabled={busy}
       onClick={()=>{setBusy(true);void save(answers,mistakes,hints);}}>
       {busy?'Kaydediliyor…':'Kaydı Tamamla'}
-    </button>
+     </button>}>
+     {saveError&&<p className="academy-alert" role="alert">{saveError}</p>}
+    </GameResult>
    </main>}
    {stage==='final'&&<main className="academy-finale">
-    <div className="academy-final-icon" aria-hidden="true">🌠</div>
-    <span className="academy-eyebrow">{reviewSkill?'ÖĞRENME TEKRARI TAMAMLANDI':
-     zone===ACADEMY_ZONES.length?'YILDIZ ATLASI TAMAMLANDI':'ATLASIN BİR SAYFASI DAHA AYDINLANDI'}</span>
-    <h1>{reviewSkill?'Üç küçük görevi tamamladın!':currentZone.ending}</h1>
-    {!reviewSkill&&<div className="academy-final-stars" aria-label={earnedStars+' yıldız'}>
-     {[1,2,3].map(n=><span key={n} className={n<=earnedStars?'earned':undefined}>★</span>)}</div>}
-    <p>{plan.result}</p>
-    <div className="academy-review">
-     {review.filter(r=>r.attempts>0).map(r=><div key={r.skill}><strong>{r.skill==='listening'?'Dinleme':r.skill==='reading'?'Okuma':
-      r.skill==='dialogue'?'İletişim':r.skill==='sentence'?'Cümle':'Yazma'}</strong>
-      <span>{r.independent?'Bağımsız cevap':'Destekli çalışma'}</span></div>)}
-    </div>
-    <p className="academy-note">Bu görevler öğrenme alıştırmasıdır; resmî İngilizce seviye sınavı değildir.</p>
-    {!reviewSkill&&zone===ACADEMY_ZONES.length&&<GameFinale tone="dark" title="Yıldız Atlası tamamlandı!"
-     detail="Keşif Akademisi’nin altı durağının hepsini aydınlattın."/>}
-    <div className="academy-final-actions">
-     {!reviewSkill&&zone<ACADEMY_ZONES.length&&zone+1<=available&&<button type="button" className="academy-submit"
-      onClick={()=>open(zone+1)}>Sıradaki Durak: {ACADEMY_ZONES[zone].name} →</button>}
-     <button type="button" className={!reviewSkill&&zone<ACADEMY_ZONES.length&&zone+1<=available?'academy-again':'academy-submit'}
-      onClick={()=>{setStage('map');setMessage('');}}>Bölümleri Gör</button>
-     <button type="button" className="academy-again" onClick={()=>reviewSkill?startSkillReview(reviewSkill):open(zone)}>{reviewSkill?'Tekrar Çalış ↻':'Yeniden Keşfet ↻'}</button>
-    </div>
+    <GameResult island="academy" art={<img src={currentZone.art} alt="" decoding="async"/>}
+     kicker={reviewSkill?'ÖĞRENME TEKRARI TAMAMLANDI':
+      zone===ACADEMY_ZONES.length?'YILDIZ ATLASI TAMAMLANDI':'ATLASIN BİR SAYFASI DAHA AYDINLANDI'}
+     title={reviewSkill?'Üç küçük görevi tamamladın!':currentZone.ending}
+     stars={reviewSkill?undefined:{earned:earnedStars}} message={plan.result}
+     actions={<>
+      {!reviewSkill&&zone<ACADEMY_ZONES.length&&zone+1<=available&&<button type="button" className="academy-submit gf-btn gf-btn--primary"
+       onClick={()=>open(zone+1)}>Sıradaki Durak: {ACADEMY_ZONES[zone].name} →</button>}
+      <button type="button" className={'gf-btn '+(!reviewSkill&&zone<ACADEMY_ZONES.length&&zone+1<=available?'gf-btn--secondary':'gf-btn--primary')}
+       onClick={()=>{setStage('map');setMessage('');}}>Bölümleri Gör</button>
+      <button type="button" className="academy-again gf-btn gf-btn--secondary" onClick={()=>reviewSkill?startSkillReview(reviewSkill):open(zone)}>{reviewSkill?'Tekrar Çalış ↻':'Yeniden Keşfet ↻'}</button>
+     </>}>
+     <div className="academy-review">
+      {review.filter(r=>r.attempts>0).map(r=><div key={r.skill}><strong>{r.skill==='listening'?'Dinleme':r.skill==='reading'?'Okuma':
+       r.skill==='dialogue'?'İletişim':r.skill==='sentence'?'Cümle':'Yazma'}</strong>
+       <span>{r.independent?'Bağımsız cevap':'Destekli çalışma'}</span></div>)}
+     </div>
+     <p className="academy-note">Bu görevler öğrenme alıştırmasıdır; resmî İngilizce seviye sınavı değildir.</p>
+     {!reviewSkill&&zone===ACADEMY_ZONES.length&&<GameFinale tone="dark" title="Yıldız Atlası tamamlandı!"
+      detail="Keşif Akademisi’nin altı durağının hepsini aydınlattın."/>}
+    </GameResult>
    </main>}
   </div>
  );

@@ -6,6 +6,7 @@ import {
  islandChapterLabel,islandChapterState,islandHeroPlan,turkishPlural,type IslandHomeId
 } from '@/lib/learning/islandHomeModel';
 import {useIslandGreeting} from './IslandGreeting';
+import './island-palette.css';
 import './island-home.css';
 
 export interface IslandHomeChapter{

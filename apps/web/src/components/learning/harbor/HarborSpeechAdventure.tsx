@@ -22,6 +22,7 @@ import './harbor-premium-scene.css';
 import './harbor-captain-avatar.css';
 import {GameFinale} from '../GameFinale';
 import {IslandHome} from '../island/IslandHome';
+import {GameTopBar,GameStepRail,GameResult} from '../game/GameFrame';
 import {gradeLevelLabel} from '@/lib/learning/gradeLabel';
 import {HARBOR_CAST_ART} from './HarborCaptainAvatar';
 
@@ -500,24 +501,20 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
   <p className="ih-note">🎤 Mikrofon isteğe bağlı; her görevi dokunarak da tamamlayabilirsin. Sesin cihaz veya tarayıcı tarafından işlenebilir.</p>
   <div className="ih-note"><button type="button" className="ih-secondary" onClick={openAdultSettings} disabled={busy}>⚙ Yetişkinler için ses ayarları</button></div>
  </IslandHome>;
+ const quests=getHarborEpisodeQuests(episode);
+ const questIndex=Math.min(quests.length-1,Math.floor(question/3));
  return <div className="harbor-root" role="dialog" aria-modal="true" aria-label="Diyalog Limanı">
-  <header className="harbor-header">
-   <button type="button" className="harbor-back" onClick={backToMap} aria-label="Bölümlere dön">←</button>
-   <div><small>VENTRA · KONUŞARAK İNGİLİZCE</small><h1>Diyalog Limanı</h1></div>
-   <div className="harbor-progress">⭐ {completed}/{HARBOR_EPISODES.length}</div>
-  </header>
+  <GameTopBar island="harbor" onBack={backToMap} backLabel="Bölümler" backAriaLabel="Bölümlere dön"
+   crest={mission.icon} eyebrow={'Diyalog Limanı · Bölüm '+episode} title={mission.title}
+   progress={phase==='playing'?{current:question+1,total:script.length,label:'Adım'}:undefined}
+   stars={{earned:completed,total:HARBOR_EPISODES.length}} chips={[englishLevel]}/>
   <main className="harbor-main">
    <div className="harbor-cover" aria-hidden="true"/>
    {phase==='playing'?<>
-    <div className="harbor-level-title"><span>{mission.icon} {mission.title}</span>
-      <span>{englishLevel} · {question+1}/{script.length}</span>
-     </div>
-    <div className="hp-quest-top">
-     <span>{quest.title} — {Math.floor(question/3)+1}/3 görev</span>
-     <div className="hp-progress-track" role="progressbar" aria-label="Bölüm ilerlemesi" aria-valuemin={0} aria-valuemax={script.length} aria-valuenow={question}>
-      <i style={{width:(question/script.length*100)+'%'}}/>
-     </div>
-    </div>
+    <GameStepRail island="harbor" className="hp-quest-rail" ariaLabel={mission.title+' görevleri'} showNotes
+     steps={quests.map((item,index)=>({key:item.id,label:item.title,
+      state:index<questIndex?'done':index===questIndex?'current':'upcoming',
+      note:index===questIndex?(question%3+1)+'/3 görev':index<questIndex?'Tamam':'Sırada'}))}/>
     <HarborSceneStage key={quest.id} quest={quest} questStep={questStep}
      selected={sceneSelected} resolved={sceneResolved} wrongObjects={wrongSceneObjects}
      onSelect={selectSceneObject}
@@ -570,9 +567,9 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
       onClick={openAdultSettings} disabled={busy||locked.current}>Bir yetişkinden yardım iste</button>}
      <p role="status" aria-live="polite" className="harbor-feedback">{feedback}</p>
      {canAnswer&&<div className="harbor-coach-actions">
-      <button type="button" className="harbor-model-answer"
+      <button type="button" className="harbor-model-answer gf-btn gf-btn--tool"
        disabled={busy||listening||locked.current} onClick={hearReply}>🔊 Örnek cevabı dinle</button>
-      <button type="button" className="harbor-hint"
+      <button type="button" className="harbor-hint gf-btn gf-btn--tool"
        disabled={busy||listening||locked.current} onClick={help}>
        💡 {hintStage>0?'İpucu '+hintStage+'/3':'Yardım Et'}
       </button>
@@ -581,16 +578,17 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
       onClick={()=>{if(!busy)void save(mistakes,hints,voiceRecognized);}}>{busy?'Kaydediliyor…':'Tekrar Kaydet'}</button></p>}
     </div>
    </>:<>
-    <div className="harbor-finale relative isolate overflow-hidden">
-     <LearningMotion variant="victory" trigger={'harbor-finished-'+episode}/>
-     <div className="harbor-finale-captain" aria-hidden="true">
-      <HarborCaptainAvatar mood="celebrate" cue={'saved-'+episode}/>
-     </div>
-     <h2>{mission.title} Tamamlandı!</h2>
-     <div className="harbor-finale-stars" role="img" aria-label={(summary?.stars??1)+' yıldız'}>
-      {'⭐'.repeat(summary?.stars??1)}<span aria-hidden="true">{'☆'.repeat(3-(summary?.stars??1))}</span>
-     </div>
-     <p>{feedback}</p>
+    <GameResult island="harbor" className="harbor-result" kicker="Bölüm tamamlandı"
+     title={mission.title+' Tamamlandı!'} stars={{earned:summary?.stars??1}} message={feedback}
+     art={<><LearningMotion variant="victory" trigger={'harbor-finished-'+episode}/>
+      <div className="harbor-finale-captain" aria-hidden="true">
+       <HarborCaptainAvatar mood="celebrate" cue={'saved-'+episode}/>
+      </div></>}
+     actions={<>
+      {episode<HARBOR_EPISODES.length&&<button type="button" className="gf-btn gf-btn--primary" onClick={()=>start(episode+1)}>Sonraki Bölüm →</button>}
+      <button type="button" className="gf-btn gf-btn--secondary" onClick={()=>start(episode)}>↻ Bu Bölümü Tekrar Oyna</button>
+      <button type="button" className="gf-btn gf-btn--secondary" onClick={backToMap}>Bölüm Haritası</button>
+     </>}>
      <div className="harbor-finale-stats" aria-label="Bölüm sonuçları">
       <span><strong>{script.length}/{script.length}</strong> öğrenme adımı</span>
       <span><strong>{summary?.spoken??0}</strong> sesli cevap</span>
@@ -599,12 +597,7 @@ export function HarborSpeechAdventure({profileId,englishLevel,gradeLevel,onBack,
      <p className="harbor-finale-tip">Öğrendiğin ifadeleri günlük hayatta da kullanabilirsin.</p>
      {episode===HARBOR_EPISODES.length&&<GameFinale tone="dark" title="Diyalog Limanı tamamlandı!"
       detail="Beş bölümün bütün İngilizce diyaloglarını bitirdin."/>}
-     <div className="harbor-finale-actions">
-      {episode<HARBOR_EPISODES.length&&<button type="button" onClick={()=>start(episode+1)}>Sonraki Bölüm →</button>}
-      <button type="button" className="harbor-finale-secondary" onClick={()=>start(episode)}>↻ Bu Bölümü Tekrar Oyna</button>
-      <button type="button" className="harbor-finale-secondary" onClick={backToMap}>Bölüm Haritası</button>
-     </div>
-    </div>
+    </GameResult>
    </>}
   </main>
   <footer className="harbor-footer">🎤 Konuşmak isteğe bağlı. Sesin cihaz veya tarayıcı tarafından işlenebilir; dokunarak da oynayabilirsin.</footer>

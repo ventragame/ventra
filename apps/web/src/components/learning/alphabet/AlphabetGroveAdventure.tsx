@@ -18,6 +18,7 @@ import {WordRecap,uniqueRecapWords} from '../WordRecap';
 import './alphabet-grove.css';
 import './alphabet-art-v2.css';
 import {GameFinale} from '../GameFinale';
+import {GameTopBar,GameResult} from '../game/GameFrame';
 
 type Phase='home'|'playing'|'complete';
 interface Props{
@@ -222,18 +223,16 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
   const next=[...selected,index];setSelected(next);setMessage('');
  };
  const wordTiles=task?.kind==='build-word'?selected.map(index=>task.choices[index]):[];
- const percent=deck.length?Math.round(100*Math.min(step,deck.length)/deck.length):0;
  return <div ref={dialogRef} className="ag-root" role="dialog" aria-modal="true" aria-label="Harf Korusu">
   <div className="ag-starscape" aria-hidden="true"/>
+  <GameTopBar island="garden" gameExit backDisabled={saving} onBack={leave}
+   backLabel={phase==='home'?'Bölgeler':'Dersler'}
+   backAriaLabel={phase==='home'?'Kelime Bahçesi bölgelerine dön':'Harf Korusu haritasına dön'}
+   crest="🌿" accent="#b8f0a0" eyebrow="Kelime Bahçesi"
+   title={phase==='home'?'Harf Korusu':ALPHABET_LESSONS[lesson-1]?.title??'Harf Korusu'}
+   progress={phase==='playing'&&deck.length?{current:Math.min(step+1,deck.length),total:deck.length}:undefined}
+   chips={[englishLevel,'✨ '+progress.completed+'/12']}/>
   <div className="ag-shell">
-   <header className="ag-header">
-    <button type="button" data-game-exit onClick={leave} disabled={saving} className="ag-back" aria-label={phase==='home'?'Kelime Bahçesi’ne dön':'Harf Korusu haritasına dön'}>← <span>Geri</span></button>
-    <div className="ag-identity"><span className="ag-crest" aria-hidden="true">🌿</span>
-     <div><small>VENTRA · KELİME BAHÇESİ</small><h1>Harf Korusu</h1></div>
-    </div>
-    <div className="ag-header-pills"><span className="ag-mini-pill">{englishLevel}</span>
-     <span className="ag-mini-pill">✨ {progress.completed}/12</span></div>
-   </header>
    {phase==='home'&&<main className="ag-home">
     <section className="ag-hero" aria-labelledby="ag-hero-title">
      <div className="ag-hero-copy">
@@ -286,9 +285,6 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
     </section>
    </main>}
    {phase==='playing'&&<main className="ag-play">
-    <div className="ag-play-top"><span>{ALPHABET_LESSONS[lesson-1]?.icon} {ALPHABET_LESSONS[lesson-1]?.title}</span>
-     <span>{Math.min(step+1,deck.length)} / {deck.length} görev</span></div>
-    <div className="ag-progress" role="progressbar" aria-label="Ders ilerlemesi" aria-valuenow={percent} aria-valuemin={0} aria-valuemax={100}><span style={{width:percent+'%'}}/></div>
     {task&&!pendingRetry&&<section className="ag-challenge" aria-live="off">
      <div className="ag-challenge-head"><span className="ag-task-badge">{labelFor(task.kind)}</span><span className="ag-task-icon" aria-hidden="true">{task.kind==='introduce'?'🌱':task.kind==='build-word'?'✍️':'✨'}</span></div>
      <h2>{task.promptTr}</h2>
@@ -299,11 +295,11 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
        <p>Kelimenin {focus.focus==='end'?'sonundaki':'başındaki'} ses: <b>{focus.ipa}</b></p>
        {focus.noteTr&&<p>{focus.noteTr}</p>}</div>
       <div className="ag-voice-row">
-       <button type="button" disabled={saving||resolved} onClick={()=>speak(focus.upper,'name')}>🔊 Harf adını dinle</button>
-       <button type="button" disabled={saving||resolved} onClick={()=>speak(focus.anchor)}>🎧 Kelimeyi dinle</button>
-       <button type="button" disabled={saving||resolved} onClick={()=>speakSlow(focus.anchor)}>🐢 Yavaş dinle</button>
+       <button type="button" className="gf-btn gf-btn--tool" disabled={saving||resolved} onClick={()=>speak(focus.upper,'name')}>🔊 Harf adını dinle</button>
+       <button type="button" className="gf-btn gf-btn--tool" disabled={saving||resolved} onClick={()=>speak(focus.anchor)}>🎧 Kelimeyi dinle</button>
+       <button type="button" className="gf-btn gf-btn--tool" disabled={saving||resolved} onClick={()=>speakSlow(focus.anchor)}>🐢 Yavaş dinle</button>
       </div>
-      <button type="button" className="ag-primary-action" disabled={saving||resolved} onClick={()=>finishTask(task.answer)}>Anladım, devam et →</button>
+      <button type="button" className="ag-primary-action gf-btn gf-btn--primary" disabled={saving||resolved} onClick={()=>finishTask(task.answer)}>Anladım, devam et →</button>
      </div>}
      {task.kind!=='introduce'&&<>
       {task.kind==='word-link'&&focus&&<div className="ag-word-link-scene" aria-label={focus.upper+' harfi ve '+focus.tr+' için İngilizce kelime seç'}>
@@ -317,11 +313,11 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
         <span className="ag-unillustrated-word" aria-hidden="true">· · ·</span>}<small>{task.word.tr}</small></div>}
       {task.kind==='sound-in-word'&&focus&&<div className="ag-target-art"><img className="ag-illustrated-word" src={alphabetVisual(focus.id)!} alt="" decoding="async"/><small>{focus.tr}</small></div>}
       {task.kind==='letter-name'&&<div className="ag-hearing-icon" aria-hidden="true">🎧</div>}
-      {task.audioText&&<button type="button" className="ag-listen" disabled={saving||resolved}
+      {task.audioText&&<button type="button" className="ag-listen gf-btn gf-btn--tool" disabled={saving||resolved}
        onClick={()=>speak(task.audioText!,task.kind==='letter-name'?'name':'word')}>
        🔊 {task.kind==='letter-name'?'Harf adını dinle':task.kind==='word-link'?'Kelimeyi tekrar dinle':'İngilizce kelimeyi dinle'}
       </button>}
-      {task.audioText&&task.kind!=='letter-name'&&<button type="button" className="ag-listen ag-listen-slow"
+      {task.audioText&&task.kind!=='letter-name'&&<button type="button" className="ag-listen ag-listen-slow gf-btn gf-btn--tool"
        disabled={saving||resolved} onClick={()=>speakSlow(task.audioText!)}>🐢 Yavaş dinle</button>}
       {audioFailed&&<p role="status" className="ag-audio-warning">Ses bu cihazda başlamadı. İpucunu kullanarak görselden devam edebilirsin; bu dinleme başarısı sayılmaz.</p>}
       {task.kind!=='build-word'&&<div className="ag-choices">
@@ -341,11 +337,11 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
         {task.choices.map((ch,i)=><button type="button" key={i} disabled={resolved||saving||selected.includes(i)}
          onClick={()=>addTile(i)}>{ch.toUpperCase()}</button>)}
        </div>
-       <button type="button" className="ag-primary-action" onClick={()=>finishTask(wordTiles.join(''))}
+       <button type="button" className="ag-primary-action gf-btn gf-btn--primary" onClick={()=>finishTask(wordTiles.join(''))}
         disabled={resolved||saving||selected.length!==task.answer.length}>Kelimeyi kontrol et ✓</button>
       </div>}
       <div className="ag-help-row">
-       <button type="button" onClick={showHint} disabled={saving||resolved||hintVisible}>💡 Küçük ipucu</button>
+       <button type="button" className="gf-btn gf-btn--tool" onClick={showHint} disabled={saving||resolved||hintVisible}>💡 Küçük ipucu</button>
        {questionNeedsAudio(task.kind)&&<span>{heard?'✓ Ses çalındı':'🔊 Dinleyerek öğren'}</span>}
       </div>
       {hintVisible&&<p className="ag-hint" role="status">💡 {alphabetHint(task)}
@@ -358,31 +354,31 @@ export const AlphabetGroveAdventure:React.FC<Props>=({
      <h2>Macera tamamlandı!</h2>
      <p role="status">{saving?'Yıldızların kaydediliyor…':'Yanıtların hazır. Kaydı tamamlamak için aşağıdaki düğmeye dokun.'}</p>
      {error&&<p role="alert" className="ag-error">{error}</p>}
-     <button className="ag-primary-action" disabled={saving} onClick={()=>void save(answers,mistakes,hints)}>{saving?'Kaydediliyor…':'Kaydı tekrar dene'}</button>
+     <button type="button" className="ag-primary-action gf-btn gf-btn--primary" disabled={saving} onClick={()=>void save(answers,mistakes,hints)}>{saving?'Kaydediliyor…':'Kaydı tekrar dene'}</button>
     </section>}
    </main>}
    {phase==='complete'&&<main className="ag-complete">
-    <div className="ag-trophy" aria-hidden="true">🏆</div>
-    <span className="ag-eyebrow">DERS TAMAMLANDI</span>
-    <h2>{ALPHABET_LESSONS[lesson-1]?.title}</h2>
-    <p>Yeni harfleri ve İngilizce kelimeleri çalıştın. Hatırlamak için başka bir gün tekrar gel.</p>
-    <div className="ag-earned" aria-label={(result?.stars??0)+' yıldız kazandın'}>{'⭐'.repeat(result?.stars??1)}</div>
-    <p className="ag-evidence">İlk denemede, yardımsız doğru: {result?.firstTry??0}. Tamamlamak tek başına İngilizce ustalığı kanıtı değildir.</p>
-    {progress.completed>=ALPHABET_TOTAL_LESSONS&&<GameFinale title="Harf Korusu tamamlandı!"
-     detail="12 dersin hepsini bitirdin: 26 harfi keşfettin, ilk İngilizce kelimelerini okudun."/>}
-    <div className="ag-complete-buttons">
-     <button type="button" className="ag-primary-action" onClick={()=>enter(Math.min(12,lesson+1))}>{lesson===12?'Başka bir tur →':'Sonraki ders →'}</button>
-     <button type="button" className="ag-secondary-action" onClick={()=>enter(lesson)}>↻ Farklı görevlerle tekrar oyna</button>
-     <button type="button" className="ag-secondary-action" onClick={leave}>Harf Korusu haritasına dön</button>
-    </div>
-    <WordRecap title="Bu dersin kelimeleri · dokun ve dinle"
-     rate={gradeLevel!=null&&gradeLevel<=2?0.79:0.9}
-     words={uniqueRecapWords(deck.map(t=>{
-      if(t.word)return {en:t.word.word,tr:t.word.tr,icon:t.word.icon};
-      // Letter tasks: the letter's anchor word ("A · apple").
-      const letter=ALPHABET_LETTERS.find(x=>x.id===t.letterId);
-      return letter?{en:letter.anchor,tr:letter.upper+' harfi · '+letter.tr,icon:letter.icon}:null;
-     }))}/>
+    <GameResult island="garden" kicker="Ders tamamlandı" title={ALPHABET_LESSONS[lesson-1]?.title??'Harf Korusu'}
+     art={<img src="/assets/learning-art/alphabet/grove.svg" alt="" decoding="async"/>}
+     stars={{earned:result?.stars??1}}
+     message="Yeni harfleri ve İngilizce kelimeleri çalıştın. Hatırlamak için başka bir gün tekrar gel."
+     actions={<>
+      <button type="button" className="ag-primary-action gf-btn gf-btn--primary" onClick={()=>enter(Math.min(12,lesson+1))}>{lesson===12?'Başka bir tur →':'Sonraki ders →'}</button>
+      <button type="button" className="gf-btn gf-btn--secondary" onClick={()=>enter(lesson)}>↻ Farklı görevlerle tekrar oyna</button>
+      <button type="button" className="gf-btn gf-btn--secondary" onClick={leave}>Harf Korusu haritasına dön</button>
+     </>}>
+     <p className="ag-evidence">İlk denemede, yardımsız doğru: {result?.firstTry??0}. Tamamlamak tek başına İngilizce ustalığı kanıtı değildir.</p>
+     {progress.completed>=ALPHABET_TOTAL_LESSONS&&<GameFinale title="Harf Korusu tamamlandı!"
+      detail="12 dersin hepsini bitirdin: 26 harfi keşfettin, ilk İngilizce kelimelerini okudun."/>}
+     <WordRecap title="Bu dersin kelimeleri · dokun ve dinle"
+      rate={gradeLevel!=null&&gradeLevel<=2?0.79:0.9}
+      words={uniqueRecapWords(deck.map(t=>{
+       if(t.word)return {en:t.word.word,tr:t.word.tr,icon:t.word.icon};
+       // Letter tasks: the letter's anchor word ("A · apple").
+       const letter=ALPHABET_LETTERS.find(x=>x.id===t.letterId);
+       return letter?{en:letter.anchor,tr:letter.upper+' harfi · '+letter.tr,icon:letter.icon}:null;
+      }))}/>
+    </GameResult>
    </main>}
    <footer className="ag-footer">🌿 Her çocuk kendi hızında öğrenir. Ses yoksa görselle devam edebilirsin.</footer>
   </div>

@@ -14,11 +14,10 @@ test('Skill rail reflects five planned tasks or exactly three targeted review ta
  }
  const cards=read('AcademySkillSystem.tsx');
  assert.match(cards,/tasks\.map\(\(task,i\)=>/);
- assert.match(cards,/key=\{task\.id\}/);
+ assert.match(cards,/key:task\.id/);
  assert.match(cards,/const state=i<current\?'done':i===current\?'current':'upcoming'/);
- assert.match(cards,/aria-current=\{state==='current'\?'step':undefined\}/);
+ assert.match(cards,/<GameStepRail island="academy" className="academy-skill-rail"/,'the shared rail marks the current step with aria-current');
  assert.match(cards,/review\?'Tekrar '/);
- assert.match(cards,/list\.scrollLeft\+=delta/);
  assert.doesNotMatch(cards,/onClick=|localStorage|listenToChild|recordGameCompleted/);
  for(const kind of ['hear','read','talk','build','write'])assert.ok(cards.includes(' '+kind+':{name:'),kind);
 });
@@ -41,9 +40,13 @@ test('Shared task identity and single feedback retain local speech validation an
 });
 test('Touch, keyboard, voice and reading guidance are accessible at mobile widths',()=>{
  const css=read('academy-skill-system.css'),ui=read('AcademyAdventure.tsx');
- for(const token of ['grid-template-columns:repeat(5,minmax(0,1fr))','overflow-x:auto',
-  'scroll-snap-type:x proximity','min-height:44px','font-size:16px;scroll-margin-top',
-  '@media(max-width:650px)','prefers-reduced-motion:reduce'])assert.ok(css.includes(token),token);
+ for(const token of ['min-height:44px','font-size:16px;scroll-margin-top','@media(max-width:650px)'])assert.ok(css.includes(token),token);
+ // The skill rail is the shared step rail: it scrolls sideways on phones, centres the
+ // current step without moving the page, and is calm under reduced motion.
+ const frame=fs.readFileSync(new URL('../src/components/learning/game/game-frame.css',import.meta.url),'utf8');
+ const rail=fs.readFileSync(new URL('../src/components/learning/game/GameFrame.tsx',import.meta.url),'utf8');
+ for(const token of ['overflow-x:auto','.gf-step-short{display:inline}','prefers-reduced-motion:reduce'])assert.ok(frame.includes(token),token);
+ assert.match(rail,/rail\.scrollLeft=Math\.max\(0,left\)/);
  assert.match(ui,/autoCapitalize="none" autoCorrect="off"/);
  assert.match(ui,/if\(e\.key==='Enter'&&typed\.trim\(\)\)/);
  assert.match(ui,/task\.kind==='hear'&&!audioAttempted/);

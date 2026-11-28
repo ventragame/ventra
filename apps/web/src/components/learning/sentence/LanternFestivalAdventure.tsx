@@ -21,6 +21,7 @@ import './lantern-festival.css';
 import './sentence-clarity-v3.css';
 import {gradeLevelLabel} from '@/lib/learning/gradeLabel';
 import {GameFinale} from '../GameFinale';
+import {GameTopBar,GameStepRail,GameResult} from '../game/GameFrame';
 
 type Phase='welcome'|'lesson'|'play'|'reward';
 interface Props{
@@ -101,7 +102,6 @@ export function LanternFestivalAdventure({profileId,gradeLevel,englishLevel,hist
   (!requiresAnimal||selectedAnimal===trial.animal)&&(!requiresRepair||repairFixed));
  const canSelectPlace=phase==='play'&&requiresPlace&&!selectedPlace&&
   (!requiresColor||Boolean(selectedColor))&&(!requiresAnimal||Boolean(selectedAnimal))&&!lit;
- const progress=plan?100*(index+(lit?1:0))/plan.trials.length:0;
  const litCount=answers.current.length;
  const clearTimer=()=>{if(timer.current!==null){clearTimeout(timer.current);timer.current=null;}};
  const removeCheckpoint=()=>{try{window.localStorage.removeItem(KEY+profileId);}catch{}};
@@ -300,24 +300,20 @@ export function LanternFestivalAdventure({profileId,gradeLevel,englishLevel,hist
   wrongPlace={wrongPick?.startsWith('place:')?wrongPick.slice(6) as LanternPlace:null}
   disabled={saving||lock.current} caption={question?.sentence}/>;
  const duration=plan?.estimatedMinutes??(gradeLevel!=null&&gradeLevel<=2?[8,12]:gradeLevel!=null&&gradeLevel>=5?[14,19]:[11,16]);
- const track=LANTERN_CHAPTERS.map(c=><div key={c.id} className="lf-chapter"
-  data-current={phase!=='welcome'&&c.id===chapter} data-complete={phase!=='welcome'&&c.id<chapter}>
-  <span>{c.icon}</span><strong>{c.id}. {c.title}</strong><small>{c.short}</small></div>);
+ const track=<GameStepRail island="sentence" className="lf-chapter-rail" showNotes
+  ariaLabel="Fener Festivali bölümleri"
+  steps={LANTERN_CHAPTERS.map(c=>({key:String(c.id),label:c.title,short:c.short,icon:c.icon,
+   state:phase==='welcome'?'upcoming':c.id<chapter?'done':c.id===chapter?'current':'upcoming'}))}/>;
  return <div className="lf-root" role="dialog" aria-modal="true"
   aria-label="Fener Festivali İngilizce final macerası" onPointerDown={e=>e.stopPropagation()} ref={root}>
+  <GameTopBar island="sentence" onBack={()=>{
+    if(saving)return;lock.current=false;clearTimer();soundService.cancelSpeech();onExit();
+   }}
+   backLabel="Görevler" backAriaLabel="Meydan görevlerine dön" crest="🏮"
+   eyebrow="Cümle Meydanı · Görev 6 · Final" title="Fener Festivali"
+   progress={phase!=='welcome'&&phase!=='reward'&&total>0?{current:index+1,total}:undefined}
+   chips={[gradeLevelLabel(gradeLevel)+' · '+englishLevel,'◷ '+formatTime(seconds)+' · Süre cezası yok']}/>
   <div className="lf-container">
-   <header className="lf-header">
-    <div className="lf-brand"><div className="lf-crest">🏮</div><div>
-     <div className="lf-eyebrow">VENTRA · CÜMLE MEYDANI · FİNAL MACERASI</div>
-     <h1>Fener Festivali</h1><small>İngilizcenle gece göğünü aydınlat.</small></div></div>
-    <div className="lf-header-actions">
-     <span className="lf-chip">🎓 {gradeLevelLabel(gradeLevel)} · {englishLevel}</span>
-     <span className="lf-chip">◷ {formatTime(seconds)} · Süre cezası yok</span>
-     <button type="button" className="lf-back" disabled={saving} onClick={()=>{
-      lock.current=false;clearTimer();soundService.cancelSpeech();onExit();
-     }}>← Cümle Meydanı</button>
-    </div>
-   </header>
    {resumed&&phase!=='reward'&&<div role="status" className="lf-message">
     ↻ Kaldığın Fener Festivali görevi bu cihazda korunmuş. Aynı görevden devam ediyorsun.</div>}
    {phase==='welcome'?<>
@@ -327,7 +323,7 @@ export function LanternFestivalAdventure({profileId,gradeLevel,englishLevel,hist
       anlamlı İngilizce cümlelerle birleştireceksin. Bu gece fenerlerin hepsi senin kararlarınla yanacak.</p>
      <div className="lf-intro-duration">{duration[0]}–{duration[1]} dk · Tahmini</div>
     </section>
-    <div className="lf-track">{track}</div>
+    {track}
     <div className="lf-layout">{stage}<aside className="lf-panel">
      <div className="lf-eyebrow">KELİMEDEN CÜMLEYE · GEÇİŞ BECERİSİ</div>
      <h2>Son büyüyü ezberlemeden tamamla.</h2>
@@ -340,29 +336,28 @@ export function LanternFestivalAdventure({profileId,gradeLevel,englishLevel,hist
      <p className="lf-small">Süre kısıtı yok. Ses ve ipucu kullanabilirsin; bunlar bağımsız başarıdan ayrı kaydedilir.
       Yarım kalan oturum aynı cihazda kaldığın yerden açılabilir.</p>
      {feedback&&<div className="lf-message" data-error={feedbackError} role="alert">{feedback}</div>}
-     <button type="button" className="lf-primary" onClick={begin}>✦ Fener Festivaline Başla</button>
+     <button type="button" className="lf-primary gf-btn gf-btn--primary" onClick={begin}>✦ Fener Festivaline Başla</button>
     </aside></div>
-   </>:phase==='reward'?<section className="lf-final" role="status">
-    <div className="lf-eyebrow">FİNAL MÜHRÜ · KAYITLI İNGİLİZCE BAŞARISI</div>
+   </>:phase==='reward'?<GameResult island="sentence" className="lf-result"
+    art={<img src="/assets/sentence-plaza/v5/mission-6.webp" alt="" decoding="async"/>}
+    kicker="Final mührü · Kayıtlı İngilizce başarısı" title="Fener Festivali Aydınlandı!"
+    stars={{earned:stars}}
+    message="Yeni denemelerde farklı renk, nesne, yer, karakter ve İngilizce ifadeleri keşfedebilirsin."
+    actions={<>
+     <button type="button" className="gf-btn gf-btn--primary" onClick={begin}>↻ Yeni Gece Festivali</button>
+     <button type="button" className="gf-btn gf-btn--secondary" onClick={onExit}>Cümle Meydanı’na Dön</button>
+    </>}>
     <SentenceQuestReward independent={independent}/>
-    <div className="lf-final-stars" aria-label={stars+' yıldız'}>{'★'.repeat(stars)}</div>
-    <h2>Fener Festivali Aydınlandı!</h2>
     <GameFinale tone="dark" title="Cümle Meydanı tamamlandı!"
      detail="Altı görevin hepsinde İngilizce cümleler kurdun."/>
-    <p>Yeni denemelerde farklı renk, nesne, yer, karakter ve İngilizce ifadeleri keşfedebilirsin.</p>
     <div className="lf-result-grid">
      <div><strong>{total}</strong>İngilizce cümle</div><div><strong>{independent}</strong>bağımsız çözüm</div>
      <div><strong>{bestStreak}</strong>en uzun seri</div><div><strong>{formatTime(seconds)}</strong>süre</div></div>
-    <button type="button" className="lf-primary" onClick={begin}>↻ Yeni Gece Festivali</button>
-    <button type="button" className="lf-back" onClick={onExit}>Cümle Meydanı’na Dön</button>
-   </section>:<>
+   </GameResult>:<>
     <section className="lf-status"><div><div className="lf-eyebrow">FİNAL · BÖLÜM {chapter}/4</div>
      <h2>{meta.icon} {meta.title}</h2><p>{meta.objective}</p></div>
-     <div className="lf-counter">{index+1}<span> / {total} görev</span></div></section>
-    <div className="lf-track">{track}</div>
-    <div className="lf-progress" role="progressbar" aria-label="Fener Festivali ilerleme"
-     aria-valuenow={Math.round(progress)} aria-valuemin={0} aria-valuemax={100}>
-     <span style={{width:progress+'%'}}/></div>
+     </section>
+    {track}
     <div className="lf-layout">{stage}<aside className="lf-panel">
      {phase==='lesson'?<>
       <div className="lf-eyebrow">{chapter}. BÖLÜM · ÖĞRENME DURAĞI</div>
@@ -370,11 +365,11 @@ export function LanternFestivalAdventure({profileId,gradeLevel,englishLevel,hist
       <p>{meta.rule}</p>
       <div className="lf-teacher"><strong>ÖRNEK CÜMLE</strong>
        <span>{meta.example}</span><small>{meta.tr}</small></div>
-      <div className="lf-tools"><button type="button" className="lf-tool"
+      <div className="lf-tools"><button type="button" className="lf-tool gf-btn gf-btn--tool"
        onClick={()=>speak(meta.example)}>🔊 Örneği Dinle</button></div>
       <p className="lf-small">Örnek öğrenmen için var. Sonraki görev farklı renk, konum veya karakterle
        kendi cümleni kurmanı isteyecek.</p>
-      <button type="button" className="lf-primary" onClick={()=>{
+      <button type="button" className="lf-primary gf-btn gf-btn--primary" onClick={()=>{
        resetRound();setPhase('play');soundService.playSfx('whoosh',.48);
       }}>✦ {meta.title} Başlasın</button>
      </>:trial&&question?<>
@@ -417,17 +412,17 @@ export function LanternFestivalAdventure({profileId,gradeLevel,englishLevel,hist
       </div>}
       {!prepared&&<p className="lf-small">Cümle kurmak için önce bu bölümün görsel veya dil bilgisi görevini tamamla.</p>}
       <div className="lf-tools">
-       <button type="button" className="lf-tool" disabled={!picked.length||lit||saving}
+       <button type="button" className="lf-tool gf-btn gf-btn--tool" disabled={!picked.length||lit||saving}
         onClick={()=>{setPicked(old=>old.slice(0,-1));setWrongSlot(-1);}}>↶ Geri Al</button>
-       <button type="button" className="lf-tool" disabled={lit||saving}
+       <button type="button" className="lf-tool gf-btn gf-btn--tool" disabled={lit||saving}
         onClick={()=>speak(question.sentence,true)}>🔊 Dinle</button>
-       <button type="button" className="lf-tool" disabled={lit||saving} onClick={hint}>💡 İpucu Al</button>
+       <button type="button" className="lf-tool gf-btn gf-btn--tool" disabled={lit||saving} onClick={hint}>💡 İpucu Al</button>
       </div>
       {feedback&&<div className="lf-message" data-error={feedbackError} role="status" aria-live="polite">{feedback}</div>}
       {saveError&&<div className="lf-message" data-error="true" role="alert">{saveError}
-       <button type="button" className="lf-primary" disabled={saving}
+       <button type="button" className="lf-primary gf-btn gf-btn--primary" disabled={saving}
         onClick={()=>{if(retryRows.current)void finish(retryRows.current);}}>Ödülü Güvenle Kaydet</button></div>}
-      {!lit&&<button type="button" className="lf-primary"
+      {!lit&&<button type="button" className="lf-primary gf-btn gf-btn--primary"
        disabled={!prepared||picked.length!==question.tokens.length||saving||Boolean(saveError)}
        onClick={submit}>🏮 Feneri Yak</button>}
       {lit&&<SentenceQuestSuccess detail="Fener ışıldıyor; sıradaki görev otomatik başlıyor."/>}

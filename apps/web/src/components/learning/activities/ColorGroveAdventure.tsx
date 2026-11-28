@@ -14,6 +14,7 @@ import { MobileColorGroveWorld } from './MobileColorGroveWorld';
 import './color-grove-premium.css';
 import {LearningMotion} from '@/components/learning/motion/LearningMotion';
 import {GameFinale} from '../GameFinale';
+import {GameTopBar,GameStepRail,GameResult} from '../game/GameFrame';
 
 type Word = (typeof COLOR_GROVE_WORDS)[number];
 type Step = 1 | 2 | 3;
@@ -285,69 +286,73 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
         <div className="absolute -left-40 top-0 h-96 w-96 rounded-full bg-cyan-300/10 blur-3xl" />
         <div className="absolute -right-28 bottom-0 h-96 w-96 rounded-full bg-lime-300/10 blur-3xl" />
       </div>
-      <div className="cg-main relative mx-auto max-w-5xl px-3 py-4 sm:px-7 sm:py-6"
-        style={{ paddingTop: 'max(16px, env(safe-area-inset-top))', paddingBottom: 'max(28px, env(safe-area-inset-bottom))' }}>
-        <header className="cg-hud flex flex-wrap items-center justify-between gap-2">
-          <button data-game-exit onClick={onBack} disabled={saving} aria-label="Kelime Bahçesine dön"
-            className="cg-hud-back gg-game-control vg-answer-card min-h-11 rounded-2xl border border-white/25 bg-white/10 px-3 py-2.5 text-sm font-bold hover:bg-white/20 disabled:opacity-50 sm:px-4">
-            ← <span className="cg-hud-back-label">Bahçeye Dön</span>
+      <GameTopBar island="garden" gameExit backClassName="gg-game-control" backDisabled={saving} onBack={onBack}
+        backLabel="Bölgeler" backAriaLabel="Kelime Bahçesi bölgelerine dön" crest="🎨" accent="#ffb3d9"
+        eyebrow="Kelime Bahçesi" title="Renk Korusu" titleAs="p"
+        progress={!complete && activePlan ? (step === 1
+          ? { current: discovered.length, total: activePlan.colors.length, label: 'Keşif' }
+          : { current: question + 1, total: activePlan.questions.length, label: 'Soru' }) : undefined}
+        stars={{ earned: Object.values(progress.starsByLevel).reduce((sum, value) => sum + value, 0), total: 9 }}
+        tools={<>
+          <GardenHelp label="Renk Korusu nasıl oynanır?">
+            <p>{step === 1 ? 'Lumi’nin korusunu keşfet. Her turda yeni renkleri bul; İngilizce adlarına dokun ve dinle.' :
+            step === 2 ? 'Rengini kaybeden çiçeği kurtar! Gördüğün rengin İngilizce adını seç.' :
+            'Koruya renkleri geri getir! İngilizce söylenen rengi boya paletinden bul.'}</p>
+            <p>Ses açılmasa da bütün görevler yazılı olarak oynanabilir. Yıldızlar görev kaydedilince verilir.</p>
+          </GardenHelp>
+          <button type="button" onClick={toggleSound} className="gf-tool gg-game-control"
+            aria-label={muted ? 'Sesi aç' : 'Sesi kapat'} aria-pressed={muted}>
+            {muted ? '🔇' : '🔊'}
           </button>
-          <div className="cg-hud-title cg-mobile-view" aria-label="Renk Korusu">
-            <span aria-hidden="true">🎨</span><span><strong>RENK KORUSU</strong><small>{step}. görev / 3</small></span>
-          </div>
-          <div className="flex items-center gap-2">
-            <span className="cg-hud-points rounded-xl border border-lime-300/40 bg-lime-950/60 px-3 py-2.5 text-xs font-black text-lime-100">
-              ⭐ {Object.values(progress.starsByLevel).reduce((sum, value) => sum + value, 0)} / 9
-            </span>
-            <GardenHelp label="Renk Korusu nasıl oynanır?">
-              <p>{step === 1 ? 'Lumi’nin korusunu keşfet. Her turda yeni renkleri bul; İngilizce adlarına dokun ve dinle.' :
-              step === 2 ? 'Rengini kaybeden çiçeği kurtar! Gördüğün rengin İngilizce adını seç.' :
-              'Koruya renkleri geri getir! İngilizce söylenen rengi boya paletinden bul.'}</p>
-              <p>Ses açılmasa da bütün görevler yazılı olarak oynanabilir. Yıldızlar görev kaydedilince verilir.</p>
-            </GardenHelp>
-            <button onClick={toggleSound} className="cg-hud-sound gg-game-control vg-answer-card min-h-11 rounded-xl border border-white/25 bg-white/10 px-3 text-sm font-bold hover:bg-white/20"
-              aria-label={muted ? 'Sesi aç' : 'Sesi kapat'} aria-pressed={muted}>
-              {muted ? '🔇' : '🔊'}
-            </button>
-          </div>
-        </header>
-        <div className="cg-stage-intro py-4 text-center sm:py-6">
-          <p className="text-xs font-extrabold uppercase tracking-[0.22em] text-lime-200">Büyülü Renkler Hikâyesi · Bölüm {step}/3</p>
-          <h1 ref={headingRef} tabIndex={-1} className="mt-2 text-3xl font-black tracking-tight outline-none sm:text-5xl">{names[step - 1]}</h1>
+        </>}/>
+      <div className="cg-main relative mx-auto max-w-5xl px-3 py-4 sm:px-7 sm:py-6"
+        style={{ paddingBottom: 'max(28px, env(safe-area-inset-bottom))' }}>
+        <div className="cg-stage-intro sr-only">
+          <p>Büyülü Renkler Hikâyesi · Bölüm {step}/3</p>
+          <h1 ref={headingRef} tabIndex={-1} className="outline-none">{names[step - 1]}</h1>
         </div>
-
-        <div className="cg-mission-tabs mb-4 grid grid-cols-3 gap-2 sm:mb-5">
-          {names.map((name, i) => (
-            <button key={name}
-              onClick={() => { if (i + 1 <= progress.completedLevels + 1) reset((i + 1) as Step); }}
-              disabled={i + 1 > progress.completedLevels + 1 || saving}
-              aria-current={step === i + 1 ? 'step' : undefined}
-              className={`gg-game-control vg-answer-card min-h-14 rounded-xl border px-2 py-3 text-xs font-bold sm:text-sm ${step === i + 1 ? 'border-lime-200 bg-emerald-600/55' : 'border-white/20 bg-white/10'} disabled:opacity-40`}>
-              {i + 1 <= progress.completedLevels ? '✓ ' : ''}{i + 1}. <span className="cg-tab-long">{name}</span><span className="cg-tab-short">{['Keşif','Eşleştir','Boya'][i]}</span>
-            </button>
-          ))}
-        </div>
+        <GameStepRail island="garden" className="cg-mission-tabs" ariaLabel="Renk Korusu görevleri"
+          steps={names.map((name, i) => {
+            const order = (i + 1) as Step, locked = order > progress.completedLevels + 1;
+            return { key: name, label: name, short: ['Keşif','Eşleştir','Boya'][i], className: 'gg-game-control',
+              state: step === order ? 'current' : locked ? 'locked' : order <= progress.completedLevels ? 'done' : 'upcoming',
+              disabled: saving, onSelect: () => { if (!locked) reset(order); } };
+          })}/>
 
         {loadError && <div role="alert" className="mx-auto max-w-md space-y-3 rounded-2xl border border-rose-300/40 bg-rose-950 p-5 text-center">
           <p>Görev planı yüklenemedi. İlerlemen silinmedi.</p>
-          <button onClick={() => reset(step)} className="vg-answer-card rounded-xl bg-lime-300 px-5 py-3 font-black text-emerald-950">Yeniden Dene</button>
+          <button type="button" onClick={() => reset(step)} className="gf-btn gf-btn--primary">Yeniden Dene</button>
         </div>}
         {!loadError && !activePlan && !complete && <div role="status" className="p-6 text-center">Yeni macera hazırlanıyor…</div>}
         {!loadError && invalidPlan && (
           <div role="alert" className="mx-auto max-w-md rounded-2xl border border-amber-300/50 bg-slate-950/70 p-5 text-center">
             <p className="mb-4 text-sm">Görev soruları yüklenemedi. Oyuncu kayıtların korunuyor.</p>
-            <button onClick={() => reset(step)} className="rounded-xl bg-lime-300 px-5 py-3 font-bold text-emerald-950">
+            <button type="button" onClick={() => reset(step)} className="gf-btn gf-btn--primary">
               Görevi Yeniden Yükle
             </button>
           </div>
         )}
         {!loadError && !invalidPlan && (complete ? (
-          <section className="cg-complete relative isolate overflow-hidden mx-auto max-w-3xl rounded-3xl border border-lime-300/50 bg-emerald-900/70 p-4 text-center shadow-xl sm:p-7">
-            <LearningMotion variant="victory" trigger={complete?'grove-complete-'+step+'-'+replayNonce:null}/>
-            <MobileColorGroveWorld mode="complete" paintedIds={paintedIds}/>
-            <h2 ref={doneHeading} tabIndex={-1} className="mt-3 text-2xl font-black">Koru Canlandı!</h2>
-            <p className="mt-2 text-sm text-emerald-100">Görev başarıyla kaydedildi.</p>
-            <p className="cg-done-stats mt-2 text-sm">{step === 1 ? `${discovered.length} rengin İngilizce adını dinledin` : `${correct} doğru · ${mistakes} yanlış deneme`}</p>
+          <GameResult island="garden" className="cg-complete" titleRef={doneHeading}
+            art={<><LearningMotion variant="victory" trigger={complete?'grove-complete-'+step+'-'+replayNonce:null}/>
+              <MobileColorGroveWorld mode="complete" paintedIds={paintedIds}/></>}
+            kicker={'Renk Korusu · '+names[step - 1]} title="Koru Canlandı!"
+            stars={{ earned: progress.starsByLevel[step] ?? (mistakes === 0 ? 3 : mistakes <= 2 ? 2 : 1) }}
+            message={<>Görev başarıyla kaydedildi. <span className="cg-done-stats">{step === 1 ? `${discovered.length} rengin İngilizce adını dinledin` : `${correct} doğru · ${mistakes} yanlış deneme`}</span></>}
+            actions={<>
+              <button type="button" onClick={() => {
+                if (step === 3) onBack();
+                else reset((step + 1) as Step);
+              }} className="gf-btn gf-btn--primary gg-game-control">
+                {step === 3 ? 'Bahçeye Dön →' : 'Sonraki Görev →'}
+              </button>
+              <button type="button" onClick={() => reset(step)} className="gf-btn gf-btn--secondary gg-game-control">
+                ↻ Bu Görevi Farklı Sorularla Tekrar Oyna
+              </button>
+              <button type="button" onClick={() => reset(1)} className="gf-btn gf-btn--secondary gg-game-control">
+                🧭 Yeni Renk Keşif Turu · Kayıtlarım Korunsun
+              </button>
+            </>}>
             {recap.length > 0 && <div className="cg-recap" role="group" aria-label="Bu görevin İngilizce renkleri">
               <p className="cg-recap-title">Bu görevin renkleri · dokun ve dinle</p>
               <div className="cg-recap-list">{recap.map(word => <button key={word.id} type="button" className="cg-recap-word gg-game-control"
@@ -355,24 +360,9 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
                 <span className="cg-recap-swatch" style={{ '--cg4-color': word.hex } as React.CSSProperties} aria-hidden="true"/>
                 <span lang="en">{word.id}</span></button>)}</div>
             </div>}
-            <p className="mt-3 rounded-xl bg-lime-300/15 px-4 py-3 text-sm font-bold text-lime-100">
-              ⭐ Bu görevdeki en iyi yıldızın: {progress.starsByLevel[step] ?? (mistakes === 0 ? 3 : mistakes <= 2 ? 2 : 1)} / 3
-            </p>
             {step === 3 && <GameFinale tone="dark" title="Renk Korusu tamamlandı!"
               detail="Üç görevin hepsinde İngilizce renkleri çalıştın." />}
-            <button onClick={() => {
-              if (step === 3) onBack();
-              else reset((step + 1) as Step);
-            }} className="mt-6 w-full rounded-2xl bg-lime-300 px-5 py-4 font-black text-emerald-950">
-              {step === 3 ? 'Bahçeye Dön →' : 'Sonraki Görev →'}
-            </button>
-            <button onClick={() => reset(step)} className="mt-3 w-full rounded-2xl border border-white/30 bg-white/10 px-5 py-3 text-sm font-bold text-white hover:bg-white/20">
-              ↻ Bu Görevi Farklı Sorularla Tekrar Oyna
-            </button>
-            <button onClick={() => reset(1)} className="mt-3 w-full rounded-2xl border border-sky-200/40 bg-sky-400/15 px-5 py-3 text-sm font-bold text-sky-50 hover:bg-sky-400/25">
-              🧭 Yeni Renk Keşif Turu · Kayıtlarım Korunsun
-            </button>
-          </section>
+          </GameResult>
         ) : !activePlan ? null : step === 1 ? (
           <section className="cg-discovery-panel mx-auto max-w-4xl">
             <MobileColorGroveWorld
@@ -398,10 +388,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
             <div className="cg-mission-top mb-3 flex items-center justify-between gap-2 text-sm font-bold text-lime-100">
               <span>🪄 Lumi’nin Görevi</span>
               <span className="cg-quest-meta">{activePlan.reviewColorIds.length > 0 && <span className="cg-review-chip">🔁 Hatırlama<span className="sr-only">: {activePlan.reviewColorIds.length} renk daha pekiştiriliyor</span></span>}
-                <span aria-label={`Soru ${question + 1} / ${activePlan.questions.length}`}>{question + 1} / {activePlan.questions.length}</span></span>
-            </div>
-            <div aria-hidden="true" className="cg-progress-track mb-5 h-2 overflow-hidden rounded-full bg-white/15">
-              <div className="h-full rounded-full bg-gradient-to-r from-lime-300 to-sky-300 transition-all" style={{ width: `${Math.round(((question + Number(awaitingAdvance)) / activePlan.questions.length) * 100)}%` }} />
+              </span>
             </div>
             <div className="cg-mission-prompt my-4 rounded-2xl border border-white/20 bg-[#103b47]/90 p-3 text-center sm:p-4">
               <div className="cg-prompt-copy">
@@ -414,7 +401,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
               </div>
               <button disabled={muted || !speechAvailable} onClick={() => listen(getColorInstruction(currentQuestion.target, step, englishLevel).speech)}
                 aria-label="İngilizce yönergeyi dinle"
-                className="cg-prompt-listen vg-answer-card mt-3 min-h-11 rounded-full border border-sky-200/40 bg-sky-300/15 px-5 text-sm font-black disabled:opacity-45">
+                className="cg-prompt-listen gf-btn gf-btn--tool mt-3">
                 {muted ? '🔇' : speechAvailable ? '🔊' : '🔇'} <span className="cg-prompt-listen-label">{muted ? 'Ses Kapalı' : speechAvailable ? 'Dinle' : 'Bu cihazda ses yok'}</span>
               </button>
               {step === 2 && (
@@ -423,7 +410,7 @@ export const ColorGroveAdventure: React.FC<Props> = ({ progress, onBack, onSave,
                     setHintShown(value => !value);
                     setHintUsed(true);
                   }}
-                    aria-expanded={hintShown} className="vg-answer-card min-h-11 rounded-xl border border-white/20 bg-white/10 px-4 text-xs font-bold disabled:opacity-50">
+                    aria-expanded={hintShown} className="gf-btn gf-btn--tool">
                     {hintShown ? 'İpucunu gizle' : '💡 Türkçe ipucu'}
                   </button>
                   {hintShown && <p role="status" className="mt-2 text-sm font-bold text-lime-100">

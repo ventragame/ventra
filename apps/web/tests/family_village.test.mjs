@@ -123,7 +123,8 @@ test('G2 child-friendly interface includes authored house SVG, accessible voice 
  assert.match(ui,/if\(requireFullAudio\)setHeard\(true\)/);
  assert.match(ui,/stage===3&&!heard&&!hint/);
  assert.match(ui,/current\.words\.map/);
- assert.match(ui,/role="progressbar"/);
+ // Progress is the shared top bar's progressbar (GameTopBar progress).
+ assert.match(ui,/progress=\{current&&!saved\?\{current:stage===1\?progressSteps:Math\.min\(progressSteps\+1,Math\.max\(1,total\)\),total:Math\.max\(1,total\)/);
  assert.match(map,/onEnterFamily/);
  const theme=fs.readFileSync(new URL('../src/components/learning/world/gardenTheme.ts',import.meta.url),'utf8');
  assert.match(theme,/60 kavram/);
@@ -245,7 +246,7 @@ test('G3.2 spoken discovery finishes after pronunciation and may replay sound sa
  assert.match(code,/disabled=\{busy\}/);
  assert.doesNotMatch(code,/disabled=\{busy\|\|visited\.length===current\.words\.length\}/);
  assert.match(code,/visitedRef\.current\.has\(id\)/);
- assert.match(code,/disabled=\{busy\} onClick=\{\(\)=>\{cancelSpeech\(\);onBack\(\);\}\}/);
+ assert.match(code,/gameExit backDisabled=\{busy\} onBack=\{\(\)=>\{cancelSpeech\(\);onBack\(\);\}\}/);
  assert.equal(VILLAGE_STAGES[2].title,'Dinle ve Bul');
 });
 
@@ -285,14 +286,13 @@ test('V5 scene and illustrated grandmother use exact reference crops and mobile 
 test('V5 matching UI uses real responsive controls instead of a static screenshot',()=>{
  const ui=fs.readFileSync(new URL('../src/components/learning/activities/FamilyVillageAdventure.tsx',import.meta.url),'utf8');
  const css=fs.readFileSync(new URL('../src/components/learning/activities/family-village-reference-v5.css',import.meta.url),'utf8');
+ const premium=fs.readFileSync(new URL('../src/components/learning/activities/family-village-premium.css',import.meta.url),'utf8');
  assert.match(ui,/family-village-reference-v5\.css/);
  assert.match(ui,/fv5-screen/);
- assert.match(ui,/village-wooden-brand\.webp/);
- assert.match(ui,/fv5-district-icon-\$\{part\.id\}/);
- assert.match(ui,/fv5-step-icon-\$\{item\.stage\}/);
- assert.match(ui,/fv5-hud-progress/);
- assert.match(ui,/aria-valuenow=\{progressSteps\}/);
- assert.match(ui,/aria-current=\{item\.stage===stage\?'step':undefined\}/);
+ // Header, districts, steps and progress are the shared game frame now.
+ assert.match(ui,/<GameTopBar island="garden" gameExit/);
+ assert.match(ui,/fv-district-art-\$\{part\.id\}/);
+ assert.match(ui,/state:item\.stage===stage\?'current':/);
  assert.match(ui,/FamilyVillageScenery district=\{district\}/);
  assert.match(ui,/task\.options\.map\(id=><WordChoice/);
  assert.match(ui,/progress\.starsByLevel/);
@@ -300,15 +300,13 @@ test('V5 matching UI uses real responsive controls instead of a static screensho
  assert.match(ui,/await onSave\(district,stage,mistakes/);
  assert.ok(ui.includes('Türkçesi:'));
  assert.match(ui,/fv5-featured-portrait/);
- assert.match(ui,/fv5-top-actions/);
  assert.match(ui,/<GardenHelp label="Nasıl Oynanır\?">/);
  assert.doesNotMatch(ui,/data:image\/png;base64|<canvas/);
  for(const name of [
   'village-landscape-masthead.webp','village-flower-left.webp',
   'village-flower-right.webp','village-ref-icons.webp'])
-  assert.ok(css.includes(name),name+' unused');
- for(const marker of ['fv5-hud','fv5-prompt','fv5-answer-grid','fv5-district-nav',
-  'fv5-stepnav','fv5-brand','fv5-scene','fv5-audio-toggle','fv5-top-actions'])
+  assert.ok((css+premium).includes(name),name+' unused');
+ for(const marker of ['fv5-prompt','fv5-answer-grid','fv5-scene'])
   assert.ok(css.includes(marker),marker);
  for(const bp of [1040,680,359])assert.ok(css.includes('max-width:'+bp+'px'));
  assert.match(css,/orientation:landscape/);

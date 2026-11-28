@@ -48,13 +48,14 @@ test('All six garden games with answer rounds move focus to their own question p
 });
 
 test('The end-of-mission panel takes focus the same way when the last answer disappears',()=>{
+ // Every reward is the shared GameResult card; titleRef makes its heading the focus target.
  const games={
-  'AnimalMeadowAdventure.tsx':[/useQuestionFocus<HTMLHeadingElement>\(completed\?'done':'play'\)/,/<h2 ref=\{doneHeading\} tabIndex=\{-1\} className="mt-2 text-2xl font-black">Görev Tamamlandı!<\/h2>/],
-  'ColorGroveAdventure.tsx':[/useQuestionFocus<HTMLHeadingElement>\(complete \? 'done' : 'play'\)/,/<h2 ref=\{doneHeading\} tabIndex=\{-1\} className="mt-3 text-2xl font-black">Koru Canlandı!<\/h2>/],
-  'NumberValleyAdventure.tsx':[/useQuestionFocus<HTMLHeadingElement>\(completed\?'done':'play'\)/,/<h2 ref=\{doneHeading\} tabIndex=\{-1\}>\{CHAPTERS\[stage-1\]\.title\} tamamlandı!<\/h2>/],
-  'FoodMarketAdventure.tsx':[/useQuestionFocus<HTMLHeadingElement>\(finished\?'done':'play'\)/,/<h2 ref=\{doneHeading\} tabIndex=\{-1\} lang="en">Fantastic! Great shopping!<\/h2>/],
-  'FamilyVillageAdventure.tsx':[/useQuestionFocus<HTMLHeadingElement>\(saved\?'done':'play'\)/,/<h2 ref=\{doneHeading\} tabIndex=\{-1\} lang=\"en\">Well done! Great English!<\/h2>/],
-  'TempleAdventure.tsx':[/useQuestionFocus<HTMLHeadingElement>\(finished\?'done':'play'\)/,/<h2 ref=\{doneHeading\} tabIndex=\{-1\} lang=\"en\">\{chamber==='crown'&&stage===5/]
+  'AnimalMeadowAdventure.tsx':[/useQuestionFocus<HTMLHeadingElement>\(completed\?'done':'play'\)/,/<GameResult island="garden" className="am-done" titleRef=\{doneHeading\}/,/title="Görev Tamamlandı!"/],
+  'ColorGroveAdventure.tsx':[/useQuestionFocus<HTMLHeadingElement>\(complete \? 'done' : 'play'\)/,/<GameResult island="garden" className="cg-complete" titleRef=\{doneHeading\}/,/title="Koru Canlandı!"/],
+  'NumberValleyAdventure.tsx':[/useQuestionFocus<HTMLHeadingElement>\(completed\?'done':'play'\)/,/<GameResult island="garden" className="nv5-finale" titleRef=\{doneHeading\}/,/title=\{CHAPTERS\[stage-1\]\.title\+' tamamlandı!'\}/],
+  'FoodMarketAdventure.tsx':[/useQuestionFocus<HTMLHeadingElement>\(finished\?'done':'play'\)/,/<GameResult island="garden" className="fm-win fm4-win" titleRef=\{doneHeading\}/,/title="Fantastic! Great shopping!" titleLang="en"/],
+  'FamilyVillageAdventure.tsx':[/useQuestionFocus<HTMLHeadingElement>\(saved\?'done':'play'\)/,/<GameResult island="garden" className="fv-celebrate fv3-celebrate" titleRef=\{doneHeading\}/,/title="Well done! Great English!" titleLang="en"/],
+  'TempleAdventure.tsx':[/useQuestionFocus<HTMLHeadingElement>\(finished\?'done':'play'\)/,/<GameResult island="garden" className="tp-finished tp6-finished" titleRef=\{doneHeading\}/,/'The English Temple is yours!':'Crystal unlocked!'\} titleLang="en"/]
  };
  for(const [file,patterns] of Object.entries(games)){const code=read(file);for(const pattern of patterns)assert.match(code,pattern,file);}
 });

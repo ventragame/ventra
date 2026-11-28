@@ -64,7 +64,7 @@ test('Feedback lives in the scene strip and a wrong answer names what was picked
  const style=css();
  assert.match(style,/\.fm7-screen \.fm4-scenery\{height:clamp\(112px,12vw,136px\)\}/,'the hero picture pushed the answers below the fold');
  assert.match(style,/\.fm7-screen \.fm7-toast\[data-good=false\]\{color:#6b2338;/,'a wrong answer was shown in green');
- assert.match(style,/\.fm7-screen \.fm4-scenery:has\(\.fm7-toast\) :is\(\.fm4-scene-label,\.fm7-scene-count\)\{visibility:hidden\}/);
+ assert.match(style,/\.fm7-screen \.fm4-scenery:has\(\.fm7-toast\) \.fm4-scene-label\{visibility:hidden\}/);
 });
 
 test('Reward: honest result, tap-to-hear word recap, next button first on short screens',()=>{
@@ -74,23 +74,24 @@ test('Reward: honest result, tap-to-hear word recap, next button first on short 
  assert.match(code,/onClick=\{\(\)=>speak\(id\)\} disabled=\{!canHear\}/);
  assert.match(code,/<FoodIllustration id=\{id\} className="fm7-recap-art"\/><span lang="en">\{id\}<\/span><\/button>\)\}/);
  assert.doesNotMatch(code,/Bu görevdeki ilerlemen kaydedildi|English first · No money calculations/);
- assert.match(css(),/@media\(max-height:940px\)\{\n \.fm7-screen \.fm4-win\{display:flex;flex-direction:column;align-items:center\}\n \.fm7-screen \.fm4-win \.fm7-recap\{order:10;width:100%\}/);
+ // The result card body is a flex column: the recap moves below the buttons on short screens.
+ assert.match(css(),/@media\(max-height:940px\)\{\n \.fm7-screen \.fm4-win \.fm7-recap\{order:10;width:100%\}/);
 });
 
-test('HUD tools, one location (screen readers keep the bar), 12px floor, phone fill, English marked English',()=>{
+test('HUD tools and place in the shared top bar, 12px floor, phone fill, English marked English',()=>{
  const code=ui();
- const hud=code.slice(code.indexOf('<div className="fm7-hud-tools">'),code.indexOf('</header>'));
+ const hud=code.slice(code.indexOf('<GameTopBar island="garden"'),code.indexOf('<div className="fm-shell'));
  assert.match(hud,/<GardenHelp label="Lezzet Pazarı nasıl oynanır\?">/);
- assert.match(hud,/className="fm-sound fm4-sound"/);
+ assert.match(hud,/className="gf-tool" onClick=/);
  assert.doesNotMatch(code,/fm-step-head|fm4-banner|fm-instruction/);
  assert.doesNotMatch(code,/<span>⭐<\/span>/,'the completed step showed a second star under the corner star');
  for(const english of ['<strong lang="en">Explore & listen</strong>','<strong lang="en">What is this in English?</strong>',
   '<strong lang="en">Listen and find it!</strong>','<strong lang="en">Customer says:</strong>','<strong lang="en">Drop it in the basket!</strong>',
   '<span className="fm5-word-label" lang="en">','<span className="fm-product-name" lang="en">'])assert.ok(code.includes(english),english);
  const style=css();
- assert.match(style,/\.fm7-screen \.gg-quest-location\{position:absolute;width:1px;height:1px;/);
+ // The place and progress live in the shared top bar; no second location bar.
+ assert.doesNotMatch(code,/gg-quest-location|fm7-scene-count/);
  assert.match(style,/\.fm7-screen \.fm5-dialogue-option>\.fm5-dialogue-option-label\{min-width:26px;height:26px;font-size:13px\}/);
- assert.match(style,/\.fm7-screen \.fm4-brand h1\{font-size:clamp\(17px,4\.8vw,22px\);white-space:nowrap\}/);
  assert.match(style,/min-height:calc\(100dvh - var\(--fm7-chrome,248px\) - env\(safe-area-inset-bottom,0px\)\)/);
  assert.match(style,/\.fm7-screen \.fm4-activity>:is\(\.fm7-answers,\.fm5-word-choices\)\{width:100%;margin-top:auto\}/);
  // The legibility floor is still imported last.

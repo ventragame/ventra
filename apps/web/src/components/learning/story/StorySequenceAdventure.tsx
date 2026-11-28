@@ -23,6 +23,7 @@ import './story-character-motion.css';
 import './story-motion-guards.css';
 import './story-scene-standard.css';
 import {GameFinale} from '../GameFinale';
+import {GameTopBar,GameStepRail,GameResult} from '../game/GameFrame';
 
 interface Props{
  profileId:string;
@@ -291,18 +292,22 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
  const scene=currentStory.scene;
  const previewFrame=currentStory.frames[0];
  return <div className="ss-root" role="dialog" aria-modal="true" aria-label="Sonra Ne Oldu?">
-  <header className="ss-head">
-   <div className="ss-head-side">
-    <button type="button" className="ss-round" onClick={back} disabled={busy} aria-label="Geri dön">←</button>
-    <h1>{page==='chapters'?'Sonra Ne Oldu?':currentStory.title}</h1>
-   </div>
-   <div className="ss-count" aria-label="Oyun ilerlemesi">
-    {page==='chapters'?('★ '+progress.completedLevels+'/6'):
-     page==='watch'&&deck?('📖 '+(watchIndex+1)+'/'+deck.frames.length):
-     page==='order'&&deck?('✦ '+selectedIds.length+'/'+deck.frames.length):
-     page==='check'&&deck?('🧠 '+(checkIndex+1)+'/'+(deck.comprehensionChecks?.length??0)):'★'}
-   </div>
-  </header>
+  <GameTopBar island="story" onBack={back} backDisabled={busy}
+   backLabel={page==='chapters'?'Oyunlar':'Hikâyeler'}
+   backAriaLabel={page==='chapters'?'Hikâye Ormanı’na dön':'Hikâyelere dön'}
+   crest="🧩" eyebrow={page==='chapters'?'Hikâye Ormanı':'Sonra Ne Oldu? · Hikâye '+episode}
+   title={page==='chapters'?'Sonra Ne Oldu?':currentStory.title}
+   chips={page==='chapters'?[(loading||loadError?'…':progress.completedLevels)+'/6 hikâye']:undefined}
+   progress={page==='watch'&&deck?{current:watchIndex+1,total:deck.frames.length,label:'Sahne'}:
+    page==='order'&&deck?{current:selectedIds.length,total:deck.frames.length,label:'Sıra'}:
+    page==='check'&&deck?{current:checkIndex+1,total:deck.comprehensionChecks?.length??0,label:'Soru'}:undefined}
+   stars={page==='reward'?{earned:earnedStars,total:3}:undefined}/>
+  {(page==='watch'||page==='order'||page==='check')&&deck&&<GameStepRail island="story" className="ss-step-rail"
+   ariaLabel="Oyunun adımları" steps={[
+    {key:'watch',label:'İzle ve dinle',short:'İzle',state:page==='watch'?'current':'done'},
+    {key:'order',label:'Resimleri sırala',short:'Sırala',state:page==='order'?'current':page==='watch'?'upcoming':'done'},
+    ...((deck.comprehensionChecks?.length??0)>0?[{key:'check',label:'Anladığını göster',short:'Anla',
+     state:page==='check'?'current' as const:'upcoming' as const}]:[])]}/>}
   {page==='chapters'&&<main className="ss-main">
    <div className="ss-intro">
     <StorySequenceFrame frame={previewFrame} scene={scene}/>
@@ -313,8 +318,8 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
    </div>
    {loading&&<div className="ss-status" role="status">Hikâyeler hazırlanıyor…</div>}
    {loadError&&<div className="ss-status" role="alert">{loadError}
-    <button type="button" className="ss-secondary" onClick={()=>setLoadAttempt(n=>n+1)}>↻ Tekrar dene</button>
-    <button type="button" className="ss-secondary" onClick={onBack}>Geri</button>
+    <button type="button" className="gf-btn gf-btn--secondary" onClick={()=>setLoadAttempt(n=>n+1)}>↻ Tekrar dene</button>
+    <button type="button" className="gf-btn gf-btn--secondary" onClick={onBack}>Geri</button>
    </div>}
    {!loading&&!loadError&&<section className="ss-episodes" aria-label="Altı sıralama hikâyesi">
      {SEQUENCE_STORIES.map(story=>{
@@ -338,10 +343,6 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
   {page==='watch'&&deck&&watchFrame&&<main className="ss-main ss-story-content">
     <StorySceneGuide mode="watch" current={watchIndex+1} total={deck.frames.length}
      title={currentStory.title}/>
-    <div className="ss-story-top" aria-label="Hikâyeyi sırayla izle">
-      {deck.frames.map((frame,i)=><span key={frame.id}
-        className={'ss-pip '+(i<watchIndex?'done':i===watchIndex?'active':'')}/>)}
-    </div>
     <div className="ss-screen" aria-label="Hikâye resmi" ref={stepFocus} tabIndex={-1}>
      <StorySequenceFrame frame={watchFrame} scene={scene}
       characterMotion={watchFrame.action==='help'||watchFrame.action==='share'?'cheer':'listen'}/>
@@ -352,7 +353,7 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
      classes={{root:'ss-narration',listen:'ss-speak',body:'ss-narration-body',
       label:'ss-narration-label',waves:'ss-audio-wave',toggle:'ss-text-toggle'}}/>
     <div className="ss-bottom-actions">
-     <button type="button" className="ss-primary" onClick={watchNext}>
+     <button type="button" className="gf-btn gf-btn--primary" onClick={watchNext}>
       {watchIndex+1===deck.frames.length?'Resimleri sırala →':'Sonraki sahne →'}
      </button>
     </div>
@@ -387,19 +388,19 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
      })}
     </div>
     <div className="ss-hint-bar">
-     <button type="button" className="ss-hint-button" onClick={showHint}
+     <button type="button" className="ss-hint-button gf-btn gf-btn--tool" onClick={showHint}
        disabled={busy||locked.current||!nextFrame} aria-label="Doğru sıradaki resmi ışıkla göster">
        💡 İpucu
      </button>
      <div role="status" aria-live="polite" className={'ss-feedback '+(!message?'correct':'')}>
        {busy?'Kaydediliyor…':selectedIds.length>slot?storyDecisionFeedback('correct'):message||('✦ '+selectedIds.length+'/'+deck.frames.length)}
      </div>
-     <button type="button" className="ss-hint-button" onClick={restartWatch}
+     <button type="button" className="ss-hint-button gf-btn gf-btn--tool" onClick={restartWatch}
       disabled={busy} aria-label="Hikâyeyi yeniden dinle">↻ Dinle</button>
     </div>
     {saveError&&<div role="alert" className="ss-save-error">{saveError}
      <button type="button" onClick={()=>{if(deck)void finish(deck,answers);}}
-       disabled={busy} className="ss-secondary">Yeniden kaydet</button>
+       disabled={busy} className="gf-btn gf-btn--secondary">Yeniden kaydet</button>
     </div>}
   </main>}
   {page==='check'&&deck&&activeCheck&&<main className="ss-main ss-comprehension relative isolate"
@@ -437,7 +438,7 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
     })}
    </div>
    <div className="ss-hint-bar">
-    <button type="button" className="ss-hint-button" disabled={busy||locked.current}
+    <button type="button" className="ss-hint-button gf-btn gf-btn--tool" disabled={busy||locked.current}
      onClick={()=>{setCheckHint(true);soundService.playSfx('tap',.36);}}>
      💡 İpucu
     </button>
@@ -447,32 +448,30 @@ export function StorySequenceAdventure({profileId,gradeLevel,englishLevel,onBack
    </div>
    {saveError&&<div className="ss-save-error" role="alert">{saveError}
     <button type="button" onClick={()=>void finish(deck,answers,checks)}
-     disabled={busy} className="ss-secondary">Yeniden kaydet</button></div>}
+     disabled={busy} className="gf-btn gf-btn--secondary">Yeniden kaydet</button></div>}
   </main>}
-  {page==='reward'&&<main className="ss-main ss-reward relative isolate">
-     <LearningMotion variant="victory" trigger={'sequence-saved-'+episode}/> 
-     <div className="ss-reward-visual">
+  {page==='reward'&&<main className="ss-main ss-reward">
+    <GameResult island="story" className="ss-result" kicker="Hikâye tamamlandı"
+     title={currentStory.title} titleRef={rewardHeading} stars={{earned:earnedStars}}
+     art={<div className="ss-reward-visual relative isolate">
+      <LearningMotion variant="victory" trigger={'sequence-saved-'+episode}/>
       <StorySequenceFrame frame={currentStory.frames[4]} scene={scene}
        characterMotion="cheer"/>
-     </div>
-     <p>HİKÂYE TAMAMLANDI</p>
-     <h2 ref={rewardHeading} tabIndex={-1}>{currentStory.title}</h2>
-     <div className="ss-reward-stars" aria-label={earnedStars+' yıldız'}>
-       {[1,2,3].map(i=><span key={i} className={earnedStars>=i?'earned':''}>★</span>)}
-     </div>
+     </div>}
+     actions={<>
+       {episode<6&&<button type="button" className="gf-btn gf-btn--primary"
+         onClick={()=>start((episode+1) as ForestEpisode)}>Yeni hikâye →</button>}
+       <button type="button" className={'gf-btn '+(episode<6?'gf-btn--secondary':'gf-btn--primary')} onClick={()=>start(episode)}>↻ Tekrar Oyna</button>
+       <button type="button" className="gf-btn gf-btn--secondary" onClick={back}>Hikâyelere dön</button>
+     </>}>
      <StoryRewardSummary stars={earnedStars}
       mistakes={answers.reduce((n,a)=>n+a.mistakes,0)+checks.reduce((n,c)=>n+c.mistakes,0)}
       hints={answers.filter(a=>a.hintUsed).length+checks.filter(c=>c.hintUsed).length}/>
      {episode===6&&<GameFinale title="Bütün hikâyeleri sıraladın!"
       detail="Altı hikâyenin hepsinde olayları doğru sıraya koydun."/>}
-     <div className="ss-bottom-actions">
-       {episode<6&&<button type="button" className="ss-primary"
-         onClick={()=>start((episode+1) as ForestEpisode)}>Yeni hikâye →</button>}
-       <button type="button" className="ss-secondary" onClick={()=>start(episode)}>↻ Tekrar Oyna</button>
-       <button type="button" className="ss-secondary" onClick={back}>Hikâyelere dön</button>
-     </div>
-     <StoryRewardLines rate={voiceRate}
-      lines={deck?deck.frames.map(frame=>frame.narration[deck.englishLevel]):[]}/>
+    </GameResult>
+    <StoryRewardLines rate={voiceRate}
+     lines={deck?deck.frames.map(frame=>frame.narration[deck.englishLevel]):[]}/>
   </main>}
  </div>;
 }

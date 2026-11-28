@@ -64,9 +64,9 @@ test('Colours are shown true: the asked crystal is not dimmed and light crystals
 
 test('HUD tools, honest reward with a tap-to-hear recap, English marked English, phone fill',()=>{
  const code=ui();
- const hud=code.slice(code.indexOf('<div className="tp8-hud-tools">'),code.indexOf('</header>'));
+ const hud=code.slice(code.indexOf('<GameTopBar island="garden"'),code.indexOf('<div className="tp-shell'));
  assert.match(hud,/<GardenHelp label="Keşif Tapınağı nasıl oynanır\?">/);
- assert.match(hud,/className="tp-mute"/);
+ assert.match(hud,/className="gf-tool tp-mute"/);
  assert.equal((code.match(/<GardenHelp/g)||[]).length,1,'one help button');
  assert.doesNotMatch(code,/<footer className="tp-footer"|Tapınak rünü|İngilizce mührü açtın/);
  assert.match(code,/\{stage===1\?`\$\{answers\.length\} kelimenin İngilizcesini dinledin`:/);
@@ -76,9 +76,11 @@ test('HUD tools, honest reward with a tap-to-hear recap, English marked English,
  assert.match(code,/<span className="tp-rune-text tp6-rune-text" lang=\{mode==='en'\?'en':undefined\}>/);
  assert.match(code,/aria-label="Oluşturulan İngilizce cümle" lang="en"/);
  const style=css();
- assert.match(style,/@media\(max-height:940px\)\{\n \.tp8-screen \.tp6-finished\{display:flex;flex-direction:column;align-items:center\}/);
+ // The reward is the shared result card; the recap moves below the buttons on short screens.
+ assert.match(code,/finished\?<GameResult island="garden" className="tp-finished tp6-finished" titleRef=\{doneHeading\}/);
+ assert.match(style,/@media\(max-height:940px\)\{\n \.tp8-screen \.tp6-finished \.tp8-recap\{order:10/);
  assert.match(style,/min-height:calc\(100dvh - var\(--tp8-chrome,260px\) - env\(safe-area-inset-bottom,0px\)\)/);
- assert.match(style,/\.tp8-screen \.gg-quest-location\{position:absolute;width:1px;height:1px;/);
+ assert.doesNotMatch(code,/gg-quest-location|tp8-scene-count/,'place and progress live in the shared top bar');
  const imports=[...code.matchAll(/^import '\.\/([^']+\.css)';/gm)].map(m=>m[1]);
  assert.deepEqual(imports.slice(-3),['garden-quest-navigation.css','temple-premium.css','garden-child-legibility.css']);
 });

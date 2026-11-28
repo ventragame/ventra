@@ -31,6 +31,6 @@
 .ss-root .ss-reward{justify-content:flex-start;
  padding-bottom:calc(16px + env(safe-area-inset-bottom,0px))}
 .sj-root .sj-reward>*,.sd-root .sd-reward>*,.ss-root .ss-reward>*{flex-shrink:0}
-.sj-root .sj-reward-scene,.ss-root .ss-reward-visual,.sd-root .sd-reward-illustration{margin-top:auto}
+.sj-root .sj-reward>.gf-result,.ss-root .ss-reward>.gf-result,.sd-root .sd-reward>.gf-result{margin-top:auto;margin-bottom:6px}
 .sj-root .sj-reward>:last-child,.sd-root .sd-reward>:last-child,.ss-root .ss-reward>:last-child{margin-bottom:auto}
 @media(prefers-reduced-motion:reduce){.story-recap-line{transition:none}}

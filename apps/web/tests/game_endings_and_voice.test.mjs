@@ -63,7 +63,8 @@ test('Keşif Tapınağı: weak review words never crowd out a hall’s own words
 
 test('Hikâyeyi Keşfet: the reward names the finished world; phone cards clear the hint button',()=>{
  const forest=src('components/learning/story/StoryForestAdventure.tsx');
- assert.match(forest,/<h1 ref=\{rewardHeading\} tabIndex=\{-1\}>\{active\.title\} macerasını tamamladın!<\/h1>/);
+ // The shared GameResult card names the finished world and takes the reward focus.
+ assert.match(forest,/title=\{active\.title\+' macerasını tamamladın!'\} titleRef=\{rewardHeading\}/);
  assert.doesNotMatch(forest,/Bir Hikâye Daha!/);
  const css=src('components/learning/story/premium-story-art.css');
  const phone=css.slice(css.indexOf('@media(max-width:700px)'));
@@ -148,5 +149,5 @@ test('Every game closes its last chapter with the shared finale, only when the g
  assert.match(academy,/zone===ACADEMY_ZONES\.length\?'YILDIZ ATLASI TAMAMLANDI':'ATLASIN BİR SAYFASI DAHA AYDINLANDI'/);
  // Phones keep the last stop's two actions on the first screen next to the note.
  const academyCss=src('components/learning/academy/academy-adventure.css');
- assert.match(academyCss,/@media\(max-width:650px\)\{\n \.academy-finale \.academy-review\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\)\}\n \.academy-finale \.academy-final-icon\{font-size:64px\}\n\}/);
+ assert.match(academyCss,/@media\(max-width:650px\)\{\n \.academy-finale \.academy-review\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\)\}\n\}/);
 });

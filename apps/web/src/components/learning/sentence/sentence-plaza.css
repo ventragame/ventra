@@ -8,28 +8,11 @@
 .sp-overlay button:disabled{cursor:not-allowed}
 .sp-overlay button:focus-visible{outline:3px solid #ffe7a0;outline-offset:4px}
 .sp-overlay h1,.sp-overlay h2,.sp-overlay h3,.sp-overlay p{margin:0}
-.sp-top{position:relative;display:flex;flex-wrap:wrap;gap:12px;align-items:center;justify-content:space-between;
- border:1px solid #d7e5f458;border-radius:23px;background:#142f51dd;padding:12px clamp(13px,2vw,23px);
- box-shadow:0 12px 34px #06152f62,inset 0 1px #ffffff2c;backdrop-filter:blur(12px)}
-.sp-logo{display:flex;align-items:center;gap:12px}
-.sp-logo-emblem{font-size:31px;width:55px;height:55px;display:grid;place-items:center;border-radius:17px;
- border:1px solid #ffdeaf7a;background:linear-gradient(140deg,#9b6bcd,#4a4d98);box-shadow:0 4px 12px #091b3f7f}
-.sp-brand-title{font-size:clamp(19px,2.3vw,28px);font-weight:1000;letter-spacing:-.035em;color:#ffebbc}
 .sp-eyebrow{font-size:12px;font-weight:900;letter-spacing:2px;color:#b2e9ef;text-transform:uppercase}
-.sp-sub{color:#c6dbe8;font-size:12px;margin-top:4px!important}
-.sp-actions{display:flex;align-items:center;flex-wrap:wrap;gap:8px}
-.sp-chip{border:1px solid #b4dce45c;background:#275071b9;border-radius:999px;padding:10px 13px;
- font-size:12px;font-weight:800;color:#e7faf7}
-.sp-back{min-height:46px;padding:10px 15px;border:1px solid #d3eff08c;border-radius:15px;
- background:#ffffff18;color:#fff;font-size:12px;font-weight:950}
-.sp-back:hover{background:#ffffff28}
 .sp-hero{display:flex;align-items:center;justify-content:space-between;gap:20px;padding:27px 6px 20px}
 .sp-hero h2{font-size:clamp(28px,4.1vw,51px);font-weight:1000;letter-spacing:-.045em;line-height:1.06;color:#ffefc2;
  text-shadow:0 6px 22px #1016416b}
 .sp-hero p{margin-top:10px;max-width:625px;color:#d7e8f2;font-size:clamp(12px,1.4vw,15px);line-height:1.65}
-.sp-stars{border:1px solid #ffdb9c7a;border-radius:20px;padding:13px 17px;background:#443d6cb3;min-width:132px;
- text-align:center;color:#ffecb6;font-size:13px;font-weight:900}
-.sp-stars strong{display:block;font-size:30px}
 .sp-layout{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(300px,0.9fr);gap:17px;align-items:start}
 .sp-art{position:relative;border:3px solid #ffdb9e85;border-radius:27px;overflow:hidden;
  background:#497da0;box-shadow:0 15px 50px #010d3285,inset 0 1px #ffffff55}
@@ -66,14 +49,7 @@
 .sp-learn-card strong{display:block;margin-bottom:5px;color:#ffecb3;font-size:12px}
 .sp-learn-card span{display:block;color:#f7fff3;font-size:18px;font-weight:950}
 .sp-learn-card small{display:block;margin-top:5px;color:#d7e7eb;font-size:12px}
-.sp-primary{width:100%;min-height:56px;border-radius:17px;border:2px solid #eafabb;
- background:linear-gradient(125deg,#d0f6a0,#86dfbd);color:#174850;font-weight:1000;
- box-shadow:0 6px 0 #327c73,0 10px 24px #06172a55;padding:12px 18px}
-.sp-primary:hover:not(:disabled){filter:brightness(1.05)}
-.sp-primary:active:not(:disabled){transform:translateY(3px);box-shadow:0 3px 0 #327c73}
-.sp-primary:disabled{opacity:.6}
-.sp-secondary{min-height:44px;border-radius:14px;padding:9px 14px;border:1px solid #b5e9f09a;
- background:#ffffff1b;color:#f3ffff;font-size:12px;font-weight:900}
+.sp-primary{width:100%;min-height:56px}
 .sp-caption{font-size:12px;line-height:1.6;color:#bcd3e1}
 .sp-map-grid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;margin-top:18px}
 .sp-mission{min-height:132px;text-align:left;border:1px solid #cae1f77c;border-radius:22px;padding:16px;
@@ -93,8 +69,6 @@
 .sp-workshop{border-radius:25px;border:1px solid #d9dfef78;background:linear-gradient(155deg,#1e4068ef,#1b2e53f5);padding:20px;
  box-shadow:0 15px 40px #0b163a6b}
 .sp-step{display:flex;align-items:center;justify-content:space-between;gap:8px;font-size:12px;font-weight:900;color:#d3ecf5}
-.sp-meter{height:10px;border:1px solid #dce8d48a;background:#071c35;border-radius:99px;margin:12px 0 20px;overflow:hidden}
-.sp-meter span{display:block;height:100%;background:linear-gradient(90deg,#85d7df,#d3f6ae);border-radius:99px;transition:width .35s}
 .sp-cue{border-left:4px solid #fbe2a0;background:#53749b50;border-radius:0 13px 13px 0;padding:13px 15px;
  font-size:clamp(15px,1.6vw,20px);line-height:1.45;color:#fef0d0;font-weight:950}
 .sp-vocab{display:flex;flex-wrap:wrap;gap:7px;margin:11px 0}
@@ -120,21 +94,17 @@
 .sp-lesson-tip{padding:11px;border-radius:13px;background:#ffffff13;border:1px solid #bfdce86a;
  color:#e8f3f7;font-size:12px;font-weight:800}
 .sp-lesson-tip strong{display:block;margin-top:5px;color:#ffedb9}
-.sp-reward{max-width:770px;margin:30px auto;text-align:center;border:1px solid #ffe1a0ae;border-radius:31px;
- padding:36px 25px;background:radial-gradient(ellipse at 50% 0,#7b6ba6a8,transparent 65%),#263658;
- box-shadow:0 16px 60px #040f2996}
-.sp-reward h2{font-size:clamp(26px,5vw,44px);color:#ffefb0}.sp-reward p{color:#d9eff7;margin:12px auto;max-width:530px}
-.sp-reward-stars{font-size:clamp(34px,7vw,68px);letter-spacing:9px;filter:drop-shadow(0 3px 10px #ffe1aa66)}
-/* The victory burst belongs to the title and stars, not the middle of a tall
-   phone panel where it covered the first result card. */
-.sp-reward>.learning-motion{bottom:auto;height:min(440px,62%)}
+/* Reward: the shared game-frame result card. The victory burst stays on the
+   painted cover above the title, not over the result cards on a tall phone. */
+.sp-result{max-width:770px}
+.sp-result .gf-result-art{aspect-ratio:16/7;min-height:0}
+.sp-result .gf-result-art>img{height:100%;max-height:none}
+.sp-result .gf-result-art>.learning-motion{bottom:auto;height:100%}
+.sp-result .sp-lesson-grid{width:100%;margin:6px 0}
 @media(max-width:950px){.sp-layout,.sp-game-layout{grid-template-columns:1fr}
 .sp-side{padding:18px}.sp-map-grid{grid-template-columns:repeat(2,minmax(0,1fr))}}
-@media(max-width:610px){.sp-wrap{padding:9px 9px 50px}.sp-top{padding:8px 10px;gap:7px}
-.sp-logo-emblem{width:39px;height:39px;font-size:22px}.sp-brand-title{font-size:18px}
-.sp-back{min-height:44px}.sp-chip{padding:7px 9px;font-size:12px}
-.sp-hero{padding:16px 4px}.sp-hero h2{font-size:29px}.sp-stars{padding:10px;min-width:88px}
-.sp-stars strong{font-size:23px}.sp-map-grid{gap:8px}.sp-mission{min-height:115px;padding:11px}
+@media(max-width:610px){.sp-wrap{padding:9px 9px 50px}
+.sp-hero{padding:16px 4px}.sp-hero h2{font-size:29px}.sp-map-grid{gap:8px}.sp-mission{min-height:115px;padding:11px}
 .sp-mission strong{font-size:12px}.sp-future-grid{grid-template-columns:repeat(2,1fr)}
 .sp-world-svg{min-height:195px}.sp-workshop{padding:13px}
 .sp-tile{min-height:52px;min-width:58px}.sp-slot{padding:8px;min-height:40px}
@@ -147,5 +117,7 @@
  color:#ffffff;text-shadow:0 1px 4px #1634478c;font-size:22px}
 @media(prefers-reduced-motion:reduce){.sp-color-swatch{transition:none}}
 
-/* iOS notch / Dynamic Island: full-screen scroll root starts below the status bar (0 elsewhere). */
-.sp-overlay{padding-top:env(safe-area-inset-top,0px);padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+/* Shared game frame: the sticky .gf-bar takes the iOS status-bar inset (env(safe-area-inset-top)),
+ * so the scroll root only keeps the side insets. */
+.sp-overlay{padding-left:env(safe-area-inset-left,0px);padding-right:env(safe-area-inset-right,0px)}
+.sp-overlay .gf-bar{--gf-max:1320px}

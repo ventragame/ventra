@@ -20,6 +20,7 @@ import './garden-child-legibility.css';
 import {GardenHelp} from '../GardenHelp';
 import {LearningMotion} from '@/components/learning/motion/LearningMotion';
 import {GameFinale} from '../GameFinale';
+import {GameTopBar,GameResult} from '../game/GameFrame';
 
 type Props={
  profileId:string;gradeLevel?:number|null;englishLevel:EnglishPlacement;
@@ -260,49 +261,37 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
  const canHear=!muted&&soundService.hasEnglishSpeech();
  return <div ref={dialog} role="dialog" aria-modal="true" aria-label="Lezzet Pazarı İngilizce macerası"
  className="fm-screen fm4-screen fm6-screen gg-quest-screen fm7-screen" data-aisle={aisle} data-stage={stage}>
+  <GameTopBar island="garden" gameExit backDisabled={busy} onBack={()=>{cancelVoice();onBack();}}
+   backLabel="Bölgeler" backAriaLabel="Kelime Bahçesi bölgelerine dön" crest="🍓" accent="#ffc58a"
+   eyebrow={'Kelime Bahçesi · '+currentAisle.title} title="Lezzet Pazarı" titleAs="p"
+   progress={current&&!finished?{current:stage===1?completed:Math.min(completed+1,Math.max(1,numberOfQuestions)),total:Math.max(1,numberOfQuestions),label:stage===1?'Keşif':'Görev'}:undefined}
+   stars={{earned:Object.values(progress.starsByLevel).reduce((n,v)=>n+v,0),total:45}}
+   tools={<>
+    <GardenHelp label="Lezzet Pazarı nasıl oynanır?">
+     <p><strong>{stageMeta.title}:</strong> {stageMeta.description}</p>
+     <p>Her sokakta beş görev var: keşfet, kelimeyi bul, dinle, siparişi anla ve sepeti doldur. Ses açılmasa da yazılı destekle oynanabilir; destekli cevaplar ayrıca kaydedilir.</p>
+    </GardenHelp>
+    <button type="button" className="gf-tool" onClick={()=>{const next=!muted;setMuted(next);soundService.toggleMute();
+     if(next)cancelVoice();}} aria-label={muted?'Sesi aç':'Sesi kapat'} aria-pressed={muted}>{muted?'🔇':'🔊'}</button>
+   </>}/>
   <div className="fm-shell fm4-shell">
-   <header className="fm-header fm4-header">
-    <button type="button" data-game-exit className="fm-back fm4-back" disabled={busy} aria-label="Kelime Bahçesi’ne dön" onClick={()=>{cancelVoice();onBack();}}>
-      <span className="fm4-back-arrow" aria-hidden="true">‹</span><span className="fm4-back-label">Kelime Bahçesi</span>
-     </button>
-    <div className="fm-brand fm4-brand"><span>VENTRA KIDS · WORD GARDEN</span><h1><span aria-hidden="true">🍓</span> Lezzet Pazarı</h1>
-      <p className="sr-only" lang="en">See it · Hear it · Say it · Find it!</p></div>
-    <div className="fm7-hud-tools">
-     <div className="fm-score fm4-score">⭐ {Object.values(progress.starsByLevel).reduce((n,v)=>n+v,0)} / 45</div>
-     <GardenHelp label="Lezzet Pazarı nasıl oynanır?">
-      <p><strong>{stageMeta.title}:</strong> {stageMeta.description}</p>
-      <p>Her sokakta beş görev var: keşfet, kelimeyi bul, dinle, siparişi anla ve sepeti doldur. Ses açılmasa da yazılı destekle oynanabilir; destekli cevaplar ayrıca kaydedilir.</p>
-     </GardenHelp>
-     <button className="fm-sound fm4-sound" onClick={()=>{const next=!muted;setMuted(next);soundService.toggleMute();
-      if(next)cancelVoice();}} aria-label={muted?'Sesi aç':'Sesi kapat'}>{muted?'🔇':'🔊'}</button>
-    </div>
-   </header>
-   <GardenQuestNavigator areaTitle={currentAisle.title} stageTitle={stageMeta.title} stage={stage} totalStages={5}>
-   <section className="fm-map fm4-map gg-quest-zone-nav" aria-label="Pazar sokakları">
-    {MARKET_AISLES.map((lane,i)=>{
+   <div className="fm-brand sr-only"><h1>Lezzet Pazarı</h1>
+     <p lang="en">See it · Hear it · Say it · Find it!</p></div>
+   <GardenQuestNavigator zoneLabel="Pazar sokakları" stageLabel="Dil görevleri"
+    zones={MARKET_AISLES.map((lane,i)=>{
      const unlocked=allowedAisle(i);
-     return <button key={lane.id} disabled={!unlocked||busy} onClick={()=>changeStage(
-      Math.min(5,progress.completedByAisle[lane.id]+1) as MarketStage,lane.id)}
-      data-current={lane.id===aisle} data-aisle={lane.id}
-      aria-current={lane.id===aisle?'true':undefined}
-       className={`fm-lane fm4-lane gg-quest-zone ${lane.id===aisle?'fm-lane-active':''}`}>
-      <span className="fm6-lane-art" aria-hidden="true"><img src={MARKET_ART[lane.id]} alt="" loading="lazy" decoding="async" draggable={false}/></span>
-      <span className="fm-lane-icon" aria-hidden="true">{lane.icon}</span>
-      <span className="fm-lane-copy"><strong>{lane.title}</strong><small>{unlocked?`${progress.completedByAisle[lane.id]}/5 görev`:'Önce önceki sokağı tamamla'}</small></span>
-     </button>})}
-   </section>
-   <section className="fm-stagebar fm4-stagebar gg-quest-stage-nav" aria-label="Dil görevleri">
-    {MARKET_STAGES.map(item=><button key={item.stage} disabled={!stageEnabled(item.stage)||busy}
-      data-current={item.stage===stage}
-      data-completed={progress.starsByLevel[MARKET_OFFSETS[aisle]+item.stage]>0}
-      aria-label={`${item.stage}. ${item.title}${stageEnabled(item.stage)?'':' (henüz açılmadı)'}`}
-       aria-current={item.stage===stage?'step':undefined}
-       className={`fm-stage-pill fm4-stage-pill gg-quest-step ${item.stage===stage?'fm-pill-active':''}`}
-      onClick={()=>changeStage(item.stage as MarketStage)}>
-      <span className="fm4-step-icon" aria-hidden="true">{item.icon}</span><span className="fm4-step-name">{item.stage}. {item.title}</span><span className="fm4-step-index">{item.stage}/5</span>
-    </button>)}
-   </section>
-   </GardenQuestNavigator>
+     return {key:lane.id,label:lane.title,className:'fm-lane',
+      icon:<img src={MARKET_ART[lane.id]} alt="" loading="lazy" decoding="async" draggable={false}/>,
+      note:unlocked?`${progress.completedByAisle[lane.id]}/5 görev`:'Önceki sokağı tamamla',
+      state:lane.id===aisle?'current':!unlocked?'locked':progress.completedByAisle[lane.id]===5?'done':'upcoming',
+      disabled:busy,onSelect:()=>changeStage(Math.min(5,progress.completedByAisle[lane.id]+1) as MarketStage,lane.id),
+      ariaLabel:lane.title+(unlocked?` · ${progress.completedByAisle[lane.id]}/5 görev`:' · önce önceki sokağı tamamla')};
+    })}
+    stages={MARKET_STAGES.map(item=>({key:String(item.stage),label:item.title,icon:item.icon,className:'fm-stage-pill',
+     state:item.stage===stage?'current':!stageEnabled(item.stage)?'locked':
+      progress.starsByLevel[MARKET_OFFSETS[aisle]+item.stage]>0?'done':'upcoming',
+     disabled:busy,onSelect:()=>changeStage(item.stage as MarketStage),
+     ariaLabel:`${item.stage}. ${item.title}${stageEnabled(item.stage)?'':' (henüz açılmadı)'}`}))}/>
    <section className="fm-play fm4-play" aria-label={stageMeta.title}>
     <div className="fm-scenery fm4-scenery">
       <MarketBackdrop aisle={aisle}/>
@@ -313,24 +302,30 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
       <div className="fm-scene-label fm4-scene-label"><span>{currentAisle.icon}</span><div>
         <strong>{currentAisle.title}</strong><small lang="en">{currentAisle.subtitle}</small></div>
       </div>
-      <span className="fm7-scene-count" aria-label={`Görev ilerlemesi ${completed} / ${numberOfQuestions}`}>{completed}/{numberOfQuestions}</span>
       {toast&&<p className="fm7-toast" data-good={toast.good} role="status" aria-live="polite">
         <span lang={toast.lang}>{toast.text}</span>{toast.detail&&<small>{toast.detail}</small>}
       </p>}
     </div>
     <div className="fm-workshop fm4-workshop">
      <h2 className="sr-only">{stageMeta.title}</h2>
-     <div className="fm-meter fm4-meter" role="progressbar" aria-label="Görev ilerlemesi" aria-valuemin={0}
-       aria-valuemax={Math.max(1,numberOfQuestions)} aria-valuenow={completed}>
-       <span style={{width:`${100*completed/Math.max(1,numberOfQuestions)}%`}}/></div>
      {loadError?<div className="fm-error" role="alert">Öğrenme görevi açılamadı.
-       <button onClick={()=>changeStage(stage)}>Tekrar Dene</button></div>:
+       <button type="button" className="gf-btn gf-btn--primary" onClick={()=>changeStage(stage)}>Tekrar Dene</button></div>:
      !current?<div className="fm-loading" role="status">Pazar sokağı hazırlanıyor…</div>:
-     finished?<div className="fm-win fm4-win">
-       <div className="fm-win-icon">🏆</div><h2 ref={doneHeading} tabIndex={-1} lang="en">Fantastic! Great shopping!</h2>
-       <p className="fm-gained" aria-label={`${stars} yıldız kazanıldı`}>{'⭐'.repeat(stars)}</p>
-       <p className="fm7-win-stats">{stage===1?`${answers.length} ürünün İngilizcesini dinledin`:
-         `${practised.length} doğru · ${wrong} yanlış deneme${assisted?` · ${assisted} destekli`:''}`}</p>
+     finished?<GameResult island="garden" className="fm-win fm4-win" titleRef={doneHeading}
+       art={<img src={MARKET_ART[aisle]} alt="" decoding="async" draggable={false}/>}
+       kicker={currentAisle.title+' · '+stageMeta.title} title="Fantastic! Great shopping!" titleLang="en"
+       stars={{earned:stars}}
+       message={<span className="fm7-win-stats">{stage===1?`${answers.length} ürünün İngilizcesini dinledin`:
+         `${practised.length} doğru · ${wrong} yanlış deneme${assisted?` · ${assisted} destekli`:''}`}</span>}
+       actions={<>
+         <button type="button" className="fm-cta gf-btn gf-btn--primary" onClick={()=>{
+           if(stage<5)changeStage((stage+1) as MarketStage);
+           else if(aisle==='orchard')changeStage(1,'bakery');
+           else if(aisle==='bakery')changeStage(1,'cafe');
+           else onBack();
+         }}>{stage<5?'Sonraki Dil Görevi →':aisle==='cafe'?'Bahçeye Dön':'Sonraki Sokağı Keşfet →'}</button>
+         <button type="button" className="fm-secondary gf-btn gf-btn--secondary" onClick={()=>changeStage(stage)}>↻ Tekrar Oyna</button>
+       </>}>
        {recap.length>0&&<div className="fm7-recap" role="group" aria-label="Bu görevin İngilizce kelimeleri">
          <p className="fm7-recap-title">Bu görevin kelimeleri · dokun ve dinle</p>
          <div className="fm7-recap-list">{recap.map(id=><button key={id} type="button" className="fm7-recap-word"
@@ -339,14 +334,7 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
        </div>}
        {aisle==='cafe'&&stage===5&&<GameFinale title="Lezzet Pazarı tamamlandı!"
         detail="Üç sokağın 15 görevinin hepsini bitirdin."/>}
-       <button className="fm-cta" onClick={()=>{
-         if(stage<5)changeStage((stage+1) as MarketStage);
-         else if(aisle==='orchard')changeStage(1,'bakery');
-         else if(aisle==='bakery')changeStage(1,'cafe');
-         else onBack();
-       }}>{stage<5?'Sonraki Dil Görevi →':aisle==='cafe'?'Bahçeye Dön':'Sonraki Sokağı Keşfet →'}</button>
-       <button className="fm-secondary" onClick={()=>changeStage(stage)}>↻ Tekrar Oyna</button>
-     </div>:
+     </GameResult>:
      <div className="fm-activity fm4-activity">
       {stage===1?<>
        <div className="fm-command fm4-command"><span>👆</span><div><strong lang="en">Explore & listen</strong><small>Her ürüne dokun, İngilizce adını keşfet.</small></div></div>
@@ -372,10 +360,10 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
          <span className="fm4-featured-stand" aria-hidden="true"><FoodIllustration id={task.target} className="fm4-featured-product"/></span>
         </div>}
        {(stage===3||stage===4)&&<div className="fm-audio-panel fm4-audio-panel fm5-customer-audio">
-          <button type="button" className="fm-audio-button" disabled={busy||success} onClick={()=>speak(task.audio,true)}>
+          <button type="button" className="fm-audio-button gf-btn gf-btn--tool" disabled={busy||success} onClick={()=>speak(task.audio,true)}>
             {speaking?'🔉 Dinleniyor…':stage===4?'▶ Müşteriyi Dinle':'▶ İngilizceyi Dinle'}
           </button>
-          <button type="button" className="fm-text-hint" disabled={busy||success}
+          <button type="button" className="fm-text-hint gf-btn gf-btn--tool" disabled={busy||success}
            onClick={()=>{setHint(true);setFeedback({good:true,text:'Yazılı destek açık',detail:'Bu cevap destekli sayılır.'})}}>
            Yazılı yardım
           </button>
@@ -383,9 +371,9 @@ export function FoodMarketAdventure({profileId,gradeLevel=null,englishLevel,prog
           {!heard&&!hint&&<p className="fm5-listen-status">Önce dinle: ürünler sesi duyduktan sonra açılır.</p>}
         </div>}
         {(stage===2||stage===5)&&<div className="fm-hint-row">
-          <button type="button" className="fm-text-hint" disabled={busy||success}
+          <button type="button" className="fm-text-hint gf-btn gf-btn--tool" disabled={busy||success}
            onClick={()=>{setHint(true);setFeedback({good:true,text:'💡 İpucu açık',detail:'Bu cevap destekli sayılır.'})}}>💡 İpucu</button>
-          <button type="button" className="fm-text-hint" disabled={busy||success}
+          <button type="button" className="fm-text-hint gf-btn gf-btn--tool" disabled={busy||success}
            onClick={()=>{setHint(true);speak(task.audio);}}>🔊 İngilizceyi Duy</button>
           {hint&&<span className="fm7-hint-text">{stage===2?`İlk harf: ${task.target[0].toUpperCase()}`:`Şimdi: ${marketWord(task.target).tr}`}</span>}
         </div>}

@@ -56,7 +56,9 @@ test('The asked number is shown big; feedback lives in the scene; the celebratio
  const style=css();
  assert.match(style,/\.nv6-root \.nv5-landscape \.learning-motion\{z-index:2\}/);
  assert.match(style,/\.nv6-root \.nv5-finale \.learning-motion\{z-index:0\}/);
- assert.match(style,/\.nv6-root \.nv5-finale>\*:not\(\.learning-motion\)\{position:relative;z-index:1\}/);
+ // The finale is the shared result card; the celebration plays inside its art.
+ assert.match(code,/\{completed&&<GameResult island="garden" className="nv5-finale" titleRef=\{doneHeading\}/);
+ assert.match(code,/art=\{<><LearningMotion variant="victory"/);
  // Waiting stones are dimmed, not see-through (the scenery showed through them).
  assert.match(style,/\.nv6-root \.nv5-answer:disabled\{opacity:1;filter:grayscale\(\.65\) brightness\(\.86\)\}/);
 });
@@ -76,14 +78,17 @@ test('Reward: honest result, tap-to-hear recap, next button first on short scree
  assert.match(code,/onClick=\{\(\)=>speak\(value,stage===5\)\} disabled=\{muted\|\|!speechAvailable\}/);
  assert.match(code,/<span lang="en">\{englishNumber\(value\)\}<\/span><\/button>\)\}/);
  const style=css();
- assert.match(style,/@media\(max-height:940px\)\{\n \.nv6-root \.nv5-finale\{display:flex;flex-direction:column\}\n \.nv6-root \.nv5-finale \.nv5-recap\{order:10\}/);
+ // The result card body is a flex column: the recap moves below the buttons on short screens.
+ assert.match(style,/@media\(max-height:940px\)\{\n \.nv6-root \.nv5-finale \.nv5-recap\{order:10\}/);
  assert.match(style,/\.nv6-root \.nv5-finale-stage\{width:100%;/,'auto margins shrank the scene in the flex column');
 });
 
 test('Compact chrome, help in the HUD, 12px floor, phone fill and Turkish/English casing',()=>{
  const code=ui();
- const hud=code.slice(code.indexOf('<header className="nv5-header">'),code.indexOf('</header>'));
+ const hud=code.slice(code.indexOf('<GameTopBar island="garden"'),code.indexOf('<main className="nv5-main'));
+ assert.match(hud,/gameExit backClassName="gg-game-control" backDisabled=\{saving\} onBack=\{onBack\}/);
  assert.match(hud,/<GardenHelp label="Sayı Vadisi nasıl oynanır\?">/);
+ assert.match(hud,/className="gf-tool gg-game-control"/,'sound sits with help in the top bar');
  assert.doesNotMatch(code,/<footer className="nv5-footer/,'the footer note moved into help');
  assert.match(code,/const upperTr=\(text:string\)=>text\.toLocaleUpperCase\('tr-TR'\);/,'"KRISTAL PATIKASI" → "KRİSTAL PATİKASI"');
  assert.match(code,/<span className="nv5-crystal-word" lang="en">/);
@@ -91,8 +96,10 @@ test('Compact chrome, help in the HUD, 12px floor, phone fill and Turkish/Englis
  assert.match(code,/aria-label="Oluşturulan İngilizce cümle" lang="en"/);
  assert.doesNotMatch(code,/Işık taşı|Sayı kristali \{/,'filler labels under the answers');
  const style=css();
- for(const rule of [/\.nv6-root \.nv5-intro \.nv5-eyebrow\{font-size:12px/,/\.nv6-root \.nv5-band-range\{font-size:12px/,
-  /\.nv6-root \.nv5-chapter-index\{font-size:12px\}/,/\.nv6-root \.nv5-scene-kicker\{font-size:12px/])assert.match(style,rule);
+ // Paths and chapters are the shared step rails (12px+ labels live in game-frame.css).
+ assert.match(code,/<GameStepRail island="garden" className="nv5-bands" ariaLabel="Sayı Vadisi sayı yolları" showNotes/);
+ assert.match(code,/<GameStepRail island="garden" className="nv5-chapters" ariaLabel="Sayı Vadisi görevleri"/);
+ assert.match(style,/\.nv6-root \.nv5-scene-kicker\{font-size:12px/);
  assert.match(style,/min-height:calc\(100dvh - var\(--nv-chrome,284px\) - env\(safe-area-inset-bottom,0px\)\)!important/);
  assert.match(style,/\.nv6-root \.nv5-play>\.nv5-answer-grid,\.nv6-root \.nv5-play>\.nv5-crystals,/);
  assert.match(style,/\.nv6-root \.nv5-answer-grid\[data-count="3"\]\{grid-template-columns:repeat\(3,minmax\(0,1fr\)\)\}/);

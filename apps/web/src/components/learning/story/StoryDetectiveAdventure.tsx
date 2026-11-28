@@ -30,6 +30,7 @@ import './story-character-motion.css';
 import './story-motion-guards.css';
 import './story-scene-standard.css';
 import {GameFinale} from '../GameFinale';
+import {GameTopBar,GameResult} from '../game/GameFrame';
 
 interface Props{
  profileId:string;gradeLevel:number|null;englishLevel:ForestPlacement;
@@ -321,23 +322,16 @@ export function StoryDetectiveAdventure({profileId,gradeLevel,englishLevel,onBac
  const isStep=phase==='step'&&!!step;
  return <div className="sd-root sd-adventure-root" role="dialog" aria-modal="true"
   aria-label="Hikâye Dedektifi">
-  <header className="sd-header">
-   <button type="button" className="sd-back" onClick={back} disabled={busy}
-    aria-label={view==='chapters'?"Hikâye Ormanı'na dön":'Bölümlere dön'}>←</button>
-   {/* The chapter list has its own cover h1; a case in play is titled here. */}
-   {view==='chapters'?<strong>🔍 Hikâye Dedektifi</strong>:
-    <h1 className="sd-header-title">{chapter?.title??'Hikâye Dedektifi'}</h1>}
-   <div className="sd-header-right">
-    {view==='playing'&&<div className="sd-steps sd-adventure-pips"
-      aria-label={'Macera adımı '+(position+1)+' / '+(visualCount+2)}>
-      {Array.from({length:visualCount+2},(_,i)=>
-       <i key={i} className={i<position?'done':i===position?'active':''}/>)}
-     </div>}
-    <span className="sd-count">{view==='chapters'?
-     '★ '+progress.completedLevels+'/6':view==='reward'?'★ '+stars:
-      '✦ '+(position+1)+'/'+(visualCount+2)}</span>
-   </div>
-  </header>
+  {/* The chapter list has its own cover h1; a case in play is titled by the bar. */}
+  <GameTopBar island="story" onBack={back} backDisabled={busy}
+   backLabel={view==='chapters'?'Oyunlar':'Dosyalar'}
+   backAriaLabel={view==='chapters'?"Hikâye Ormanı'na dön":'Dedektif dosyalarına dön'}
+   crest="🔍" eyebrow={view==='chapters'?'Hikâye Ormanı':'Hikâye Dedektifi · Dosya '+String(chapter?.episode??1).padStart(2,'0')}
+   title={view==='chapters'?'Hikâye Dedektifi':chapter?.title??'Hikâye Dedektifi'}
+   titleAs={view==='chapters'?'p':'h1'}
+   chips={view==='chapters'?[(loading||loadError?'…':progress.completedLevels)+'/6 dosya']:undefined}
+   progress={view==='playing'?{current:position+1,total:visualCount+2,label:'Adım'}:undefined}
+   stars={view==='reward'?{earned:stars,total:3}:undefined}/>
 
   {view==='chapters'&&<main className="sd-chapters">
    <section className="sd-cover">
@@ -351,7 +345,7 @@ export function StoryDetectiveAdventure({profileId,gradeLevel,englishLevel,onBac
    </section>
    {loading&&<p className="sd-status" role="status">Macera dünyaları açılıyor…</p>}
    {loadError&&<div className="sd-status" role="alert">{loadError}{' '}
-    <button type="button" className="sd-secondary" onClick={()=>setLoadAttempt(n=>n+1)}>↻ Tekrar dene</button>
+    <button type="button" className="gf-btn gf-btn--secondary" onClick={()=>setLoadAttempt(n=>n+1)}>↻ Tekrar dene</button>
    </div>}
    {!loading&&!loadError&&<>
     <div className="sd-available">🔍 6 bölüm · Her seferinde yeni bir macera yolu</div>
@@ -479,7 +473,7 @@ export function StoryDetectiveAdventure({profileId,gradeLevel,englishLevel,onBac
      <span>✦</span>
     </div>}
     <div className="sd-controls">
-     <button type="button" className="sd-hint" onClick={hint}
+     <button type="button" className="sd-hint gf-btn gf-btn--tool" onClick={hint}
       disabled={busy||locked.current||phase!=='step'||step?.kind==='crossroads'}
       aria-label="Doğru görseli aydınlat">💡 <span>İpucu</span></button>
      <div role="status" aria-live="polite" className="sd-feedback">
@@ -487,9 +481,9 @@ export function StoryDetectiveAdventure({profileId,gradeLevel,englishLevel,onBac
        phase==='step'?('✦ '+answers.length+'/'+visualCount):''}
      </div>
      {(phase==='opening'||phase==='ending')&&<button type="button"
-      className="sd-next" disabled={busy}
+      className="sd-next gf-btn gf-btn--primary" disabled={busy}
       onClick={nextPassive}
-      aria-label={phase==='opening'?'Macera başlasın':'Ödül ekranına geç'}>▶</button>}
+      aria-label={phase==='opening'?'Macera başlasın':'Ödül ekranına geç'}>Devam <span aria-hidden="true">▶</span></button>}
     </div>
     {busy&&<p role="status" className="sd-status">Macera kaydediliyor…</p>}
     {saveError&&<div role="alert" className="sd-error">{saveError}
@@ -500,28 +494,27 @@ export function StoryDetectiveAdventure({profileId,gradeLevel,englishLevel,onBac
   </main>}
 
   {view==='reward'&&plan&&chapter&&<main className="sd-reward">
-   <div className="sd-reward-illustration">
-    <StoryForestScenery scene={plan.chosen.destination}/>
-    <LearningMotion variant="victory" trigger={'detective-saved-'+chapter.episode}/> 
-    <div className="sd-reward-mascot"><StoryForestActor id={plan.setup.hero} motion="cheer"/></div>
-    <div className="sd-reward-helper"><StoryForestActor id={plan.setup.friend} motion="cheer"/></div>
-    <div className="sd-reward-item"><DetectiveLostItem id={plan.setup.item}/></div>
-   </div>
-   <h2 ref={rewardHeading} tabIndex={-1}>Gizem Çözüldü!</h2>
-   <div className="sd-reward-stars" aria-label={stars+' yıldız'}>
-    {[1,2,3].map(n=><span className={n<=stars?'earned':''} key={n}>★</span>)}
-   </div>
-   <StoryRewardSummary stars={stars} mistakes={answers.reduce((n,a)=>n+a.mistakes,0)}
-    hints={answers.filter(a=>a.hintUsed).length}/>
-   {chapter.episode===6&&<GameFinale title="Bütün gizemleri çözdün!"
-    detail="Hikâye Dedektifi’nin altı bölümünün hepsini tamamladın."/>}
-   <div className="sd-reward-actions">
-    <button type="button" className="sd-primary"
-     onClick={()=>start(chapter.episode)}>↻ Başka Macera</button>
-    {chapter.episode<6&&<button type="button" className="sd-primary"
-     onClick={()=>start((chapter.episode+1) as ForestEpisode)}>Sonraki Bölüm →</button>}
-    <button type="button" className="sd-secondary" onClick={back}>Bölümler</button>
-   </div>
+   <GameResult island="story" className="sd-result" kicker="Dosya kapandı"
+    title="Gizem Çözüldü!" titleRef={rewardHeading} stars={{earned:stars}}
+    art={<div className="sd-reward-illustration">
+     <StoryForestScenery scene={plan.chosen.destination}/>
+     <LearningMotion variant="victory" trigger={'detective-saved-'+chapter.episode}/>
+     <div className="sd-reward-mascot"><StoryForestActor id={plan.setup.hero} motion="cheer"/></div>
+     <div className="sd-reward-helper"><StoryForestActor id={plan.setup.friend} motion="cheer"/></div>
+     <div className="sd-reward-item"><DetectiveLostItem id={plan.setup.item}/></div>
+    </div>}
+    actions={<>
+     {chapter.episode<6&&<button type="button" className="gf-btn gf-btn--primary"
+      onClick={()=>start((chapter.episode+1) as ForestEpisode)}>Sonraki Bölüm →</button>}
+     <button type="button" className={'gf-btn '+(chapter.episode<6?'gf-btn--secondary':'gf-btn--primary')}
+      onClick={()=>start(chapter.episode)}>↻ Başka Macera</button>
+     <button type="button" className="gf-btn gf-btn--secondary" onClick={back}>Bölümler</button>
+    </>}>
+    <StoryRewardSummary stars={stars} mistakes={answers.reduce((n,a)=>n+a.mistakes,0)}
+     hints={answers.filter(a=>a.hintUsed).length}/>
+    {chapter.episode===6&&<GameFinale title="Bütün gizemleri çözdün!"
+     detail="Hikâye Dedektifi’nin altı bölümünün hepsini tamamladın."/>}
+   </GameResult>
    {/* The case retold: opening, the helper and clue lines, the happy ending. */}
    <StoryRewardLines rate={detectiveVoiceRate(englishLevel,gradeLevel)} lines={[
     detectiveAdventureNarration(plan,'opening'),

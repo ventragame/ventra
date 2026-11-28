@@ -15,19 +15,6 @@
 }
 .fv4-screen .fv4-shell{max-width:1320px;margin:0 auto}
 /* Scenic masthead and layered wooden village signage */
-.fv4-screen .fv3-top{
-  position:relative;top:auto;isolation:isolate;
-  min-height:92px;margin:0 0 16px;padding:12px 18px;gap:16px;overflow:hidden;
-  border-radius:22px;border:2px solid #bba5dbb0;
-  background:linear-gradient(90deg,#122346c9,#2c2154c7 51%,#112d4fc9),
-    url('/assets/word-garden/premium-v2/family.webp') center 40%/cover;
-  box-shadow:0 6px 0 #0e2040,0 14px 30px #060f2c6e, inset 0 1px 0 #ffffff65;
-  backdrop-filter:none;
-}
-.fv4-screen .fv3-top::after{
-  content:"";position:absolute;inset:0;z-index:-1;pointer-events:none;
-  background:linear-gradient(180deg,#090d360d,transparent 50%,#0f194371);
-}
 .fv4-screen .fv4-heading{
   position:relative;isolation:isolate;flex:0 1 465px;min-width:0;
   margin:0 auto;padding:11px 32px 14px;border:4px solid #f6c885;
@@ -56,69 +43,8 @@
 }
 .fv4-heading-mark{display:inline-block;transform:rotate(5deg);
   font-size:.75em;vertical-align:.08em;filter:drop-shadow(0 2px 1px #51302d)}
-.fv4-screen .fv3-back,.fv4-screen .fv4-stars{
-  flex:none;min-height:49px;padding:10px 15px;border:2px solid #d9c8ff;
-  background:linear-gradient(145deg,#142c6fe8,#201a57f0);
-  color:#fff9e8;border-radius:100px;box-shadow:0 4px 0 #291b5e,0 6px 15px #04163085;
-  font-size:13px;font-weight:950;white-space:nowrap;
-}
-.fv4-screen .fv3-back:hover{background:#3c387d}
-.fv4-screen .fv4-stars{border-color:#ffd67f;color:#fff4cc;font-size:14px}
-.fv4-screen .fv4-stars>span{font-size:18px;margin-right:3px}
-.fv4-screen .fv4-back-arrow{font-size:25px}
 /* Navigation cards: deep violet unselected / glowing parchment selected. */
-.fv4-screen .fv3-district-nav{gap:12px;margin-bottom:13px}
-.fv4-screen .fv3-district{
-  min-height:82px;display:flex;align-items:center;justify-content:flex-start;
-  position:relative;gap:12px;padding:11px 15px;overflow:hidden;
-  border:2px solid #8189d1ad;border-radius:21px;
-  background:linear-gradient(140deg,#273d7d,#222b65 73%,#2a285a);
-  color:#fdf4ff;
-  box-shadow:inset 0 1px 0 #cfdbff4d,0 5px 0 #19285b,0 11px 19px #0b143f85;
-  text-align:left;transition:transform .18s,filter .18s,box-shadow .18s;
-}
-.fv4-screen .fv3-district.fv-district-current{
-  background:linear-gradient(135deg,#ffede0,#f4c9e8 56%,#d9b8ff);
-  border-color:#ffe3a2;
-  box-shadow:inset 0 0 0 2px #fffafa9a,0 5px 0 #9d75c5,0 11px 26px #d4aaff62;
-  color:#52265b;
-}
-.fv4-screen .fv3-district:disabled{opacity:.68;filter:saturate(.75);
- box-shadow:0 5px 0 #192858,0 9px 13px #09133880}
-.fv4-screen .fv3-district:hover:enabled{transform:translateY(-2px)}
-.fv4-screen .fv3-district .fv-district-icon{
- width:50px;height:51px;flex:none;background:radial-gradient(circle at 30% 20%,#fff6e9,#c6b2fa);
- border:2px solid #fae2b7;border-radius:16px;font-size:29px;
- box-shadow:0 4px 0 #7d6da5,0 6px 11px #19194255;
-}
-.fv4-screen .fv3-district strong{display:block;color:#fff9e9;font-size:clamp(12px,1.5vw,17px);
-  line-height:1.22;text-shadow:0 2px 3px #18224eaa}
-.fv4-screen .fv3-district small{display:block;font-size:12px;color:#d5defe;line-height:1.22;margin-top:5px}
-.fv4-screen .fv3-district.fv-district-current strong{color:#452565;text-shadow:none}
-.fv4-screen .fv3-district.fv-district-current small{color:#5c427b}
-.fv4-district-copy{min-width:0;flex:1}
-.fv4-district-lock{position:absolute;top:9px;right:9px;
-  line-height:1;font-size:15px;filter:drop-shadow(0 2px 2px #11193e85)}
 /* Five sturdy quest controls, still actual buttons with disabled states. */
-.fv4-screen .fv3-stepnav{gap:10px;margin-bottom:15px}
-.fv4-screen .fv3-step{
- min-width:0;min-height:73px;gap:5px;
- border:2px solid #768acaa1;border-radius:19px;
- background:linear-gradient(175deg,#1a4c70,#183152 68%,#1b2955);
- color:#f1f6ff;padding:8px 6px;
- box-shadow:inset 0 1px 0 #e5f9ff45,0 5px 0 #12254f,0 10px 17px #07162f70;
- transition:transform .18s,background .18s;
-}
-.fv4-screen .fv3-step:hover:enabled{transform:translateY(-2px)}
-.fv4-screen .fv3-step.fv-step-current{
- background:linear-gradient(140deg,#fff6d9,#ffe1a0 70%,#ffc789);
- border-color:#fff3c6;color:#34264b;
- box-shadow:inset 0 1px 0 #ffffffbd,0 5px 0 #ad7c5b,0 8px 20px #f1c07a63;
-}
-.fv4-screen .fv3-step:disabled{opacity:.62}
-.fv4-screen .fv3-step-icon{font-size:26px;filter:drop-shadow(0 2px 1px #1e2c5066)}
-.fv4-screen .fv3-step-title{font-size:clamp(12px,1.28vw,14px);color:inherit;font-weight:950}
-.fv4-screen .fv3-step-index{color:inherit}
 /* Keep the poster art entirely decorative. Scene-specific dynamic labels float
    above it, so they never get frozen into the media asset. */
 .fv4-screen .fv3-card{
@@ -178,21 +104,6 @@
 .fv4-screen .fv3-panel-head .fv-eyebrow{color:#e2cbff;font-size:12px;letter-spacing:.15em}
 .fv4-screen .fv3-panel-head p{color:#e5dff9}
 .fv4-screen .fv3-panel-head .wg-game-help{color:#ffedc9}
-.fv4-screen .fv3-audio-toggle{
- border-radius:23px;width:62px;height:62px;min-width:62px;min-height:62px;
- border:3px solid #e7c3ff;background:linear-gradient(150deg,#b47cfc,#6836c8);
- color:#fff9f4;font-size:28px;
- box-shadow:inset 0 1px 0 #fff6fe,0 5px 0 #5431a4,0 9px 17px #18143d8c;
-}
-.fv4-screen .fv3-meter{
- margin-top:17px;height:13px;
- border:2px solid #988fdb;background:#231d60;border-radius:20px;
- box-shadow:inset 0 2px 5px #10103b7b;
-}
-.fv4-screen .fv3-meter span{
- background:linear-gradient(90deg,#76e354,#d6f46e 55%,#ffe397);
- box-shadow:0 0 12px #d1eb80a8;
-}
 .fv4-screen .fv3-count{color:#fff5e5;font-size:12px;font-weight:950}
 /* Cream prompt card: text is real and changes with current question. */
 .fv4-screen .fv3-prompt{
@@ -254,72 +165,24 @@
 .fv4-screen .fv3-discovery strong{color:#4a326e}
 .fv4-screen .fv3-discovery small{color:#725b85}
 .fv4-screen .fv3-audio-task p{color:#f0e6fe}
-.fv4-screen .fv3-audio-task .fv-listen{
- min-height:54px;border:3px solid #ffe6a1;border-radius:17px;
- background:linear-gradient(135deg,#ffefb5,#f9c875);color:#5f376b;
- box-shadow:0 5px 0 #b38863,0 10px 20px #1813447b;
-}
-.fv4-screen .fv-hint-button{
- background:linear-gradient(145deg,#ece3ff,#d8cdf3);color:#483268;
- border:2px solid #fff5e3;box-shadow:0 3px 0 #7e6fb2;
- min-height:45px;
-}
 .fv4-screen .fv3-hint-reveal{background:#fff3d5;color:#5b466e;border:2px solid #f7d49a}
 .fv4-screen .fv3-audio-task p,.fv4-screen .fv-instruction{color:#e8dbf9}
 .fv4-screen .fv-notice{color:#fffce8;background:#523c8f;border:1px solid #bda8f0}
 .fv4-screen .fv-error{color:#79314b;background:#ffe4e3;border:2px solid #f9b7ba}
 .fv4-screen .fv-loading{color:#f8efff}
 .fv4-screen .fv3-discovery-status{color:#523a69;background:#fff2d6;border-color:#f2d3ab}
-.fv4-screen .fv3-celebrate{position:relative}
-.fv4-screen .fv3-celebrate h2{color:#fff4dc;text-shadow:0 2px 0 #432768}
-.fv4-screen .fv3-celebrate>p{color:#e9defa}
-.fv4-screen .fv3-celebrate .fv-result{color:#fff1af}
-.fv4-screen .fv-primary{
- border:3px solid #f5e3ff;background:linear-gradient(140deg,#e3bbff,#a17ae7);
- color:#3b2369;box-shadow:0 5px 0 #744bb5,0 10px 21px #1913437b;
-}
-.fv4-screen .fv-secondary{background:#d5c6fa;color:#40306d;border:2px solid #f0e1ff}
 .fv4-screen .fv3-footer{color:#d8cefa;text-shadow:0 1px 3px #161a45}
 /* Tablet and phone: keep navigational labels legible and tap targets >=44px. */
 @media(max-width:900px){
- .fv4-screen .fv3-top{min-height:76px;padding:10px 12px}
  .fv4-screen .fv4-heading{flex-basis:340px;padding:8px 23px 10px}
  .fv4-screen .fv4-heading h1{font-size:clamp(23px,4vw,34px)}
- .fv4-screen .fv3-district-nav{gap:7px}
- .fv4-screen .fv3-district{min-height:70px;padding:8px 7px;gap:6px}
- .fv4-screen .fv3-district .fv-district-icon{width:38px;height:39px;font-size:24px;border-radius:11px}
- .fv4-screen .fv3-district strong{font-size:12px}
- .fv4-screen .fv3-district small{font-size:12px}
- .fv4-screen .fv3-stepnav{gap:6px}
- .fv4-screen .fv3-step{min-height:65px}
- .fv4-screen .fv3-step-title{font-size:12px}
 }
 @media(max-width:680px){
  .fv-screen.fv3-screen.fv4-screen{padding:max(6px,env(safe-area-inset-top,0px)) 6px max(20px,env(safe-area-inset-bottom,0px))}
- .fv4-screen .fv3-top{
-  background:linear-gradient(90deg,#122346d9,#2c2154d0 51%,#112d4fd9),
-    url('/assets/word-garden/premium-v2/family_mobile.webp') center 40%/cover;
- }
- .fv4-screen .fv3-top{min-height:69px;padding:7px 7px;gap:6px;margin:0 0 11px;border-radius:15px}
- .fv4-screen .fv3-back,.fv4-screen .fv4-stars{
-  min-height:44px;border-radius:13px;padding:7px 9px;font-size:12px}
  .fv4-screen .fv4-heading{flex:1;min-width:0;padding:8px 7px 9px;border-width:2px;border-radius:12px}
  .fv4-screen .fv4-heading h1{font-size:clamp(18px,4.8vw,27px);white-space:nowrap}
  .fv4-screen .fv4-heading-kicker{font-size:7px;letter-spacing:.045em}
  .fv4-screen .fv4-heading::before,.fv4-screen .fv4-heading::after{display:none}
- .fv4-screen .fv3-district-nav{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-bottom:9px}
- .fv4-screen .fv3-district{
-  flex-direction:column;justify-content:center;text-align:center;
-  min-height:74px;padding:6px 2px;gap:4px;border-radius:13px}
- .fv4-screen .fv3-district .fv-district-icon{width:31px;height:31px;font-size:19px;border-width:1px;box-shadow:none}
- .fv4-screen .fv3-district strong{font-size:12px;line-height:1.12;text-shadow:none}
- .fv4-screen .fv3-district small{display:none}
- .fv4-district-lock{font-size:12px;top:4px;right:4px}
- .fv4-screen .fv3-stepnav{gap:5px;margin-bottom:9px}
- .fv4-screen .fv3-step{min-height:58px;padding:5px 1px;border-radius:12px}
- .fv4-screen .fv3-step-icon{font-size:22px}
- .fv4-screen .fv3-step-title{display:none}
- .fv4-screen .fv3-step-index{display:block;font-size:12px}
  .fv4-screen .fv3-card{border-radius:19px;border-width:2px}
  .fv4-screen .fv3-scene{height:clamp(135px,29vw,175px);border-bottom-width:3px}
  .fv4-screen .fv3-landscape img{object-position:center 52%}
@@ -331,8 +194,6 @@
  .fv4-screen .fv3-panel{padding:13px 9px 18px}
  .fv4-screen .fv3-panel-head h2{font-size:clamp(21px,5vw,27px)}
  .fv4-screen .fv3-panel-head .fv-eyebrow{font-size:12px}
- .fv4-screen .fv3-audio-toggle{width:48px;height:48px;min-width:48px;min-height:48px;font-size:21px;border-radius:15px;border-width:2px}
- .fv4-screen .fv3-meter{height:10px;margin-top:11px}
  .fv4-screen .fv3-count{font-size:12px}
  .fv4-screen .fv3-prompt{min-height:74px;padding:10px 10px;gap:9px;border-radius:16px;border-width:2px;margin:10px auto}
  .fv4-screen .fv3-prompt>span{width:36px;height:39px;border-radius:10px;font-size:22px}
@@ -351,27 +212,21 @@
  .fv4-screen .fv3-choice .fv3-word-art{max-height:75px;max-width:79px}
  .fv4-screen .fv3-discovery{min-height:110px;border-width:2px;border-radius:13px}
  .fv4-screen .fv3-discovery strong{font-size:12px}
- .fv4-screen .fv-hint-button{min-height:44px;font-size:12px}
 }
 @media(max-width:359px){
  .fv4-screen .fv4-heading{padding:8px 2px 9px}
  .fv4-screen .fv4-heading h1{font-size:17px}
  .fv4-screen .fv4-heading-kicker{display:none}
- .fv4-screen .fv3-back,.fv4-screen .fv4-stars{padding:7px 7px;font-size:12px}
- .fv4-screen .fv3-district strong{font-size:12px}
- .fv4-screen .fv3-district{min-height:69px}
  .fv4-screen .fv3-scene{height:128px}
  .fv4-screen .fv3-prompt strong{font-size:14px}
 }
 @media(max-width:680px) and (max-height:530px) and (orientation:landscape){
- .fv4-screen .fv3-top{min-height:62px}
  .fv4-screen .fv3-scene{height:110px}
- .fv4-screen .fv3-district{min-height:60px}
 }
 @media(prefers-reduced-motion:reduce){
  .fv4-screen *, .fv4-screen *::before, .fv4-screen *::after{
    animation:none!important;transition:none!important;scroll-behavior:auto!important}
- .fv4-screen .fv3-step:hover:enabled,.fv4-screen .fv3-district:hover:enabled,
+ 
  .fv4-screen .fv3-choice:hover:enabled,.fv4-screen .fv3-discovery:hover:enabled{transform:none!important}
 }
 .fv4-screen button:focus-visible{outline:3px solid #ffe5a7!important;outline-offset:3px!important}

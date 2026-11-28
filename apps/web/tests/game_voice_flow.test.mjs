@@ -44,9 +44,9 @@ test('Keşif Akademisi: listening tasks play at once; the final screen shows sta
  const code=src('components/learning/academy/AcademyAdventure.tsx');
  assert.match(code,/if\(stage!=='quest'\|\|task\.kind!=='hear'\|\|audioAttempted\|\|busy\|\|resolved\)return;\n  const timer=window\.setTimeout\(\(\)=>readLine\(\),500\);/);
  assert.match(code,/setEarnedStars\(stars\);setStage\('final'\);soundService\.playSfx\('fanfare',\.65\);onSaved\(\);/);
- assert.match(code,/\{!reviewSkill&&<div className="academy-final-stars" aria-label=\{earnedStars\+' yıldız'\}>/);
+ assert.match(code,/stars=\{reviewSkill\?undefined:\{earned:earnedStars\}\}/);
  // The next stop opens only when it is unlocked; review runs keep their own buttons.
- assert.match(code,/\{!reviewSkill&&zone<ACADEMY_ZONES\.length&&zone\+1<=available&&<button type="button" className="academy-submit"\n      onClick=\{\(\)=>open\(zone\+1\)\}>Sıradaki Durak: \{ACADEMY_ZONES\[zone\]\.name\} →<\/button>\}/);
+ assert.match(code,/\{!reviewSkill&&zone<ACADEMY_ZONES\.length&&zone\+1<=available&&<button type="button" className="academy-submit gf-btn gf-btn--primary"\n       onClick=\{\(\)=>open\(zone\+1\)\}>Sıradaki Durak: \{ACADEMY_ZONES\[zone\]\.name\} →<\/button>\}/);
 });
 
 test('Touch-target minimums are never 43px',()=>{
@@ -73,11 +73,14 @@ test('Diyalog Limanı and Yazı Atölyesi end screens offer a replay like every 
 });
 
 test('Diyalog Limanı finale buttons keep a readable size; Harf Korusu back button is a full target',()=>{
- // .harbor-finale>div sets 55px for an old emoji icon; the action row is a div too.
- const harbor=src('components/learning/harbor/harbor-premium-scene.css');
- assert.match(harbor,/\.harbor-finale-actions\{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;font-size:16px;line-height:1\.25\}/);
- assert.match(harbor,/\.harbor-finale-actions>button\{margin-top:5px;min-height:48px;font-size:16px\}/);
- assert.match(src('components/learning/alphabet/alphabet-grove.css'),/\.ag-back\{[^}]*min-height:47px;min-width:47px\}/);
+ // The finale is the shared result card; its buttons are the shared 50px / 16px buttons.
+ const harbor=src('components/learning/harbor/HarborSpeechAdventure.tsx');
+ assert.match(harbor,/<GameResult island="harbor"/);
+ assert.match(harbor,/className="gf-btn gf-btn--primary" onClick=\{\(\)=>start\(episode\+1\)\}>Sonraki Bölüm/);
+ assert.match(src('components/learning/game/game-frame.css'),/\.gf-btn\{[^}]*min-height:50px;[^}]*font-size:16px/);
+ // Harf Korusu's back button is the shared top bar's 46px exit.
+ assert.match(src('components/learning/alphabet/AlphabetGroveAdventure.tsx'),/<GameTopBar island="garden" gameExit/);
+ assert.match(src('components/learning/game/game-frame.css'),/\.gf-back\{[^}]*min-width:46px;min-height:46px/);
 });
 
 test('Harf Korusu and Tema Kasabası end with the words of the round to hear again',()=>{

@@ -5,19 +5,6 @@
  overflow:hidden;background:radial-gradient(ellipse at 52% -18%,#f9ebc6,#e2f6da 49%,#b4e0d5);
  font-family:ui-rounded,"Trebuchet MS",system-ui,sans-serif;color:#214a57;isolation:isolate}
 .ss-root *{box-sizing:border-box}
-.ss-head{display:flex;align-items:center;justify-content:space-between;gap:10px;
- min-height:calc(68px + env(safe-area-inset-top,0px));
- padding:calc(10px + env(safe-area-inset-top,0px)) clamp(10px,3vw,30px) 10px;
- background:linear-gradient(110deg,#fffff7f4,#eafbebeb);
- border-bottom:1px solid #9cccb9;box-shadow:0 6px 24px #28675d21;z-index:5}
-.ss-head h1{font-size:clamp(15px,2vw,23px);font-weight:1000;white-space:nowrap;line-height:1.1;
- letter-spacing:-.045em;text-overflow:ellipsis;overflow:hidden}
-.ss-head-side{display:flex;gap:8px;align-items:center}
-.ss-round{display:grid;place-items:center;min-width:44px;width:44px;height:44px;
- border-radius:15px;background:#245e74;color:#fff;border:2px solid #a2e3d1;
- box-shadow:0 3px 0 #174e5e;font-size:22px;font-weight:900}
-.ss-count{border-radius:14px;background:#d4f1de;color:#1e746c;border:1px solid #a2d4bc;
- padding:9px 12px;white-space:nowrap;font-size:12px;font-weight:1000}
 .ss-main{flex:1;min-height:0;overflow-y:auto;overscroll-behavior:contain;padding:clamp(10px,2.2vw,22px);
  max-width:1240px;width:100%;margin:auto;scrollbar-width:thin}
 .ss-intro{height:180px;position:relative;overflow:hidden;border-radius:27px;border:3px solid white;
@@ -46,11 +33,6 @@
 .ss-status{padding:18px;background:#fff5e2;color:#874f59;border-radius:15px;margin-top:15px;
  font-weight:800;text-align:center}
 .ss-story-content{display:flex;flex-direction:column;align-items:center;gap:11px;min-height:0}
-.ss-story-top{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;
- color:#4c7f75;min-height:22px;font-size:12px;font-weight:1000;letter-spacing:.065em}
-.ss-pip{width:13px;height:13px;border-radius:50%;background:#bbd9c7;border:2px solid #88bcae}
-.ss-pip.active{background:#ffe092;border-color:#ebba65;transform:scale(1.2)}
-.ss-pip.done{background:#6bcba3;border-color:#49aa89}
 .ss-screen{position:relative;overflow:hidden;width:min(100%,1060px);
  border-radius:clamp(19px,3vw,30px);border:3px solid #fffaf3;background:#6fafb4;
  box-shadow:0 16px 34px #28596b55;height:clamp(290px,55vh,565px)}
@@ -100,11 +82,6 @@
 .ss-text-toggle{width:44px;height:44px;min-width:44px;border-radius:12px;
  border:1px solid #aed3b2;background:#d9f3dd;color:#397470;font-size:14px;font-weight:1000}
 .ss-bottom-actions{display:flex;align-items:center;justify-content:center;gap:13px;flex-wrap:wrap}
-.ss-primary,.ss-secondary{min-height:52px;padding:10px 24px;border-radius:17px;
- font-size:14px;font-weight:1000;letter-spacing:.01em}
-.ss-primary{color:#175454;border:2px solid #edffe3;
- background:linear-gradient(120deg,#d3f597,#6de4c8);box-shadow:0 5px 0 #479587}
-.ss-secondary{background:#f8fff1;border:1px solid #a6d7bd;color:#28645f}
 .ss-order-screen{display:flex;flex-direction:column;gap:10px}
 .ss-instruction{display:flex;gap:9px;align-items:center;justify-content:center;
  background:#f9fff3eb;border:2px solid white;border-radius:18px;padding:11px 12px;
@@ -140,9 +117,8 @@
 .ss-card.wrong{animation:ss-shake .35s;border-color:#e4a0b0}
 .ss-card.hint{outline:4px solid #fbd77c;outline-offset:2px;box-shadow:0 0 0 6px #fff1b99e,0 9px 0 #2c817c61}
 .ss-card.checked{border-color:#9def9d}
-.ss-card:focus-visible,.ss-primary:focus-visible,.ss-secondary:focus-visible,.ss-round:focus-visible,
-.ss-speak:focus-visible,.ss-text-toggle:focus-visible,.ss-episode:focus-visible,
-.ss-hint-button:focus-visible{outline:4px solid #ffc85e;outline-offset:3px}
+.ss-card:focus-visible,
+.ss-speak:focus-visible,.ss-text-toggle:focus-visible,.ss-episode:focus-visible{outline:4px solid #ffc85e;outline-offset:3px}
 @keyframes ss-shake{20%{transform:translateX(-5px)}60%{transform:translateX(5px)}}
 .ss-card .ss-spark,.ss-card .ss-motion{font-size:16px}
 .ss-card .ss-primary-character{height:67%;bottom:7%}
@@ -155,23 +131,13 @@
  font-size:21px;font-weight:1000}
 .ss-hint-bar{display:flex;align-items:center;justify-content:space-between;gap:12px;
  width:min(100%,1050px);margin:auto;min-height:42px}
-.ss-hint-button{padding:8px 13px;background:#faffef;border:1px solid #a5d4bc;
- color:#2b6d69;border-radius:13px;min-height:44px;font-weight:1000}
 .ss-feedback{font-weight:1000;font-size:13px;color:#c26a6c;min-height:17px}
 .ss-feedback.correct{color:#358369}
 .ss-save-error{background:#fff5e9;border:2px solid #ecb3aa;padding:12px;
  border-radius:14px;font-size:13px;text-align:center;font-weight:850;color:#925d5b}
 .ss-reward{display:flex;flex-direction:column;align-items:center;justify-content:center;
  gap:16px;height:100%;text-align:center}
-.ss-reward-visual{width:min(89vw,590px);height:min(37vh,320px);border-radius:27px;
- overflow:hidden;border:4px solid #fff;box-shadow:0 15px 30px #3c806b4b}
-.ss-reward h2{font-size:clamp(23px,4vw,36px);font-weight:1000}
-.ss-reward p{font-size:13px;color:#437775;font-weight:900}
-.ss-reward-stars{font-size:clamp(43px,8vw,79px);letter-spacing:6px;line-height:1;
- color:#b9d5c5}.ss-reward-stars .earned{color:#f5c95e;text-shadow:0 5px 0 #d9a34d}
 @media(max-width:700px){
- .ss-head{min-height:calc(60px + env(safe-area-inset-top,0px));
-  padding:calc(5px + env(safe-area-inset-top,0px)) 9px 6px}
  .ss-main{padding:9px 9px calc(14px + env(safe-area-inset-bottom,0px))}
  .ss-intro{height:150px;border-radius:20px}
  .ss-intro-copy{left:14px}.ss-intro-copy p{font-size:12px}
@@ -184,14 +150,11 @@
  .ss-story-content{gap:8px}
  .ss-narration{min-height:53px;padding:6px 8px}
  .ss-speak,.ss-text-toggle{min-width:44px;width:43px;height:43px}
- .ss-story-top{font-size:12px}
- .ss-primary,.ss-secondary{min-height:48px;padding:9px 16px}
  .ss-slots{min-height:54px}
  .ss-cards{grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
  .ss-card{aspect-ratio:1.4;min-height:116px;border-radius:16px;border-width:2px}
  .ss-hint-bar{position:sticky;bottom:0;background:#effaf0d9;padding:5px;
  border-radius:14px;z-index:2}
- .ss-reward-visual{height:min(36vh,270px)}
 }
 @media(max-width:360px){
  .ss-card{min-height:110px}
@@ -214,6 +177,14 @@
 .ss-prop .ss-premium-prop{width:100%;height:100%;max-width:100%;
  max-height:100%;object-fit:contain;user-select:none;-webkit-user-drag:none;
  filter:drop-shadow(0 0 13px #e0ebffb0)}
+
+/* Shared game frame (components/learning/game): İzle → Sırala → Anla rail under the
+ * top bar, and one GameResult card whose art is the story's last painted frame. */
+.ss-step-rail{flex:none;width:min(calc(100% - 20px),1050px);margin:10px auto 0}
+.ss-result .gf-result-art{display:block;min-height:0}
+.ss-result .ss-reward-visual{width:100%;height:min(37vh,320px);overflow:hidden}
+.ss-root .ss-reward-visual>.learning-motion{z-index:4}
+@media(max-width:700px){.ss-step-rail{margin-top:7px}.ss-result .ss-reward-visual{height:min(34vh,260px)}}
 
 /* Desktop storybook cinema: full silhouettes, never giant clipped face crops.
  * Only the large WATCH panel is adjusted: mobile, episode thumbnails, ordering

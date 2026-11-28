@@ -15,11 +15,16 @@
 
 /* Remove duplicated marketing labels from the lesson chrome. Never hide the
    actual target vocabulary, English task prompts, hints or answer options. */
-.fm-brand>span,.fv-heading>span,.tp-title>span,
+.fv-heading>span,
 .fm-eyebrow,.fv-eyebrow,.tp-eyebrow{display:none!important}
 .fm-scene-label small,.fv-place small,.tp-scene-label small{display:none!important}
 @media(min-width:768px){
- .fm-header,.fv-top,.tp-header{min-height:unset}
- .fm-brand h1,.fv-heading h1,.tp-title h1{font-size:clamp(22px,2.7vw,34px)}
+ .fv-heading h1{font-size:clamp(22px,2.7vw,34px)}
  .fm-step-head,.fv-panel-head,.tp-panel-head{gap:10px}
 }
+
+/* Inside the shared game frame's top-bar tools the help opens as a panel below. */
+.gf-tools .wg-game-help{position:relative;max-width:none;margin:0}
+.gf-tools .wg-game-help[open]>summary{background:var(--ih-card-hover)}
+.gf-tools .wg-game-help-body{position:absolute;right:0;top:calc(100% + 9px);z-index:40;
+ width:min(340px,calc(100vw - 28px));margin:0;text-align:left}

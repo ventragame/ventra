@@ -43,8 +43,9 @@ test('Feedback lives in the scene; the celebration never hides the reward text',
  assert.doesNotMatch(ui,/cg-feedback|Yeni renk geliyor/,'one in-scene status, not two bars under the scene');
  const css=src('components/learning/activities/color-grove-premium.css');
  assert.match(css,/\.cg-shell \.cg-complete \.learning-motion\{z-index:0\}/);
- assert.match(css,/\.cg-shell \.cg-complete>\*:not\(\.learning-motion\)\{position:relative;z-index:1\}/);
- assert.match(css,/\.cg-shell \.cg-complete>h2,\.cg-shell \.cg-complete>p\{text-shadow:/,'white text over the yellow burst');
+ // The burst plays inside the result card's art; the reward text sits below it, never on top.
+ assert.match(ui,/art=\{<><LearningMotion variant="victory" trigger=\{complete\?'grove-complete-'\+step\+'-'\+replayNonce:null\}\/>/);
+ assert.match(ui,/<GameResult island="garden" className="cg-complete" titleRef=\{doneHeading\}/);
  assert.match(css,/\.cg-shell \.cg4-stage:has\(\.cg4-toast\) \.cg4-scene-pill\{visibility:hidden\}/);
 });
 
@@ -56,12 +57,13 @@ test('Reward: honest result line and a tap-to-hear colour recap; the next button
  assert.match(ui,/onClick=\{\(\) => listen\(word\.id\)\} disabled=\{muted \|\| !speechAvailable\}/);
  assert.doesNotMatch(ui,/text-6xl" aria-hidden="true">🌟/);
  const css=src('components/learning/activities/color-grove-premium.css');
- assert.match(css,/@media\(max-height:940px\)\{\s*\.cg-shell \.cg-complete\{display:flex;flex-direction:column\}\s*\.cg-shell \.cg-complete \.cg-recap\{order:10\}/);
+ assert.match(css,/@media\(max-height:940px\)\{\s*\.cg-shell \.cg-complete \.cg-recap\{order:10\}/);
 });
 
 test('Help in the HUD, review chip, compact prompt, 12px floor and English marked English',()=>{
  const ui=src('components/learning/activities/ColorGroveAdventure.tsx');
- const hud=ui.slice(ui.indexOf('<header className="cg-hud'),ui.indexOf('</header>'));
+ const hud=ui.slice(ui.indexOf('<GameTopBar island="garden"'),ui.indexOf('<div className="cg-main'));
+ assert.match(hud,/gameExit backClassName="gg-game-control" backDisabled=\{saving\} onBack=\{onBack\}/);
  assert.match(hud,/<GardenHelp label="Renk Korusu nasıl oynanır\?">/);
  assert.doesNotMatch(ui,/className="cg-footer/,'the engine note moved into help');
  assert.match(ui,/<span className="cg-review-chip">🔁 Hatırlama/);

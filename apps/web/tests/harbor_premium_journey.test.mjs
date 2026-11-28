@@ -210,7 +210,7 @@ test('Mobile QA: A/B answer badges flow with text, and mic caption never reserve
  assert.match(sceneCSS,/\.hp-dock-floor\{display:none\}/);
  assert.match(sceneCSS,/\.hp-replay\{min-height:44px/);
  assert.match(speechCSS,/\.harbor-adult-actions button,[^\n]*harbor-adult-server button\{min-height:48px/);
- assert.match(sceneCSS,/\.harbor-hint\{[\s\S]*?min-width:130px;min-height:44px/);
+ assert.match(page,/className="harbor-hint gf-btn gf-btn--tool"/,'the hint is a full shared tool button');
  assert.doesNotMatch(page,/heard&&heard.length>=3/);
  assert.match(page,/Sesini duydum! Bir daha söyle/);
  assert.match(page,/Konuşmak isteğe bağlı/);

@@ -20,6 +20,7 @@ import './animal-meadow-premium.css';
 import './garden-child-legibility.css';
 import {gradeLevelLabel} from '@/lib/learning/gradeLabel';
 import {GameFinale} from '../GameFinale';
+import {GameTopBar,GameStepRail,GameResult} from '../game/GameFrame';
 
 /** Stars for one run: the value saved and the one shown on the completion scene. */
 const animalRunStars=(wrong:number):1|2|3=>wrong===0?3:wrong<=2?2:1;
@@ -283,29 +284,28 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
         <div className="absolute -left-20 top-0 h-80 w-80 rounded-full bg-sky-400/20 blur-3xl"/>
         <div className="absolute -right-20 bottom-0 h-96 w-96 rounded-full bg-lime-400/15 blur-3xl"/>
       </div>
-      <main className="am-main relative mx-auto max-w-5xl px-3 py-4 sm:px-6" style={{paddingTop:'max(16px, env(safe-area-inset-top))',paddingBottom:'max(30px, env(safe-area-inset-bottom))'}}>
-        <header className="am-hud">
-          <button type="button" data-game-exit className="am-hud-btn gg-game-control" disabled={saving} onClick={onBack}
-            aria-label="Kelime Bahçesi bölgelerine geri dön">← <span className="hidden sm:inline">Bölgeler</span></button>
-          <div className="am-hud-title"><span className="am-hud-icon" aria-hidden="true">🐾</span>
-            <span><strong>Hayvan Çayırı</strong><small>{gradeLevelLabel(gradeLevel)} · {englishLevel}</small></span>
-          </div>
-          <div className="am-hud-actions">
-            <span className="am-hud-btn" aria-label={'Toplam '+stars+' yıldız'}>⭐ {stars}</span>
-            <details className="am3-help">
-              <summary aria-label="Pufi'den oyun yardımı" title="Nasıl oynanır?">?<span className="sr-only">Yardım</span></summary>
-              <div className="am3-help-panel"><p>{STAGES[stage-1].story}</p><TutorialReplayButton/></div>
-            </details>
-            <button type="button" className="am-hud-btn gg-game-control" onClick={()=>{
-              // The album shows every discovered animal with its English name: looking
-              // during an open question makes that answer assisted, never independent.
-              if(!showAlbum&&questionOpen)setAssisted(true);
-              setShowAlbum(v=>!v);}}
-              aria-expanded={showAlbum} aria-label="Keşif albümünü aç veya kapat" data-glyph>📖</button>
-            <button type="button" className="am-hud-btn gg-game-control" onClick={toggleMute} data-glyph
-              aria-label={muted?'Sesi aç':'Sesi kapat'} aria-pressed={muted}>{muted?'🔇':'🔊'}</button>
-          </div>
-        </header>
+      <GameTopBar island="garden" gameExit backClassName="gg-game-control" backDisabled={saving} onBack={onBack}
+        backLabel="Bölgeler" backAriaLabel="Kelime Bahçesi bölgelerine dön" crest="🐾" accent="#c4ec7a"
+        eyebrow={'Kelime Bahçesi · '+gradeLevelLabel(gradeLevel)+' · '+englishLevel} title="Hayvan Çayırı" titleAs="p"
+        progress={!completed&&activePlan?(stage===1
+          ?{current:discovered.length,total:activePlan.animals.length,label:'Keşif'}
+          :{current:questionIndex+1,total:activePlan.questions.length,label:'Soru'}):undefined}
+        stars={{earned:stars}}
+        tools={<>
+          <details className="am3-help">
+            <summary className="gf-tool" aria-label="Pufi'den oyun yardımı" title="Nasıl oynanır?">?<span className="sr-only">Yardım</span></summary>
+            <div className="am3-help-panel"><p>{STAGES[stage-1].story}</p><TutorialReplayButton/></div>
+          </details>
+          <button type="button" className="gf-tool gg-game-control" onClick={()=>{
+            // The album shows every discovered animal with its English name: looking
+            // during an open question makes that answer assisted, never independent.
+            if(!showAlbum&&questionOpen)setAssisted(true);
+            setShowAlbum(v=>!v);}}
+            aria-expanded={showAlbum} aria-label="Keşif albümünü aç veya kapat">📖</button>
+          <button type="button" className="gf-tool gg-game-control" onClick={toggleMute}
+            aria-label={muted?'Sesi aç':'Sesi kapat'} aria-pressed={muted}>{muted?'🔇':'🔊'}</button>
+        </>}/>
+      <main className="am-main relative mx-auto max-w-5xl px-3 py-4 sm:px-6" style={{paddingBottom:'max(30px, env(safe-area-inset-bottom))'}}>
         <div className="am-intro am3-intro sr-only">
           <p className="text-xs font-black uppercase tracking-[.23em] text-lime-200">Hayvan Çayırı · Bölüm {stage}/5</p>
           <h1 ref={headingRef} tabIndex={-1} className="mt-2 text-3xl font-black tracking-tight outline-none sm:text-5xl">{STAGES[stage-1].icon} {STAGES[stage-1].name}</h1>
@@ -341,32 +341,38 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
             })}
           </div>
         </section>}
-        <nav aria-label="Hayvan Çayırı görevleri" className="am-missions am3-missions">
-          {STAGES.map((item,i)=>{
+        <GameStepRail island="garden" className="am3-missions" ariaLabel="Hayvan Çayırı görevleri"
+          steps={STAGES.map((item,i)=>{
             const order=(i+1) as Stage,locked=order>localProgress.completedLevels+1;
-            return <button key={order} type="button" disabled={locked||saving}
-              onClick={()=>reset(order)} aria-current={stage===order?'step':undefined}
-              aria-label={order+'. '+item.name+(locked?', kilitli':'')}
-              className="am-mission am-tap gg-game-control" data-active={stage===order} data-locked={locked}>
-              <span aria-hidden="true">{locked?'🔒':order<=localProgress.completedLevels?'✅':item.icon}</span>
-              <span className="am-mission-text">{item.name}</span>
-            </button>;
-          })}
-        </nav>
+            return {key:String(order),label:item.name,icon:item.icon,className:'am-tap gg-game-control',
+              state:stage===order?'current':locked?'locked':order<=localProgress.completedLevels?'done':'upcoming',
+              disabled:saving,onSelect:()=>reset(order),
+              ariaLabel:order+'. '+item.name+(locked?', kilitli':'')};
+          })}/>
         {loadError && <div role="alert" className="mx-auto max-w-lg space-y-3 rounded-2xl border border-rose-300/50 bg-slate-950/65 p-5 text-center">
           <p>Bu görevin kelime kayıtları okunamadı. Oyuncu ilerlemesi korunuyor.</p>
-          <button onClick={()=>reset(stage)} className="am-cta">Tekrar Yükle</button>
+          <button type="button" onClick={()=>reset(stage)} className="gf-btn gf-btn--primary">Tekrar Yükle</button>
         </div>}
         {!loadError && !activePlan && !completed && <div role="status" className="rounded-2xl bg-black/20 p-6 text-center">Macera hazırlanıyor…</div>}
         {!loadError && activePlan && !valid && !completed && <div role="alert" className="rounded-2xl border border-amber-300/50 p-5 text-center">
           <p>Görev planında geçerli soru bulunamadı. Kayıtların korunuyor.</p>
-          <button onClick={()=>reset(stage)} className="am-cta mt-4">Yeniden Yükle</button>
+          <button type="button" onClick={()=>reset(stage)} className="gf-btn gf-btn--primary mt-4">Yeniden Yükle</button>
         </div>}
-        {!loadError && completed && <section className="am-done mx-auto max-w-3xl rounded-3xl border border-lime-300/50 bg-emerald-950/75 p-5 text-center shadow-2xl">
-          <MeadowPlayStage mode="complete" animals={[]} stars={animalRunStars(wrongCount)}/>
-          <h2 ref={doneHeading} tabIndex={-1} className="mt-2 text-2xl font-black">Görev Tamamlandı!</h2>
-          <p className="am-done-best">Bu görevdeki en iyi ödülün: ⭐ {localProgress.starsByLevel[stage]??0}/3</p>
-          <p className="am-done-stats">{stage===1?`${discovered.length} hayvanın İngilizce adını dinledin`:`${correctCount} doğru · ${wrongCount} yanlış deneme`}</p>
+        {!loadError && completed && <GameResult island="garden" className="am-done" titleRef={doneHeading}
+          art={<MeadowPlayStage mode="complete" animals={[]} stars={animalRunStars(wrongCount)}/>}
+          kicker={'Hayvan Çayırı · '+STAGES[stage-1].name} title="Görev Tamamlandı!"
+          message={<>
+            <span className="am-done-best">Bu görevdeki en iyi ödülün: ⭐ {localProgress.starsByLevel[stage]??0}/3</span>
+            <span className="am-done-stats">{stage===1?`${discovered.length} hayvanın İngilizce adını dinledin`:`${correctCount} doğru · ${wrongCount} yanlış deneme`}</span>
+          </>}
+          actions={<>
+            <button type="button" onClick={()=>{if(stage===5)onAllCompleted();else reset((stage+1) as Stage)}} className="gf-btn gf-btn--primary gg-game-control">
+              {stage===5?'Kelime Bahçesine Dön →':'Sonraki Görev →'}
+            </button>
+            <button type="button" onClick={()=>reset(stage)} className="gf-btn gf-btn--secondary gg-game-control">
+              ↻ Bu Görevi Farklı Sorularla Tekrar Oyna
+            </button>
+          </>}>
           {recap.length>0&&<div className="am-recap" role="group" aria-label="Bu görevin İngilizce kelimeleri">
             <p className="am-recap-title">Bu görevin kelimeleri · dokun ve dinle</p>
             <div className="am-recap-list">{recap.map(word=><button key={word.id} type="button" className="am-recap-word gg-game-control"
@@ -375,13 +381,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
           </div>}
           {stage===5&&<GameFinale tone="dark" title="Hayvan Çayırı tamamlandı!"
             detail="Beş görevin hepsinde hayvanların İngilizcesini çalıştın."/>}
-          <button onClick={()=>{if(stage===5)onAllCompleted();else reset((stage+1) as Stage)}} className="am-cta mt-5 w-full">
-            {stage===5?'Kelime Bahçesine Dön →':'Sonraki Görev →'}
-          </button>
-          <button onClick={()=>reset(stage)} className="am-tap mt-3 w-full rounded-2xl border border-white/30 bg-white/10 p-3 text-sm font-bold">
-            ↻ Bu Görevi Farklı Sorularla Tekrar Oyna
-          </button>
-        </section>}
+        </GameResult>}
         {!loadError && valid && !completed && activePlan && (stage===1?(
           <section className="am-quest-area mx-auto max-w-4xl">
             <MeadowPlayStage mode="discover"
@@ -402,10 +402,7 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
             <div className="am-quest-head mb-2 flex items-center justify-between gap-3 text-xs font-extrabold text-lime-100 sm:text-sm">
               <span>🧭 {STAGES[stage-1].desc}</span>
               <span className="am-quest-meta">{activePlan.reviewIds.length>0&&<span className="am-review-chip">🔁 Pekiştirme<span className="sr-only">: zorlandığın kelimeler yeniden karşına çıkıyor</span></span>}
-                <span>Soru {questionIndex+1}/{activePlan.questions.length}</span></span>
-            </div>
-            <div className="am-quest-progress mb-4 h-2 overflow-hidden rounded-full bg-white/20" aria-hidden="true">
-              <div className="h-full rounded-full bg-gradient-to-r from-emerald-300 to-sky-300 transition-all" style={{width:`${Math.round(((questionIndex+Number(awaiting))/activePlan.questions.length)*100)}%`}}/>
+              </span>
             </div>
             <div className="am-task">
               <div className="min-w-0 flex-1">
@@ -425,13 +422,13 @@ export function AnimalMeadowAdventure({ profileId, englishLevel, gradeLevel=null
               </div>
               <div className="am-task-actions">
                 {(stage===4||stage===5)&&
-                  <button type="button" className="am-task-action"
+                  <button type="button" className="am-task-action gf-btn gf-btn--tool"
                     onClick={()=>speak(target,stage===4||stage===5)}
                     disabled={!canSpeak(target)} aria-label="İngilizceyi dinle">🔊</button>}
-                {stage===3&&!noAudioMode&&<button type="button" className="am-task-action"
+                {stage===3&&!noAudioMode&&<button type="button" className="am-task-action gf-btn gf-btn--tool"
                   disabled={awaiting} onClick={()=>{setTextMode(true);setAssisted(true);}}
                   aria-label="Ses yoksa yazılı modu aç">Aa</button>}
-                {stage===2&&<button type="button" className="am-task-action"
+                {stage===2&&<button type="button" className="am-task-action gf-btn gf-btn--tool"
                   disabled={awaiting} onClick={()=>setAssisted(true)}
                   aria-label="Türkçe ipucu göster">💡</button>}
               </div>

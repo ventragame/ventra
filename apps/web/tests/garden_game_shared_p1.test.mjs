@@ -27,8 +27,9 @@ test('Number Valley V5 uses canonical selectors without legacy reading-layout ov
  const base=read('number-valley.css'),v5=read('number-valley-v5.css');
  assert.doesNotMatch(base,/main>div\.py-6/);
  assert.doesNotMatch(v5,/deliberately outrank|main>\.nv5-intro/);
- assert.match(v5,/\.nv5-root \.nv5-intro\{padding:14px 8px 12px\}/);
- assert.match(v5,/\.nv5-root \.nv5-title\{margin-top:5px/);
+ // The chapter title is a screen-reader heading; the shared top bar and rails show it.
+ assert.doesNotMatch(v5,/\.nv5-intro|\.nv5-title\{/);
+ assert.match(read('NumberValleyAdventure.tsx'),/<div className="nv-stage-intro nv5-intro sr-only">/);
  assert.match(v5,/\.nv5-root \.nv5-word-forge \.nv-forge-number\{/);
  assert.match(v5,/\.nv5-root \.nv5-finale-stage \.nv5-scene-art>img/);
  assert.match(v5,/@media\(max-width:767px\)/);
@@ -49,7 +50,11 @@ test('Shared touch token is added to choice buttons, not to palette grid contain
 
 test('Garden games share a child legibility floor: 44px exits/help/sound and readable instructions',()=>{
  const css=fs.readFileSync(new URL('../src/components/learning/activities/garden-child-legibility.css',import.meta.url),'utf8');
- assert.match(css,/:is\(\.am-hud-btn,\.fm-back,\.fv-back,\.tp-return,\.tp-mute\)\{\s*min-width:44px!important;min-height:44px!important;/);
+ // Exits and sound are the shared top bar's 46px controls (game-frame.css).
+ const frame=fs.readFileSync(new URL('../src/components/learning/game/game-frame.css',import.meta.url),'utf8');
+ assert.match(frame,/\.gf-back\{[^}]*min-width:46px;min-height:46px/);
+ assert.match(frame,/\.gf-tool,[^{]*\{[^}]*min-width:46px;[^}]*min-height:46px/);
+ assert.match(frame,/\.gf-tool,\.gf-tools \.wg-game-help>summary\{width:44px;min-width:44px;height:44px;min-height:44px/,'phones keep 44px');
  assert.match(css,/\.wg-game-help>summary\{\s*min-width:44px!important;min-height:44px!important;/);
  assert.match(css,/font-size:14px!important;line-height:1\.35!important;/);
  for(const game of ['AnimalMeadowAdventure','FoodMarketAdventure','FamilyVillageAdventure','TempleAdventure']){

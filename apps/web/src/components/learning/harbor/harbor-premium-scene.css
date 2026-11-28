@@ -2,7 +2,6 @@
    All stage art is layered, so mobile cropping never cuts a character face.
    The backdrop is decorative; gameplay actors/props use their own safe anchors. */
 .harbor-root{background:#082f59;color:#f4fdff}
-.harbor-header{background:linear-gradient(110deg,#073450,#115c78 55%,#07355e);border-bottom:1px solid #ddffd88a}
 .harbor-main{background:radial-gradient(ellipse at 40% -10%,#41c9cf73,transparent 58%),linear-gradient(170deg,#166e86 0%,#10537b 52%,#0c335c 100%);padding:clamp(8px,1.8vw,20px)}
 .harbor-cover{opacity:.11;height:100%;background-size:cover}
 .harbor-intro{margin:8px auto 18px;max-width:770px}
@@ -22,10 +21,7 @@
 .harbor-episode-card strong{font-size:clamp(12px,1.4vw,16px);line-height:1.35}
 .harbor-episode-card small{line-height:1.4;font-size:12px}
 .harbor-episode-state{display:block;color:#dffbbb!important;margin-top:auto;font-size:12px}
-.harbor-level-title{font-size:clamp(12px,1.4vw,15px);max-width:1150px;margin:0 auto 10px}
-.hp-quest-top{display:flex;align-items:center;justify-content:space-between;gap:12px;max-width:1150px;margin:0 auto 9px;font-size:12px;color:#e5ffcf}
-.hp-progress-track{height:9px;width:clamp(115px,32vw,340px);border-radius:50px;background:#001a398a;overflow:hidden;border:1px solid #ffffff5b}
-.hp-progress-track i{display:block;height:100%;background:linear-gradient(90deg,#ffe5a3,#86eccb);border-radius:50px;transition:width .4s ease}
+.hp-quest-rail{max-width:1150px;margin:0 auto 10px}
 .hp-scene{position:relative;isolation:isolate;width:min(100%,1150px);margin:0 auto;border:4px solid #ffefcdbd;border-radius:30px;overflow:hidden;
  height:clamp(255px,36vw,435px);box-shadow:0 11px 0 #0d4c5b,0 28px 42px #001c437d;
  background:radial-gradient(circle at 65% 20%,#b3e8e7,#418cb3 75%);}
@@ -100,8 +96,6 @@
 .harbor-talk-title{justify-content:center;text-align:center}
 .harbor-talk-title strong{font-size:clamp(18px,2.3vw,23px)}
 .hp-listen-hint{text-align:center;color:#d1edf2;font-size:12px;margin:3px 0 8px}
-.harbor-finale{max-width:720px;background:linear-gradient(150deg,#0b5475,#0b2e62);border:3px solid #f5ecc1;box-shadow:0 18px 35px #001f4982}
-.harbor-finale button{min-height:48px}
 .hp-need-interaction{font-weight:800;color:#fff8c0;text-align:center;margin:10px 0}
 @keyframes hp-character-bob{0%,100%{transform:translateY(0)}50%{transform:translateY(-5px)}}
 @keyframes hp-water-move{0%,100%{transform:translateX(0);opacity:.55}50%{transform:translateX(22px);opacity:1}}
@@ -136,7 +130,6 @@
  .harbor-answer-grid{grid-template-columns:1fr;gap:10px}
  .harbor-answer{min-height:55px}
  .harbor-answer[data-level="Pre-A1"]{min-height:75px}
- .hp-quest-top{font-size:12px}
  .hp-quest-text{font-size:15px}
 }
 @media(prefers-reduced-motion:reduce){.hp-scene *, .hp-episode-thumb img, .harbor-answer{animation:none!important;transition:none!important}
@@ -150,18 +143,11 @@
  * Keep character, child choices, TTS and listening mechanics unchanged.
  */
 @media(max-width:640px){
- .harbor-root .harbor-header{gap:8px;padding:7px 10px;min-height:62px}
- .harbor-header>div:not(.harbor-progress){min-width:0;flex:1}
- .harbor-root .harbor-header small{display:block;font-size:12px;letter-spacing:.035em;white-space:nowrap}
- .harbor-root .harbor-header h1{font-size:18px;line-height:1.2;margin:2px 0 0}
- .harbor-back{min-width:44px;min-height:44px;flex:0 0 44px}
- .harbor-progress{flex:none;margin-left:0;padding:8px 9px;border-radius:14px;font-size:12px}
  .harbor-root .harbor-main{min-height:0;padding:8px 8px max(22px,env(safe-area-inset-bottom))}
  .hp-scene{height:clamp(280px,76vw,350px)}
  .hp-dock-floor{display:none}
  .hp-replay{min-height:44px;padding:9px 12px}
- .harbor-level-title{margin-bottom:7px}
- .hp-quest-top{margin-bottom:7px}
+ .hp-quest-rail{margin-bottom:7px}
  .hp-quest-text{margin-top:9px}
  .harbor-talk{margin-top:10px;padding:12px}
  .harbor-talk-title{gap:3px;margin-bottom:10px;align-items:flex-start;text-align:left}
@@ -184,20 +170,12 @@
   font-size:12px!important;line-height:1.4;text-align:center;
  }
  .harbor-feedback{min-height:0;margin:10px 0 6px;line-height:1.45}
- .harbor-hint{
-  display:flex;align-items:center;justify-content:center;
-  min-width:130px;min-height:44px;padding:10px 14px;
-  margin:3px auto 2px;border-radius:12px;border:1px solid #b9e5ff70;
-  background:#ffffff12;
- }
  .harbor-footer{
   flex:none;padding:6px 10px max(6px,env(safe-area-inset-bottom));
   font-size:12px;line-height:1.3;
  }
 }
 @media(max-width:370px){
- .harbor-root .harbor-header small{font-size:12px;letter-spacing:.02em}
- .harbor-root .harbor-header h1{font-size:17px}
  .hp-scene{height:280px}
  .harbor-answer,.harbor-answer[data-level="Pre-A1"]{
   min-height:63px;font-size:16px;
@@ -254,18 +232,6 @@
  display:flex;align-items:stretch;justify-content:center;gap:10px;
  flex-wrap:wrap;max-width:760px;margin:8px auto 3px;
 }
-.harbor-coach-actions>button{
- display:inline-flex;justify-content:center;align-items:center;gap:6px;
- min-height:46px;padding:9px 16px;border-radius:14px;font-size:13px;
- font-weight:850;line-height:1.3;border:1px solid #bee7d9c2;
-}
-.harbor-coach-actions>button:disabled{opacity:.56;cursor:not-allowed}
-.harbor-coach-actions .harbor-model-answer{
- color:#113d59;background:linear-gradient(120deg,#ccefff,#a7e7e0);
-}
-.harbor-coach-actions .harbor-hint{
- display:inline-flex;margin:0;color:#ffefd0;background:#ffffff1b;border-color:#f5deb9b3;
-}
 .harbor-answer[data-answer="try-again"]{
  border-color:#ffd4a5;background:linear-gradient(135deg,#dc965625,#a3c7e51a);
 }
@@ -278,11 +244,6 @@
 .harbor-answer[data-answer="correct"]:after{
  content:"✓";font-size:19px;color:#e7ffc5;margin-left:auto;
 }
-.harbor-finale .harbor-finale-stars{
- font-size:clamp(29px,6vw,45px);letter-spacing:8px;margin:9px auto;
- text-shadow:0 4px 10px #072743;
-}
-.harbor-finale-stars span{color:#a9d2d5}
 .harbor-finale-stats{
  display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;
  max-width:590px;margin:17px auto;padding:0;
@@ -293,24 +254,14 @@
  padding:12px 7px;font-size:12px;color:#e3f6f5;
 }
 .harbor-finale-stats strong{font-size:22px;color:#fff3ba}
-.harbor-finale .harbor-finale-tip{max-width:510px;margin:14px auto;line-height:1.55}
-/* .harbor-finale>div sets 55px for the old emoji icon; the stats and the
-   buttons are divs too, so they set their own readable size. */
-.harbor-finale-actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;font-size:16px;line-height:1.25}
-.harbor-finale-actions>button{margin-top:5px;min-height:48px;font-size:16px}
-.harbor-finale-actions .harbor-finale-secondary{
- background:#124d76;color:#eaffec;border:1px solid #b0e8d7;
-}
+.harbor-finale-tip{max-width:510px;margin:4px auto;line-height:1.55;font-weight:700;color:#d4ebf8}
+.harbor-result .gf-result-art{min-height:200px;padding-top:12px}
 @media(max-width:640px){
  .harbor-root{height:100dvh;min-height:0}
- .harbor-root .harbor-header small{
-  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%;
- }
  .harbor-coach-actions{gap:7px}
- .harbor-coach-actions>button{flex:1 1 145px;padding:9px 10px;font-size:12px}
+ .harbor-coach-actions>button{flex:1 1 145px}
  .harbor-answer[data-answer="try-again"]:after,
  .harbor-answer[data-answer="correct"]:after{flex:none}
- .harbor-finale{margin:7vh auto;padding:22px 13px}
  .harbor-finale-stats{gap:5px}
  .harbor-finale-stats span{font-size:12px;padding:9px 3px}
  .harbor-finale-stats strong{font-size:18px}
@@ -345,11 +296,8 @@
  .hp-object-choice .hp-prop-icon{font-size:30px}
 }
 
-/* iOS notch / Dynamic Island: the root is fixed full-screen with viewport-fit=cover,
- * so the exit button must sit below the status bar safe area. */
-.harbor-root .harbor-header{padding-top:max(10px,env(safe-area-inset-top,0px))}
-@media(max-width:640px){.harbor-root .harbor-header{padding-top:max(7px,env(safe-area-inset-top,0px))}}
 
 /* Child legibility floor (measured 11px at 320px): replay and the task line are actions. */
 .harbor-root .hp-replay{font-size:13px;min-height:44px}
 .harbor-root .harbor-talk-title span{font-size:13px}
+.harbor-root .gf-bar{--gf-max:1150px}

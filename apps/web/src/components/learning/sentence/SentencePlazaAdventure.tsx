@@ -27,6 +27,7 @@ import './sentence-plaza-learning-v7.css';
 import './sentence-plaza-friends-v9.css';
 import {gradeLevelLabel} from '@/lib/learning/gradeLabel';
 import {IslandHome} from '../island/IslandHome';
+import {GameTopBar,GameStepRail,GameResult} from '../game/GameFrame';
 
 interface Props{
  profileId:string;gradeLevel:number|null;englishLevel:EnglishPlacement;
@@ -354,26 +355,18 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
  </IslandHome>;
  return <div ref={root} role="dialog" aria-modal="true" aria-label="Cümle Meydanı İngilizce macerası"
   className="sp-overlay sp-v2 sp-v3" onPointerDown={event=>event.stopPropagation()}>
+  <GameTopBar island="sentence" onBack={()=>{if(!busy)back();}}
+   backLabel="Görevler" backAriaLabel="Meydan görevlerine dön" crest={rule.icon}
+   eyebrow={'Cümle Meydanı · Görev '+mission} title={rule.title}
+   progress={screen==='play'&&deck&&totalQuestions>0?{current:step+1,total:totalQuestions}:undefined}
+   stars={{earned:starsTotal,total:18}} chips={[gradeLevelLabel(gradeLevel)+' · '+englishLevel]}/>
   <div className="sp-wrap">
-   <header className="sp-top">
-    <div className="sp-logo"><div className="sp-logo-emblem" aria-hidden="true">🏰</div>
-     <div><div className="sp-eyebrow">VENTRA · SENTENCE ADVENTURE</div>
-      <h1 className="sp-brand-title">Cümle Meydanı</h1>
-      <p className="sp-sub sr-only">Kelimeler dünyayı değiştirsin.</p></div>
-    </div>
-    <div className="sp-actions">
-     <span className="sp-chip">🎓 {gradeLevelLabel(gradeLevel)} · {englishLevel}</span>
-     <span className="sp-chip">⭐ {starsTotal} / 18</span>
-     <button type="button" className="sp-back" onClick={back} disabled={busy}>
-      ← Meydana Dön
-     </button>
-    </div>
-   </header>
-   {loading?<div role="status" className="sp-reward"><h2>Şehir hazırlanıyor…</h2></div>:
-   loadError?<div role="alert" className="sp-reward"><h2>Kayıt okunamadı</h2><p>{loadError}</p>
-    <button type="button" onClick={()=>setLoadAttempt(n=>n+1)} className="sp-primary">↻ Tekrar dene</button>
-    <button type="button" onClick={onBack} className="sp-primary">Adalar Evreni'ne Dön</button>
-   </div>:
+   {loading?<div role="status"><GameResult island="sentence" kicker="Cümle Meydanı" title="Şehir hazırlanıyor…" actions={null}/></div>:
+   loadError?<div role="alert"><GameResult island="sentence" kicker="Kayıt" title="Kayıt okunamadı" message={loadError}
+    actions={<>
+     <button type="button" onClick={()=>setLoadAttempt(n=>n+1)} className="gf-btn gf-btn--primary">↻ Tekrar dene</button>
+     <button type="button" onClick={onBack} className="gf-btn gf-btn--secondary">Adalar Evreni'ne Dön</button>
+    </>}/></div>:
    screen==='lesson'?<>
     <section className="sp-hero sp-v2-hero"><div><div className="sp-eyebrow">ÖNCE ÖĞREN · GÖREV {mission} / {chapterTotal}</div>
      <h2>{rule.icon} {rule.title}</h2><p>{rule.story}</p></div></section>
@@ -383,15 +376,13 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
        <div className="sp-side-label">1 · DİNLE</div><h3>Örneği keşfet</h3>
        <div className="sp-learn-card"><strong>ÖRNEK CÜMLE</strong><span>{rule.model}</span>
         <small>{rule.modelTr}</small></div>
-       <button type="button" className="sp-secondary sp-v2-listen" onClick={listenModel}>🔊 Dinle</button>
+       <button type="button" className="sp-v2-listen gf-btn gf-btn--tool" onClick={listenModel}>🔊 Dinle</button>
        <details className="sp-v2-details"><summary>📖 Dil yapısı</summary><p>{rule.rule}</p></details>
-       <button type="button" className="sp-primary sp-v2-play" onClick={beginMission}>✨ Oyna</button>
+       <button type="button" className="sp-primary sp-v2-play gf-btn gf-btn--primary" onClick={beginMission}>✨ Oyna</button>
       </aside>
     </div>
    </>:screen==='play'&&deck&&task?<>
-    <section className="sp-hero"><div><div className="sp-eyebrow">GÖREV {mission} · {rule.skill.toUpperCase()}</div>
-     <h2>{rule.title}</h2><p className="sr-only">{rule.story}</p></div>
-     <div className="sp-stars"><strong>{step+1}/{totalQuestions}</strong>cümle görevi</div></section>
+    <p className="sr-only">{rule.story}</p>
     <div className="sp-game-layout">
      <div className="relative isolate">
       <SentencePlazaScene effect={sceneEffect} awaken={awakened} chapter={mission}
@@ -410,18 +401,16 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
      </div>
      <section className="sp-workshop" aria-label="İngilizce cümle oluşturma atölyesi">
       <div className="sp-step"><span>✦ {sentenceKindLabels[task.kind]} · {task.mode==='repair'?'Yanlış kelimeyi seç':task.mode==='scene'?(mission===2?'Hayvanı seç':'Sahneyi seç'):'Cümleyi kur'}</span>
-       <span>{step+1} / {totalQuestions}</span></div>
-      <div className="sp-meter" role="progressbar" aria-label="Bölümde tamamlanan cümleler"
-       aria-valuemin={0} aria-valuemax={totalQuestions} aria-valuenow={step+(awakened?1:0)}>
-       <span style={{width:`${100*(step+(awakened?1:0))/totalQuestions}%`}}/></div>
+      </div>
       <SentenceQuestProgress index={step+1} total={totalQuestions} label={sentenceKindLabels[task.kind]}/>
        <h3 tabIndex={-1} className="sp-cue">{visualLocation&&!selectedScene?
         `${locationAnimal} nerede? Resimde bul.`:sentenceStart(task.cue)}</h3>
-      <div className="sp-v2-steps" aria-label="Seç, kur ve canlandır">
-        <span className={taskReady?'sp-v2-step-done':'sp-v2-step-current'}>① {task.mode==='repair'?'Düzelt':task.mode==='scene'?'Seç':'Bak'}</span>
-        <span className={taskReady&&!awakened?'sp-v2-step-current':awakened?'sp-v2-step-done':''}>② Kur</span>
-        <span className={awakened?'sp-v2-step-done':''}>③ Canlandır</span>
-       </div>
+      <GameStepRail island="sentence" className="sp-v2-steps" ariaLabel="Seç, kur ve canlandır"
+       steps={[
+        {key:'see',label:task.mode==='repair'?'Düzelt':task.mode==='scene'?'Seç':'Bak',state:taskReady?'done':'current'},
+        {key:'build',label:'Kur',state:awakened?'done':taskReady?'current':'upcoming'},
+        {key:'awaken',label:'Canlandır',state:awakened?'done':'upcoming'}
+       ]}/>
       {visualLocation&&<div className="sp-v7-visual-task" role="status">
         <span aria-hidden="true">👀</span>
         <span>{selectedScene?'Yeri buldun. Şimdi İngilizce cümleyi kur.':'Sahnede hayvanı bul. Bulunduğu yerin işaretine dokun.'}</span>
@@ -471,41 +460,44 @@ export function SentencePlazaAdventure({profileId,gradeLevel,englishLevel,onBack
         <span aria-hidden="true">🔒</span>
         <span>{task.mode==='repair'?'Yanlış kelimeyi seçince cümle kurma alanı açılacak.':'Sahneyi seçince cümle kurma alanı açılacak.'}</span>
        </div>}
-      <button type="button" className="sp-primary sp-check" disabled={awakened||busy||!taskReady||picked.length!==task.tokens.length||Boolean(saveError)}
+      <button type="button" className="sp-primary sp-check gf-btn gf-btn--primary" disabled={awakened||busy||!taskReady||picked.length!==task.tokens.length||Boolean(saveError)}
        onClick={submitSentence}>✨ Canlandır</button>
       <div className="sp-tools">
-       <button type="button" className="sp-secondary" disabled={awakened||busy||!picked.length}
+       <button type="button" className="sp-secondary gf-btn gf-btn--tool" disabled={awakened||busy||!picked.length}
         onClick={()=>{setPicked(old=>old.slice(0,-1));setWrongSlot(-1);}} aria-label="Son kelimeyi geri al">↶ Geri Al</button>
-       <button type="button" className="sp-secondary" disabled={awakened||busy}
+       <button type="button" className="sp-secondary gf-btn gf-btn--tool" disabled={awakened||busy}
         onClick={listenTask}>🔊 Dinle</button>
-       <button type="button" className="sp-secondary" disabled={awakened||busy}
+       <button type="button" className="sp-secondary gf-btn gf-btn--tool" disabled={awakened||busy}
         onClick={showHint}>💡 İpucu Al</button>
       </div>
       {feedback&&<div role="status" aria-live="polite" className="sp-feedback" data-error={feedbackError}>{feedback}</div>}
       {awakened&&<SentenceQuestSuccess detail="Sahne canlandı!"/>}
       {saveError&&<div role="alert" className="sp-feedback" data-error="true">
-        {saveError}<button type="button" disabled={busy} className="sp-primary" style={{marginTop:12}}
+        {saveError}<button type="button" disabled={busy} className="sp-primary gf-btn gf-btn--primary" style={{marginTop:12}}
          onClick={()=>void finish(completedAnswers.current)}>Tekrar Kaydet</button></div>}
       <p className="sr-only">İpuçları ve hatalar öğrenme kayıtlarında ayrı tutulur.</p>
      </section>
     </div>
-   </>:screen==='reward'?<div className="sp-reward relative isolate overflow-hidden" role="status">
-     <LearningMotion variant="victory" trigger={'sentence-reward-'+mission}/>
-     <div className="sp-eyebrow">Uyanan Meydan · Görev {mission} tamamlandı</div>
+   </>:screen==='reward'?<div role="status"><GameResult island="sentence" className="sp-result"
+     art={<><img src={`/assets/sentence-plaza/v5/mission-${mission}.webp`} alt="" decoding="async"/>
+      <LearningMotion variant="victory" trigger={'sentence-reward-'+mission}/></>}
+     kicker={'Uyanan Meydan · Görev '+mission+' tamamlandı'} title="Şehir canlandı!"
+     stars={{earned:completedStars}}
+     message="İngilizce cümleler kurarak dünyayı değiştirdin. Yeni göreve geçebilir veya bu bölümde başka cümlelerle çalışabilirsin."
+     actions={<>
+      <button type="button" className="gf-btn gf-btn--primary" onClick={()=>openMission(Math.min(6,mission+1) as PlazaMission)}>
+       {mission===6?'↻ Farklı Cümlelerle Yeniden Oyna':'✦ Sıradaki Öğrenme Görevi'}
+      </button>
+      <button type="button" className="gf-btn gf-btn--secondary" onClick={()=>setScreen('map')}>Meydan Haritasına Dön</button>
+     </>}>
      <SentenceQuestReward independent={completedAnswers.current.filter(x=>x.firstTryCorrect).length}/>
-      <h2>Şehir canlandı!</h2><div className="sp-reward-stars">{'★'.repeat(completedStars)}</div>
-     <p>İngilizce cümleler kurarak dünyayı değiştirdin. Yeni göreve geçebilir veya bu bölümde başka cümlelerle çalışabilirsin.</p>
-     <div className="sp-lesson-grid" style={{margin:'20px 0'}}>
+     <div className="sp-lesson-grid">
       <div className="sp-lesson-tip">📖 <strong>{completedAnswers.current.length} anlamlı cümle</strong></div>
       <div className="sp-lesson-tip">⭐ <strong>{completedStars} / 3 yıldız</strong></div>
       <div className="sp-lesson-tip">🧠 <strong>{completedAnswers.current.filter(x=>x.firstTryCorrect).length} bağımsız başarı</strong></div>
       <div className="sp-lesson-tip">💡 <strong>{completedAnswers.current.filter(x=>x.hintUsed||x.modelHeard).length} destekli deneme</strong></div>
      </div>
-     <button type="button" className="sp-primary" onClick={()=>openMission(Math.min(6,mission+1) as PlazaMission)}>
-      {mission===6?'↻ Farklı Cümlelerle Yeniden Oyna':'✦ Sıradaki Öğrenme Görevi'}
-     </button>
-     <button type="button" className="sp-secondary" style={{marginTop:17}} onClick={()=>setScreen('map')}>Meydan Haritasına Dön</button>
-    </div>:null}
+    </GameResult></div>:null}
   </div>
  </div>;
 }

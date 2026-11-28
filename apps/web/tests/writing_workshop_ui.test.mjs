@@ -26,7 +26,7 @@ test('Writing adventure measures independent typing separately from supported ti
  assert.match(ui,/session.current\?\?crypto.randomUUID\(\)/);
  assert.match(ui,/const valid=saved&&saved.step<resumeDeck.length&&matches\?saved:null/);
  assert.match(ui,/getWorkshopTasks\(id,englishLevel,gradeLevel,index\)/);
- assert.match(ui,/role="progressbar"/);
+ assert.match(ui,/progress=\{phase==='playing'\?\{current:step\+1,total:deck\.length\}/,'the shared top bar draws the progressbar');
  assert.match(ui,/aria-label="Oluşturduğun İngilizce cevap"/);
  assert.match(ui,/spellCheck=\{false\}/);
  assert.match(ui,/Bu not sadece şu ekranda görünür/);
@@ -73,7 +73,7 @@ test('Replays use persisted completed play count and the same plan after checkpo
  assert.match(ui,/saved\?\.playIndex\?\?0/);
  assert.match(ui,/getWorkshopTasks\(id,englishLevel,gradeLevel,savedIndex\)/);
  assert.match(ui,/getLegacyWorkshopTasks\(id,englishLevel,gradeLevel,savedIndex\)/);
- assert.match(ui,/writing-arc/);
+ assert.match(ui,/<GameStepRail island="writing" className="writing-arc"/);
  assert.match(ui,/writing-guided-clue/);
  assert.match(ui,/playCounts\[id\]\?\?0/);
  assert.match(ui,/setDeck\(planned\);setPlayIndex\(index\)/);

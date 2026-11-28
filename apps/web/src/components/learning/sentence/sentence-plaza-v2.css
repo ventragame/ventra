@@ -8,34 +8,10 @@
  color:#fff7df;
 }
 .sp-v2 .sp-wrap{max-width:1320px;padding-bottom:max(60px,env(safe-area-inset-bottom,0px))}
-.sp-v2 .sp-top{
- border:2px solid #f6e7b5;border-radius:22px;
- background:linear-gradient(125deg,#073d52f5,#0e5870f4 53%,#0a344eef);
- box-shadow:0 6px 0 #072c43,0 16px 26px #05172d9b,inset 0 1px #fff8d889;
- padding:10px 14px;
-}
-.sp-v2 .sp-logo-emblem{
- border:2px solid #ffe0a7;border-radius:16px;
- background:linear-gradient(135deg,#e6a8ef,#6f6cd7 73%,#4b63bb);
- box-shadow:0 4px 0 #29426d,0 8px 16px #062b3d66;
-}
-.sp-v2 .sp-brand-title{font-size:clamp(22px,2.6vw,32px);color:#fff7d9;text-shadow:0 2px #9f6548}
 .sp-v2 .sp-eyebrow{color:#b5ebdf}
-.sp-v2 .sp-chip{
- border:1px solid #cbdfc4;background:#16536bc5;
- color:#fff8e5;padding:8px 12px;
-}
-.sp-v2 .sp-back{
- border:2px solid #ffe0a6;color:#fffbe8;
- background:linear-gradient(135deg,#17657a,#0c4355);
- box-shadow:0 4px 0 #082b3c;
-}
 .sp-v2 .sp-hero{padding:19px 5px 14px;gap:12px}
 .sp-v2 .sp-v2-hero h2{color:#fff2c4;text-shadow:0 4px 0 #715345,0 8px 18px #031e37}
 .sp-v2 .sp-v2-hero p{color:#d8f5e6;line-height:1.35;font-size:clamp(12px,1.3vw,15px);margin-top:7px}
-.sp-v2 .sp-stars{border:2px solid #ffe8b2;border-radius:18px;background:linear-gradient(150deg,#544578,#363e74);
- box-shadow:0 5px 0 #27264f;color:#fff0bb;min-width:98px}
-.sp-v2 .sp-stars strong{font-size:clamp(24px,3vw,34px)}
 .sp-v2 .sp-layout{grid-template-columns:minmax(0,1.58fr) minmax(280px,.76fr)}
 .sp-v2 .sp-side{
  border:2px solid #c6e7d7;border-radius:23px;
@@ -63,9 +39,8 @@
 }
 .sp-v2 .sp-v2-details[open],.sp-v2 .sp-v2-vocab[open]{border-color:#f4dfac}
 .sp-v2 .sp-v2-details p{margin:0!important;padding:0 13px 12px;color:#e0f0e8;font-size:12px;line-height:1.5}
-.sp-v2 .sp-v2-play{margin-top:16px;font-size:17px;background:linear-gradient(110deg,#f7e8a1,#a6edb3);
- box-shadow:0 6px 0 #86a96d;color:#174e4f}
-.sp-v2 .sp-v2-listen{margin-top:14px;width:100%;border-color:#e6d39c;background:linear-gradient(145deg,#2c7895,#215a78);box-shadow:0 4px 0 #0b405b}
+.sp-v2 .sp-v2-play{margin-top:16px}
+.sp-v2 .sp-v2-listen{margin-top:14px;width:100%}
 .sp-v2 .sp-v2-future{margin-top:16px;border:1px solid #9ac7c46c;border-radius:14px;padding:9px 12px;background:#0f455dbb}
 .sp-v2 .sp-v2-future summary{font-size:12px;font-weight:900;cursor:pointer;touch-action:manipulation}
 .sp-v2 .sp-v2-future .sp-future-grid{margin-top:10px}
@@ -142,25 +117,13 @@
  box-shadow:0 6px 0 #0e3347,0 14px 26px #051a30a6;padding:clamp(14px,2vw,21px);
 }
 .sp-v2 .sp-step{color:#d4f4e7}
-.sp-v2 .sp-meter{margin:8px 0 12px;height:9px;border:1px solid #bae6cc;background:#092d48}
-.sp-v2 .sp-meter span{background:linear-gradient(90deg,#45d3c4,#ffd56e)}
 .sp-v2 .sp-cue{
  font-size:clamp(16px,1.9vw,22px);line-height:1.3;
  border:2px solid #f9d59c;border-left-width:5px;border-radius:14px;
  color:#614536;background:linear-gradient(140deg,#fffae5,#f7e4c3);
  box-shadow:0 4px 0 #c3a475,0 8px 14px #09283a5a;padding:12px 14px;
 }
-.sp-v2 .sp-v2-steps{display:flex;gap:7px;justify-content:center;margin:12px 0}
-.sp-v2 .sp-v2-steps span{
- flex:1;text-align:center;padding:9px 6px;border-radius:999px;
- background:#154b62;border:1px solid #8bb6bc;color:#cfe5db;font-size:12px;font-weight:950;
-}
-.sp-v2 .sp-v2-steps .sp-v2-step-current{
- background:linear-gradient(120deg,#fff6d7,#e8df9b);border-color:#fff1b0;color:#205763;
-}
-.sp-v2 .sp-v2-steps .sp-v2-step-done{
- background:#246f66;border-color:#9be1aa;color:#fff7df
-}
+.sp-v2 .sp-v2-steps{margin:12px 0}
 .sp-v2 .sp-interaction{
  margin:11px 0;padding:10px;border:1px solid #8eb3c0;
  border-radius:15px;background:#123b57d9;
@@ -208,13 +171,9 @@
 }
 .sp-v2 .sp-tile:hover:not(:disabled){background:#fff1b3}
 .sp-v2 .sp-tile:disabled{opacity:.22}
-.sp-v2 .sp-check{font-size:17px;margin-top:6px}
+.sp-v2 .sp-check{margin-top:6px}
 .sp-v2 .sp-tools{justify-content:center;margin-top:11px}
-.sp-v2 .sp-tools .sp-secondary{
- min-height:44px;flex:1;padding:8px;border:2px solid #a6d9d0;
- border-radius:12px;background:#1c6071;color:#f7fff3;
- font-weight:950;white-space:nowrap;
-}
+.sp-v2 .sp-tools .gf-btn{flex:1;white-space:nowrap}
 .sp-v2 .sp-feedback{font-size:12px}
 .sp-v2 .sp-overlay button:focus-visible{outline:3px solid #ffce58;outline-offset:3px}
 @media(max-width:950px){
@@ -226,17 +185,9 @@
 }
 @media(max-width:610px){
  .sp-v2 .sp-wrap{padding:8px 7px max(58px,env(safe-area-inset-bottom,0px))}
- .sp-v2 .sp-top{border-radius:14px;padding:7px 8px}
- .sp-v2 .sp-logo{gap:7px}
- .sp-v2 .sp-logo-emblem{width:42px;height:42px;font-size:22px}
- .sp-v2 .sp-brand-title{font-size:clamp(19px,4.9vw,24px)}
- .sp-v2 .sp-actions{gap:5px}
- .sp-v2 .sp-chip{padding:6px 8px;font-size:12px}
- .sp-v2 .sp-back{min-height:44px;padding:7px;font-size:12px}
  .sp-v2 .sp-hero{padding:12px 2px 11px}
  .sp-v2 .sp-hero h2{font-size:clamp(24px,6.4vw,32px)}
  .sp-v2 .sp-hero p{font-size:12px}
- .sp-v2 .sp-stars{min-width:78px;padding:8px}
  .sp-v2 .sp-v2-flow{gap:5px;margin:12px 0}
  .sp-v2 .sp-v2-flow>div{border-radius:12px;min-height:60px}
  .sp-v2 .sp-v2-flow>div strong{font-size:12px}
@@ -250,23 +201,20 @@
  .sp-v2 .sp-workshop{padding:12px 9px;border-radius:16px}
  .sp-v2 .sp-step{font-size:12px}
  .sp-v2 .sp-cue{font-size:16px;padding:9px 10px}
- .sp-v2 .sp-v2-steps{gap:4px;margin:8px 0}
- .sp-v2 .sp-v2-steps span{font-size:12px;padding:7px 3px}
+ .sp-v2 .sp-v2-steps{margin:8px 0}
  .sp-v2 .sp-scene-choice{padding:5px 7px;min-height:44px}
  .sp-v2 .sp-scene-choice small{font-size:12px}
  .sp-v2 .sp-slots{gap:5px;padding:8px 5px;min-height:65px}
  /* Filled slots are buttons (tap to return the word): 44px like the tiles. */
  .sp-v2 .sp-slot{min-width:44px;min-height:44px;padding:6px 7px}
  .sp-v2 .sp-tile{min-width:45px;min-height:44px;padding:6px 8px;font-size:12px}
- .sp-v2 .sp-tools .sp-secondary{font-size:12px;padding:6px 4px}
+ .sp-v2 .sp-tools .gf-btn{padding:0 8px}
  .sp-v2 .sp-side{padding:14px}
 }
 @media(max-width:359px){
- .sp-v2 .sp-actions .sp-chip:first-child{display:none}
  .sp-v2 .sp-v2-mission strong{font-size:12px}
  .sp-v2 .sp-v2-card-art{height:83px}
  .sp-v2 .sp-v2-art{min-height:162px}
- .sp-v2 .sp-v2-steps span{font-size:12px}
 }
 @media(prefers-reduced-motion:reduce){
  .sp-v2 .sp-v2-mission,.sp-v2 .sp-v2-card-art,.sp-v2 .sp-tile,
@@ -277,3 +225,4 @@
 
 /* 44px touch target for the grammar disclosure (measured 38px tall). */
 .sp-v2-details>summary{min-height:44px;display:flex;align-items:center}
+.sp-v2 .sp-v2-vocab>summary{min-height:44px;display:flex;align-items:center}

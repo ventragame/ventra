@@ -121,7 +121,7 @@ test('The shared home is touch-friendly, keyboard-reachable and calm for reduced
  assert.match(css,/@media\(max-width:640px\)/);
  assert.match(css,/@media\(prefers-reduced-motion:reduce\)\{\n \.ih-root \*,\.ih-root \*::before,\.ih-root \*::after\{animation:none!important;transition:none!important\}/);
  for(const id of ['sentence','harbor','writing','academy','story'])
-  assert.match(css,new RegExp('\\.ih-root\\[data-island="'+id+'"\\]\\{'),id+' keeps its own palette');
+  assert.ok(read('src/components/learning/island/island-palette.css').includes(':is(.ih-root,.gf-theme)[data-island="'+id+'"]{'),id+' keeps its own palette');
 });
 
 test('Writing Workshop chapters and guide are painted WebPs, not emoji cards',()=>{

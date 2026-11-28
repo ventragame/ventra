@@ -1,0 +1,24 @@
+/* Island palettes, shared by the island home pages (.ih-root) and the in-game
+ * frame (.gf-theme). One place decides what "Diyalog Limanı blue" or
+ * "Hikâye Ormanı daylight" means, so a game never drifts from its island. */
+.ih-root,.gf-theme{
+ --ih-bg1:#0b2340;--ih-bg2:#123f58;--ih-bg3:#0b2b3c;--ih-glow:#3fc1c855;--ih-glow2:#f7c46a2e;
+ --ih-ink:#f8f6ec;--ih-muted:#c9dce4;--ih-line:#ffffff2e;
+ --ih-card:#ffffff12;--ih-card-hover:#ffffff1c;--ih-card-ink:#fbfaf2;--ih-card-muted:#bfd5df;
+ --ih-accent:#ffd978;--ih-ring:#ffe39a;--ih-chip:#ffffff17;--ih-mote:#fff3b8;
+ --ih-cta1:#fff4c6;--ih-cta2:#c8f3d9;--ih-cta-ink:#173a35;
+ --ih-hero-base:#071a2e;
+}
+:is(.ih-root,.gf-theme)[data-island="sentence"]{--ih-bg1:#0a2a3d;--ih-bg2:#0f4a5c;--ih-bg3:#0b3442;--ih-glow:#39c6c25c;--ih-glow2:#ffd2702e;--ih-accent:#ffd36e;--ih-ring:#ffe08f;--ih-mote:#ffe9a6}
+:is(.ih-root,.gf-theme)[data-island="harbor"]{--ih-bg1:#06223f;--ih-bg2:#0b4a6d;--ih-bg3:#082c4d;--ih-glow:#3fd0e05e;--ih-glow2:#ffcf7a2a;--ih-accent:#ffd27a;--ih-ring:#ffe0a0;--ih-mote:#bff3ff}
+:is(.ih-root,.gf-theme)[data-island="writing"]{--ih-hero-base:#1b1640;--ih-bg1:#211d47;--ih-bg2:#3a3170;--ih-bg3:#272252;--ih-glow:#a78bff4d;--ih-glow2:#ffb86b33;--ih-accent:#ffbf7a;--ih-ring:#ffd3a3;--ih-mote:#ffd9b0;--ih-muted:#ddd6f5;--ih-card-muted:#d4cdef}
+:is(.ih-root,.gf-theme)[data-island="academy"]{--ih-hero-base:#0a1433;--ih-bg1:#0a1633;--ih-bg2:#18275a;--ih-bg3:#1d1c50;--ih-glow:#4f6be05c;--ih-glow2:#ffd98a26;--ih-accent:#ffd98a;--ih-ring:#ffe6ad;--ih-mote:#fff6cf;--ih-muted:#cfd8f6;--ih-card-muted:#c5cff0}
+/* Kelime Bahçesi: the deep meadow teal of the garden hub. */
+:is(.ih-root,.gf-theme)[data-island="garden"]{--ih-hero-base:#0b2f2c;--ih-bg1:#0d3a3a;--ih-bg2:#155a54;--ih-bg3:#0f4140;--ih-glow:#7fe0a65c;--ih-glow2:#ffe08a2e;--ih-accent:#ffd978;--ih-ring:#ffe9a8;--ih-mote:#e8ffb8;--ih-muted:#cfe6dd;--ih-card-muted:#c3dcd2}
+/* Story Forest stays a daylight wood. */
+:is(.ih-root,.gf-theme)[data-island="story"]{
+ --ih-bg1:#cfe9ff;--ih-bg2:#c6f0db;--ih-bg3:#a6dfca;--ih-glow:#ffffffa8;--ih-glow2:#fff2b05c;
+ --ih-ink:#123f35;--ih-muted:#3f6a5d;--ih-line:#1d5a4a24;
+ --ih-card:#fffdf6;--ih-card-hover:#ffffff;--ih-card-ink:#163e34;--ih-card-muted:#4d7166;
+ --ih-accent:#2fae86;--ih-ring:#38b98d;--ih-chip:#ffffffb8;--ih-mote:#fff6b0;--ih-hero-base:#0d3a33;
+}

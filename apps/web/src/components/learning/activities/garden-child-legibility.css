@@ -7,15 +7,12 @@
  * Imported last by Animal Meadow, Food Market, Family Village and Temple.
  */
 
-/* Touch targets: exits, help and sound controls (WCAG 2.5.5 / child UX). */
-:is(.am-hud-btn,.fm-back,.fv-back,.tp-return,.tp-mute){
- min-width:44px!important;min-height:44px!important;
-}
+/* Touch targets: exits, sound and step tabs live in the shared game frame
+   (46px, components/learning/game/game-frame.css); help keeps its floor here. */
 .wg-game-help>summary{
  min-width:44px!important;min-height:44px!important;
  display:inline-grid;place-items:center;
 }
-.am3-missions>button{min-height:44px!important}
 
 /* Instructions the child reads to know what to do next. */
 :is(.fm4-discovery-status,.fv3-discovery-status,.tp6-discovery-guide){
@@ -25,7 +22,7 @@
 
 /* Navigation and progress a child reads: area/lane names, chamber state,
    mission steps and step counters were 9–11px at 320px (real-browser audit). */
-:is(.fm-lane-copy strong,.fm-lane-copy small,.tp-chamber strong,.tp-chamber small,.am3-step,.fv-count,.fv-discovery strong){
+:is(.am3-step,.fv-count,.fv-discovery strong){
  font-size:12px!important;line-height:1.2!important;
 }
 /* Labels painted on the scene art repeat information shown elsewhere; keep

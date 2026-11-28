@@ -17,6 +17,7 @@ import {nextWorkshopHintStage,workshopHint} from '@/lib/learning/writingWorkshop
 import './writing-workshop.css';
 import {GameFinale} from '../GameFinale';
 import {IslandHome} from '../island/IslandHome';
+import {GameTopBar,GameStepRail,GameResult} from '../game/GameFrame';
 import {gradeLevelLabel} from '@/lib/learning/gradeLabel';
 
 /** Painted chapter scenes and guide (provenance: docs/VENTRA_ISLAND_HOMES_V1.md). */
@@ -75,7 +76,7 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
   task.mode==='spell'?built.join(''):built.join(' ');
  const wordCount=task.target.trim().split(/\s+/).length;
  const act=Math.min(2,Math.floor(step*3/deck.length));
- const acts=['1 · Keşfet','2 · Deneyerek Yaz','3 · Kendi Başına'];
+ const acts=[{label:'Keşfet',short:'Keşfet'},{label:'Deneyerek Yaz',short:'Dene'},{label:'Kendi Başına',short:'Kendin'}];
  const activeHelp=helpStage?workshopHint(task,helpStage as 1|2|3):null;
  const keyboardOpen=typingFocused&&keyboardInset>100;
 
@@ -300,32 +301,20 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
  </IslandHome>;
  return <div className="writing-root" role="dialog" aria-modal="true" aria-label="Yazı Atölyesi"
   data-keyboard-open={keyboardOpen} style={{'--writing-keyboard-inset':keyboardInset+'px'} as React.CSSProperties}>
-  <header className="writing-header">
-   <button type="button" onClick={back} className="writing-back"
-    aria-label="Bölüm haritasına dön">←</button>
-   <div className="writing-brand"><small>VENTRA · İNGİLİZCE YAZMA</small><h1>Yazı Atölyesi</h1></div>
-   <span className="writing-badge">⭐ {completed}/5</span>
-  </header>
+  <GameTopBar island="writing" onBack={back} backLabel="Bölümler" backAriaLabel="Bölüm haritasına dön"
+   crest={current.icon} eyebrow={'Yazı Atölyesi · Bölüm '+chapter} title={current.title}
+   progress={phase==='playing'?{current:step+1,total:deck.length}:undefined}
+   stars={{earned:completed,total:WORKSHOP_CHAPTERS.length}} chips={[englishLevel+' · Tur '+(playIndex+1)]}/>
   <main className="writing-main">
    {phase==='playing'?<div className="writing-play">
-    <div className="writing-topline">
-     <span>{current.icon} {current.title}</span>
-     <span>{englishLevel} · {step+1}/{deck.length} · Tur {playIndex+1}</span>
-    </div>
-    <div className="writing-arc" aria-label="Yazı yolculuğunun aşamaları">
-     {acts.map((label,i)=><span key={label} data-state={i<act?'done':i===act?'now':'later'}>
-      {i<act?'✓ ':''}{label}</span>)}
-    </div>
-    <div className="writing-progress" role="progressbar" aria-label="Bölüm ilerlemesi"
-     aria-valuemin={0} aria-valuemax={deck.length} aria-valuenow={step}>
-     <span style={{width:(step/deck.length*100)+'%'}}/>
-    </div>
+    <GameStepRail island="writing" className="writing-arc" ariaLabel="Yazı yolculuğunun aşamaları"
+     steps={acts.map((item,i)=>({key:item.label,label:item.label,short:item.short,
+      state:i<act?'done':i===act?'current':'upcoming'}))}/>
     <section className="writing-desk" data-mode={task.mode}
      style={{'--chapter-accent':current.color} as React.CSSProperties}>
      <div className="writing-desk-top">
       <span className="writing-mode">{task.mode==='spell'?'🔤 Harfleri Diz':
        task.mode==='assemble'?'🧩 Cümleyi Kur':'✍️ Kendin Yaz'}</span>
-      <span className="writing-stage">GÖREV {step+1} / {deck.length}</span>
      </div>
      <WritingDeskScene mode={task.mode}/>
      <h2>{task.promptTr}</h2>
@@ -335,8 +324,8 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
        'İngilizce cümleni klavyeden yaz. İhtiyacın olursa örneğe bakabilirsin.'}
      </p>
      <div className="writing-learning-tools">
-      <button type="button" onClick={speakModel} disabled={saving||resolved}>🔊 Örneği dinle</button>
-      <button type="button" onClick={showHelp} disabled={saving||resolved||helpStage===3}
+      <button type="button" className="gf-btn gf-btn--tool" onClick={speakModel} disabled={saving||resolved}>🔊 Örneği dinle</button>
+      <button type="button" className="gf-btn gf-btn--tool" onClick={showHelp} disabled={saving||resolved||helpStage===3}
         aria-label={'Aşamalı ipucu '+(helpStage===3?3:helpStage+1)+'/3'}>
        💡 {helpStage===3?'Tüm ipuçları açıldı':'İpucu '+(helpStage+1)+'/3'}
       </button>
@@ -387,9 +376,9 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
       💡 Bir ipucu alıp adım adım devam edebilirsin. Cevap hemen gösterilmez.
      </p>}
      <div className="writing-actions">
-      <button className="writing-reset" type="button" disabled={saving||resolved}
+      <button className="writing-reset gf-btn gf-btn--secondary" type="button" disabled={saving||resolved}
        onClick={clearEntry}>↺ Yeniden Dene</button>
-      <button className="writing-submit" type="button"
+      <button className="writing-submit gf-btn gf-btn--primary" type="button"
        onClick={submit} disabled={saving||resolved||!currentResponse.trim()}>
        {saving?'Kaydediliyor…':resolved?'✓ Başardın!':'Kontrol Et ✓'}
       </button>
@@ -400,13 +389,17 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
      </div>}
     </section>
     <p className="writing-skill-note">Harf dizme ve cümle kurma, bağımsız yazı yazmaktan farklı becerilerdir. ✨</p>
-   </div>:<section className="writing-finale">
-    <span className="writing-final-icon" aria-hidden="true">📚</span>
-    <h2>{current.title} Tamamlandı!</h2>
-    <div className="writing-final-stars" role="img" aria-label={(score?.stars??1)+' yıldız'}>
-     {'⭐'.repeat(score?.stars??1)}{'☆'.repeat(3-(score?.stars??1))}
-    </div>
-    <p>Yazı atölyendeki yeni sayfayı tamamladın.</p>
+   </div>:<GameResult island="writing" className="writing-result" kicker="Bölüm tamamlandı"
+    title={current.title+' Tamamlandı!'} stars={{earned:score?.stars??1}}
+    message="Yazı atölyendeki yeni sayfayı tamamladın."
+    art={<img src={WRITING_ART+'chapter-'+chapter+'.webp'} alt="" decoding="async"/>}
+    actions={<>
+     {chapter<WORKSHOP_CHAPTERS.length&&<button type="button" className="gf-btn gf-btn--primary" onClick={()=>enter(chapter+1)}>
+      Sonraki Bölüm →
+     </button>}
+     <button type="button" className="gf-btn gf-btn--secondary" onClick={()=>enter(chapter)}>↻ Bu Bölümü Tekrar Oyna</button>
+     <button type="button" className="gf-btn gf-btn--secondary" onClick={back}>Bölüm Haritası</button>
+    </>}>
     <div className="writing-finale-stats">
      <span><strong>{deck.length}</strong> görev</span>
      <span><strong>{score?.independent??0}</strong> yardımsız doğru</span>
@@ -426,14 +419,7 @@ export function WritingWorkshopAdventure({profileId,englishLevel,gradeLevel,onBa
     </div>
     {chapter===WORKSHOP_CHAPTERS.length&&<GameFinale tone="dark" title="Yazı Atölyesi tamamlandı!"
      detail="İlk harflerden küçük hikâyelere, beş bölümün hepsinde İngilizce yazdın."/>}
-    <div className="writing-finale-buttons">
-     {chapter<WORKSHOP_CHAPTERS.length&&<button type="button" onClick={()=>enter(chapter+1)}>
-      Sonraki Bölüm →
-     </button>}
-     <button type="button" className="writing-secondary" onClick={()=>enter(chapter)}>↻ Bu Bölümü Tekrar Oyna</button>
-     <button type="button" className="writing-secondary" onClick={back}>Bölüm Haritası</button>
-    </div>
-   </section>}
+   </GameResult>}
   </main>
  </div>;
 }

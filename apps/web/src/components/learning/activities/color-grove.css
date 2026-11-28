@@ -8,17 +8,16 @@
 @keyframes vg-flutter { 0%, 100% { transform: translateY(0) rotate(-4deg); } 50% { transform: translateY(-8px) rotate(4deg); } }
 @keyframes vg-pop { 0% { transform: scale(.87); opacity: .75; } 75% { transform: scale(1.06); } 100% { transform: scale(1); opacity: 1; } }
 @media (prefers-reduced-motion: reduce) {
-  .vg-tree-crown, .vg-butterfly, .vg-correct-pop { animation: none !important; }
-  .vg-answer-card { transition: none !important; }
-  .vg-answer-card:hover { transform: none !important; }
+ .vg-tree-crown, .vg-butterfly, .vg-correct-pop { animation: none !important; }
+ .vg-answer-card { transition: none !important; }
+ .vg-answer-card:hover { transform: none !important; }
 }
 
 
 /* Mobile Color Grove: a game surface, not a desktop illustration stacked
    above web forms. Dedicated controls remain HTML for a11y and touch. */
 .cg-mobile-view{display:none}
-.cg-tab-short{display:none}
-.cg-hud,.cg-mission-tabs,.cg-stage-intro,.cg-mobile-view{min-width:0}
+.cg-mobile-view{min-width:0}
 .cg-world{position:relative;isolation:isolate;overflow:hidden;border-radius:24px;
  border:2px solid #fff4c4;min-height:360px;padding:12px 11px 24px;
  color:#173e44;background:linear-gradient(180deg,#7acdec 0%,#baf4cf 47%,#80d49d 75%,#3d956e 100%);
@@ -110,33 +109,12 @@
  .cg-desktop-view{display:none!important}
  .cg-shell{padding:0!important;overscroll-behavior:contain}
  .cg-main{padding:8px 9px max(21px,env(safe-area-inset-bottom,0px))!important;
-  padding-top:max(8px,env(safe-area-inset-top,0px))!important;max-width:550px!important}
- .cg-hud{position:sticky;top:env(safe-area-inset-top,0px);z-index:20;
-  padding:7px 9px!important;display:flex;flex-wrap:nowrap!important;gap:8px;
-  border:1px solid #fff7d95c;border-radius:16px;background:#123e4fe8;backdrop-filter:blur(14px)}
- .cg-hud-back{width:44px;height:44px;min-width:44px;padding:0!important;font-size:20px!important}
- .cg-hud-back-label{display:none}
- .cg-hud-title{display:flex;min-width:0;align-items:center;gap:6px;flex:1}
- .cg-hud-title strong{display:block;font-size:13px;font-weight:1000;color:#fff7c9;line-height:1.05}
- .cg-hud-title small{display:block;font-size:12px;color:#ddf6ec;font-weight:800}
- .cg-hud-points{padding:6px!important;white-space:nowrap}
- .cg-hud-sound{min-width:44px;padding:0 8px!important}
- .cg-stage-intro{padding:9px 4px 7px!important;text-align:left}
- .cg-stage-intro p:first-child{font-size:12px;letter-spacing:.08em}
- .cg-stage-intro h1{font-size:clamp(20px,5.8vw,27px);margin-top:3px;line-height:1.12}
- .cg-stage-intro .cg-desktop-description{display:none}
- .cg-mission-tabs{gap:5px;margin-bottom:9px!important}
- .cg-mission-tabs button{min-height:48px;padding:7px 3px!important;
-  font-size:12px!important;line-height:1.16;border-radius:12px!important;
-  box-shadow:0 3px 0 #102e3b66}
- .cg-mission-tabs .cg-tab-long{display:none}
- .cg-mission-tabs .cg-tab-short{display:inline}
+  padding-top:8px!important;max-width:550px!important}
  .cg-discovery-panel,.cg-quiz-panel{padding:0!important;border:0!important;background:none!important;box-shadow:none!important}
  .cg-discovery-progress{margin:9px 0 5px!important;padding:8px 11px!important;font-size:12px!important}
  .cg-discovery-caption{margin:4px 1px 9px!important;font-size:12px!important}
  .cg-mission-top{margin:0 2px 6px!important;font-size:12px!important}
  .cg-review-caption{font-size:12px!important;margin:4px 0 7px!important;padding:6px!important}
- .cg-progress-track{height:6px!important;margin-bottom:8px!important}
  .cg-mission-prompt{margin:0 0 9px!important;padding:9px 11px!important;
   border:1px solid #fff2c450!important;border-radius:15px!important;background:#0b3d4be5!important;
   display:flex;flex-wrap:wrap;align-items:center;gap:9px;text-align:left!important}
@@ -150,7 +128,6 @@
  .cg-mission-prompt .cg-hint-wrap button{font-size:13px!important;min-height:44px}
  .cg-feedback{margin-top:8px!important;min-height:38px!important;font-size:12px!important}
  .cg-feedback p{padding:8px 10px!important}
- .cg-complete{padding:10px!important;border-radius:19px!important}
  .cg-complete .cg-world{min-height:265px;box-shadow:0 5px 0 #1b5b64}
  .cg-complete .cg-world-head{margin-bottom:0}
  .cg-complete .cg-finished-garden{padding-top:3px;gap:6px}
@@ -163,9 +140,6 @@
 }
 @media(max-width:359px){
  .cg-main{padding-left:6px!important;padding-right:6px!important}
- .cg-hud{padding:6px!important;gap:5px}
- .cg-hud-title strong{font-size:12px}
- .cg-hud-points{font-size:12px}
  .cg-flower-grid{grid-template-columns:repeat(2,minmax(0,1fr))}
  .cg-world{min-height:430px;padding:10px 8px 24px}
  .cg-flower-choice{min-height:110px}
@@ -176,8 +150,6 @@
  .cg-paint-drop{width:45px;height:45px}
 }
 @media(max-width:767px) and (max-height:530px) and (orientation:landscape){
- .cg-stage-intro{padding:5px 3px!important}
- .cg-stage-intro h1{font-size:19px}
  .cg-world{min-height:310px}
  .cg-hero-plant{height:125px}
  .cg-hero-flower{width:84px;height:84px}
@@ -191,15 +163,7 @@
 
 
 /* Reading-light web layout: instructional help stays accessible on demand. */
-.cg-stage-intro{position:relative;padding-top:12px!important;padding-bottom:9px!important}
-.cg-stage-intro h1{font-size:clamp(25px,3.3vw,38px)!important;margin-top:5px!important}
-.cg-stage-intro>.wg-game-help{display:flex;flex-direction:column;align-items:center;margin:7px auto 0}
-.cg-stage-intro>.wg-game-help .wg-game-help-body{max-width:min(520px,90vw);text-align:left}
-.cg-mission-tabs .cg-tab-long{display:none}
-.cg-mission-tabs .cg-tab-short{display:inline}
 @media(min-width:768px){
- .cg-mission-tabs{max-width:720px;margin-left:auto;margin-right:auto;margin-bottom:13px!important}
- .cg-mission-tabs button{min-height:52px;font-size:15px!important}
  .cg-quiz-panel{max-width:850px}
  .cg-quiz-panel>.cg-desktop-view .vg-scene{max-height:300px}
 }

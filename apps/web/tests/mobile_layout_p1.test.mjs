@@ -26,18 +26,19 @@ test('Lantern Festival: phone layouts pick places from a readable list, not over
  const markerOverlaps=pins.flatMap((a,i)=>pins.slice(i+1).filter(b=>
   Math.hypot((a.x-b.x)*world.w/100,(a.y-b.y)*world.h/100)<38));
  assert.equal(markerOverlaps.length,0);
- for(const rule of ['.lf-scene-footer{min-height:41px;font-size:12px','.lf-chapter strong{font-size:11px','.lf-animal-choice strong{font-size:12px','.lf-intro p{font-size:13px'])
+ for(const rule of ['.lf-scene-footer{min-height:41px;font-size:12px','.lf-animal-choice strong{font-size:12px','.lf-intro p{font-size:13px'])
   assert.ok(css.includes(rule),rule);
 });
 
-test('Family Village: the sign fits between exit and star badge on narrow phones',()=>{
+test('Family Village: place, stars and tools sit in the shared top bar on narrow phones',()=>{
  const ui=src('components/learning/activities/FamilyVillageAdventure.tsx');
- assert.match(ui,/<div className="fv-stars fv3-stars fv4-stars fv5-stars" role="img"/);
- assert.match(ui,/<span className="fv5-stars-total"> \/ 60<\/span>/);
- const css=src('components/learning/activities/family-village-reference-v5.css');
- assert.match(css,/@media\(max-width:420px\)\{\n \.fv5-screen \.fv5-brand\{position:relative;inset:auto;flex:1 1 auto;min-width:0;/);
- assert.match(css,/\.fv5-screen \.fv5-stars-total\{display:none\}/);
- assert.match(css,/\.fv5-screen \.fv5-district-nav \.fv3-district strong\{font-size:11px/);
+ // The wooden sign no longer has to squeeze between the exit and the star badge.
+ assert.doesNotMatch(ui,/fv5-brand|fv5-stars-total/);
+ assert.match(ui,/stars=\{\{earned:Object\.values\(progress\.starsByLevel\)\.reduce\(\(n,v\)=>n\+v,0\),total:60\}\}/);
+ // On phones the frame keeps exit, place, progress and tools; extra chips step aside.
+ const frame=src('components/learning/game/game-frame.css');
+ assert.match(frame,/@media\(max-width:640px\)\{[\s\S]*\.gf-chip--extra,\.gf-chip--stars\{display:none\}/);
+ assert.match(frame,/\.gf-back-label\{display:none\}/);
 });
 
 test('The tutorial replay lives in the game\'s own help; the floating button is only a fallback',()=>{
@@ -63,15 +64,17 @@ test('Header chips never show "—. sınıf" for a profile without a grade',()=>
   'components/learning/sentence/MovementMagicAdventure.tsx','components/learning/sentence/SentencePlazaAdventure.tsx','components/learning/sentence/WishFestivalAdventure.tsx']){
   const code=src(file);
   assert.doesNotMatch(code,/\?\?'—'\}\. sınıf/,file);
-  assert.match(code,/\{gradeLevelLabel\(gradeLevel\)\}/,file);
+  assert.match(code,/gradeLevelLabel\(gradeLevel\)/,file);
  }
 });
 
 test('Garden navigation and progress labels have a 12px floor; scene-painted labels 11px',()=>{
  const css=src('components/learning/activities/garden-child-legibility.css');
- assert.match(css,/:is\(\.fm-lane-copy strong,\.fm-lane-copy small,\.tp-chamber strong,\.tp-chamber small,\.am3-step,\.fv-count,\.fv-discovery strong\)\{\n font-size:12px!important;/);
+ // Zone and step names are the shared step rail now (game-frame.css); the
+ // in-game counters keep their floor here.
+ assert.match(css,/:is\(\.am3-step,\.fv-count,\.fv-discovery strong\)\{\n font-size:12px!important;/);
  assert.match(css,/:is\(\.fm-banner,\.tp-mission-tag,\.fv-mission-label\)\{font-size:11px!important\}/);
- assert.match(src('components/learning/activities/garden-quest-navigation.css'),/\.gg-quest-location-kicker\{font-size:11px;/);
+ assert.match(src('components/learning/game/game-frame.css'),/\.gf-step\{min-height:46px;padding:5px 12px 5px 5px;font-size:13px\}/);
 });
 
 test('Sentence Plaza word slots and scene choices stay 44px on phones',()=>{

@@ -29,7 +29,6 @@
 }
 .sp-v3 .sp-v3-waiting span:first-child{font-size:22px}
 .sp-v3 .sp-cue{font-size:clamp(17px,1.8vw,22px);color:#5e3c31}
-.sp-v3 .sp-v2-steps span{min-height:39px;display:grid;place-items:center}
 .sp-v3 .sp-slot,.sp-v3 .sp-tile{font-family:inherit;letter-spacing:.01em}
 .sp-v3 .sp-tiles{margin-top:17px}
 .sp-v3 .sp-repair-word:disabled,.sp-v3 .sp-tile:disabled{cursor:not-allowed}

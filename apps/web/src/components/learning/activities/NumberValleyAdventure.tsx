@@ -18,6 +18,7 @@ import './number-valley-premium.css';
 import {useAutoQuestionAdvance} from '@/lib/learning/useAutoQuestionAdvance';
 import {GardenHelp} from '../GardenHelp';
 import {LearningMotion} from '@/components/learning/motion/LearningMotion';
+import {GameTopBar,GameStepRail,GameResult} from '../game/GameFrame';
 
 const CHAPTERS=[
   {icon:'💎',title:'Kristal Keşfi',caption:'Kayıp sayı kristallerini keşfet',
@@ -330,78 +331,57 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
       className="nv-root nv5-root nv6-root gg-game-shell fixed inset-0 z-50 overflow-y-auto overscroll-contain text-white">
     <div className="nv-sky" aria-hidden="true"><span className="nv-orb nv-orb-one"/><span className="nv-orb nv-orb-two"/>
       <span className="nv-orb nv-orb-three"/><span className="nv-sky-stars">✦ · ✧ · ✦ · ✧ · ✦</span></div>
+    <GameTopBar island="garden" gameExit backClassName="gg-game-control" backDisabled={saving} onBack={onBack}
+      backLabel="Bölgeler" backAriaLabel="Kelime Bahçesi bölgelerine dön" crest="💎" accent="#9fd8ff"
+      eyebrow={'Kelime Bahçesi · '+bandLabel} title="Sayı Vadisi" titleAs="p"
+      progress={!completed&&activePlan&&total>0?(stage===1
+        ?{current:done,total,label:'Keşif'}
+        :{current:question+1,total,label:'Soru'}):undefined}
+      stars={{earned:Object.entries(progress.starsByLevel).filter(([id])=>Number(id)<=
+        (policy.maxNumber>=1000?15:policy.maxNumber>=100?10:5)).reduce((s,[,n])=>s+n,0),
+        total:policy.maxNumber>=1000?45:policy.maxNumber>=100?30:15}}
+      chips={[(gradeLevel?gradeLevel+'. Sınıf':'Keşif')+' · '+englishLevel]}
+      tools={<>
+        <GardenHelp label="Sayı Vadisi nasıl oynanır?">
+          <p>{CHAPTERS[stage-1].how}</p>
+          <p>Ses açılmasa da bütün bölümler yazılı olarak oynanabilir. Yanlışlar daha sonra tekrar sorulur; yıldızlar bölüm kaydedilince verilir.</p>
+        </GardenHelp>
+        <button type="button" onClick={()=>{const value=soundService.toggleMute();setMuted(value);
+          if(value){audioRequest.current++;setHeardAudio(false);setSpeaking(false);soundService.cancelSpeech();}}}
+          aria-label={muted?'Sesi aç':'Sesi kapat'} aria-pressed={muted}
+          className="gf-tool gg-game-control">{muted?'🔇':'🔊'}</button>
+      </>}/>
     <main className="nv5-main relative mx-auto max-w-6xl px-3 pb-12 pt-4 sm:px-7 sm:pt-6"
-      style={{paddingTop:'max(16px,env(safe-area-inset-top))',paddingBottom:'max(28px,env(safe-area-inset-bottom))'}}>
-      <header className="nv5-header">
-        <button data-game-exit onClick={onBack} disabled={saving} aria-label="Kelime Bahçesi’ne dön" className="nv-control nv5-back gg-game-control rounded-2xl px-4 py-3 text-sm font-bold disabled:opacity-50">
-          <span className="nv5-back-arrow" aria-hidden="true">‹</span><span className="nv5-back-label">Kelime Bahçesi</span>
-        </button>
-        <div className="nv5-header-status">
-          <span className="nv-control nv5-starcount rounded-xl px-3 py-3 text-xs font-black">
-            ⭐ {Object.entries(progress.starsByLevel).filter(([id])=>Number(id)<=
-              (policy.maxNumber>=1000?15:policy.maxNumber>=100?10:5)).reduce((s,[,n])=>s+n,0)}/{policy.maxNumber>=1000?45:policy.maxNumber>=100?30:15}
-          </span>
-          <span className="nv-control nv5-level hidden rounded-xl px-3 py-3 text-xs font-bold sm:inline-block">
-            {gradeLevel?gradeLevel+'. Sınıf':'Keşif'} · {englishLevel}
-          </span>
-          <GardenHelp label="Sayı Vadisi nasıl oynanır?">
-            <p>{CHAPTERS[stage-1].how}</p>
-            <p>Ses açılmasa da bütün bölümler yazılı olarak oynanabilir. Yanlışlar daha sonra tekrar sorulur; yıldızlar bölüm kaydedilince verilir.</p>
-          </GardenHelp>
-          <button onClick={()=>{const value=soundService.toggleMute();setMuted(value);
-            if(value){audioRequest.current++;setHeardAudio(false);setSpeaking(false);soundService.cancelSpeech();}}}
-            aria-label={muted?'Sesi aç':'Sesi kapat'} aria-pressed={muted}
-            className="nv-control nv5-sound gg-game-control min-h-12 rounded-xl px-3">{muted?'🔇':'🔊'}</button>
-        </div>
-      </header>
-      <div className="nv-stage-intro nv5-intro py-6 text-center sm:py-9">
+      style={{paddingBottom:'max(28px,env(safe-area-inset-bottom))'}}>
+      <div className="nv-stage-intro nv5-intro sr-only">
         <p className="nv5-eyebrow">{upperTr(`Sayı Vadisi · ${bandLabel} · Bölüm ${stage}/5`)}</p>
-        <h1 ref={heading} tabIndex={-1} className="nv5-title mt-3 text-3xl font-black tracking-tight outline-none sm:text-5xl">
+        <h1 ref={heading} tabIndex={-1} className="nv5-title outline-none">
           <span className="nv5-title-icon" aria-hidden="true">{CHAPTERS[stage-1].icon}</span>{CHAPTERS[stage-1].title}
         </h1>
       </div>
-      <nav aria-label="Sayı Vadisi sayı yolları" className="nv-bands nv5-bands mb-4 grid grid-cols-3 gap-2 sm:gap-3">
-        {NUMBER_BANDS.map((path,i)=>{
+      <GameStepRail island="garden" className="nv5-bands" ariaLabel="Sayı Vadisi sayı yolları" showNotes
+        steps={NUMBER_BANDS.map((path,i)=>{
           const open=unlockedBands.includes(path.id) && policy.maxNumber>=path.minimum;
-          return <button key={path.id} type="button" disabled={!open||saving}
-            aria-pressed={band===path.id}
-            aria-label={`${path.title}: ${path.range} ${open?'oynanabilir':'henüz kilitli'}`}
-            onClick={()=>restart(resumeStage(path.id),path.id)}
-            data-current={band===path.id}
-             className={`nv-band-card nv5-band gg-game-control rounded-2xl px-2 py-3 text-center text-xs font-black sm:px-4 sm:py-4 sm:text-sm
-              ${band===path.id?'nv-band-selected':''} disabled:cursor-not-allowed disabled:opacity-55`}>
-            <span className="nv5-band-icon" aria-hidden="true">{['💎','✨','🏔️'][i]}</span>
-            <span className="nv5-band-title">{path.title}</span>
-            <span className="nv5-band-range">{path.range}</span>
-            {!open&&<span className="nv5-band-lock" aria-hidden="true">🔒</span>}
-          </button>;
-        })}
-      </nav>
-      <nav aria-label="Sayı Vadisi görevleri" className="nv5-chapters mb-5 grid grid-cols-5 gap-1.5 sm:gap-3">
-        {CHAPTERS.map((part,i)=>{
+          return {key:path.id,label:path.title,note:path.range,icon:['💎','✨','🏔️'][i],className:'gg-game-control',
+            state:band===path.id?'current':!open?'locked':progress.completedByBand[path.id]>=CHAPTERS.length?'done':'upcoming',
+            disabled:saving,onSelect:()=>restart(resumeStage(path.id),path.id),
+            ariaLabel:`${path.title}: ${path.range} ${open?'oynanabilir':'henüz kilitli'}`};
+        })}/>
+      <GameStepRail island="garden" className="nv5-chapters" ariaLabel="Sayı Vadisi görevleri"
+        steps={CHAPTERS.map((part,i)=>{
           const unlocked=i<progress.completedByBand[band]+1;
-          return <button key={i} disabled={!unlocked||saving} onClick={()=>restart((i+1) as NumberStage)}
-            aria-current={stage===i+1?'step':undefined}
-            aria-label={`${i+1}. ${part.title}${unlocked?'':' (kilitli)'}`}
-            data-current={stage===i+1}
-             className={`nv-chapter nv5-chapter gg-game-control rounded-xl px-1.5 py-3 text-center font-bold sm:px-3
-              ${stage===i+1?'nv-chapter-current':''} disabled:opacity-35`}>
-            <span className="nv5-chapter-icon" aria-hidden="true">{unlocked?part.icon:'🔒'}</span>
-            <span className="nv5-chapter-text"><span className="nv5-chapter-index">{i+1}/5</span>
-              <span className="nv5-chapter-name">{part.title}</span></span>
-          </button>;
-        })}
-      </nav>
+          return {key:String(i),label:part.title,icon:part.icon,className:'gg-game-control',
+            state:stage===i+1?'current':!unlocked?'locked':i<progress.completedByBand[band]?'done':'upcoming',
+            disabled:saving,onSelect:()=>restart((i+1) as NumberStage),
+            ariaLabel:`${i+1}. ${part.title}${unlocked?'':' (kilitli)'}`};
+        })}/>
       {loadError&&<div role="alert" className="nv-panel mx-auto max-w-xl rounded-2xl p-6 text-center">
         <p>Görev yüklenemedi. Mevcut ilerleme korunuyor.</p>
-        <button className="nv-primary mt-3 rounded-xl px-5 py-3" onClick={()=>restart(stage)}>Yeniden Dene</button>
+        <button type="button" className="gf-btn gf-btn--primary mt-3" onClick={()=>restart(stage)}>Yeniden Dene</button>
       </div>}
       {!loadError&&!activePlan&&!completed&&<div role="status" className="nv-panel rounded-2xl p-10 text-center">Kristaller hazırlanıyor…</div>}
       {!loadError&&activePlan&&!completed&&(
         <div className="nv-panel nv5-panel overflow-hidden rounded-[28px] p-3 shadow-2xl sm:p-6">
-          <div className="nv5-progress-line h-2 overflow-hidden rounded-full bg-white/15" aria-hidden="true">
-            <div className="nv-progress h-full rounded-full" style={{width:`${total?100*done/total:0}%`}}/>
-          </div>
           <section aria-label="Sayı Vadisi oyun sahnesi"
             className={`nv-landscape nv5-landscape gg-game-scene nv-world-${stage} nv6-stage relative min-h-[270px] overflow-hidden rounded-[22px] px-3 py-7 sm:min-h-[355px] sm:p-8`}>
             <NumberValleyScenery stage={stage}/>
@@ -409,7 +389,6 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
              trigger={awaitingNext?'valley-'+band+'-'+stage+'-'+question:null}/>
             <div className="nv5-scene-top">
               <span className="nv5-scene-kicker">{['KRİSTALLER','IŞIK KÖPRÜSÜ','YILDIZ ATÖLYESİ','YANKI KANYONU','PORTAL'][stage-1]}</span>
-              <span className="nv5-scene-count" aria-label={`${stage===1?'Keşfedilen kristal':'Soru'} ${done} / ${total}`}>{done}/{total}</span>
             </div>
             {toast&&<p className="nv5-toast" data-good={toast.good} role="status" aria-live="polite">
               <span lang={toast.lang}>{toast.text}</span>{toast.detail&&<small>{toast.detail}</small>}
@@ -452,13 +431,13 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
                   <div className="nv5-forge-tools">
                     <button type="button" onClick={()=>speak(current.target)}
                       disabled={muted||!speechAvailable||buttonsDisabled}
-                      className="nv-control nv5-listen gg-game-control min-h-12 rounded-full px-6 py-2 text-sm font-black disabled:opacity-45">
+                      className="nv5-listen gf-btn gf-btn--tool gg-game-control">
                       {muted?'🔇 Ses kapalı':speechAvailable?'🔊 İngilizceyi Dinle':'🔇 Ses yok'}
                     </button>
                     {writtenHelp?<p className="nv5-written-help">Yazılı destek: <span lang="en">{englishNumber(current.target).toUpperCase()}</span></p>
                       :<button type="button" onClick={()=>{
                         setHintUsed(true);setFeedback({good:true,text:'Yazılı ipucu açıldı',detail:'Bu soru destekli sayılır.'});
-                      }} className="nv5-hint-link gg-game-control">Yazılı ipucu göster</button>}
+                      }} className="nv5-hint-link gf-btn gf-btn--tool gg-game-control">Yazılı ipucu göster</button>}
                   </div>
                 </div>
                 <div aria-label="Oluşturulan İngilizce sayı kelimesi" aria-live="polite" lang="en"
@@ -498,19 +477,19 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
                 </div>
                 <div className="nv5-portal-tools">
                   <button type="button" onClick={()=>{setAnswerAudioUsed(true);speak(current.target,true);}} disabled={muted||!speechAvailable||buttonsDisabled}
-                    className="nv-control nv5-listen gg-game-control min-h-11 rounded-xl px-4 text-sm font-bold disabled:opacity-45">🔊 Cümleyi dinle</button>
+                    className="nv5-listen gf-btn gf-btn--tool gg-game-control">🔊 Cümleyi dinle</button>
                   {hintUsed&&<p className="nv5-written-help">Yazılı destek: <span lang="en">{portalSentence(current.target)}</span></p>}
                 </div>
               </div>}
               {stage===4&&<div className="nv5-listen-row">
-                <button onClick={()=>speak(current.target)} disabled={muted||!speechAvailable||buttonsDisabled}
-                  className="nv-control nv5-listen nv5-listen-main gg-game-control min-h-12 rounded-full px-6 text-sm font-bold disabled:opacity-45">
+                <button type="button" onClick={()=>speak(current.target)} disabled={muted||!speechAvailable||buttonsDisabled}
+                  className="nv5-listen nv5-listen-main gf-btn gf-btn--tool gg-game-control">
                   {muted?'🔇 Ses Kapalı':speechAvailable?'🔊 Sayıyı Dinle':'🔇 Ses Kullanılamıyor'}
                 </button>
                 {writtenHelp?<p role="status" className="nv5-written-help">
                   <span lang="en">{englishNumber(current.target).toUpperCase()}</span> · Bu tur yazılı desteklidir.
                 </p>:<button onClick={()=>setHintUsed(true)}
-                  disabled={buttonsDisabled} className="nv5-hint-link gg-game-control">Yazılı yardım al</button>}
+                  disabled={buttonsDisabled} className="nv5-hint-link gf-btn gf-btn--tool gg-game-control">Yazılı yardım al</button>}
               </div>}
               {(stage===2||stage===4)&&
                 <div className="nv5-answer-grid mx-auto mt-6 grid max-w-xl gap-3"
@@ -532,17 +511,25 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
           </p>}
         </div>
       )}
-       {completed&&<section className="nv-panel nv5-finale mx-auto max-w-2xl rounded-[28px] p-6 text-center sm:p-10">
-          <LearningMotion variant="victory" trigger={'valley-finale-'+band+'-'+stage}/>
-         <div className="nv5-finale-stage">
-           <NumberValleyScenery stage={stage}/>
-           <span className="nv5-finale-medal" aria-hidden="true">🏆</span>
-         </div>
-         <h2 ref={doneHeading} tabIndex={-1}>{CHAPTERS[stage-1].title} tamamlandı!</h2>
-         <p className="nv5-finale-stars mt-3 text-3xl font-black" aria-label={`Bu bölümde ${stars} yıldız kazandın`}>
-           {'⭐'.repeat(stars)}
-         </p>
-         <p className="nv5-finale-stats">{stage===1?`${answers.length} sayının İngilizcesini dinledin`:`${answers.length} doğru · ${mistakes} yanlış deneme`}</p>
+       {completed&&<GameResult island="garden" className="nv5-finale" titleRef={doneHeading}
+         art={<><LearningMotion variant="victory" trigger={'valley-finale-'+band+'-'+stage}/>
+           <div className="nv5-finale-stage">
+             <NumberValleyScenery stage={stage}/>
+             <span className="nv5-finale-medal" aria-hidden="true">🏆</span>
+           </div></>}
+         kicker={'Sayı Vadisi · '+bandLabel} title={CHAPTERS[stage-1].title+' tamamlandı!'}
+         stars={{earned:stars}}
+         message={<span className="nv5-finale-stats">{stage===1?`${answers.length} sayının İngilizcesini dinledin`:`${answers.length} doğru · ${mistakes} yanlış deneme`}</span>}
+         actions={<>
+           <button type="button" className="nv5-next gf-btn gf-btn--primary gg-game-control" onClick={()=>{
+             if(stage<5)restart((stage+1) as NumberStage);
+             else if(nextPath)restart(resumeStage(nextPath.id),nextPath.id);
+             else onBack();
+           }}>{stage<5?'Sonraki Bölüme Geç →':nextPath?`${nextPath.title} yoluna geç →`:'Kelime Bahçesi’ne Dön →'}</button>
+           <button type="button" className="nv5-replay gf-btn gf-btn--secondary gg-game-control" onClick={()=>restart(stage)}>
+             ↻ Farklı Sayılarla Tekrar Oyna
+           </button>
+         </>}>
          {recap.length>0&&<div className="nv5-recap" role="group" aria-label="Bu bölümün İngilizce sayıları">
            <p className="nv5-recap-title">Bu bölümün sayıları · {stage===5?'dokun, cümleyi dinle':'dokun ve dinle'}</p>
            <div className="nv5-recap-list">{recap.map(value=><button key={value} type="button" className="nv5-recap-word gg-game-control"
@@ -551,15 +538,7 @@ export function NumberValleyAdventure({profileId,englishLevel,gradeLevel=null,pr
              <span className="nv5-recap-number" aria-hidden="true">{value}</span>
              <span lang="en">{englishNumber(value)}</span></button>)}</div>
          </div>}
-         <button className="nv-primary nv5-next mt-6 min-h-14 w-full rounded-xl px-6 py-4 font-black" onClick={()=>{
-           if(stage<5)restart((stage+1) as NumberStage);
-           else if(nextPath)restart(resumeStage(nextPath.id),nextPath.id);
-           else onBack();
-         }}>{stage<5?'Sonraki Bölüme Geç →':nextPath?`${nextPath.title} yoluna geç →`:'Kelime Bahçesi’ne Dön →'}</button>
-         <button className="nv-control nv5-replay mt-3 min-h-12 w-full rounded-xl px-4 font-bold" onClick={()=>restart(stage)}>
-           ↻ Farklı Sayılarla Tekrar Oyna
-         </button>
-       </section>}
+       </GameResult>}
     </main>
   </div>;
 }

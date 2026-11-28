@@ -60,15 +60,16 @@ test('Feedback lives in the scene and the celebration never covers words or answ
 
 test('Phones: help joins the HUD, the scene fills the screen and answers sit in the thumb zone',()=>{
  const ui=src('components/learning/activities/AnimalMeadowAdventure.tsx');
- const hud=ui.slice(ui.indexOf('<div className="am-hud-actions">'),ui.indexOf('</header>'));
- assert.match(hud,/<details className="am3-help">/,'help is a HUD tool, not a row of its own');
+ const hud=ui.slice(ui.indexOf('<GameTopBar island="garden"'),ui.indexOf('<main className="am-main'));
+ assert.match(hud,/<details className="am3-help">\n\s*<summary className="gf-tool"/,'help is a top-bar tool, not a row of its own');
+ assert.match(hud,/aria-label="Keşif albümünü aç veya kapat">📖<\/button>/);
  const css=src('components/learning/activities/animal-meadow-premium.css');
  assert.match(css,/\.am-shell \.am3-stage\{display:flex;flex-direction:column;min-height:calc\(100dvh - var\(--am3-chrome,258px\)\)\}/);
  assert.match(css,/\.am-shell \.am3-choices\{margin-top:auto\}/);
- assert.match(css,/\.am-shell \.am-hud\{flex-wrap:nowrap;gap:6px\}/);
- assert.match(css,/@media\(max-height:820px\)\{\s*\.am-shell \.am-done\{display:flex;flex-direction:column\}\s*\.am-shell \.am-done \.am-recap\{order:10\}/,
+ assert.match(css,/\.am-shell \.gf-tools \.am3-help\{position:relative\}/);
+ assert.match(css,/@media\(max-height:820px\)\{\s*\.am-shell \.am-done \.am-recap\{order:10\}/,
   'the next-mission button stays on the first screen of short laptops and phones');
- assert.match(css,/\.am-shell \.am-hud-title small,\.am-shell \.am-quest-head,\.am-shell \.am-task-hint\{font-size:12px\}/);
+ assert.match(css,/\.am-shell \.am-quest-head,\.am-shell \.am-task-hint\{font-size:12px\}/);
 });
 
 test('The reward screen recaps the mission words; the album shows silhouettes and progress',()=>{

@@ -3,16 +3,10 @@
 .academy-root button{touch-action:manipulation;cursor:pointer}
 .academy-root button:disabled{opacity:.48;cursor:not-allowed}
 .academy-root button:focus-visible,.academy-root input:focus-visible{outline:3px solid #ffe59a;outline-offset:3px}
-.academy-header{height:74px;min-height:74px;padding:10px clamp(12px,3vw,42px);display:flex;align-items:center;gap:14px;justify-content:space-between;background:#081429b3;border-bottom:1px solid #ffffff25;backdrop-filter:blur(20px)}
-.academy-back{border:1px solid #ffffff45;border-radius:16px;color:#fff;background:#ffffff16;padding:12px 15px;font-size:13px;font-weight:800}
-.academy-brand{text-align:center;letter-spacing:.13em;font-weight:1000;font-size:15px;color:#ffe9b2}
-.academy-brand span{font-size:20px;margin-right:5px}
-.academy-brand small{display:block;letter-spacing:.025em;color:#cad9f8;font-size:12px;font-weight:650;margin-top:4px}
-.academy-level{border:1px solid #a3b9ff65;border-radius:40px;padding:9px 12px;font-size:12px;color:#e6e9ff;white-space:nowrap}
 .academy-map,.academy-quest,.academy-finale{width:min(1080px,100%);margin:0 auto;overflow-y:auto;overscroll-behavior:contain;scrollbar-width:thin;padding:24px clamp(16px,3vw,40px) max(28px,env(safe-area-inset-bottom))}
 .academy-hero{display:grid;grid-template-columns:1.05fr .95fr;align-items:center;min-height:275px;gap:15px;padding:25px 30px;border:1px solid #ffffff3b;border-radius:28px;background:linear-gradient(112deg,#302d68dd,#234d83aa);box-shadow:0 20px 55px #010a2680;overflow:hidden;position:relative}
 .academy-hero-copy{z-index:1}.academy-eyebrow{color:#ffdc92;font-size:12px;font-weight:900;letter-spacing:.15em}
-.academy-hero h1,.academy-finale h1{font-size:clamp(25px,4vw,43px);line-height:1.12;font-weight:1000;margin:14px 0}
+.academy-hero h1{font-size:clamp(25px,4vw,43px);line-height:1.12;font-weight:1000;margin:14px 0}
 .academy-hero p{color:#e0eaff;max-width:440px;line-height:1.6;font-size:15px}
 .academy-hero-status{display:inline-flex;gap:8px;align-items:center;background:#fff2d62b;border:1px solid #f7d69684;border-radius:40px;padding:9px 14px;margin-top:18px;font-weight:850;font-size:12px}
 .academy-hero-status span{color:#ffe9ad}
@@ -32,8 +26,6 @@
 .academy-note{color:#bed1f5;font-size:12px;line-height:1.6;margin:20px 0}
 .academy-quest{max-width:760px}
 .academy-quest-top{display:flex;justify-content:space-between;gap:10px;color:#ffe7a4;font-size:13px;font-weight:850}
-.academy-progress{height:8px;border-radius:25px;background:#ffffff35;overflow:hidden;margin:12px 0 18px}
-.academy-progress span{display:block;height:100%;border-radius:25px;background:linear-gradient(90deg,#b7d5ff,#f9d697);transition:width .35s ease}
 .academy-scene{border-radius:27px;min-height:220px;padding:22px;background:radial-gradient(ellipse at 55% 15%,var(--zone-light),transparent 45%),linear-gradient(145deg,var(--zone-tint),#17234c);border:1px solid #ffffff5c;display:flex;flex-direction:column;justify-content:space-between;position:relative;overflow:hidden;box-shadow:0 16px 32px #020d2655}
 .academy-scene-glow{position:absolute;inset:-40%;border-radius:50%;background:radial-gradient(circle,#ffffff30,transparent 45%);pointer-events:none;animation:academy-drift 9s ease-in-out infinite alternate}
 .academy-scene-icon{font-size:clamp(60px,9vw,95px);align-self:center;text-shadow:0 12px 17px #101b3988;z-index:1;animation:academy-float 4s ease-in-out infinite}
@@ -47,11 +39,9 @@
 .academy-task{background:#faf9ff;color:#243452;border:1px solid #ffffff7a;border-radius:26px;padding:22px 23px;margin-top:14px;box-shadow:0 14px 40px #040b2970}
 .academy-task-head{display:flex;align-items:center;justify-content:space-between}
 .academy-kind{font-weight:950;font-size:12px;letter-spacing:.12em;color:#6450a3;text-transform:uppercase}
-.academy-hint{padding:7px 11px;border:1px solid #afa4d5;border-radius:13px;background:#ebe7fa;color:#54438d;font-size:13px;font-weight:850}
 .academy-task h2{font-size:clamp(17px,2.4vw,22px);line-height:1.35;margin:14px 0 10px;font-weight:900}
 .academy-line{background:#f0f2ff;color:#273764;font-size:clamp(15px,2.5vw,19px);line-height:1.45;padding:13px;border-radius:14px;margin:11px 0;font-weight:800}
 .academy-line-hidden{font-size:13px;color:#607299;font-weight:600}
-.academy-audio{margin:6px 0 13px;border:none;background:#506dc4;border-radius:14px;padding:12px 17px;color:white;font-size:14px;font-weight:850}
 .academy-choices{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;margin-top:12px}
 .academy-choices button{display:flex;align-items:center;gap:12px;text-align:left;border:2px solid #cbd4ed;border-radius:17px;min-height:58px;padding:13px 15px;background:#fff;color:#273764;font-size:clamp(13px,2vw,16px);font-weight:850;line-height:1.3}
 .academy-choice-icon{display:grid;place-items:center;flex:none;width:45px;height:45px;border-radius:12px;font-size:24px;box-shadow:inset 0 2px 5px #ffffffb6}
@@ -79,28 +69,16 @@
 .academy-touch-write{margin-top:20px;padding:12px;border:1px solid #cdd6f0;border-radius:16px;background:#f4f5fc}
 .academy-touch-write p{font-size:12px;font-weight:650;color:#596a92;line-height:1.5;margin:0 0 10px}
 .academy-touch-write .academy-tiles{padding:8px 0;min-height:40px}
-.academy-touch-write .academy-submit{background:#8a72ba}
 .academy-writing label{display:block;margin-bottom:8px;font-weight:850;font-size:13px}
 .academy-writing input{width:100%;height:55px;padding:14px;background:white;color:#25375f;border:2px solid #bfcbe7;border-radius:14px;font-size:16px}
-.academy-submit{margin-top:12px;min-height:49px;padding:12px 23px;border:none;border-radius:15px;background:linear-gradient(120deg,#476fc8,#7e62bf);color:#fff;font-weight:900;font-size:14px}
 .academy-feedback{font-size:12px;font-weight:800;color:#5f5b93;margin-top:14px;min-height:20px}
 .academy-alert{background:#fff0e4;color:#9a3e21;border-radius:12px;padding:12px;font-size:13px;font-weight:850}
 .academy-alert button{border:1px solid #df9572;border-radius:9px;background:#fff;margin-left:10px;padding:7px}
-.academy-finale{max-width:760px;text-align:center;display:flex;flex-direction:column;align-items:center;gap:10px}
-.academy-final-icon{font-size:85px;animation:academy-float 5s ease-in-out infinite}
-.academy-final-stars{display:flex;gap:8px;font-size:clamp(38px,9vw,52px);line-height:1;color:#ffffff3d}
-.academy-final-stars .earned{color:#ffd76a;text-shadow:0 4px 0 #c48a35,0 0 18px #ffd76a66}
-.academy-finale>p{color:#d6e5ff;line-height:1.6}
 .academy-review{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:9px;margin-top:14px;width:100%}
 .academy-review>div{background:#ffffff1d;border:1px solid #ffffff50;padding:13px 7px;border-radius:13px;display:flex;flex-direction:column;gap:9px;min-width:0}
 .academy-review strong{font-size:12px}.academy-review span{font-size:12px;color:#d4e5ff;line-height:1.3}
-.academy-final-actions{display:flex;flex-wrap:wrap;gap:13px;justify-content:center;margin-top:15px}
-.academy-again{margin-top:12px;min-height:49px;border-radius:15px;padding:12px 22px;color:#fff;background:#ffffff26;border:1px solid #ffffff78;font-weight:850}
 @keyframes academy-float{50%{transform:translateY(-8px)}}@keyframes academy-drift{to{transform:translate(8%,6%)}}
 @media(max-width:650px){
- .academy-header{height:62px;min-height:62px;padding:8px 12px;gap:7px}
- .academy-back{padding:9px 10px;font-size:12px}.academy-brand{font-size:12px;letter-spacing:.05em}.academy-brand small{font-size:12px}
- .academy-level{padding:8px 7px;font-size:12px}
  .academy-map,.academy-quest,.academy-finale{padding:14px 12px max(20px,env(safe-area-inset-bottom))}
  .academy-hero{grid-template-columns:1fr 115px;padding:19px 15px;gap:2px;min-height:200px}
  .academy-hero h1{font-size:25px}.academy-hero p{font-size:12px}
@@ -115,7 +93,7 @@
  .academy-choices{grid-template-columns:1fr}.academy-choices button:last-child:nth-child(odd){grid-column:auto}
  .academy-choices button{min-height:51px}.academy-review{grid-template-columns:repeat(2,minmax(0,1fr))}
 }
-@media(max-width:350px){.academy-level{display:none}.academy-hero{grid-template-columns:1fr 85px}.academy-hero-image{width:110px}.academy-zone-card{min-height:138px}}
+@media(max-width:350px){.academy-hero{grid-template-columns:1fr 85px}.academy-hero-image{width:110px}.academy-zone-card{min-height:138px}}
 @media(prefers-reduced-motion:reduce){.academy-root *, .academy-root *::before,.academy-root *::after{animation:none!important;transition:none!important}}
 
 
@@ -147,9 +125,6 @@
 .academy-scene-dialogue p{font-size:13px}
 .academy-task{margin-top:14px;position:relative}
 .academy-listen-note{color:#475f98;background:#eaf2ff;padding:10px 12px;border-radius:12px;font-size:13px;font-weight:800;margin:6px 0}
-.academy-audio{min-height:48px;box-shadow:0 5px 13px #415ca842;transition:filter .15s ease}
-.academy-audio:not(:disabled):hover{filter:brightness(1.1)}
-.academy-audio-support{font-size:12px;background:#7255a8;margin:11px 0 4px}
 .academy-choices{gap:12px}
 .academy-choices button{min-height:67px}
 .academy-choices button:disabled{opacity:.58}
@@ -198,9 +173,6 @@
 
 /* iOS notch / Dynamic Island safe area, and a 44px exit target on phones
  * (the back button was ~33px tall and is the only way out of a quest). */
-.academy-root .academy-header{height:auto;padding-top:max(10px,env(safe-area-inset-top,0px))}
-.academy-root .academy-back{min-height:44px;min-width:44px}
-@media(max-width:650px){.academy-root .academy-header{padding-top:max(8px,env(safe-area-inset-top,0px))}}
 /* Child legibility floor: the zone card's call to action was 10px at 320px. */
 .academy-root .academy-zone-text>span:last-child{font-size:12px}
 
@@ -208,5 +180,24 @@
  * review and a smaller emblem keep its two actions on the first screen. */
 @media(max-width:650px){
  .academy-finale .academy-review{grid-template-columns:repeat(3,minmax(0,1fr))}
- .academy-finale .academy-final-icon{font-size:64px}
+}
+
+/* Shared game frame: the bar spans the play area; wide screens put the scene
+ * beside the task instead of one narrow centred column. */
+.academy-root .gf-bar{--gf-max:1180px}
+.academy-quest{max-width:none;width:min(1180px,100%)}
+.academy-finale{width:min(820px,100%);max-width:none}
+.academy-finale .gf-result-art{aspect-ratio:16/7;min-height:0}
+.academy-finale .gf-result-art>img{height:100%;max-height:none}
+.academy-finale .academy-review{width:100%}
+.academy-finale .academy-note{color:var(--ih-card-muted)}
+.academy-root .academy-skill-rail{margin:0 0 12px}
+.academy-task .gf-btn--tool{color:#40457e}
+.academy-audio{margin:6px 0 13px}
+.academy-touch-write .academy-submit{margin-top:12px}
+@media(min-width:1100px){
+ .academy-quest{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.08fr);grid-template-rows:auto 1fr;column-gap:20px;align-items:start}
+ .academy-quest>.academy-skill-rail{grid-column:1/-1}
+ .academy-quest>.academy-scene{position:sticky;top:0;min-height:420px}
+ .academy-quest>.academy-task{margin-top:0}
 }

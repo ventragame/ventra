@@ -55,8 +55,8 @@ test('Guided 2.2 uses spoken examples, honest hints, stateful wrong options and 
  assert.match(game,/data-answer=\{sceneResolved&&option===prompt.reply/);
  assert.match(game,/setHintStage\(0\);setModeledAnswer\(false\);setWrongChoices\(\[\]\)/);
  assert.match(game,/setSummary\(\{stars,score,spoken:recognized\}\)/);
- assert.match(game,/role="progressbar"/);
- assert.match(game,/harbor-finale-stars/);
+ assert.match(game,/progress=\{phase==='playing'\?\{current:question\+1,total:script\.length/,'the shared top bar draws the progressbar');
+ assert.match(game,/stars=\{\{earned:summary\?\.stars\?\?1\}\}/,'the result card shows the saved stars');
  assert.match(game,/Sonraki Bölüm/);
  const adult=read('../src/components/learning/harbor/HarborSpeechAdultPanel.tsx');
  assert.match(game,/HarborSpeechAdultPanel/);

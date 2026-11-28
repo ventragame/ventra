@@ -23,6 +23,7 @@ import './story-forest-level-checks.css';
 import './story-forest-rabbit-motion.css';
 import './story-scene-standard.css';
 import {GameFinale} from '../GameFinale';
+import {GameTopBar,GameResult} from '../game/GameFrame';
 
 type Screen='chapters'|'playing'|'reward';
 type Props={profileId:string;gradeLevel:number|null;englishLevel:ForestPlacement;onBack:()=>void;onSaved:()=>void};
@@ -304,11 +305,9 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
  const journeyStep=journeyStages.indexOf(phase)+1;
  return <div className="sj-root" role="dialog" aria-modal="true" aria-label="Hikâyeyi Keşfet">
   {screen==='chapters'&&<>
-   <header className="sj-header">
-    <button type="button" className="sj-back" onClick={onBack} aria-label="Hikâye Ormanı'na dön">←</button>
-    <strong>📖 Hikâyeyi Keşfet</strong>
-    <span className="sj-counter">✦ {progress.completedLevels}/6</span>
-   </header>
+   <GameTopBar island="story" onBack={onBack} backLabel="Oyunlar" backAriaLabel="Hikâye Ormanı'na dön"
+    crest="📖" eyebrow="Hikâye Ormanı" title="Hikâyeyi Keşfet"
+    chips={[loading||loadError?'… dünya':progress.completedLevels+'/6 dünya']}/>
    <main className="sj-chapters">
     <div className="sj-cover">
      <img src={STORY_FOREST_PREMIUM_COVER} alt="" className="sj-cover-art"
@@ -321,7 +320,7 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
     <div className="sj-guide">🎭 4 farklı macera yolu &nbsp; · &nbsp; 🌿 2 farklı hikâye sonu</div>
     {loading&&<div className="sj-status" role="status">Hikâyeler yükleniyor…</div>}
     {loadError&&<div className="sj-status" role="alert">{loadError}{' '}
-     <button type="button" className="sj-secondary" onClick={()=>setLoadAttempt(n=>n+1)}>↻ Tekrar dene</button>
+     <button type="button" className="gf-btn gf-btn--secondary" onClick={()=>setLoadAttempt(n=>n+1)}>↻ Tekrar dene</button>
     </div>}
     {!loading&&!loadError&&<section className="sj-episode-grid" aria-label="Altı hikâye dünyası">
       {FOREST_EPISODES.map(chapter=>{
@@ -342,15 +341,10 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
    </main>
   </>}
   {screen==='playing'&&plan&&<>
-   <header className="sj-header sj-in-game">
-    <button type="button" className="sj-back" onClick={exitToChapters} disabled={busy}
-     aria-label="Bölümlere dön">←</button>
-    <strong>{active.title}</strong>
-    <div className="sj-progress" aria-label={'Hikâye sahnesi '+journeyStep+' / '+journeyStages.length}>
-     {journeyStages.map((name,i)=><i key={name}
-       className={i<journeyStep-1?'done':i===journeyStep-1?'current':''}/>)}
-    </div>
-   </header>
+   <GameTopBar island="story" onBack={exitToChapters} backDisabled={busy}
+    backLabel="Hikâyeler" backAriaLabel="Hikâyelere dön" crest={active.badge}
+    eyebrow={'Hikâyeyi Keşfet · Dünya '+episode} title={active.title}
+    progress={{current:journeyStep,total:journeyStages.length,label:'Sahne'}}/>
    <main className="sj-play">
     <div className="sj-scene" role="group" aria-label="Resimli, etkileşimli hikâye sahnesi"
      ref={sceneFocus} tabIndex={-1}>
@@ -413,17 +407,17 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
        </button>)}
      </div>}
      {(['discover','friend','place','consequence'] as JourneyPhase[]).includes(phase)&&<div className="sj-hint-row">
-      <button type="button" className="sj-help" onClick={hint}
+      <button type="button" className="sj-help gf-btn gf-btn--tool" onClick={hint}
        disabled={busy||actionLock.current} aria-label="Doğru görseli göster">💡</button>
       <div role="status" aria-live="polite" className="sj-feedback">
        {correct?storyDecisionFeedback('correct'):wrong?storyDecisionFeedback('retry'):''}
       </div>
      </div>}
-     {passive&&<button className="sj-continue" type="button" disabled={busy}
+     {passive&&<button className="sj-continue gf-btn gf-btn--primary" type="button" disabled={busy}
        aria-label="Hikâyede sonraki olaya geç"
        onClick={()=>{stopAudio();if(phase==='ending'&&resultRef.current)
         void finishStory(plan,resultRef.current);
-        else nextPassive(plan,phase,destination);}}>▶</button>}
+        else nextPassive(plan,phase,destination);}}>Devam <span aria-hidden="true">▶</span></button>}
     </div>
     <StorySceneGuide mode={passive?'watch':'choose'} current={journeyStep}
       total={journeyStages.length} title={active.title}/>
@@ -441,23 +435,23 @@ export function StoryForestAdventure({profileId,gradeLevel,englishLevel,onBack,o
    </main>
   </>}
   {screen==='reward'&&plan&&<>
-   <header className="sj-header"><button type="button" className="sj-back"
-     onClick={exitToChapters} aria-label="Bölümlere dön">←</button><strong>Macera tamamlandı</strong><span/></header>
+   <GameTopBar island="story" onBack={exitToChapters} backLabel="Hikâyeler" backAriaLabel="Hikâyelere dön"
+    crest={active.badge} eyebrow={'Hikâyeyi Keşfet · Dünya '+episode} title={active.title}
+    stars={{earned:earnedStars,total:3}}/>
    <main className="sj-reward">
-    <div className="sj-reward-scene"><StoryScene plan={plan} phase="ending" location={destination}/></div>
-    <h1 ref={rewardHeading} tabIndex={-1}>{active.title} macerasını tamamladın!</h1>
-    <div className="sj-earned-stars" aria-label={earnedStars+' yıldız'}>
-     {[1,2,3].map(n=><span key={n} className={n<=earnedStars?'earned':''}>★</span>)}
-    </div>
-    {rewardRecord&&<StoryRewardSummary stars={earnedStars} {...journeyEffort(rewardRecord)}/>}
-    {episode===6&&<GameFinale title="Hikâye Ormanı’nı baştan sona gezdin!"
-     detail="Hikâyeyi Keşfet’in altı dünyasının hepsini tamamladın."/>}
-    <div className="sj-reward-actions">
-     <button type="button" className="sj-primary" onClick={()=>start(episode)}>🔄 Başka Macera</button>
-     {episode<6&&<button type="button" className="sj-primary"
-       onClick={()=>start((episode+1) as ForestEpisode)}>Sonraki Dünya →</button>}
-     <button type="button" className="sj-secondary" onClick={exitToChapters}>Hikâyeler</button>
-    </div>
+    <GameResult island="story" className="sj-result" kicker="Macera tamamlandı"
+     title={active.title+' macerasını tamamladın!'} titleRef={rewardHeading} stars={{earned:earnedStars}}
+     art={<div className="sj-reward-scene"><StoryScene plan={plan} phase="ending" location={destination}/></div>}
+     actions={<>
+      {episode<6&&<button type="button" className="gf-btn gf-btn--primary"
+        onClick={()=>start((episode+1) as ForestEpisode)}>Sonraki Dünya →</button>}
+      <button type="button" className={'gf-btn '+(episode<6?'gf-btn--secondary':'gf-btn--primary')} onClick={()=>start(episode)}>🔄 Başka Macera</button>
+      <button type="button" className="gf-btn gf-btn--secondary" onClick={exitToChapters}>Hikâyeler</button>
+     </>}>
+     {rewardRecord&&<StoryRewardSummary stars={earnedStars} {...journeyEffort(rewardRecord)}/>}
+     {episode===6&&<GameFinale title="Hikâye Ormanı’nı baştan sona gezdin!"
+      detail="Hikâyeyi Keşfet’in altı dünyasının hepsini tamamladın."/>}
+    </GameResult>
     <StoryRewardLines rate={englishLevel==='Pre-A1'?.82:englishLevel==='A1'?.9:.96}
      lines={(['opening','meet','result','ending'] as const).map(step=>narrativeFor(plan,step,rewardRecord?.destination??destination??undefined))}/>
    </main>

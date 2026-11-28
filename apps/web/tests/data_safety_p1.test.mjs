@@ -55,17 +55,23 @@ test('Escape inside a garden game uses the game exit control, which is disabled 
  const modal=src('components/learning/LearningPathModal.tsx');
  assert.match(modal,/document\.querySelector<HTMLButtonElement>\('\[data-game-exit\]'\)/);
  assert.match(modal,/if \(exit\) \{ if \(!exit\.disabled\) exit\.click\(\); return; \}/);
+ // Garden games draw their exit with the shared GameTopBar: gameExit sets data-game-exit
+ // and backDisabled locks it while a save is in flight.
+ const frame=src('components/learning/game/GameFrame.tsx');
+ assert.match(frame,/disabled=\{props\.backDisabled\}/);
+ assert.match(frame,/\{\.\.\.\(props\.gameExit\?\{'data-game-exit':''\}:\{\}\)\}/);
  const games={
-  'components/learning/activities/AnimalMeadowAdventure.tsx':/data-game-exit[^>]*disabled=\{saving\}/,
-  'components/learning/activities/ColorGroveAdventure.tsx':/data-game-exit[^>]*disabled=\{saving\}/,
-  'components/learning/activities/NumberValleyAdventure.tsx':/data-game-exit[^>]*disabled=\{saving\}/,
-  'components/learning/activities/FoodMarketAdventure.tsx':/data-game-exit[^>]*disabled=\{busy\}/,
-  'components/learning/activities/FamilyVillageAdventure.tsx':/data-game-exit disabled=\{busy\}/,
-  'components/learning/activities/TempleAdventure.tsx':/data-game-exit[^>]*disabled=\{busy\}/,
-  'components/learning/themes/ThemeTownAdventure.tsx':/data-game-exit disabled=\{saving\}/,
-  'components/learning/alphabet/AlphabetGroveAdventure.tsx':/data-game-exit[^>]*disabled=\{saving\}/
+  'components/learning/activities/AnimalMeadowAdventure.tsx':'saving',
+  'components/learning/activities/ColorGroveAdventure.tsx':'saving',
+  'components/learning/activities/NumberValleyAdventure.tsx':'saving',
+  'components/learning/activities/FoodMarketAdventure.tsx':'busy',
+  'components/learning/activities/FamilyVillageAdventure.tsx':'busy',
+  'components/learning/activities/TempleAdventure.tsx':'busy',
+  'components/learning/themes/ThemeTownAdventure.tsx':'saving',
+  'components/learning/alphabet/AlphabetGroveAdventure.tsx':'saving'
  };
- for(const [file,pattern] of Object.entries(games))assert.match(src(file),pattern,file);
+ for(const [file,flag] of Object.entries(games))
+  assert.match(src(file),new RegExp('<GameTopBar island="garden" gameExit[^>]*backDisabled=\{'+flag+'\}'),file);
 });
 
 test('The app never speaks into an open microphone',()=>{
@@ -87,13 +93,19 @@ test('Harbor and Academy saves keep speaking and completion evidence honest',()=
 
 test('Full-screen games keep their exit controls out of the iOS status bar',()=>{
  const css={
-  'components/learning/harbor/harbor-premium-scene.css':/\.harbor-root \.harbor-header\{padding-top:max\(10px,env\(safe-area-inset-top,0px\)\)\}/,
-  'components/learning/writing/writing-workshop.css':/\.writing-root \.writing-header\{padding-top:max\(9px,env\(safe-area-inset-top,0px\)\)\}/,
-  'components/learning/academy/academy-adventure.css':/\.academy-root \.academy-back\{min-height:44px;min-width:44px\}/,
-  'components/learning/sentence/sentence-plaza.css':/\.sp-overlay\{padding-top:env\(safe-area-inset-top,0px\)/,
-  'components/learning/sentence/movement-magic.css':/\.mm-root\{padding-top:env\(safe-area-inset-top,0px\)/,
-  'components/learning/sentence/wish-festival.css':/\.wf-root\{padding-top:env\(safe-area-inset-top,0px\)/,
-  'components/learning/sentence/lantern-festival.css':/\.lf-root\{padding-top:env\(safe-area-inset-top,0px\)/
+  // Harbor, Writing and Academy (and every game on the shared frame) get the
+  // notch padding from the one game top bar.
+  'components/learning/game/game-frame.css':/\.gf-bar\{[^}]*padding-top:env\(safe-area-inset-top,0px\)/,
+  // The four Cümle Meydanı games draw that bar; their scroll roots keep only the
+  // side insets so the status-bar inset is not applied twice.
+  'components/learning/sentence/SentencePlazaAdventure.tsx':/<GameTopBar island="sentence"/,
+  'components/learning/sentence/MovementMagicAdventure.tsx':/<GameTopBar island="sentence"/,
+  'components/learning/sentence/WishFestivalAdventure.tsx':/<GameTopBar island="sentence"/,
+  'components/learning/sentence/LanternFestivalAdventure.tsx':/<GameTopBar island="sentence"/,
+  'components/learning/sentence/sentence-plaza.css':/\.sp-overlay\{padding-left:env\(safe-area-inset-left,0px\);padding-right:env\(safe-area-inset-right,0px\)\}/,
+  'components/learning/sentence/movement-magic.css':/\.mm-root\{padding-left:env\(safe-area-inset-left,0px\);padding-right:env\(safe-area-inset-right,0px\)\}/,
+  'components/learning/sentence/wish-festival.css':/\.wf-root\{padding-left:env\(safe-area-inset-left,0px\);padding-right:env\(safe-area-inset-right,0px\)\}/,
+  'components/learning/sentence/lantern-festival.css':/\.lf-root\{padding-left:env\(safe-area-inset-left,0px\);padding-right:env\(safe-area-inset-right,0px\)\}/
  };
  for(const [file,pattern] of Object.entries(css))assert.match(src(file),pattern,file);
 });
@@ -110,7 +122,9 @@ test('The Kids home never shows a failed or stale progress read as zero or as an
 
 test('Functional labels measured at 11px on 320px phones have readable floors',()=>{
  assert.match(src('components/learning/harbor/harbor-premium-scene.css'),/\.harbor-root \.hp-replay\{font-size:13px;min-height:44px\}/);
- assert.match(src('components/learning/writing/writing-workshop.css'),/\.writing-root \.writing-learning-tools button\{font-size:13px;min-height:44px\}/);
+ // Writing's listen/hint tools use the shared tool button (14.5px, 46px; 15px/48px on phones).
+ assert.match(src('components/learning/writing/WritingWorkshopAdventure.tsx'),/className="gf-btn gf-btn--tool" onClick=\{speakModel\}/);
+ assert.match(src('components/learning/game/game-frame.css'),/\.gf-btn--tool\{min-height:46px;padding:0 16px;font-size:14\.5px/);
  assert.match(src('components/learning/academy/academy-adventure.css'),/\.academy-root \.academy-zone-text>span:last-child\{font-size:12px\}/);
  assert.match(src('components/learning/sentence/sentence-plaza-v2.css'),/\.sp-v2-details>summary\{min-height:44px;/);
 });

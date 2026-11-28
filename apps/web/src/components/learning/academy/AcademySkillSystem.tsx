@@ -1,7 +1,8 @@
 'use client';
 
-import React,{useEffect,useRef} from 'react';
-import {Headphones,BookOpen,Mic,Blocks,PencilLine,Check,ArrowRight,CheckCircle2,Lightbulb} from 'lucide-react';
+import React from 'react';
+import {GameStepRail} from '../game/GameFrame';
+import {Headphones,BookOpen,Mic,Blocks,PencilLine,ArrowRight,CheckCircle2,Lightbulb} from 'lucide-react';
 import type {LucideIcon} from 'lucide-react';
 import type {AcademyKind,AcademyTask} from '@/lib/learning/academyEngine';
 
@@ -21,52 +22,20 @@ export const ACADEMY_SKILL_UI:Readonly<Record<AcademyKind,{
   instruction:'Cevabını İngilizce yaz. Klavye yerine kelime kartlarını kullanmak yardımlı çalışmadır.'}
 };
 
+/** The academy's skill steps, drawn by the shared game step rail. */
 export function AcademySkillJourney({tasks,activeStep,review}:{
  tasks:readonly AcademyTask[];activeStep:number;review:boolean
 }){
- const listRef=useRef<HTMLOListElement>(null);
  const total=Math.max(tasks.length,1);
  const current=Math.max(0,Math.min(activeStep,total-1));
- useEffect(()=>{
-  const list=listRef.current;
-  const active=list?.querySelector<HTMLElement>('[aria-current="step"]');
-  if(!list||!active)return;
-  // Center only the skill rail; never jump the whole scrollable game screen.
-  const frame=window.requestAnimationFrame(()=>{
-   const parent=list.getBoundingClientRect(),child=active.getBoundingClientRect();
-   const delta=child.left-parent.left-(list.clientWidth-child.width)/2;
-   if(Math.abs(delta)>8)list.scrollLeft+=delta;
-  });
-  return()=>window.cancelAnimationFrame(frame);
- },[activeStep,review,tasks.length]);
- return <section className="academy-skill-journey" aria-label="Beceri ve görev ilerlemesi">
-  <div className="academy-journey-heading">
-   <div><span className="academy-journey-eyebrow">{review?'HEDEFLİ TEKRAR':'BECERİ YOLCULUĞU'}</span>
-    <strong>{review?'Üç küçük alıştırma':'Beş beceri, tek macera'}</strong></div>
-   <span className="academy-journey-count">Görev {current+1} / {total}</span>
-  </div>
-  <div className="academy-progress" role="progressbar" aria-valuemin={0} aria-valuemax={total}
-   aria-valuenow={current} aria-valuetext={current+' görev tamamlandı, '+total+' görevden'}
-   aria-label="Macera ilerlemesi">
-   <span style={{width:(current/total*100)+'%'}}/>
-  </div>
-  <ol ref={listRef} className="academy-skill-rail" aria-label="Görev sırası">
-   {tasks.map((task,i)=>{
-    const info=ACADEMY_SKILL_UI[task.kind],Icon=info.icon;
-    const state=i<current?'done':i===current?'current':'upcoming';
-    const status=state==='done'?'Tamamlandı':state==='current'?'Şimdi':'Sırada';
-    return <li key={task.id} className={'academy-skill-card academy-skill-card--'+state}
-     data-state={state} aria-current={state==='current'?'step':undefined}>
-     <span className="academy-skill-card-icon" aria-hidden="true">
-      {state==='done'?<Check size={20} strokeWidth={3}/>:<Icon size={20} strokeWidth={2.25}/>}
-     </span>
-     <span className="academy-skill-card-copy"><strong>{info.name}</strong>
-      <small>{review?'Tekrar '+(i+1):status}</small></span>
-     <span className="academy-skill-card-index" aria-hidden="true">{i+1}</span>
-    </li>;
-   })}
-  </ol>
- </section>;
+ return <GameStepRail island="academy" className="academy-skill-rail" showNotes
+  ariaLabel={review?'Hedefli tekrar görevleri':'Beceri yolculuğu: görev sırası'}
+  steps={tasks.map((task,i)=>{
+   const info=ACADEMY_SKILL_UI[task.kind],Icon=info.icon;
+   const state=i<current?'done':i===current?'current':'upcoming';
+   return {key:task.id,label:info.name,short:info.short,state,
+    icon:<Icon size={18} strokeWidth={2.4}/>,note:review?'Tekrar '+(i+1):undefined};
+  })}/>;
 }
 
 export function AcademyTaskIdentity({kind,current,total}:{kind:AcademyKind;current:number;total:number}){

@@ -29,16 +29,6 @@
 .sj-root,.ss-root,.sfh-root{
   background:radial-gradient(circle at 50% 5%,#fff3b4 0%,#b9eed1 39%,#65a9a0 100%);
 }
-.sj-header,.ss-head{
-  background:linear-gradient(110deg,#fffaf0f7,#f1ffedee 73%,#fff5daf5);
-  border-bottom:2px solid rgba(229,190,109,.54);
-  box-shadow:0 8px 20px rgba(28,92,67,.2);
-}
-.sj-back,.ss-round{
-  border-radius:50%;background:linear-gradient(145deg,#2b98da,#1064ac);
-  border:3px solid #e6faff;
-  box-shadow:inset 0 3px 3px #c1eeff99,0 4px 0 #1e5c8c,0 9px 17px #215e6470;
-}
 .sj-scene,.ss-screen{
   background:#6dc9c3;border:4px solid #fff6dc;
   box-shadow:0 0 0 2px #d8b96c6b,0 19px 40px #1a564f80;

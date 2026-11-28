@@ -5,54 +5,10 @@
  linear-gradient(155deg,#14344d,#225e68 52%,#183e50);
  color:#fff9ed;padding:max(9px,env(safe-area-inset-top,0px)) 10px max(22px,env(safe-area-inset-bottom,0px))}
 .fv3-screen .fv3-shell{max-width:1080px;margin:0 auto}
-.fv3-screen .fv3-top{position:sticky;top:max(0px,env(safe-area-inset-top,0px));z-index:45;
- display:flex;flex-wrap:nowrap;align-items:center;justify-content:space-between;gap:9px;
- margin:0 0 13px;padding:8px 12px;border-radius:19px;border:1px solid #fff3c5a6;
- background:linear-gradient(145deg,#153f55f0,#1c5865e8);
- box-shadow:0 6px 0 #133b4a,0 11px 26px #0c293c6f;backdrop-filter:blur(12px)}
-.fv3-screen .fv3-back{display:flex;align-items:center;gap:7px;justify-content:center;
- min-height:45px;padding:8px 12px;flex:none;background:#ffffff22;
- border:1px solid #ffefd3a3;box-shadow:none;color:#fff6e5;font-size:12px;white-space:nowrap}
-.fv3-back-arrow{font-size:25px;font-weight:700;line-height:1}
 .fv3-screen .fv3-heading{min-width:0;order:0;flex:1;flex-basis:auto;text-align:center}
 .fv3-heading>span{font-size:12px;color:#dff4da;letter-spacing:.11em;white-space:nowrap}
 .fv3-heading h1{font-size:clamp(21px,3.5vw,32px);
  color:#fff4d2;line-height:1.08;text-shadow:0 3px 10px #10394a99;letter-spacing:-.03em}
-.fv3-screen .fv3-stars{flex:none;min-height:44px;padding:9px 12px;
- background:linear-gradient(145deg,#fff9e9,#ffedc3);
- color:#74513d;border:1px solid #fff0bd;
- box-shadow:0 3px 0 #9b8463;font-size:12px}
-.fv3-screen .fv3-district-nav{grid-template-columns:repeat(4,minmax(0,1fr));
- gap:8px;margin-bottom:10px}
-.fv3-screen .fv3-district{position:relative;min-width:0;min-height:80px;display:flex;
- justify-content:center;align-items:center;gap:9px;text-align:left;padding:10px 9px;
- border:2px solid #fff2d0a9;border-radius:17px;
- color:#1f5753;background:linear-gradient(155deg,#fff7e8,#ccece0);
- box-shadow:0 5px 0 #5b9990,0 10px 17px #0d364b54;transition:transform .16s}
-.fv3-screen .fv3-district.fv-district-current{
- background:linear-gradient(135deg,#fff4c1,#d3f3cf);border-color:#fff2a9;
- box-shadow:0 5px 0 #9eb68e,0 10px 21px #092c4863}
-.fv3-screen .fv3-district:hover:enabled{transform:translateY(-2px)}
-.fv3-screen .fv3-district:disabled{opacity:.55;filter:saturate(.64);box-shadow:0 4px 0 #598d8b}
-.fv3-district .fv-district-icon{flex:none;width:43px;height:43px;display:grid;place-items:center;
- font-size:25px;background:#fffae6;border:1px solid #f6ddae;
- border-radius:13px;box-shadow:0 3px 0 #cfbd9c}
-.fv3-district>span:last-child{min-width:0}
-.fv3-screen .fv3-district strong{font-size:clamp(12px,1.5vw,13px);line-height:1.15;color:#245a54}
-.fv3-screen .fv3-district small{color:#598477;font-size:12px;line-height:1.24}
-.fv3-screen .fv3-stepnav{grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:11px}
-.fv3-screen .fv3-step{min-width:0;min-height:69px;position:relative;
- border-radius:15px;padding:7px 4px;border:2px solid #d0e9d3a9;
- color:#e8fae9;background:#164559d5;box-shadow:0 4px 0 #0d3449,0 8px 16px #062c4154;
- transition:transform .16s}
-.fv3-screen .fv3-step:hover:enabled{transform:translateY(-2px)}
-.fv3-screen .fv3-step.fv-step-current{color:#225958;
- border-color:#fff3b0;background:linear-gradient(155deg,#fff5ce,#caefc7);
- box-shadow:0 4px 0 #8bb79a,0 11px 16px #092c4361}
-.fv3-screen .fv3-step:disabled{opacity:.45}
-.fv3-step-icon{font-size:24px;line-height:1.05}.fv3-step-title{font-size:clamp(12px,1.5vw,12px);line-height:1.15}
-.fv3-step-index{display:none;font-size:12px;font-weight:950}
-.fv3-step>b{position:absolute;right:7px;top:3px;color:#ebba56}
 .fv3-screen .fv3-card{overflow:hidden;border-radius:27px;
  border:3px solid #fff2caae;background:#eaf7e5;
  box-shadow:0 7px 0 #1a4d58,0 22px 35px #092a3a80}
@@ -82,13 +38,6 @@
 .fv3-panel-head .fv-eyebrow{color:#659480;letter-spacing:.1em;font-size:12px;margin:0 0 2px}
 .fv3-panel-head p{color:#547f6f}
 .fv3-panel-head .wg-game-help{margin-top:6px}
-.fv3-screen .fv3-audio-toggle{flex:none;display:grid;place-items:center;
- min-height:48px;min-width:48px;background:#d1ebdc;color:#246b59;
- border:2px solid #fff7d6;box-shadow:0 4px 0 #a6cbb2;border-radius:14px}
-.fv3-screen .fv3-meter{margin-top:13px;height:8px;background:#bed6c9;border:0;
- overflow:hidden;border-radius:99px}
-.fv3-meter span{background:linear-gradient(90deg,#6cbda6,#eac477);
- box-shadow:0 0 10px #e1e6ad80}
 .fv3-screen .fv3-count{text-align:right;color:#688b7c;margin-top:5px;font-size:12px}
 .fv3-screen .fv3-prompt{display:flex;align-items:center;gap:11px;max-width:765px;
  margin:12px auto 12px;padding:10px 13px;
@@ -165,14 +114,7 @@
 .fv3-featured .fv3-word-art{width:154px;height:145px;max-width:154px;max-height:145px}
 .fv3-screen .fv3-featured-label{font-weight:950;font-size:13px;color:#315e5b}
 .fv3-screen .fv3-audio-task{max-width:730px;margin:10px auto;text-align:center}
-.fv3-screen .fv3-audio-task .fv-listen{border:2px solid #fff4c2;
- background:linear-gradient(130deg,#ffe9b0,#f8cd92);
- color:#77574e;box-shadow:0 5px 0 #d6b387;
- border-radius:16px;min-height:54px;font-size:15px}
 .fv3-screen .fv3-audio-task p{color:#536d65;font-size:12px;font-weight:850}
-.fv3-screen .fv-hint-button{background:linear-gradient(135deg,#d7f0df,#e9f6e7);
- border:1px solid #b7d6c3;color:#37695c;font-size:12px;
- border-radius:12px;min-height:45px;padding:9px 13px;margin:3px}
 .fv3-screen .fv3-actions{gap:5px;justify-content:center;margin:10px auto;max-width:730px;color:#567970}
 .fv3-screen .fv3-hint-reveal{display:block;width:100%;text-align:center;
  font-size:12px;color:#825e52;background:#fff4dd;border:1px solid #e1cfae;
@@ -182,44 +124,14 @@
  border:1px solid #9fd8ac;font-size:12px}
 .fv3-screen .fv-error{background:#ffdfda;color:#863e43;border:1px solid #e6a19c}
 .fv3-screen .fv-instruction{color:#668578;font-size:12px}
-.fv3-screen .fv3-celebrate{padding:20px 10px 29px;min-height:315px;text-align:center}
-.fv3-screen .fv3-celebrate .fv-medal{
- display:grid;place-items:center;margin:5px auto 12px;
- width:89px;height:89px;border-radius:50%;
- border:6px solid #fff3cb;background:linear-gradient(140deg,#fff8d3,#e3ae65);
- box-shadow:0 6px 0 #a88c6d,0 12px 22px #bc9a6549;font-size:42px}
-.fv3-screen .fv3-celebrate h2{color:#285e56;font-size:clamp(23px,4vw,32px)}
-.fv3-screen .fv3-celebrate>p{color:#608274}
-.fv3-screen .fv3-celebrate .fv-result{font-size:30px;color:#b88644;
- text-shadow:0 3px 10px #edc57870;letter-spacing:4px}
-.fv3-screen .fv-primary{border:2px solid #fff4cb;background:linear-gradient(135deg,#fff0b4,#bdeabd);
- box-shadow:0 5px 0 #99b996,0 12px 18px #60836f4e;color:#2a6154}
-.fv3-screen .fv-secondary{border:1px solid #b6d4bd;background:#d2eadc;
- color:#285d52;box-shadow:0 3px 0 #a5c5b7}
 .fv3-screen .fv3-footer{color:#c9e6da;font-size:12px;text-align:center}
 .fv3-screen button:focus-visible{outline:3px solid #f2b45b!important;outline-offset:3px}
 @keyframes fv3-flicker{to{opacity:.32;transform:translateY(-8px)}}
 @media(max-width:760px){
  .fv-screen.fv3-screen{padding:max(6px,env(safe-area-inset-top,0px)) 7px max(19px,env(safe-area-inset-bottom,0px))}
- .fv3-screen .fv3-top{flex-wrap:nowrap;gap:5px;padding:6px;border-radius:15px;margin-bottom:9px}
- .fv3-screen .fv3-back{padding:6px 9px;min-height:44px}
- .fv3-back-label{display:none}
  .fv3-screen .fv3-heading{order:0;flex-basis:auto;text-align:center}
  .fv3-heading>span{font-size:12px;letter-spacing:.04em}
  .fv3-heading h1{font-size:clamp(18px,4.9vw,25px)}
- .fv3-screen .fv3-stars{min-height:42px;padding:7px 9px;font-size:12px}
- .fv3-screen .fv3-district-nav{grid-template-columns:repeat(4,minmax(0,1fr));gap:5px;margin-bottom:7px}
- .fv3-screen .fv3-district{min-height:63px;flex-direction:column;text-align:center;
-   justify-content:center;padding:5px 2px;gap:2px;border-radius:11px}
- .fv3-district .fv-district-icon{width:27px;height:26px;border-radius:8px;font-size:18px;box-shadow:none}
- .fv3-screen .fv3-district strong{font-size:12px;line-height:1.1}
- .fv3-screen .fv3-district small{display:none}
- .fv3-screen .fv3-stepnav{gap:5px;margin-bottom:8px}
- .fv3-screen .fv3-step{min-height:53px;padding:4px 2px;border-radius:11px}
- .fv3-step-icon{font-size:19px}
- .fv3-step-title{display:none}
- .fv3-step-index{display:block;font-size:12px}
- .fv3-step>b{font-size:12px;right:3px;top:2px}
  .fv3-screen .fv3-card{border-radius:19px;border-width:2px}
  .fv3-screen .fv3-scene{height:clamp(118px,23vw,160px);border-bottom-width:3px}
  .fv3-landscape img{object-position:center center}
@@ -231,8 +143,6 @@
  .fv3-screen .fv3-panel{padding:10px 8px 15px}
  .fv3-panel-head h2{font-size:clamp(18px,4.6vw,24px)}
  .fv3-panel-head .fv-eyebrow{font-size:12px}
- .fv3-screen .fv3-audio-toggle{min-height:44px;min-width:44px;border-radius:11px}
- .fv3-screen .fv3-meter{margin-top:9px;height:7px}
  .fv3-screen .fv3-count{font-size:12px;margin-top:4px}
  .fv3-screen .fv3-prompt{margin:9px auto;padding:8px 9px;gap:7px;border-radius:13px}
  .fv3-prompt>span{font-size:21px}
@@ -259,18 +169,11 @@
  .fv3-featured .fv3-word-art{width:118px;height:110px;max-width:118px;max-height:110px}
  .fv3-screen .fv3-featured-label{font-size:12px}
  .fv3-screen .fv3-audio-task{margin:8px auto}
- .fv3-screen .fv3-audio-task .fv-listen{min-height:49px;font-size:13px;padding:9px}
- .fv3-screen .fv-hint-button{font-size:12px;min-height:44px;padding:8px 10px}
  .fv3-screen .fv-notice,.fv3-screen .fv3-discovery-status{padding:8px;font-size:12px}
- .fv3-screen .fv3-celebrate{min-height:260px;padding:13px 5px 19px}
- .fv3-screen .fv3-celebrate .fv-medal{width:73px;height:73px;font-size:32px}
- .fv3-screen .fv-primary{font-size:14px;min-height:52px}
 }
 @media(max-width:359px){
  .fv-screen.fv3-screen{padding-left:5px;padding-right:5px}
  .fv3-heading h1{font-size:18px}
- .fv3-screen .fv3-stars{padding:6px 7px;font-size:12px}
- .fv3-screen .fv3-district strong{font-size:12px}
  .fv3-screen .fv3-grid-discover{gap:4px}
  .fv3-screen .fv3-discovery{min-height:107px;padding:3px 1px}
  .fv3-screen .fv3-discovery>span:first-child{height:66px}
@@ -287,5 +190,5 @@
 }
 @media(prefers-reduced-motion:reduce){
  .fv3-screen *, .fv3-screen *::before, .fv3-screen *::after{animation:none!important;transition:none!important;scroll-behavior:auto!important}
- .fv3-screen .fv3-choice:hover:enabled,.fv3-screen .fv3-discovery:hover:enabled,.fv3-screen .fv3-step:hover:enabled,.fv3-screen .fv3-district:hover:enabled{transform:none!important}
+ .fv3-screen .fv3-choice:hover:enabled,.fv3-screen .fv3-discovery:hover:enabled{transform:none!important}
 }

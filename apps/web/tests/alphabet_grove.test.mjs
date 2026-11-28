@@ -215,7 +215,9 @@ test('UI is linked from Word Garden without modifying original six district IDs 
  assert.match(map,/Harf Korusu/);
  assert.match(map,/onEnterAlphabet/);
  assert.match(map,/Altı büyülü dünya/);
- assert.match(ui,/role="progressbar"/);
+ // Lesson progress is the shared top bar's progressbar; Escape uses its data-game-exit back button.
+ assert.match(ui,/<GameTopBar island="garden" gameExit backDisabled=\{saving\} onBack=\{leave\}/);
+ assert.match(ui,/progress=\{phase==='playing'&&deck\.length\?\{current:Math\.min\(step\+1,deck\.length\),total:deck\.length\}:undefined\}/);
  assert.match(ui,/aria-live="polite"/);
  assert.match(ui,/saveAlphabetCheckpoint/);
  assert.match(ui,/onStart:/);

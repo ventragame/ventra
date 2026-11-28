@@ -18,6 +18,7 @@ import {WordRecap,uniqueRecapWords} from '../WordRecap';
 import './theme-town.css';
 import './theme-art-v2.css';
 import {GameFinale} from '../GameFinale';
+import {GameTopBar,GameStepRail,GameResult} from '../game/GameFrame';
 
 type Props={profileId:string;englishLevel:EnglishPlacement;gradeLevel:number|null;
  onBack:()=>void;onSaved?:()=>void;};
@@ -232,16 +233,15 @@ export function ThemeTownAdventure({profileId,englishLevel,gradeLevel,onBack,onS
   if(!moved)timerRef.current=setTimeout(()=>move(0),voiced?5000:750);
  };
  const selectedTiles=task?wordTiles(task,selected):[];
- const percent=deck&&count?Math.round(100*Math.min(step,count)/count):0;
  return <div ref={dialogRef} className="tt-root" role="dialog" aria-modal="true" aria-label="Tema Kasabası">
+  <GameTopBar island="garden" gameExit backDisabled={saving} onBack={leave}
+   backLabel={phase==='home'?'Bölgeler':'Temalar'}
+   backAriaLabel={phase==='home'?'Kelime Bahçesi bölgelerine dön':'Tema Kasabası haritasına dön'}
+   crest="🏘️" accent="#ffd88a" eyebrow={phase==='home'?'Kelime Bahçesi':'Kelime Bahçesi · Tema Kasabası'}
+   title={phase==='home'?'Tema Kasabası':currentTheme.title}
+   progress={phase==='playing'&&count?{current:Math.min(step+1,count),total:count}:undefined}
+   chips={[englishLevel,'✦ '+progress.completed+'/8']}/>
   <div className="tt-shell">
-   <header className="tt-header">
-    <button className="tt-back" type="button" data-game-exit disabled={saving} onClick={leave} aria-label="Kelime Bahçesi'ne ya da tema listesine dön">← <span>Geri</span></button>
-    <div className="tt-brand"><span className="tt-brand-icon" aria-hidden="true">🏘️</span>
-     <div><small>VENTRA · KELİME BAHÇESİ</small><h1>Tema Kasabası</h1></div>
-    </div>
-    <div className="tt-header-chips"><span>{englishLevel}</span><span>✦ {progress.completed}/8</span></div>
-   </header>
    {phase==='home'&&<main className="tt-home">
     <section className="tt-hero">
      <div className="tt-hero-copy"><span className="tt-eyebrow">✦ GÜNLÜK HAYATTA İNGİLİZCE ✦</span>
@@ -295,13 +295,15 @@ export function ThemeTownAdventure({profileId,englishLevel,gradeLevel,onBack,onS
    </main>}
    {phase==='playing'&&<main className="tt-play">
     <div className="tt-play-heading"><div><img className="tt-play-scene" src={themeScene(active)} alt="" decoding="async"/>
-     <strong>{currentTheme.title}</strong><small>{tierLabel} · {gradeMode}</small></div>
-     <span>{Math.min(step+1,count)} / {count}</span></div>
-    <div className="tt-lesson-progress" role="progressbar" aria-label="Dersin ilerlemesi" aria-valuemin={0} aria-valuemax={100} aria-valuenow={percent}>
-     <span style={{width:percent+'%'}}/></div>
+     <strong>{currentTheme.title}</strong><small>{tierLabel} · {gradeMode}</small></div></div>
+    {task&&!retrySave&&<GameStepRail island="garden" className="tt-task-stages" ariaLabel="Dersin aşamaları"
+     steps={['Keşfet','Dene','Kullan'].map((label,i)=>{
+      const phaseIndex=step<2?0:step<count-2?1:2;
+      return {key:label,label,state:i<phaseIndex?'done':i===phaseIndex?'current':'upcoming'};
+     })}/>}
     {task&&!retrySave&&<section className="tt-challenge">
      <div className="tt-challenge-head"><span className="tt-task-label">✧ {taskLabel(task.kind)}</span>
-      <span className="tt-task-stage">{step<2?'1 · Keşfet':step<count-2?'2 · Dene':'3 · Kullan'}</span></div>
+</div>
      <h2>{task.promptTr}</h2>
      {task.kind==='clock'&&task.clockMinutes!==undefined&&<>
       <p className="tt-clock-instruction">🕰️ Kısa ibre saati, uzun ibre dakikayı gösterir. Resme dikkatlice bak.</p>
@@ -319,16 +321,16 @@ export function ThemeTownAdventure({profileId,englishLevel,gradeLevel,onBack,onS
      </div>}
      {task.kind==='listen'&&<div className="tt-headphones" aria-hidden="true">🎧</div>}
      {task.audioText&&<div className="tt-sound-options">
-       <button className="tt-speak" type="button" disabled={saving||locked}
+       <button className="tt-speak gf-btn gf-btn--tool" type="button" disabled={saving||locked}
         onClick={()=>speak(task.audioText!)}>🔊 {task.kind==='discover'?'İngilizcesini dinle':
         task.kind==='listen'?'Kelimeyi dinle':'İngilizceyi dinle'}</button>
-       <button className="tt-speak tt-speak-slow" type="button" disabled={saving||locked}
+       <button className="tt-speak tt-speak-slow gf-btn gf-btn--tool" type="button" disabled={saving||locked}
         onClick={()=>speak(task.audioText!,true)}>🐢 Yavaş dinle</button>
       </div>}
      {speechFailed&&<p className="tt-audio-warning" role="status">
       Ses başlatılamadı. Görselle ve ipucuyla devam edebilirsin. Bu görev dinleme yeterliliği sayılmaz.
      </p>}
-     {task.kind==='discover'&&<button className="tt-primary" type="button" disabled={locked||saving}
+     {task.kind==='discover'&&<button className="tt-primary gf-btn gf-btn--primary" type="button" disabled={locked||saving}
       onClick={()=>check(task.answer)}>Öğrendim, devam! →</button>}
      {task.kind!=='discover'&&task.kind!=='assemble'&&<div className="tt-choices">
       {task.choices.map((choice,i)=><button type="button" key={i}
@@ -347,11 +349,11 @@ export function ThemeTownAdventure({profileId,englishLevel,gradeLevel,onBack,onS
         disabled={locked||saving||selected.includes(i)} onClick={()=>setSelected(v=>[...v,i])}>
         {token}</button>)}
       </div>
-      <button type="button" className="tt-primary" disabled={locked||saving||selected.length!==task.choices.length}
+      <button type="button" className="tt-primary gf-btn gf-btn--primary" disabled={locked||saving||selected.length!==task.choices.length}
        onClick={()=>check(selectedTiles.join(' '))}>Cümleyi Kontrol Et ✓</button>
      </div>}
      {task.kind!=='discover'&&<div className="tt-hint-row">
-      <button type="button" onClick={showHint} disabled={locked||saving||hintVisible}>💡 Küçük ipucu</button>
+      <button type="button" className="gf-btn gf-btn--tool" onClick={showHint} disabled={locked||saving||hintVisible}>💡 Küçük ipucu</button>
       {task.kind==='listen'&&<small>{speechStarted?'✓ Ses başlatıldı':'🔊 Düğmeden dinle'}</small>}
      </div>}
      {listenFallback&&task.fallbackTr&&<p role="status" className="tt-hint">
@@ -365,26 +367,27 @@ export function ThemeTownAdventure({profileId,englishLevel,gradeLevel,onBack,onS
      <h2>Bu macerayı bitirdin!</h2>
      <p>Dersin kaydını tamamlıyoruz. Aynı soruları yeniden çözmene gerek yok.</p>
      {saveError&&<p className="tt-error" role="alert">{saveError}</p>}
-     <button type="button" className="tt-primary" disabled={saving}
+     <button type="button" className="tt-primary gf-btn gf-btn--primary" disabled={saving}
       onClick={()=>void finish(answers,mistakes,hints)}>{saving?'Kaydediliyor…':'Kaydı yeniden dene'}</button>
     </section>}
    </main>}
    {phase==='complete'&&<main className="tt-complete">
-    <span className="tt-complete-art" aria-hidden="true">{currentTheme.icon}</span>
-    <span className="tt-eyebrow">MACERA TAMAMLANDI</span>
-    <h2>{currentTheme.title}</h2><p>Bu temada yeni İngilizce kelimeleri ve ifadeleri çalıştın. Tekrar ederek daha iyi hatırlayabilirsin.</p>
-    <div className="tt-stars" aria-label={(result?.stars??1)+' yıldız kazandın'}>{'⭐'.repeat(result?.stars??1)}</div>
-    <small>Yardım almadan ilk denemede çözdüğün görev: {result?.independent??0}. Bu sayı tek başına dil yeterliği ölçümü değildir.</small>
-    {progress.completed>=progress.total&&<GameFinale title="Tema Kasabası tamamlandı!"
-     detail="Sekiz sokağın hepsini gezdin; her temada İngilizce kelimeler ve ifadeler çalıştın."/>}
-    <div className="tt-complete-actions">
-     <button type="button" className="tt-primary" onClick={()=>start(THEME_ORDER[(THEME_ORDER.indexOf(active)+1)%8])}>Sonraki Sokağa Geç →</button>
-     <button type="button" className="tt-secondary" onClick={()=>start(active)}>↻ Farklı sorularla tekrar oyna</button>
-     <button type="button" className="tt-secondary" onClick={leave}>Tema Kasabası haritasına dön</button>
-    </div>
-    <WordRecap title="Bu sokağın İngilizcesi · dokun ve dinle"
-     rate={gradeLevel!==null&&gradeLevel<=2?0.8:0.92}
-     words={uniqueRecapWords((deck?.tasks??[]).flatMap(t=>[t.word,t.phrase]))}/>
+    <GameResult island="garden" kicker="Macera tamamlandı" title={currentTheme.title}
+     art={<img src={themeScene(active)} alt="" decoding="async"/>}
+     stars={{earned:result?.stars??1}}
+     message="Bu temada yeni İngilizce kelimeleri ve ifadeleri çalıştın. Tekrar ederek daha iyi hatırlayabilirsin."
+     actions={<>
+      <button type="button" className="tt-primary gf-btn gf-btn--primary" onClick={()=>start(THEME_ORDER[(THEME_ORDER.indexOf(active)+1)%8])}>Sonraki Sokağa Geç →</button>
+      <button type="button" className="gf-btn gf-btn--secondary" onClick={()=>start(active)}>↻ Farklı sorularla tekrar oyna</button>
+      <button type="button" className="gf-btn gf-btn--secondary" onClick={leave}>Tema Kasabası haritasına dön</button>
+     </>}>
+     <small className="tt-evidence">Yardım almadan ilk denemede çözdüğün görev: {result?.independent??0}. Bu sayı tek başına dil yeterliği ölçümü değildir.</small>
+     {progress.completed>=progress.total&&<GameFinale title="Tema Kasabası tamamlandı!"
+      detail="Sekiz sokağın hepsini gezdin; her temada İngilizce kelimeler ve ifadeler çalıştın."/>}
+     <WordRecap title="Bu sokağın İngilizcesi · dokun ve dinle"
+      rate={gradeLevel!==null&&gradeLevel<=2?0.8:0.92}
+      words={uniqueRecapWords((deck?.tasks??[]).flatMap(t=>[t.word,t.phrase]))}/>
+    </GameResult>
    </main>}
    <footer className="tt-footer">🌿 Her çocuk kendi hızında öğrenir. Yanlışlar, bir sonraki denemeye hazırlıktır.</footer>
   </div>

@@ -45,9 +45,10 @@ test('All worlds still require deliberate chapter reward navigation and persiste
  const temple=read('TempleAdventure');
  assert.match(animal,/onClick=\{\(\)=>\{if\(stage===5\)onAllCompleted\(\);else reset/);
  assert.match(color,/onClick=\{\(\) => \{/);
- assert.match(food,/finished\?<div className="fm-win(?: fm4-win)?"/);
- assert.match(family,/saved\?<div className="fv-celebrate(?: fv3-celebrate)?"/);
- assert.match(temple,/finished\?<div className="tp-finished(?: tp6-finished)?"/);
+ // The reward is the shared game result card; its next button is a deliberate tap.
+ assert.match(food,/finished\?<GameResult island="garden" className="fm-win fm4-win"/);
+ assert.match(family,/saved\?<GameResult island="garden" className="fv-celebrate fv3-celebrate"/);
+ assert.match(temple,/finished\?<GameResult island="garden" className="tp-finished tp6-finished"/);
  for(const code of [animal,color,food,family,temple]){
   assert.match(code,/onSave\(/,'persistence still required');
  }

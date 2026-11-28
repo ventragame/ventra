@@ -4,42 +4,16 @@
    HUD and a 12px text floor. Motion obeys prefers-reduced-motion. */
 
 /* 1. HUD: help sits with the sound button and opens as a panel. */
-.nv6-root .nv5-header .wg-game-help{position:relative;max-width:none;margin:0}
-.nv6-root .nv5-header .wg-game-help summary{width:47px;height:47px;border-radius:12px;
- border:1px solid #fff3d58a;background:#ffffff26;box-shadow:none;font-size:20px;color:#fff7e2}
-.nv6-root .nv5-header .wg-game-help-body{position:absolute;right:0;top:calc(100% + 8px);z-index:40;
- width:min(340px,calc(100vw - 28px));margin:0;text-align:left}
-.nv6-root .nv5-level{border-color:#fff3d566!important;background:#143f4d!important;box-shadow:none!important;
- color:#e9f8f0;white-space:nowrap}
 
 /* 2. Lesson title: one slim banner instead of a tall hero. */
-.nv6-root .nv-stage-intro.nv5-intro{min-height:0;margin-top:10px;padding:10px 18px!important}
-.nv6-root .nv5-intro .nv5-eyebrow{font-size:12px;letter-spacing:.12em}
-.nv6-root .nv5-intro .nv5-title{margin-top:2px;font-size:clamp(23px,2.4vw,31px)}
-.nv6-root .nv5-intro .nv5-title-icon{width:36px;height:36px;font-size:21px;border-radius:12px}
 
 /* 3. Paths and chapters: compact rows, one line each. */
-.nv6-root .nv5-bands{margin:10px 0 8px!important;gap:8px!important}
-.nv6-root .nv5-band{min-height:52px;flex-direction:row;gap:10px;padding:6px 14px!important;border-radius:16px!important}
-.nv6-root .nv5-band-icon{font-size:20px}
-.nv6-root .nv5-band-title{font-size:14px}
-.nv6-root .nv5-band-range{font-size:12px;font-weight:900;padding:2px 8px;border-radius:999px;background:#ffffff1f}
-.nv6-root .nv5-band[data-current=true] .nv5-band-range{background:#1a51561a}
-.nv6-root .nv5-chapters{margin-bottom:10px!important;gap:8px!important}
-.nv6-root .nv5-chapter{min-height:54px;flex-direction:row;gap:9px;padding:6px 10px!important}
-.nv6-root .nv5-chapter-icon{font-size:22px}
-.nv6-root .nv5-chapter-text{display:flex;flex-direction:column;align-items:flex-start;min-width:0;line-height:1.15}
-.nv6-root .nv5-chapter-index{font-size:12px}
-.nv6-root .nv5-chapter-name{font-size:13px;text-align:left}
 
 /* 4. Panel and scene. */
 .nv6-root .nv5-panel{padding:10px!important}
-.nv6-root .nv5-progress-line{margin:0 4px 10px!important}
 .nv6-root .nv-landscape.nv5-landscape{min-height:0!important;padding:14px 20px 22px!important}
 .nv6-root .nv5-scene-top{margin-bottom:14px}
 .nv6-root .nv5-scene-kicker{font-size:12px;padding:6px 13px}
-.nv6-root .nv5-scene-count{padding:5px 13px;border-radius:999px;border:1px solid #fff7d4;
- background:#fff8e7;color:#255658;font-size:13px;font-weight:1000;font-variant-numeric:tabular-nums}
 .nv6-root .nv5-scene-title{margin-top:0!important}
 .nv6-root .nv5-scene-instruction{font-size:14px;margin-bottom:6px}
 /* The in-scene celebration plays behind the question and its answers. */
@@ -90,8 +64,6 @@
 /* 9. Listening, hints and written support. */
 .nv6-root .nv5-listen-row{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:8px 14px;margin-top:6px}
 .nv6-root .nv5-listen-main{min-height:54px!important;padding:0 26px!important;font-size:16px}
-.nv6-root .nv5-hint-link{min-height:44px;padding:0 12px;border-radius:12px;background:#0d354c99;
- border:1px solid #daefe866;color:#e3f6ff;font-size:13px;font-weight:850;text-decoration:underline;text-underline-offset:4px}
 .nv6-root .nv5-written-help{margin:0;padding:8px 14px;border-radius:12px;background:#0d354ccc;
  border:1px solid #c9f3b080;color:#eaffd0;font-size:14px;font-weight:900}
 
@@ -122,11 +94,8 @@
 
 /* 12. Reward screen: the celebration behind, honest result, tap-to-hear recap. */
 .nv6-root .nv5-finale .learning-motion{z-index:0}
-.nv6-root .nv5-finale>*:not(.learning-motion){position:relative;z-index:1}
-.nv6-root .nv5-finale h2{text-shadow:0 2px 0 #0b3b33,0 0 12px #0b3b33}
 .nv6-root .nv5-finale-stage{width:100%;height:140px}
 .nv6-root .nv5-finale-medal{margin-top:22px}
-.nv6-root .nv5-finale-stars{margin-top:6px}
 .nv6-root .nv5-finale-stats{margin:6px auto 0;font-size:15px;text-shadow:0 2px 0 #0b3b33,0 0 10px #0b3b33}
 .nv6-root .nv5-recap{margin:14px auto 2px;max-width:640px}
 .nv6-root .nv5-recap-title{margin-bottom:8px;font-size:12px;font-weight:900;letter-spacing:.04em;color:#c9f3dd}
@@ -143,34 +112,15 @@
 .nv6-root .nv5-recap-word:focus-visible{outline:3px solid #fff09d;outline-offset:3px}
 /* Short screens: the next-chapter button comes before the recap. */
 @media(max-height:940px){
- .nv6-root .nv5-finale{display:flex;flex-direction:column}
  .nv6-root .nv5-finale .nv5-recap{order:10}
 }
 
 /* 13. Phones: the scene fills the screen and answers sit in the thumb zone. */
 @media(max-width:767px){
- .nv6-root .nv5-header .wg-game-help summary{width:44px;height:44px}
- .nv6-root .nv5-header .nv5-starcount{font-size:12px}
  /* The paths and chapters already name the lesson; the eyebrow stays for screen readers. */
- .nv6-root .nv5-intro .nv5-eyebrow{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;
-  clip:rect(0,0,0,0);white-space:nowrap;border:0}
- .nv6-root .nv-stage-intro.nv5-intro{margin-top:4px;padding:6px 4px!important}
- .nv6-root .nv5-intro .nv5-title{font-size:22px}
- .nv6-root .nv5-intro .nv5-title-icon{width:32px;height:32px;font-size:19px}
- .nv6-root .nv5-bands{margin:6px 0!important;gap:6px!important}
- .nv6-root .nv5-band{min-height:46px;gap:6px;padding:4px 6px!important}
- .nv6-root .nv5-band-icon{font-size:17px}
- .nv6-root .nv5-band-range{font-size:12px;padding:1px 6px}
- .nv6-root .nv5-chapters{gap:5px!important;margin-bottom:8px!important}
- .nv6-root .nv5-chapter{min-height:48px;flex-direction:column;gap:1px;padding:4px 1px!important}
- .nv6-root .nv5-chapter-text{align-items:center}
- .nv6-root .nv5-chapter-icon{font-size:19px}
- .nv6-root .nv5-chapter-index{font-size:12px}
  .nv6-root .nv5-panel{padding:7px!important}
- .nv6-root .nv5-progress-line{margin:0 3px 7px!important}
  .nv6-root .nv-landscape.nv5-landscape{padding:10px 10px 14px!important}
  .nv6-root .nv5-scene-kicker{font-size:12px;padding:5px 10px}
- .nv6-root .nv5-scene-count{font-size:12px;padding:4px 10px}
  .nv6-root .nv5-scene-instruction{font-size:13px;max-width:330px}
  .nv6-root .nv5-toast{top:8px;max-width:calc(100% - 20px);padding:7px 14px;font-size:16px;flex-direction:column;align-items:center;border-radius:20px}
  .nv6-root .nv5-toast small{font-size:12px}
@@ -191,7 +141,6 @@
  .nv6-root .nv5-forge-output .nv-forge-slot,.nv6-root .nv5-sentence .nv-forge-slot{font-size:15px;min-height:40px}
  .nv6-root .nv5-forge-tile{min-width:52px!important;min-height:58px!important;font-size:18px!important}
  .nv6-root .nv5-word-tile{min-height:52px!important;padding:6px 14px!important;font-size:17px!important}
- .nv6-root .nv5-listen{min-height:46px!important;font-size:13px}
  .nv6-root .nv5-listen-main{min-height:52px!important;font-size:15px}
  .nv6-root .nv5-written-help{font-size:13px}
  /* Fill the screen: the playing field grows, the answers drop to the thumb zone. */
@@ -207,3 +156,8 @@
 @media(prefers-reduced-motion:reduce){
  .nv6-root .nv5-toast,.nv6-root .nv5-answer[data-result],.nv6-root .nv5-forge-tile[data-wrong=true]{animation:none!important}
 }
+
+/* Shared game frame (components/learning/game): two step rails, path then chapter. */
+.nv6-root .gf-bar{--gf-max:1080px}
+.nv6-root .nv5-bands,.nv6-root .nv5-chapters{max-width:1080px;margin:0 auto 10px}
+.nv6-root .nv5-finale .gf-result-art{min-height:150px}

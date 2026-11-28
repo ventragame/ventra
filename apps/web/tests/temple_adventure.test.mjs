@@ -134,7 +134,8 @@ test('G3: accessible active map, all five temple challenges, audio completion an
  assert.match(ui,/stage===4/);assert.match(ui,/chooseToken/);assert.match(ui,/current.words:task.options/);
  assert.match(ui,/soundService\.speakEnglish\(text/);assert.match(ui,/onEnd:.*setHeard\(true\)/);
  assert.match(ui,/aria-label="Oluşturulan İngilizce cümle"/);
- assert.match(ui,/role="progressbar"/);
+ // Progress is the shared top bar's progressbar.
+ assert.match(ui,/progress=\{current&&!finished\?\{current:stage===1\?stepCount:Math\.min\(stepCount\+1,Math\.max\(1,stepTotal\)\)/);
  assert.match(map,/onEnterTemple/);
  assert.match(modal,/templeUnlocked=\{true\}/);
  assert.match(modal,/saveTempleMission/);
